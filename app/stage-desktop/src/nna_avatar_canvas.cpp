@@ -9,11 +9,28 @@
 #include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
 #include <QOpenGLContext>
+#include <QOpenGLFunctions>
 #include <QQuickWindow>
 #include <QDir>
 
 #ifdef NNA_ENABLE_LIVE2D
 #include "nna/graphics/live2d/live2d_pal.h"
+#endif
+
+// Minimal no-op renderer used when Live2D is disabled — prevents null-deref in Qt
+class NNAFallbackRenderer : public QQuickFramebufferObject::Renderer {
+public:
+    QOpenGLFramebufferObject* createFramebufferObject(const QSize& size) override {
+        return new QOpenGLFramebufferObject(size, QOpenGLFramebufferObject::CombinedDepthStencil);
+    }
+    void render() override {
+        auto* f = QOpenGLContext::currentContext()->functions();
+        f->glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        f->glClear(GL_COLOR_BUFFER_BIT);
+    }
+};
+
+#ifdef NNA_ENABLE_LIVE2D
 
 class NNAAvatarCanvasRenderer : public QQuickFramebufferObject::Renderer {
 public:
@@ -164,11 +181,11 @@ QQuickFramebufferObject::Renderer* NNAAvatarCanvas::createRenderer() const {
     qDebug() << "[NNAAvatarCanvas] createRenderer() called";
 #ifdef NNA_ENABLE_LIVE2D
     auto* r = new NNAAvatarCanvasRenderer(const_cast<NNAAvatarCanvas*>(this));
-    qDebug() << "[NNAAvatarCanvas] createRenderer() returning" << (void*)r;
+    qDebug() << "[NNAAvatarCanvas] createRenderer() returning Live2D renderer";
     return r;
 #else
-    qDebug() << "[NNAAvatarCanvas] createRenderer() returning nullptr (Live2D disabled)";
-    return nullptr;
+    qDebug() << "[NNAAvatarCanvas] createRenderer() returning fallback (Live2D disabled)";
+    return new NNAFallbackRenderer();
 #endif
 }
 

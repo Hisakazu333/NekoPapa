@@ -40,7 +40,31 @@ endif()
 
 # --- Core library ---
 if(WIN32)
-    set(CUBISM_CORE_LIB "${CUBISM_SDK_ROOT}/Core/lib/windows/x86_64/Live2DCubismCore.lib")
+    # Cubism SDK organizes Windows libs by arch and MSVC toolset version:
+    #   windows/x86_64/{140,141,142,143}/Live2DCubismCore_{MD,MT,MDd,MTd}.lib
+    # Detect MSVC toolset and pick the right one.
+    if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+        set(_CSM_ARCH "x86_64")
+    else()
+        set(_CSM_ARCH "x86")
+    endif()
+
+    # Map MSVC toolset version
+    if(MSVC_TOOLSET_VERSION)
+        set(_CSM_TOOLSET "${MSVC_TOOLSET_VERSION}")
+    else()
+        set(_CSM_TOOLSET "143")  # VS 2022 default
+    endif()
+
+    # Try exact toolset, then fall back to available ones (newest first)
+    set(_CSM_WIN_BASE "${CUBISM_SDK_ROOT}/Core/lib/windows/${_CSM_ARCH}")
+    set(CUBISM_CORE_LIB "")
+    foreach(_ts ${_CSM_TOOLSET} 143 142 141 140)
+        if(EXISTS "${_CSM_WIN_BASE}/${_ts}/Live2DCubismCore_MD.lib")
+            set(CUBISM_CORE_LIB "${_CSM_WIN_BASE}/${_ts}/Live2DCubismCore_MD.lib")
+            break()
+        endif()
+    endforeach()
 elseif(APPLE)
     # Prefer arm64 on Apple Silicon, fallback to x86_64
     if(CMAKE_OSX_ARCHITECTURES MATCHES "arm64" OR CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
