@@ -15,10 +15,10 @@
 NNAModelManager::NNAModelManager(QObject* parent)
     : QObject(parent)
 {
-    // assets/live2d/ next to the executable
+    // 可执行文件旁的 assets/live2d/ 目录 / assets/live2d/ next to the executable
     m_assetsDir = QCoreApplication::applicationDirPath() + "/assets/live2d";
 
-    // User data directory for imported models
+    // 用户数据目录，存放导入的模型 / User data directory for imported models
     QString dataDir = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     m_userModelsDir = dataDir + "/models";
     QDir().mkpath(m_userModelsDir);
@@ -41,6 +41,7 @@ QVariantList NNAModelManager::modelList() const {
         map["id"] = m.id;
         map["name"] = m.name;
         map["path"] = m.path;
+        map["thumbnailUrl"] = m.thumbnailUrl;
         map["isPreset"] = m.isPreset;
         map["accentColor"] = m.accentColor;
         map["isCurrent"] = (m.id == m_currentModelId);
@@ -69,20 +70,20 @@ bool NNAModelManager::importModel(const QUrl& folderUrl) {
     QDir srcDir(srcPath);
     if (!srcDir.exists()) return false;
 
-    // Verify it contains a .model3.json
+    // 验证文件夹包含 .model3.json / Verify it contains a .model3.json
     if (findModel3Json(srcPath).isEmpty()) return false;
 
-    // Copy to user models directory
+    // 复制到用户模型目录 / Copy to user models directory
     QString folderName = srcDir.dirName();
     QString destPath = m_userModelsDir + "/" + folderName;
 
-    // Avoid name collision
+    // 避免名称冲突 / Avoid name collision
     int suffix = 1;
     while (QDir(destPath).exists()) {
         destPath = m_userModelsDir + "/" + folderName + "_" + QString::number(suffix++);
     }
 
-    // Recursive copy
+    // 递归复制整个文件夹 / Recursive copy
     QDir destDir(destPath);
     destDir.mkpath(".");
 
@@ -112,7 +113,7 @@ bool NNAModelManager::importModel(const QUrl& folderUrl) {
 bool NNAModelManager::removeModel(const QString& modelId) {
     for (const auto& m : m_models) {
         if (m.id == modelId) {
-            if (m.isPreset) return false; // Cannot delete preset models
+            if (m.isPreset) return false; // 预设模型不可删除 / Cannot delete preset models
 
             QDir dir(m.path);
             if (!dir.removeRecursively()) return false;
@@ -138,7 +139,7 @@ void NNAModelManager::switchModel(const QString& modelId) {
             m_currentModelId = modelId;
             saveCurrentSelection();
             emit currentModelChanged();
-            emit modelListChanged(); // isCurrent flags changed
+            emit modelListChanged(); // isCurrent 标记变更 / isCurrent flags changed
             return;
         }
     }
@@ -149,8 +150,17 @@ void NNAModelManager::scanModels() {
     scanDirectory(m_assetsDir, true);
     scanDirectory(m_userModelsDir, false);
 
-    // Auto-select first model if nothing selected
-    if (m_currentModelId.isEmpty() && !m_models.isEmpty()) {
+    // 验证已选模型是否仍然存在 / Validate that selected model still exists
+    bool selectionValid = false;
+    for (const auto& m : m_models) {
+        if (m.id == m_currentModelId) {
+            selectionValid = true;
+            break;
+        }
+    }
+
+    // 选中的模型不存在或为空时，自动选第一个 / Auto-select first if selection is invalid or empty
+    if (!selectionValid && !m_models.isEmpty()) {
         m_currentModelId = m_models.first().id;
         saveCurrentSelection();
         emit currentModelChanged();
@@ -167,7 +177,7 @@ void NNAModelManager::scanDirectory(const QString& dir, bool isPreset) {
         QString modelDir = entry.filePath();
         QString model3Json = findModel3Json(modelDir);
 
-        // Check subdirectory "runtime/" (RUOYI model layout)
+        // 检查 runtime/ 子目录（兼容 RUOYI 模型布局）/ Check runtime/ subdirectory (RUOYI model layout)
         if (model3Json.isEmpty()) {
             QString runtimeDir = modelDir + "/runtime";
             if (QDir(runtimeDir).exists()) {
@@ -184,6 +194,7 @@ void NNAModelManager::scanDirectory(const QString& dir, bool isPreset) {
         m.id = (isPreset ? "preset:" : "user:") + entry.fileName();
         m.name = entry.fileName();
         m.path = modelDir;
+        m.thumbnailUrl = findThumbnail(modelDir);
         m.isPreset = isPreset;
         m.accentColor = isPreset ? "#FF7AA2" : "#818CF8";
         m_models.append(m);
@@ -194,6 +205,18 @@ QString NNAModelManager::findModel3Json(const QString& dir) const {
     QDir d(dir);
     QStringList files = d.entryList({"*.model3.json"}, QDir::Files);
     return files.isEmpty() ? QString() : files.first();
+}
+
+QString NNAModelManager::findThumbnail(const QString& modelDir) const {
+    // 查找专用缩略图文件 / Look for dedicated thumbnail files
+    for (const auto& name : {"thumbnail.png", "icon.png", "thumbnail.jpg", "icon.jpg"}) {
+        QString path = modelDir + "/" + name;
+        if (QFile::exists(path))
+            return QUrl::fromLocalFile(path).toString();
+    }
+
+    // 没有缩略图则返回空，QML 侧显示 emoji 占位 / No thumbnail found, QML shows emoji fallback
+    return {};
 }
 
 void NNAModelManager::saveCurrentSelection() {

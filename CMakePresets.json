@@ -8,7 +8,8 @@
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/qt"
+                "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/qt",
+                "NNA_ENABLE_LIVE2D": "ON"
             }
         },
         {

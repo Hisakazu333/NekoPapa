@@ -38,10 +38,14 @@ private:
     struct ModelEntry {
         QString id;
         QString name;
-        QString path;       // absolute path to model directory
-        bool isPreset;      // true = bundled in assets, cannot delete
+        QString path;           // 模型目录绝对路径 / Absolute path to model directory
+        QString thumbnailUrl;   // 缩略图 file:// URL / file:// URL to thumbnail image
+        bool isPreset;          // 预设模型不可删除 / Bundled preset, cannot delete
         QString accentColor;
     };
+
+    // 查找模型缩略图 / Find thumbnail image for a model
+    QString findThumbnail(const QString& modelDir) const;
 
     void scanModels();
     void scanDirectory(const QString& dir, bool isPreset);
@@ -51,6 +55,6 @@ private:
 
     QList<ModelEntry> m_models;
     QString m_currentModelId;
-    QString m_assetsDir;
-    QString m_userModelsDir;
+    QString m_assetsDir;      // 内置资源目录 / Built-in assets directory
+    QString m_userModelsDir;  // 用户导入模型目录 / User-imported models directory
 };

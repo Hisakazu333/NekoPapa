@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Dialogs
+import NNA.Core 1.0
 
 Item {
     id: characterPage
@@ -13,7 +14,7 @@ Item {
         anchors.margins: 20
         spacing: 16
 
-        // Header
+        // 页面头部 / Header
         RowLayout {
             Layout.fillWidth: true
             spacing: 12
@@ -28,7 +29,7 @@ Item {
 
             Item { Layout.fillWidth: true }
 
-            // Refresh button
+            // 刷新按钮 / Refresh button
             Rectangle {
                 Layout.preferredWidth: 36
                 Layout.preferredHeight: 36
@@ -46,7 +47,7 @@ Item {
                 }
             }
 
-            // Import button
+            // 导入按钮 / Import button
             Rectangle {
                 Layout.preferredWidth: importRow.width + 24
                 Layout.preferredHeight: 36
@@ -72,7 +73,7 @@ Item {
             }
         }
 
-        // Model grid
+        // 模型网格 / Model grid
         GridView {
             id: modelGrid
             Layout.fillWidth: true
@@ -106,23 +107,27 @@ Item {
                         anchors.centerIn: parent
                         spacing: 8
 
-                        // Model preview
+                        // 模型 Live2D 预览 / Live2D model preview
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
-                            width: 100
-                            height: 100
+                            width: 120
+                            height: 120
                             radius: 12
-                            color: Qt.alpha(modelData.accentColor, 0.08)
+                            color: Qt.alpha(modelData.accentColor, 0.06)
+                            clip: true
 
-                            Text {
-                                anchors.centerIn: parent
-                                text: modelData.isPreset ? "\uD83C\uDF1F" : "\uD83D\uDC31"
-                                font.pixelSize: 48
-                                opacity: 0.6
+                            // 嵌入 Live2D 渲染画布 / Embedded Live2D render canvas
+                            NNAAvatarCanvas {
+                                id: cardAvatar
+                                anchors.fill: parent
+                                modelPath: modelData.path
+                                modelScale: 1.0
+                                modelOffsetX: 0.0
+                                modelOffsetY: -0.4
                             }
                         }
 
-                        // Model name
+                        // 模型名称 / Model name
                         Text {
                             anchors.horizontalCenter: parent.horizontalCenter
                             text: modelData.name
@@ -135,7 +140,7 @@ Item {
                             horizontalAlignment: Text.AlignHCenter
                         }
 
-                        // Status badge
+                        // 状态徽章 / Status badge
                         Rectangle {
                             anchors.horizontalCenter: parent.horizontalCenter
                             width: badgeText.implicitWidth + 16
@@ -154,7 +159,7 @@ Item {
                         }
                     }
 
-                    // Preset indicator
+                    // 预设标记 / Preset indicator
                     Text {
                         anchors.top: parent.top
                         anchors.right: parent.right
@@ -173,6 +178,7 @@ Item {
 
                         onClicked: function(mouse) {
                             if (mouse.button === Qt.RightButton) {
+                                // 右键菜单仅对非预设模型生效 / Context menu only for non-preset models
                                 if (!modelData.isPreset) {
                                     contextMenu.modelId = modelData.id
                                     contextMenu.popup()
@@ -186,7 +192,7 @@ Item {
             }
         }
 
-        // Empty state
+        // 空状态提示 / Empty state
         Item {
             Layout.fillWidth: true
             Layout.fillHeight: true
@@ -213,7 +219,7 @@ Item {
         }
     }
 
-    // Drag-and-drop overlay
+    // 拖拽导入覆盖层 / Drag-and-drop overlay
     DropArea {
         anchors.fill: parent
         keys: ["text/uri-list"]
@@ -252,7 +258,7 @@ Item {
         }
     }
 
-    // Toast notification
+    // 底部 Toast 通知 / Toast notification
     Rectangle {
         id: toast
         anchors.bottom: parent.bottom
@@ -290,7 +296,7 @@ Item {
         var ok = modelManager.importModel(url)
         if (ok) {
             showToast("\u2705 \u6A21\u578B\u5BFC\u5165\u6210\u529F")
-            // Auto-switch to the newly imported model (last in user list)
+            // 自动切换到新导入的模型（列表末尾） / Auto-switch to the newly imported model (last in user list)
             var list = modelManager.modelList
             for (var i = list.length - 1; i >= 0; i--) {
                 if (!list[i].isPreset) {
@@ -303,7 +309,7 @@ Item {
         }
     }
 
-    // Context menu for delete
+    // 右键删除菜单 / Context menu for delete
     Menu {
         id: contextMenu
         property string modelId: ""
@@ -317,7 +323,7 @@ Item {
         }
     }
 
-    // Folder dialog for import
+    // 文件夹选择对话框 / Folder dialog for import
     FolderDialog {
         id: folderDialog
         title: "\u9009\u62E9 Live2D \u6A21\u578B\u6587\u4EF6\u5939"
