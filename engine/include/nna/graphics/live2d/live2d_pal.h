@@ -8,11 +8,12 @@
 #pragma once
 
 #include <CubismFramework.hpp>
+#include "nna/export.h"
 #include <string>
 
 namespace nna::graphics {
 
-class Live2DPal {
+class NNA_EXPORT Live2DPal {
 public:
     static void printLog(const char* format, ...);
     static void printMessage(const char* message);

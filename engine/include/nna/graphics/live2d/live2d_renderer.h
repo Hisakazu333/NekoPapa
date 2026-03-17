@@ -9,12 +9,13 @@
 
 #include "live2d_model.h"
 #include "live2d_allocator.h"
+#include "nna/export.h"
 #include <mutex>
 #include <string>
 
 namespace nna::graphics {
 
-class Live2DRenderer {
+class NNA_EXPORT Live2DRenderer {
 public:
     Live2DRenderer();
     ~Live2DRenderer();
