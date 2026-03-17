@@ -19,9 +19,9 @@
 
 #define CSM_FRAGMENT_SHADER_FP_PRECISION CSM_FRAGMENT_SHADER_FP_PRECISION_HIGH
 
-// macOS desktop GL: #version 100 (GLSL ES) and precision qualifiers are not supported.
+// Desktop GL (macOS / Windows): #version 100 (GLSL ES) and precision qualifiers are not supported.
 // Use #version 120 (GLSL desktop) and strip precision statements.
-#ifdef CSM_TARGET_MAC_GL
+#if defined(CSM_TARGET_MAC_GL) || defined(CSM_TARGET_WIN_GL)
 #define CSM_SHADER_VERSION "#version 120\n"
 #define CSM_SHADER_PRECISION ""
 #else

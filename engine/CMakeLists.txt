@@ -9,6 +9,12 @@ if(NNA_ENABLE_LIVE2D)
         src/graphics/live2d/live2d_model.cpp
         src/graphics/live2d/live2d_renderer.cpp
     )
+    # Windows: compile GLEW shim (wglGetProcAddress loader)
+    if(WIN32)
+        list(APPEND ENGINE_SOURCES
+            "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glew-shim/src/glew_shim.cpp"
+        )
+    endif()
 endif()
 
 add_library(openneko SHARED ${ENGINE_SOURCES})
@@ -28,6 +34,12 @@ if(NNA_ENABLE_LIVE2D)
     target_include_directories(openneko PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/third_party/stb"
     )
+    # Windows: GLEW shim include path
+    if(WIN32)
+        target_include_directories(openneko PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}/third_party/glew-shim/include"
+        )
+    endif()
 endif()
 
 set_target_properties(openneko PROPERTIES

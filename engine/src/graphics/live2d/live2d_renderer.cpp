@@ -9,6 +9,10 @@
 #include "nna/graphics/live2d/live2d_pal.h"
 #include <CubismFramework.hpp>
 
+#ifdef _WIN32
+#include <GL/glew.h>
+#endif
+
 namespace nna::graphics {
 
 static Csm::csmByte* s_loadFile(const std::string fileName, Csm::csmSizeInt* outSize) {
@@ -28,6 +32,15 @@ Live2DRenderer::~Live2DRenderer() {
 
 bool Live2DRenderer::initFramework() {
     if (m_frameworkInitialized) return true;
+
+#ifdef _WIN32
+    // Load GL 2.0+ function pointers via wglGetProcAddress
+    if (glewInit() != GLEW_OK) {
+        Live2DPal::printLog("ERROR: glewInit() failed");
+        return false;
+    }
+    Live2DPal::printLog("GL functions loaded (GLEW shim)");
+#endif
 
     Csm::CubismFramework::Option option;
     option.LogFunction = Live2DPal::printMessage;
