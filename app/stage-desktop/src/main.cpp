@@ -11,6 +11,10 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QSurfaceFormat>
+#ifdef _WIN32
+#include <Windows.h>
+#include <cstdio>
+#endif
 #include "app_controller.h"
 #include "nna_model_manager.h"
 #include "nna_avatar_canvas.h"
@@ -19,6 +23,12 @@ using namespace Qt::StringLiterals;
 
 int main(int argc, char *argv[])
 {
+#ifdef _WIN32
+    // Always show a console window for debug output on Windows
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+#endif
     // Force OpenGL rendering backend (required for QQuickFramebufferObject / Live2D)
     QQuickWindow::setGraphicsApi(QSGRendererInterface::OpenGL);
 
