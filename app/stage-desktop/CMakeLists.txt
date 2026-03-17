@@ -62,10 +62,20 @@ target_link_libraries(OpenNekoEngine PRIVATE
     Qt6::OpenGL
 )
 
-# Symlink assets directory next to the executable so NNAModelManager can find models
-add_custom_command(TARGET OpenNekoEngine POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E create_symlink
-        "${CMAKE_SOURCE_DIR}/assets"
-        "$<TARGET_FILE_DIR:OpenNekoEngine>/assets"
-    COMMENT "Symlinking assets → build output"
-)
+# Copy/link assets directory next to the executable so NNAModelManager can find models
+# Windows: symlinks need admin/dev-mode, so use copy instead
+if(WIN32)
+    add_custom_command(TARGET OpenNekoEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+            "${CMAKE_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:OpenNekoEngine>/assets"
+        COMMENT "Copying assets → build output"
+    )
+else()
+    add_custom_command(TARGET OpenNekoEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E create_symlink
+            "${CMAKE_SOURCE_DIR}/assets"
+            "$<TARGET_FILE_DIR:OpenNekoEngine>/assets"
+        COMMENT "Symlinking assets → build output"
+    )
+endif()
