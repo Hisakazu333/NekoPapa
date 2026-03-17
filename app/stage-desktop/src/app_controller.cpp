@@ -1,4 +1,5 @@
 #include "app_controller.h"
+#include "nna_model_manager.h"
 
 NNAAppController::NNAAppController(QObject* parent)
     : QObject(parent)
@@ -57,4 +58,16 @@ void NNAAppController::touchPet(float x, float y, float duration) {
 void NNAAppController::sendMessage(const QString& text) {
     m_engine.sendMessage(text.toStdString());
     emit stateChanged();
+}
+
+void NNAAppController::setModelManager(NNAModelManager* manager) {
+    m_modelManager = manager;
+    if (m_modelManager) {
+        connect(m_modelManager, &NNAModelManager::currentModelChanged,
+                this, &NNAAppController::currentModelPathChanged);
+    }
+}
+
+QString NNAAppController::currentModelPath() const {
+    return m_modelManager ? m_modelManager->currentModelPath() : QString();
 }

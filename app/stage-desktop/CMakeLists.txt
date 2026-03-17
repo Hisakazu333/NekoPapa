@@ -1,4 +1,4 @@
-find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 OpenGL)
 
 qt_policy(SET QTP0001 NEW)
 if(Qt6_VERSION VERSION_GREATER_EQUAL "6.8.0")
@@ -11,6 +11,10 @@ set(DESKTOP_SOURCES
     src/main.cpp
     src/app_controller.h
     src/app_controller.cpp
+    src/nna_model_manager.h
+    src/nna_model_manager.cpp
+    src/nna_avatar_canvas.h
+    src/nna_avatar_canvas.cpp
 )
 
 qt_add_executable(OpenNekoEngine ${DESKTOP_SOURCES})
@@ -55,4 +59,13 @@ target_link_libraries(OpenNekoEngine PRIVATE
     openneko
     Qt6::Quick
     Qt6::QuickControls2
+    Qt6::OpenGL
+)
+
+# Symlink assets directory next to the executable so NNAModelManager can find models
+add_custom_command(TARGET OpenNekoEngine POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E create_symlink
+        "${CMAKE_SOURCE_DIR}/assets"
+        "$<TARGET_FILE_DIR:OpenNekoEngine>/assets"
+    COMMENT "Symlinking assets → build output"
 )

@@ -40,7 +40,7 @@ ApplicationWindow {
             currentIndex: root.currentPage
 
             HomePage {}       // 0 首页
-            SoulPage {}       // 1 灵魂 (记忆/梦境/状态/猫娘)
+            SoulPage {}       // 1 灵魂 (记忆/梦境/状态/角色)
             AbilityPage {}    // 2 能力 (ToolCall/代理/进化)
             WorldPage {}      // 3 世界 (感知/IoT)
             SettingsPage {}   // 4 设置

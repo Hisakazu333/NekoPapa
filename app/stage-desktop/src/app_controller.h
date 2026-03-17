@@ -6,6 +6,8 @@
 #include <memory>
 #include "nna/core/engine.h"
 
+class NNAModelManager;
+
 class NNAAppController : public QObject {
     Q_OBJECT
 
@@ -29,9 +31,14 @@ class NNAAppController : public QObject {
     Q_PROPERTY(float affinityDelta READ affinityDelta NOTIFY stateChanged)
     Q_PROPERTY(int memoryCount READ memoryCount NOTIFY stateChanged)
 
+    // Live2D model
+    Q_PROPERTY(QString currentModelPath READ currentModelPath NOTIFY currentModelPathChanged)
+
 public:
     explicit NNAAppController(QObject* parent = nullptr);
     ~NNAAppController() override;
+
+    void setModelManager(NNAModelManager* manager);
 
     float pleasure() const;
     float arousal() const;
@@ -45,6 +52,7 @@ public:
     int interactionCount() const;
     float affinityDelta() const;
     int memoryCount() const;
+    QString currentModelPath() const;
 
     Q_INVOKABLE void feedPet(const QString& foodType);
     Q_INVOKABLE void giveWater();
@@ -53,8 +61,10 @@ public:
 
 signals:
     void stateChanged();
+    void currentModelPathChanged();
 
 private:
     nna::core::NNAEngine m_engine;
     QTimer m_tickTimer;
+    NNAModelManager* m_modelManager = nullptr;
 };

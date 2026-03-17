@@ -28,7 +28,7 @@ Item {
                         { label: "\u2B50 \u8BB0\u5FC6\u661F\u56FE" },
                         { label: "\uD83C\uDF19 \u68A6\u5883\u65E5\u5FD7" },
                         { label: "\uD83D\uDCCA \u72B6\u6001\u4EEA\u8868\u76D8" },
-                        { label: "\uD83D\uDC3E \u732B\u5A18" }
+                        { label: "\uD83D\uDC3E \u89D2\u8272" }
                     ]
 
                     delegate: Rectangle {

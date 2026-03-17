@@ -1,15 +1,17 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import NNA.Core 1.0
 
 Item {
     id: homePage
 
     property string accent: appController.accentColor
 
-    // === Full-screen Live2D canvas ===
+    // === Full-screen background + Live2D ===
     Rectangle {
         anchors.fill: parent
+        clip: true
         gradient: Gradient {
             orientation: Gradient.Vertical
             GradientStop { position: 0.0; color: "#FFF5F0" }
@@ -45,19 +47,37 @@ Item {
             }
         }
 
-        // Cat placeholder — large, lower-center, breathing
+        // Live2D model canvas — full page, clipped
+        NNAAvatarCanvas {
+            id: avatarCanvas
+            anchors.fill: parent
+            modelPath: appController.currentModelPath
+            modelScale: scaleSlider.value
+            modelOffsetX: xSlider.value
+            modelOffsetY: ySlider.value
+        }
+
+        // Full-page touch area for model interaction (behind UI elements)
+        MouseArea {
+            anchors.fill: parent
+            z: 1
+            onClicked: function(mouse) {
+                avatarCanvas.onTouchAt(mouse.x, mouse.y)
+            }
+        }
+
+        // Fallback emoji when no Live2D model loaded
         Item {
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: parent.height * 0.18
+            anchors.centerIn: parent
             width: 200
             height: 240
+            z: 2
+            visible: !avatarCanvas.modelLoaded && !appController.currentModelPath
 
             Text {
                 id: catEmoji
                 anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 40
+                anchors.verticalCenter: parent.verticalCenter
                 text: "\uD83D\uDC31"
                 font.pixelSize: 160
                 opacity: 0.7
@@ -66,23 +86,6 @@ Item {
                     loops: Animation.Infinite
                     NumberAnimation { to: 1.02; duration: 2500; easing.type: Easing.InOutSine }
                     NumberAnimation { to: 0.98; duration: 2500; easing.type: Easing.InOutSine }
-                }
-            }
-
-            // Shadow under cat
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                anchors.bottomMargin: 20
-                width: 100
-                height: 12
-                radius: 6
-                color: Qt.alpha("#000000", 0.04)
-
-                SequentialAnimation on width {
-                    loops: Animation.Infinite
-                    NumberAnimation { to: 110; duration: 2500; easing.type: Easing.InOutSine }
-                    NumberAnimation { to: 100; duration: 2500; easing.type: Easing.InOutSine }
                 }
             }
 
@@ -122,7 +125,6 @@ Item {
             color: "#4B5563"
         }
 
-        // Little triangle pointing down
         Canvas {
             anchors.top: parent.bottom
             anchors.horizontalCenter: parent.horizontalCenter
@@ -217,6 +219,78 @@ Item {
         }
     }
 
+    // === Model adjustment toggle (gear icon, top-left below greeting) ===
+    Rectangle {
+        id: adjustToggle
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.leftMargin: 20
+        anchors.topMargin: 60
+        width: 28
+        height: 28
+        radius: 14
+        color: adjustPanel.visible ? Qt.alpha(homePage.accent, 0.15) : Qt.alpha("#000000", 0.04)
+        z: 20
+
+        Text {
+            anchors.centerIn: parent
+            text: "\u2699"
+            font.pixelSize: 14
+            opacity: 0.5
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            cursorShape: Qt.PointingHandCursor
+            onClicked: adjustPanel.visible = !adjustPanel.visible
+        }
+    }
+
+    // === Model adjustment panel (appears below gear) ===
+    Rectangle {
+        id: adjustPanel
+        anchors.left: parent.left
+        anchors.top: adjustToggle.bottom
+        anchors.leftMargin: 12
+        anchors.topMargin: 4
+        width: 200
+        height: adjustCol.height + 16
+        radius: 12
+        color: Qt.alpha("#FFFFFF", 0.92)
+        border.color: Qt.alpha(homePage.accent, 0.1)
+        border.width: 1
+        visible: false
+        z: 20
+
+        Column {
+            id: adjustCol
+            anchors.left: parent.left
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: 8
+            spacing: 4
+
+            Row {
+                spacing: 4
+                Text { text: "\u7F29\u653E"; font.pixelSize: 10; color: "#666"; width: 28; anchors.verticalCenter: parent.verticalCenter }
+                Slider { id: scaleSlider; from: 0.5; to: 5.0; value: 1.0; implicitWidth: 120; stepSize: 0.1 }
+                Text { text: scaleSlider.value.toFixed(1); font.pixelSize: 10; color: "#666"; width: 24; anchors.verticalCenter: parent.verticalCenter }
+            }
+            Row {
+                spacing: 4
+                Text { text: "X"; font.pixelSize: 10; color: "#666"; width: 28; anchors.verticalCenter: parent.verticalCenter }
+                Slider { id: xSlider; from: -3.0; to: 3.0; value: 0.0; implicitWidth: 120; stepSize: 0.05 }
+                Text { text: xSlider.value.toFixed(2); font.pixelSize: 10; color: "#666"; width: 24; anchors.verticalCenter: parent.verticalCenter }
+            }
+            Row {
+                spacing: 4
+                Text { text: "Y"; font.pixelSize: 10; color: "#666"; width: 28; anchors.verticalCenter: parent.verticalCenter }
+                Slider { id: ySlider; from: -3.0; to: 3.0; value: 0.0; implicitWidth: 120; stepSize: 0.05 }
+                Text { text: ySlider.value.toFixed(2); font.pixelSize: 10; color: "#666"; width: 24; anchors.verticalCenter: parent.verticalCenter }
+            }
+        }
+    }
+
     // === Chat bubbles floating above input ===
     ListView {
         id: chatList
@@ -261,7 +335,6 @@ Item {
                     color: fromUser ? "#FFFFFF" : "#2D2D2D"
                 }
 
-                // Entry animation
                 scale: 0.8
                 opacity: 0
                 Component.onCompleted: {
@@ -437,7 +510,6 @@ Item {
                 }
             }
 
-            // Tiny circular progress
             Rectangle {
                 visible: progress >= 0
                 anchors.horizontalCenter: parent.horizontalCenter
