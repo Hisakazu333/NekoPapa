@@ -66,10 +66,15 @@ int main(int argc, char *argv[])
     engine.rootContext()->setContextProperty("appController", &controller);
     engine.rootContext()->setContextProperty("modelManager", &modelManager);
 
+    qDebug() << "[main] Loading QML...";
     engine.load(QUrl(u"qrc:/qt/qml/OpenNeko/qml/main.qml"_s));
+    qDebug() << "[main] QML loaded, rootObjects:" << engine.rootObjects().size();
 
-    if (engine.rootObjects().isEmpty())
+    if (engine.rootObjects().isEmpty()) {
+        qCritical() << "[main] QML load failed!";
         return -1;
+    }
 
+    qDebug() << "[main] Entering event loop...";
     return app.exec();
 }

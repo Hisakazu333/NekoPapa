@@ -8,6 +8,7 @@
 #include "nna_avatar_canvas.h"
 #include <QMouseEvent>
 #include <QOpenGLFramebufferObject>
+#include <QOpenGLContext>
 #include <QQuickWindow>
 #include <QDir>
 
@@ -142,12 +143,13 @@ private:
 NNAAvatarCanvas::NNAAvatarCanvas(QQuickItem* parent)
     : QQuickFramebufferObject(parent)
 {
+    qDebug() << "[NNAAvatarCanvas] constructor";
     setAcceptedMouseButtons(Qt::LeftButton);
     setMirrorVertically(true);
 
 #ifdef NNA_ENABLE_LIVE2D
     m_live2dRenderer = new nna::graphics::Live2DRenderer();
-    // Framework init deferred to render thread (needs OpenGL context)
+    qDebug() << "[NNAAvatarCanvas] Live2DRenderer created";
 #endif
 }
 
@@ -159,9 +161,13 @@ NNAAvatarCanvas::~NNAAvatarCanvas() {
 }
 
 QQuickFramebufferObject::Renderer* NNAAvatarCanvas::createRenderer() const {
+    qDebug() << "[NNAAvatarCanvas] createRenderer() called";
 #ifdef NNA_ENABLE_LIVE2D
-    return new NNAAvatarCanvasRenderer(const_cast<NNAAvatarCanvas*>(this));
+    auto* r = new NNAAvatarCanvasRenderer(const_cast<NNAAvatarCanvas*>(this));
+    qDebug() << "[NNAAvatarCanvas] createRenderer() returning" << (void*)r;
+    return r;
 #else
+    qDebug() << "[NNAAvatarCanvas] createRenderer() returning nullptr (Live2D disabled)";
     return nullptr;
 #endif
 }
