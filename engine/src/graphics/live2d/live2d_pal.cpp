@@ -12,6 +12,10 @@
 #include <fstream>
 #include <chrono>
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace nna::graphics {
 
 static double s_currentFrame = 0.0;
@@ -76,7 +80,18 @@ Csm::csmByte* Live2DPal::loadFileAsBytes(const std::string& filePath, Csm::csmSi
         pos += 1;
     }
 
-    std::ifstream file(fullPath, std::ios::binary | std::ios::ate);
+    std::ifstream file;
+#ifdef _WIN32
+    // Windows: convert UTF-8 path to wide string for non-ASCII file names
+    int wlen = MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, nullptr, 0);
+    if (wlen > 0) {
+        std::wstring wpath(wlen - 1, L'\0');
+        MultiByteToWideChar(CP_UTF8, 0, fullPath.c_str(), -1, &wpath[0], wlen);
+        file.open(wpath, std::ios::binary | std::ios::ate);
+    }
+#else
+    file.open(fullPath, std::ios::binary | std::ios::ate);
+#endif
     if (!file.is_open()) {
         printLog("ERROR: Failed to open file: %s", fullPath.c_str());
         if (outSize) *outSize = 0;
