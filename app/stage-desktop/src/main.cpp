@@ -18,6 +18,8 @@
 #include "app_controller.h"
 #include "nna_model_manager.h"
 #include "nna_avatar_canvas.h"
+#include "nna_macos_dock.h"
+#include "nna_window_chrome.h"
 #include "live2d_stage_profile.h"
 #include "theme.h"
 #include "icons.h"
@@ -60,6 +62,7 @@ int main(int argc, char *argv[])
 
     // Register QML types
     qmlRegisterType<NNAAvatarCanvas>("NNA.Core", 1, 0, "NNAAvatarCanvas");
+    qmlRegisterType<NNAMacOSDockView>("NNA.Core", 1, 0, "NNAMacOSDockView");
 
     NNAModelManager modelManager;
     NNAAppController controller;
@@ -85,6 +88,11 @@ int main(int argc, char *argv[])
     if (engine.rootObjects().isEmpty()) {
         qCritical() << "[main] QML load failed!";
         return -1;
+    }
+
+    if (auto *window = qobject_cast<QWindow *>(engine.rootObjects().constFirst())) {
+        NNAWindowChrome::applyMainWindowChrome(window);
+        window->show();
     }
 
     qDebug() << "[main] Entering event loop...";

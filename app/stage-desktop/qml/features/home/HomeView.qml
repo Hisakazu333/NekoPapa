@@ -12,25 +12,33 @@ Item {
     readonly property var s: homeStore.state
     readonly property real designWidth: 735
     readonly property real designHeight: 944
-    readonly property real compactProgress: smoothStep((960 - width) / 160)
-    readonly property real compactScale: Math.max(0.1, Math.min(1.0, width / designWidth, height / designHeight))
+    readonly property real widthCompactProgress: smoothStep((960 - width) / 160)
+    readonly property real heightCompactProgress: smoothStep((860 - height) / 180)
+    readonly property real aspectCompactProgress: smoothStep((1.08 - (width / Math.max(1, height))) / 0.22)
+    readonly property real shapeCompactProgress: Math.max(widthCompactProgress, aspectCompactProgress)
+    readonly property real compactProgress: Math.max(shapeCompactProgress, heightCompactProgress)
+    readonly property real compactScale: Math.max(0.1, Math.min(1.35, width / designWidth, height / designHeight))
     readonly property real wideStageMaxWidth: 1240
-    readonly property real wideLayoutWidth: Math.min(width, wideStageMaxWidth)
-    readonly property real layoutWidth: mix(wideLayoutWidth, designWidth, compactProgress)
+    readonly property real wideLayoutWidth: Math.min(width, Math.max(wideStageMaxWidth, width - 120))
+    readonly property real layoutWidth: mix(wideLayoutWidth, designWidth, shapeCompactProgress)
     readonly property real layoutHeight: mix(height, designHeight, compactProgress)
     readonly property real layoutScale: mix(1.0, compactScale, compactProgress)
     readonly property real avatarSafeHeight: Math.max(1, height - root.dockClearance - 150)
-    readonly property real wideAvatarTargetHeight: Math.max(760, Math.min(avatarSafeHeight, 920))
-    readonly property real compactAvatarTargetHeight: Math.max(600, Math.min(avatarSafeHeight, 760))
+    readonly property real wideAvatarTargetHeight: Math.min(avatarSafeHeight, 880)
+    readonly property real compactAvatarTargetHeight: Math.min(avatarSafeHeight, 708 * compactScale)
     readonly property real avatarTargetHeight: mix(wideAvatarTargetHeight, compactAvatarTargetHeight, compactProgress)
     readonly property real avatarBucket: 8
     readonly property real avatarRenderHeight: Math.max(1, Math.round(avatarTargetHeight / avatarBucket) * avatarBucket)
     readonly property real wideRailWidth: Math.min(Math.max(layoutWidth * 0.21, 230), 272)
-    readonly property real railWidth: mix(wideRailWidth, 196, compactProgress)
-    readonly property real rightRailWidth: mix(wideRailWidth, 180, compactProgress)
-    readonly property real composerWidth: mix(Math.min(Math.max(layoutWidth * 0.62, 720), 940), 625, compactProgress)
+    readonly property real railWidth: mix(wideRailWidth, 196, shapeCompactProgress)
+    readonly property real rightRailWidth: mix(wideRailWidth, 180, shapeCompactProgress)
+    readonly property real composerWidth: mix(Math.min(Math.max(layoutWidth * 0.62, 720), 940), 625, shapeCompactProgress)
+    readonly property real wideComposerViewportWidth: Math.min(Math.max(width * 0.68, 620), Math.max(1, Math.min(980, width - 56)))
+    readonly property real compactComposerViewportWidth: Math.min(Math.max(1, width - 56 * compactScale), 625 * compactScale)
+    readonly property real composerViewportWidth: Math.round(mix(wideComposerViewportWidth, compactComposerViewportWidth, shapeCompactProgress))
+    readonly property real composerHeight: Math.round(56 * compactScale)
     readonly property real wideAvatarStageWidth: Math.min(Math.max(avatarRenderHeight * 0.72, 620), 820)
-    readonly property real compactAvatarStageWidth: Math.min(width / compactScale, designWidth)
+    readonly property real compactAvatarStageWidth: Math.min(width / compactScale, designWidth, Math.max(520, avatarRenderHeight * 1.02))
     readonly property real avatarStageWidth: mix(wideAvatarStageWidth, compactAvatarStageWidth, compactProgress)
     readonly property real avatarRenderWidth: Math.max(1, Math.round(avatarStageWidth / avatarBucket) * avatarBucket)
     readonly property real modelRenderScale: Math.max(0.84,
@@ -39,6 +47,9 @@ Item {
     readonly property real modelRenderOffsetY: mix(0.04, 0.03, compactProgress) + s.modelOffsetYAdjust
     readonly property real avatarCenterOffsetY: mix(-46, -34, compactProgress)
     readonly property string clockIconPath: "M12 6v6l4 2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"
+    readonly property string backgroundSource: "qrc:/qt/qml/OpenNeko/qml/assets/home/home-stage-room-cat-pillow.png"
+    readonly property bool wideViewport: (width / Math.max(1, height)) > 1.18
+    readonly property real focusSceneWidth: wideViewport ? Math.min(width, height * 1.15) : width
     property date currentTime: new Date()
 
     Timer {
@@ -48,9 +59,62 @@ Item {
         onTriggered: root.currentTime = new Date()
     }
 
-    Rectangle {
+    function openModelAdjustDrawer() {
+        homeStore.state.modelAdjustOpen = true
+    }
+
+    Item {
         anchors.fill: parent
-        color: Theme.color("bg.canvas")
+
+        Image {
+            id: environmentFill
+            anchors.fill: parent
+            source: root.backgroundSource
+            fillMode: Image.PreserveAspectCrop
+            horizontalAlignment: Image.AlignHCenter
+            verticalAlignment: Image.AlignVCenter
+            asynchronous: true
+            cache: true
+            smooth: true
+            opacity: root.wideViewport ? 0.48 : 1.0
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            visible: root.wideViewport
+            color: Qt.rgba(0.96, 0.89, 0.84, 0.20)
+        }
+
+        Image {
+            id: focusScene
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: root.focusSceneWidth
+            source: root.backgroundSource
+            fillMode: Image.PreserveAspectCrop
+            horizontalAlignment: Image.AlignHCenter
+            verticalAlignment: Image.AlignVCenter
+            asynchronous: true
+            cache: true
+            smooth: true
+            visible: root.wideViewport
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            color: Theme.isDark ? Theme.alpha("bg.canvas", 0.66) : Qt.rgba(0.98, 0.94, 0.92, 0.20)
+        }
+
+        Rectangle {
+            anchors.fill: parent
+            gradient: Gradient {
+                orientation: Gradient.Vertical
+                GradientStop { position: 0.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.52) : Qt.rgba(1.0, 0.97, 0.94, 0.18) }
+                GradientStop { position: 0.48; color: "transparent" }
+                GradientStop { position: 1.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.34) : Qt.rgba(0.94, 0.86, 0.80, 0.24) }
+            }
+        }
     }
 
     HomeAvatarArea {
@@ -115,7 +179,7 @@ Item {
                 spacing: 26
 
                 StagePill {
-                    labelText: appController.currentModelPath !== "" ? "Live2D 已加载" : "等待模型"
+                    labelText: appController.currentModelPath !== "" ? appController.characterName + " 在场" : "准备舞台"
                     accentColor: appController.currentModelPath !== "" ? Theme.color("state.success") : Theme.color("state.warning")
                 }
 
@@ -125,7 +189,7 @@ Item {
                 }
 
                 StagePill {
-                    labelText: appController.characterName + "在线"
+                    labelText: "桌面在线"
                     accentColor: Theme.color("state.success")
                 }
 
@@ -267,22 +331,22 @@ Item {
 
             GlassCard {
                 width: parent.width
-                titleText: "LIVE STAGE"
-                accentText: appController.currentModelPath !== "" ? "\u8FD0\u884C\u4E2D" : "\u7B49\u5F85\u6A21\u578B"
+                titleText: "\u5F53\u524D\u573A\u666F"
+                accentText: appController.currentModelPath !== "" ? "\u5728\u573A" : "\u51C6\u5907\u4E2D"
 
                 Text {
                     width: parent.width - 40
-                    text: appController.characterName + " \u5728\u684C\u9762\u966A\u4F34\u4E2D"
+                    text: appController.currentModelPath !== "" ? appController.characterName + " \u6B63\u5728\u966A\u4F34\u4F60" : "\u6B63\u5728\u4E3A " + appController.characterName + " \u51C6\u5907\u821E\u53F0"
                     wrapMode: Text.WordWrap
                     font.pixelSize: 15
                     font.family: Theme.fontUi
-                    font.weight: Font.Black
+                    font.weight: Font.DemiBold
                     color: Theme.color("text.primary")
                 }
 
                 StageSummary {
-                    labelText: "\u6A21\u578B"
-                    valueText: appController.currentModelPath !== "" ? "Live2D" : "\u672A\u52A0\u8F7D"
+                    labelText: "\u821E\u53F0"
+                    valueText: appController.currentModelPath !== "" ? "\u5DF2\u5C31\u7EEA" : "\u51C6\u5907\u4E2D"
                     accentColor: appController.currentModelPath !== "" ? Theme.color("state.success") : Theme.color("state.warning")
                 }
 
@@ -329,16 +393,6 @@ Item {
             }
         }
 
-        HomeInputBar {
-            id: composerShell
-            width: root.composerWidth
-            height: 56
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: root.mix(root.dockClearance + 20, 96, root.compactProgress)
-            store: homeStore
-        }
-
         Item {
             id: drawerDock
             width: 292
@@ -352,6 +406,17 @@ Item {
                 store: homeStore
             }
         }
+    }
+
+    HomeInputBar {
+        id: composerShell
+        z: 8
+        width: root.composerViewportWidth
+        height: root.composerHeight
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: root.dockClearance + 20 * root.compactScale
+        store: homeStore
     }
 
     component StagePill: Item {
@@ -392,9 +457,9 @@ Item {
             Text {
                 anchors.verticalCenter: parent.verticalCenter
                 text: stagePill.labelText
-                font.pixelSize: 14
+                font.pixelSize: 13
                 font.family: Theme.fontUi
-                font.weight: Font.DemiBold
+                font.weight: Font.Medium
                 renderType: Text.NativeRendering
                 color: stagePill.muted ? Theme.color("text.tertiary") : Theme.color("text.secondary")
             }
@@ -409,8 +474,8 @@ Item {
 
         implicitHeight: contentColumn.implicitHeight + root.mix(44, 40, root.compactProgress)
         radius: 24
-        color: Theme.alpha("surface.base", Theme.isDark ? 0.88 : 0.94)
-        border.color: Theme.alpha("line.soft", Theme.isDark ? 0.74 : 0.64)
+        color: Theme.alpha("surface.base", Theme.isDark ? 0.84 : 0.78)
+        border.color: Theme.alpha("line.soft", Theme.isDark ? 0.78 : 0.68)
         border.width: 1
         clip: false
 

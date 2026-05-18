@@ -111,6 +111,12 @@ public:
         if (m_needsReload && !m_currentModelPath.isEmpty()) {
             m_needsReload = false;
             loadModel();
+        } else if (m_needsReload && m_currentModelPath.isEmpty()) {
+            m_needsReload = false;
+            m_item->m_live2dRenderer->unloadModel();
+            m_item->m_modelLoaded = false;
+            m_item->m_modelLoadFailed = false;
+            emit m_item->modelLoadedChanged();
         }
 
         m_item->m_live2dRenderer->update();
@@ -135,8 +141,6 @@ public:
                 m_projectionHeightHint
             );
         }
-
-        update();
     }
 
 private:
@@ -162,6 +166,7 @@ private:
             dirPath.toStdString(), jsonFiles.first().toStdString());
 
         m_item->m_modelLoaded = ok;
+        m_item->m_modelLoadFailed = !ok;
         emit m_item->modelLoadedChanged();
 
         if (!ok) {
@@ -193,6 +198,23 @@ NNAAvatarCanvas::NNAAvatarCanvas(QQuickItem* parent)
     setAcceptedMouseButtons(Qt::LeftButton);
     setAcceptHoverEvents(true);
     setMirrorVertically(true);
+    m_frameTimer.setTimerType(Qt::CoarseTimer);
+    m_frameTimer.setSingleShot(false);
+
+    connect(&m_frameTimer, &QTimer::timeout, this, [this]() {
+        update();
+    });
+    connect(this, &QQuickItem::visibleChanged, this, &NNAAvatarCanvas::refreshFrameLoop);
+    connect(this, &QQuickItem::windowChanged, this, [this](QQuickWindow* window) {
+        bindWindow(window);
+        refreshFrameLoop();
+    });
+    connect(this, &NNAAvatarCanvas::modelPathChanged, this, &NNAAvatarCanvas::refreshFrameLoop);
+    connect(this, &NNAAvatarCanvas::modelLoadedChanged, this, &NNAAvatarCanvas::refreshFrameLoop);
+    connect(this, &NNAAvatarCanvas::modelError, this, [this](const QString&) {
+        m_modelLoadFailed = true;
+        refreshFrameLoop();
+    });
 
 #ifdef NNA_ENABLE_LIVE2D
     m_live2dRenderer = new nna::graphics::Live2DRenderer();
@@ -203,6 +225,52 @@ NNAAvatarCanvas::~NNAAvatarCanvas() {
 #ifdef NNA_ENABLE_LIVE2D
     delete m_live2dRenderer;
 #endif
+}
+
+void NNAAvatarCanvas::componentComplete()
+{
+    QQuickFramebufferObject::componentComplete();
+    bindWindow(window());
+    refreshFrameLoop();
+}
+
+void NNAAvatarCanvas::refreshFrameLoop()
+{
+    const QQuickWindow* currentWindow = m_boundWindow ? m_boundWindow.data() : window();
+    const bool hasModelSource = !m_modelPath.isEmpty() && (!m_modelLoadFailed || m_modelLoaded);
+    const bool canRun = isVisible() && currentWindow && currentWindow->isVisible() && currentWindow->isExposed() && hasModelSource;
+
+    if (!canRun) {
+        if (m_frameTimer.isActive())
+            m_frameTimer.stop();
+        return;
+    }
+
+    const bool active = currentWindow->isActive();
+    const int intervalMs = active ? 33 : 100;
+    if (!m_frameTimer.isActive() || m_frameTimer.interval() != intervalMs)
+        m_frameTimer.start(intervalMs);
+}
+
+void NNAAvatarCanvas::bindWindow(QQuickWindow* window)
+{
+    if (m_boundWindow == window)
+        return;
+
+    if (m_boundWindow)
+        QObject::disconnect(m_boundWindow.data(), nullptr, this, nullptr);
+
+    m_boundWindow = window;
+
+    if (!m_boundWindow)
+        return;
+
+    connect(m_boundWindow.data(), &QQuickWindow::activeChanged, this, &NNAAvatarCanvas::refreshFrameLoop);
+    connect(m_boundWindow.data(), &QWindow::visibilityChanged, this, &NNAAvatarCanvas::refreshFrameLoop);
+    connect(m_boundWindow.data(), &QObject::destroyed, this, [this]() {
+        m_boundWindow = nullptr;
+        refreshFrameLoop();
+    });
 }
 
 QQuickFramebufferObject::Renderer* NNAAvatarCanvas::createRenderer() const {
@@ -219,8 +287,10 @@ QString NNAAvatarCanvas::modelPath() const { return m_modelPath; }
 void NNAAvatarCanvas::setModelPath(const QString& path) {
     if (m_modelPath != path) {
         m_modelPath = path;
+        m_modelLoadFailed = false;
         emit modelPathChanged();
         update();
+        refreshFrameLoop();
     }
 }
 

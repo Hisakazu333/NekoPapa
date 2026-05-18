@@ -6,12 +6,13 @@ import QtQuick.Shapes
 Rectangle {
     id: root
     height: 56
-    radius: 28
-    color: Theme.isDark ? Theme.alpha("surface.raised", 0.94) : Theme.alpha("surface.float", 0.94)
-    border.color: Theme.alpha("line.soft", Theme.isDark ? 0.80 : 0.72)
+    radius: height / 2
+    color: Theme.isDark ? Theme.alpha("surface.raised", 0.90) : Qt.rgba(1.0, 0.985, 0.965, 0.86)
+    border.color: Theme.alpha("line.soft", Theme.isDark ? 0.82 : 0.76)
     border.width: 1
 
     property var store: null
+    readonly property real uiScale: Math.max(0.82, Math.min(1.35, height / 56))
 
     Rectangle {
         anchors.fill: parent
@@ -46,9 +47,9 @@ Rectangle {
 
     RowLayout {
         anchors.fill: parent
-        anchors.leftMargin: 20
-        anchors.rightMargin: 7
-        spacing: 10
+        anchors.leftMargin: 20 * root.uiScale
+        anchors.rightMargin: 7 * root.uiScale
+        spacing: 10 * root.uiScale
 
         TextField {
             id: inputField
@@ -56,7 +57,7 @@ Rectangle {
             placeholderText: root.store ? "\u8DDF " + root.store.state.characterName + " \u8BF4\u70B9\u4EC0\u4E48..." : "\u8BF4\u70B9\u4EC0\u4E48..."
             placeholderTextColor: Theme.color("text.tertiary")
             background: Item {}
-            font.pixelSize: 16
+            font.pixelSize: 16 * root.uiScale
             font.family: Theme.fontUi
             color: Theme.color("text.primary")
             verticalAlignment: TextInput.AlignVCenter
@@ -67,9 +68,9 @@ Rectangle {
         }
 
         Rectangle {
-            Layout.preferredWidth: 38
-            Layout.preferredHeight: 38
-            radius: 19
+            Layout.preferredWidth: 38 * root.uiScale
+            Layout.preferredHeight: 38 * root.uiScale
+            radius: height / 2
             color: micMouse.containsMouse ? Theme.alpha("surface.sunken", Theme.isDark ? 0.64 : 0.70) : Theme.alpha("surface.base", Theme.isDark ? 0.12 : 0.38)
             border.color: micMouse.containsMouse ? Theme.alpha("line.soft", 0.62) : Theme.alpha("line.soft", 0.34)
             border.width: 1
@@ -77,7 +78,7 @@ Rectangle {
             ShapeIcon {
                 anchors.centerIn: parent
                 pathData: Icons.mic
-                size: 18
+                size: 18 * root.uiScale
                 iconColor: Theme.color("text.secondary")
             }
 
@@ -90,9 +91,9 @@ Rectangle {
         }
 
         Rectangle {
-            Layout.preferredWidth: 44
-            Layout.preferredHeight: 44
-            radius: 22
+            Layout.preferredWidth: 44 * root.uiScale
+            Layout.preferredHeight: 44 * root.uiScale
+            radius: height / 2
             color: sendMouse.containsMouse ? Theme.color("accent.strong") : Theme.color("accent.base")
             Behavior on color { ColorAnimation { duration: 120 } }
 
@@ -118,7 +119,7 @@ Rectangle {
             ShapeIcon {
                 anchors.centerIn: parent
                 pathData: Icons.send
-                size: 18
+                size: 18 * root.uiScale
                 iconColor: Theme.color("text.onAccent")
             }
 

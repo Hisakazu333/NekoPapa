@@ -8,12 +8,16 @@
 #pragma once
 
 #include <QQuickFramebufferObject>
+#include <QPointer>
+#include <QTimer>
 #include <QString>
 #include <QtGlobal>
 
 #ifdef NNA_ENABLE_LIVE2D
 #include "nna/graphics/live2d/live2d_renderer.h"
 #endif
+
+class QQuickWindow;
 
 class NNAAvatarCanvas : public QQuickFramebufferObject {
     Q_OBJECT
@@ -86,12 +90,16 @@ signals:
     void modelError(const QString& error);
 
 protected:
+    void componentComplete() override;
     void mousePressEvent(QMouseEvent* event) override;
     void hoverEnterEvent(QHoverEvent* event) override;
     void hoverMoveEvent(QHoverEvent* event) override;
     void hoverLeaveEvent(QHoverEvent* event) override;
 
 private:
+    void refreshFrameLoop();
+    void bindWindow(QQuickWindow* window);
+
     QString m_modelPath;
     bool m_modelLoaded = false;
     float m_modelScale = 1.0f;
@@ -100,6 +108,9 @@ private:
     float m_projectionWidthHint = 0.0f;
     float m_projectionHeightHint = 0.0f;
     qint64 m_lastHoverUpdateMs = 0;
+    bool m_modelLoadFailed = false;
+    QTimer m_frameTimer;
+    QPointer<QQuickWindow> m_boundWindow;
 
 #ifdef NNA_ENABLE_LIVE2D
     friend class NNAAvatarCanvasRenderer;

@@ -35,28 +35,30 @@ Item {
         }
     }
 
-    // Placeholder when no model loaded
+    // Keep loading inside the stage, not as a separate technical state.
     Item {
         anchors.centerIn: parent
-        width: 200
-        height: 200
+        width: 240
+        height: 220
         z: 3
         visible: !avatarCanvas.modelLoaded && !appController.currentModelPath
 
         Rectangle {
             anchors.centerIn: parent
-            width: 120
-            height: 120
-            radius: 60
-            color: Theme.color("surface.sunken")
+            width: 132
+            height: 132
+            radius: 66
+            color: Theme.alpha("surface.float", Theme.isDark ? 0.28 : 0.34)
+            border.color: Theme.alpha("line.soft", Theme.isDark ? 0.48 : 0.56)
+            border.width: 1
 
             Text {
                 anchors.centerIn: parent
-                text: "LN"
-                font.pixelSize: 40
+                text: appController.characterName.length > 0 ? appController.characterName.charAt(0) : "N"
+                font.pixelSize: 42
                 font.family: Theme.fontUi
-                font.weight: Font.Bold
-                color: Theme.color("text.tertiary")
+                font.weight: Font.DemiBold
+                color: Theme.alpha("text.primary", 0.64)
             }
         }
 
@@ -64,7 +66,7 @@ Item {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.top: parent.verticalCenter
             anchors.topMargin: 70
-            text: "Live2D / VRM"
+            text: "\u6B63\u5728\u51C6\u5907 " + appController.characterName
             font.pixelSize: 12
             font.family: Theme.fontUi
             color: Theme.color("text.tertiary")

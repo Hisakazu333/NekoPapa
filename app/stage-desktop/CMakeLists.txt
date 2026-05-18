@@ -10,6 +10,24 @@ endif()
 
 set(CMAKE_AUTOMOC ON)
 
+if(APPLE)
+    enable_language(OBJCXX)
+endif()
+
+if(APPLE)
+    set(DESKTOP_PLATFORM_SOURCES
+        src/nna_macos_dock.h
+        src/nna_macos_dock.mm
+        src/nna_window_chrome.mm
+    )
+else()
+    set(DESKTOP_PLATFORM_SOURCES
+        src/nna_macos_dock.h
+        src/nna_macos_dock.cpp
+        src/nna_window_chrome.cpp
+    )
+endif()
+
 set(DESKTOP_SOURCES
     src/main.cpp
     src/app_controller.h
@@ -24,6 +42,8 @@ set(DESKTOP_SOURCES
     src/theme.cpp
     src/icons.h
     src/icons.cpp
+    src/nna_window_chrome.h
+    ${DESKTOP_PLATFORM_SOURCES}
 )
 
 qt_add_executable(OpenNekoEngine ${DESKTOP_SOURCES})
@@ -89,6 +109,7 @@ qt_add_qml_module(OpenNekoEngine
         qml/features/world/WorldView.qml
         qml/features/world/perception/PerceptionView.qml
         qml/features/world/iot/IoTView.qml
+        qml/features/mine/NNAMineView.qml
         qml/features/settings/SettingsView.qml
         qml/features/settings/SettingsState.qml
         qml/features/settings/SettingsStore.qml
@@ -101,6 +122,9 @@ qt_add_qml_module(OpenNekoEngine
         qml/features/settings/components/SettingsCategoryPrivacy.qml
         qml/features/settings/components/SettingsCategoryPet.qml
         qml/features/settings/components/SettingsCategoryAbout.qml
+    RESOURCES
+        qml/assets/home/home-living-room.png
+        qml/assets/home/home-stage-room-cat-pillow.png
 )
 
 # macOS 26+ SDK removed AGL.framework tbd stub
@@ -119,6 +143,23 @@ target_link_libraries(OpenNekoEngine PRIVATE
     Qt6::OpenGL
     Qt6::Network
 )
+
+if(NNA_HAS_CORE_NANO AND TARGET nekocore_nano)
+    target_link_libraries(OpenNekoEngine PRIVATE nekocore_nano)
+    target_include_directories(OpenNekoEngine PRIVATE
+        "${NNA_CORE_NANO_SOURCE_DIR}/include"
+    )
+    target_compile_definitions(OpenNekoEngine PRIVATE NNA_HAS_CORE_NANO=1)
+else()
+    target_compile_definitions(OpenNekoEngine PRIVATE NNA_HAS_CORE_NANO=0)
+endif()
+
+if(APPLE)
+    target_link_libraries(OpenNekoEngine PRIVATE
+        "-framework AppKit"
+        "-framework QuartzCore"
+    )
+endif()
 
 # Copy/link assets directory next to the executable so NNAModelManager can find models
 # Windows: symlinks need admin/dev-mode, so use copy instead
