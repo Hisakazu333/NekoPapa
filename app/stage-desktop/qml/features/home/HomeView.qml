@@ -49,7 +49,8 @@ Item {
     readonly property string clockIconPath: "M12 6v6l4 2 M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"
     readonly property string backgroundSource: "qrc:/qt/qml/OpenNeko/qml/assets/home/home-stage-room-cat-pillow.png"
     readonly property bool wideViewport: (width / Math.max(1, height)) > 1.18
-    readonly property real focusSceneWidth: wideViewport ? Math.min(width, height * 1.15) : width
+    readonly property real focusSceneWidth: wideViewport ? Math.min(width, height * 1.06) : width
+    readonly property real focusSceneEdge: Math.max(0, (width - focusSceneWidth) / 2)
     property date currentTime: new Date()
 
     Timer {
@@ -76,13 +77,13 @@ Item {
             asynchronous: true
             cache: true
             smooth: true
-            opacity: root.wideViewport ? 0.48 : 1.0
+            opacity: root.wideViewport ? 0.36 : 1.0
         }
 
         Rectangle {
             anchors.fill: parent
             visible: root.wideViewport
-            color: Qt.rgba(0.96, 0.89, 0.84, 0.20)
+            color: Qt.rgba(0.93, 0.78, 0.66, 0.22)
         }
 
         Image {
@@ -98,21 +99,49 @@ Item {
             asynchronous: true
             cache: true
             smooth: true
+            visible: true
+        }
+
+        Rectangle {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: root.focusSceneEdge + 92
             visible: root.wideViewport
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: Qt.rgba(0.91, 0.75, 0.64, 0.54) }
+                GradientStop { position: 0.62; color: Qt.rgba(0.91, 0.75, 0.64, 0.24) }
+                GradientStop { position: 1.0; color: "transparent" }
+            }
+        }
+
+        Rectangle {
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.bottom: parent.bottom
+            width: root.focusSceneEdge + 92
+            visible: root.wideViewport
+            gradient: Gradient {
+                orientation: Gradient.Horizontal
+                GradientStop { position: 0.0; color: "transparent" }
+                GradientStop { position: 0.38; color: Qt.rgba(0.91, 0.75, 0.64, 0.24) }
+                GradientStop { position: 1.0; color: Qt.rgba(0.91, 0.75, 0.64, 0.54) }
+            }
         }
 
         Rectangle {
             anchors.fill: parent
-            color: Theme.isDark ? Theme.alpha("bg.canvas", 0.66) : Qt.rgba(0.98, 0.94, 0.92, 0.20)
+            color: Theme.isDark ? Theme.alpha("bg.canvas", 0.66) : Qt.rgba(0.98, 0.91, 0.84, 0.13)
         }
 
         Rectangle {
             anchors.fill: parent
             gradient: Gradient {
                 orientation: Gradient.Vertical
-                GradientStop { position: 0.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.52) : Qt.rgba(1.0, 0.97, 0.94, 0.18) }
+                GradientStop { position: 0.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.52) : Qt.rgba(1.0, 0.92, 0.84, 0.16) }
                 GradientStop { position: 0.48; color: "transparent" }
-                GradientStop { position: 1.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.34) : Qt.rgba(0.94, 0.86, 0.80, 0.24) }
+                GradientStop { position: 1.0; color: Theme.isDark ? Theme.alpha("bg.canvas", 0.34) : Qt.rgba(0.80, 0.56, 0.40, 0.18) }
             }
         }
     }
@@ -138,7 +167,7 @@ Item {
         anchors.centerIn: parent
         transformOrigin: Item.Center
 
-        Rectangle {
+        Item {
             id: statusToolbar
             anchors.left: parent.left
             anchors.top: parent.top
@@ -146,30 +175,11 @@ Item {
             anchors.topMargin: 14
             width: Math.min(statusRow.implicitWidth + 36, parent.width - root.mix(96, 118, root.compactProgress))
             height: 46
-            radius: 23
-            color: Theme.alpha("surface.float", Theme.isDark ? 0.68 : 0.64)
-            border.color: Theme.alpha("line.soft", Theme.isDark ? 0.58 : 0.52)
-            border.width: 1
-            clip: true
 
-            Rectangle {
+            NNAGlassPanel {
                 anchors.fill: parent
-                anchors.topMargin: 3
-                radius: parent.radius
-                color: Theme.alpha("overlay.scrim", Theme.isDark ? 0.20 : 0.035)
-                z: -1
-            }
-
-            Rectangle {
-                anchors.left: parent.left
-                anchors.right: parent.right
-                anchors.top: parent.top
-                anchors.leftMargin: 2
-                anchors.rightMargin: 2
-                anchors.topMargin: 1
-                height: 1
-                radius: 1
-                color: Theme.alpha("surface.float", Theme.isDark ? 0.22 : 0.72)
+                radius: statusToolbar.height / 2
+                topLineMargin: 22
             }
 
             Row {
@@ -202,29 +212,28 @@ Item {
             }
         }
 
-        Rectangle {
+        Item {
             id: settingsButton
             width: 42
             height: 42
-            radius: 21
             anchors.top: parent.top
             anchors.right: parent.right
             anchors.topMargin: 14
             anchors.rightMargin: root.mix(18, 30, root.compactProgress)
-            color: s.modelAdjustOpen
-                ? Theme.alpha("accent.soft", Theme.isDark ? 0.82 : 1.0)
-                : settingsMouse.containsMouse
-                    ? Theme.alpha("surface.float", Theme.isDark ? 0.56 : 0.98)
-                    : Theme.alpha("surface.float", Theme.isDark ? 0.44 : 0.92)
-            border.color: s.modelAdjustOpen ? Theme.alpha("accent.base", 0.34) : Theme.alpha("line.soft", 0.76)
-            border.width: 1
 
-            Rectangle {
+            NNAGlassPanel {
                 anchors.fill: parent
-                anchors.topMargin: 3
-                radius: parent.radius
-                color: Theme.alpha("overlay.scrim", Theme.isDark ? 0.24 : 0.055)
-                z: -1
+                radius: height / 2
+                hovered: settingsMouse.containsMouse
+                active: s.modelAdjustOpen
+                fillColor: s.modelAdjustOpen
+                    ? Theme.alpha("surface.float", Theme.isDark ? 0.94 : 0.96)
+                    : Theme.alpha("surface.float",
+                        Theme.isDark
+                            ? (settingsMouse.containsMouse ? 0.92 : 0.90)
+                            : (settingsMouse.containsMouse ? 0.94 : 0.92))
+                borderColor: s.modelAdjustOpen ? Theme.alpha("accent.base", Theme.isDark ? 0.42 : 0.34) : Theme.alpha("line.soft", Theme.isDark ? 0.76 : 0.70)
+                topLineMargin: 11
             }
 
             ShapeIcon {
@@ -466,47 +475,20 @@ Item {
         }
     }
 
-    component GlassCard: Rectangle {
+    component GlassCard: Item {
         id: glassCard
         property string titleText: ""
         property string accentText: ""
         default property alias content: contentColumn.data
 
         implicitHeight: contentColumn.implicitHeight + root.mix(44, 40, root.compactProgress)
-        radius: 24
-        color: Theme.alpha("surface.base", Theme.isDark ? 0.84 : 0.78)
-        border.color: Theme.alpha("line.soft", Theme.isDark ? 0.78 : 0.68)
-        border.width: 1
+        height: implicitHeight
         clip: false
 
-        Rectangle {
+        NNAGlassPanel {
             anchors.fill: parent
-            anchors.topMargin: 5
-            radius: parent.radius
-            color: Theme.alpha("overlay.scrim", Theme.isDark ? 0.24 : 0.048)
-            z: -1
-        }
-
-        Rectangle {
-            anchors.fill: parent
-            anchors.margins: 1
-            radius: parent.radius - 1
-            gradient: Gradient {
-                orientation: Gradient.Vertical
-                GradientStop { position: 0.0; color: Theme.alpha("surface.float", Theme.isDark ? 0.16 : 0.48) }
-                GradientStop { position: 1.0; color: "transparent" }
-            }
-        }
-
-        Rectangle {
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.leftMargin: 18
-            anchors.rightMargin: 18
-            anchors.topMargin: 1
-            height: 1
-            color: Theme.alpha("surface.float", Theme.isDark ? 0.22 : 0.86)
+            radius: 24
+            topLineMargin: 18
         }
 
         Column {
@@ -583,7 +565,7 @@ Item {
                     width: parent.width * Math.max(0, Math.min(1, metricRow.progress))
                     height: parent.height
                     radius: 4
-                    color: metricRow.accentColor
+                    color: Qt.rgba(metricRow.accentColor.r, metricRow.accentColor.g, metricRow.accentColor.b, Theme.isDark ? 0.86 : 0.82)
                 }
             }
         }
@@ -613,7 +595,7 @@ Item {
         }
     }
 
-    component ActionRow: Rectangle {
+    component ActionRow: Item {
         id: actionRow
         property string iconPath: Icons.chat
         property string titleText: ""
@@ -623,12 +605,23 @@ Item {
 
         width: parent ? parent.width : 200
         height: 58
-        radius: 20
-        color: actionMouse.containsMouse
-            ? Theme.alpha("surface.float", Theme.isDark ? 0.66 : 0.86)
-            : Theme.alpha("surface.raised", Theme.isDark ? 0.48 : 0.66)
-        border.color: actionMouse.containsMouse ? Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.42 : 0.28) : Theme.alpha("line.soft", 0.46)
-        border.width: 1
+
+        NNAGlassPanel {
+            anchors.fill: parent
+            radius: 20
+            hovered: actionMouse.containsMouse
+            shadowOffset: 3
+            shadowDarkOpacity: 0.12
+            shadowLightOpacity: 0.030
+            fillColor: Theme.alpha("surface.float",
+                Theme.isDark
+                    ? (actionMouse.containsMouse ? 0.90 : 0.82)
+                    : (actionMouse.containsMouse ? 0.94 : 0.88))
+            borderColor: actionMouse.containsMouse
+                ? Qt.rgba(accentColor.r, accentColor.g, accentColor.b, Theme.isDark ? 0.42 : 0.28)
+                : Theme.alpha("line.soft", Theme.isDark ? 0.54 : 0.50)
+            topLineMargin: 14
+        }
 
         RowLayout {
             anchors.fill: parent
@@ -699,7 +692,7 @@ Item {
         }
     }
 
-    component StageSummary: Rectangle {
+    component StageSummary: Item {
         id: stageSummary
         property string labelText: ""
         property string valueText: ""
@@ -707,10 +700,17 @@ Item {
 
         width: parent ? parent.width : 200
         height: 34
-        radius: 14
-        color: Theme.alpha("surface.raised", Theme.isDark ? 0.42 : 0.58)
-        border.color: Theme.alpha("line.soft", 0.42)
-        border.width: 1
+
+        NNAGlassPanel {
+            anchors.fill: parent
+            radius: 14
+            shadowOffset: 2
+            shadowDarkOpacity: 0.08
+            shadowLightOpacity: 0.020
+            fillColor: Theme.alpha("surface.float", Theme.isDark ? 0.78 : 0.86)
+            borderColor: Theme.alpha("line.soft", Theme.isDark ? 0.50 : 0.46)
+            topLineMargin: 9
+        }
 
         RowLayout {
             anchors.fill: parent

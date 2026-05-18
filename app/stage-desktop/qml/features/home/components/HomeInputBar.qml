@@ -3,46 +3,19 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Shapes
 
-Rectangle {
+Item {
     id: root
     height: 56
-    radius: height / 2
-    color: Theme.isDark ? Theme.alpha("surface.raised", 0.90) : Qt.rgba(1.0, 0.985, 0.965, 0.86)
-    border.color: Theme.alpha("line.soft", Theme.isDark ? 0.82 : 0.76)
-    border.width: 1
 
     property var store: null
     readonly property real uiScale: Math.max(0.82, Math.min(1.35, height / 56))
+    readonly property real panelRadius: height / 2
 
-    Rectangle {
+    NNAGlassPanel {
         anchors.fill: parent
-        anchors.topMargin: 6
-        radius: parent.radius
-        color: Theme.alpha("overlay.scrim", Theme.isDark ? 0.30 : 0.070)
-        z: -1
-    }
-
-    Rectangle {
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
-        anchors.leftMargin: 24
-        anchors.rightMargin: 24
-        anchors.topMargin: 1
-        height: 1
-        radius: 1
-        color: Theme.alpha("surface.float", Theme.isDark ? 0.22 : 0.88)
-    }
-
-    Rectangle {
-        anchors.fill: parent
-        anchors.margins: 1
-        radius: parent.radius - 1
-        gradient: Gradient {
-            orientation: Gradient.Vertical
-            GradientStop { position: 0.0; color: Theme.alpha("surface.float", Theme.isDark ? 0.10 : 0.38) }
-            GradientStop { position: 1.0; color: "transparent" }
-        }
+        radius: root.panelRadius
+        topLineMargin: 24 * root.uiScale
+        shadowOffset: 7 * root.uiScale
     }
 
     RowLayout {
@@ -67,13 +40,23 @@ Rectangle {
             Keys.onEnterPressed: root.send()
         }
 
-        Rectangle {
+        Item {
             Layout.preferredWidth: 38 * root.uiScale
             Layout.preferredHeight: 38 * root.uiScale
-            radius: height / 2
-            color: micMouse.containsMouse ? Theme.alpha("surface.sunken", Theme.isDark ? 0.64 : 0.70) : Theme.alpha("surface.base", Theme.isDark ? 0.12 : 0.38)
-            border.color: micMouse.containsMouse ? Theme.alpha("line.soft", 0.62) : Theme.alpha("line.soft", 0.34)
-            border.width: 1
+
+            NNAGlassPanel {
+                anchors.fill: parent
+                radius: height / 2
+                hovered: micMouse.containsMouse
+                shadowOffset: 2 * root.uiScale
+                shadowDarkOpacity: 0.10
+                shadowLightOpacity: 0.025
+                fillColor: Theme.alpha("surface.float",
+                    Theme.isDark
+                        ? (micMouse.containsMouse ? 0.82 : 0.72)
+                        : (micMouse.containsMouse ? 0.90 : 0.82))
+                borderColor: Theme.alpha("line.soft", micMouse.containsMouse ? 0.58 : 0.42)
+            }
 
             ShapeIcon {
                 anchors.centerIn: parent

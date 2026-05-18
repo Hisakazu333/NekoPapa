@@ -63,6 +63,7 @@ qt_add_qml_module(OpenNekoEngine
         qml/core/NNABaseButton.qml
         qml/core/NNABaseCard.qml
         qml/core/NNABaseInput.qml
+        qml/core/NNAGlassPanel.qml
         qml/core/ShapeIcon.qml
         qml/core/NNAAppShell.qml
         qml/windows/DesktopCompanionWindow.qml

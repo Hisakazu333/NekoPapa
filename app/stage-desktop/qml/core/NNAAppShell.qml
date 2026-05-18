@@ -224,44 +224,16 @@ Item {
                 onMenuActionRequested: function(page, action) { shell.handleDockMenuAction(page, action) }
             }
 
-            Rectangle {
+            Item {
                 id: dock
                 anchors.fill: parent
                 visible: !nativeDock.nativeActive
-                radius: nativeDock.radius
-                color: Theme.alpha("surface.float", Theme.isDark ? 0.90 : 0.92)
-                border.color: Theme.alpha("line.soft", Theme.isDark ? 0.76 : 0.70)
-                border.width: 1
 
-                Rectangle {
+                NNAGlassPanel {
                     anchors.fill: parent
-                    anchors.topMargin: 7
-                    radius: parent.radius
-                    color: Theme.alpha("overlay.scrim", Theme.isDark ? 0.30 : 0.070)
-                    z: -1
-                }
-
-                Rectangle {
-                    anchors.left: parent.left
-                    anchors.right: parent.right
-                    anchors.top: parent.top
-                    anchors.leftMargin: 22
-                    anchors.rightMargin: 22
-                    anchors.topMargin: 1
-                    height: 1
-                    radius: 1
-                    color: Theme.alpha("surface.float", Theme.isDark ? 0.22 : 0.88)
-                }
-
-                Rectangle {
-                    anchors.fill: parent
-                    anchors.margins: 1
-                    radius: parent.radius - 1
-                    gradient: Gradient {
-                        orientation: Gradient.Vertical
-                        GradientStop { position: 0.0; color: Theme.alpha("surface.float", Theme.isDark ? 0.10 : 0.42) }
-                        GradientStop { position: 1.0; color: "transparent" }
-                    }
+                    radius: nativeDock.radius
+                    topLineMargin: 22 * shell.stageScale
+                    shadowOffset: 7 * shell.stageScale
                 }
 
                 RowLayout {
