@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenNeko Stage Protocol v1 Event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "kind",
+    "type",
+    "message_id",
+    "payload"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "kind": {
+      "const": "event"
+    },
+    "type": {
+      "enum": [
+        "stage.ready",
+        "stage.command_result",
+        "stage.health",
+        "stage.stopped",
+        "stage.error"
+      ]
+    },
+    "message_id": {
+      "$ref": "#/$defs/message_id"
+    },
+    "reply_to": {
+      "$ref": "#/$defs/message_id"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "required": [
+        "reply_to"
+      ],
+      "properties": {
+        "type": {
+          "const": "stage.ready"
+        },
+        "payload": {
+          "$ref": "#/$defs/ready_payload"
+        }
+      }
+    },
+    {
+      "required": [
+        "reply_to"
+      ],
+      "properties": {
+        "type": {
+          "const": "stage.command_result"
+        },
+        "payload": {
+          "$ref": "#/$defs/command_result_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.health"
+        },
+        "reply_to": false,
+        "payload": {
+          "$ref": "#/$defs/health_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.stopped"
+        },
+        "reply_to": false,
+        "payload": {
+          "$ref": "#/$defs/stopped_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.error"
+        },
+        "payload": {
+          "$ref": "#/$defs/error_payload"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "transparent_window",
+        "always_on_top",
+        "mouse_passthrough",
+        "cubism_native",
+        "hit_testing"
+      ],
+      "properties": {
+        "transparent_window": {
+          "type": "boolean"
+        },
+        "always_on_top": {
+          "type": "boolean"
+        },
+        "mouse_passthrough": {
+          "type": "boolean"
+        },
+        "cubism_native": {
+          "type": "boolean"
+        },
+        "hit_testing": {
+          "type": "boolean"
+        }
+      }
+    },
+    "ready_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "stage_version",
+        "status",
+        "capabilities",
+        "model_loaded",
+        "hidden"
+      ],
+      "properties": {
+        "stage_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "status": {
+          "enum": [
+            "ready",
+            "degraded"
+          ]
+        },
+        "capabilities": {
+          "$ref": "#/$defs/capabilities"
+        },
+        "model_loaded": {
+          "type": "boolean"
+        },
+        "hidden": {
+          "type": "boolean"
+        }
+      }
+    },
+    "command_result_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command_type",
+        "ok"
+      ],
+      "properties": {
+        "command_type": {
+          "enum": [
+            "stage.show",
+            "stage.hide",
+            "stage.set_passthrough",
+            "stage.shutdown"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "visible": {
+          "type": "boolean"
+        },
+        "mouse_passthrough": {
+          "type": "boolean"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "health_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "capabilities",
+        "model_loaded",
+        "frames_rendered"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "ready",
+            "degraded",
+            "failed"
+          ]
+        },
+        "capabilities": {
+          "$ref": "#/$defs/capabilities"
+        },
+        "model_loaded": {
+          "type": "boolean"
+        },
+        "frames_rendered": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "diagnostics": {
+          "$ref": "#/$defs/diagnostics"
+        },
+        "error": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        }
+      }
+    },
+    "diagnostics": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "window_backend": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "gl_vendor": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "gl_renderer": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "gl_version": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "gl_error": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "stopped_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "reason",
+        "frames_rendered"
+      ],
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "frames_rendered": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "error_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "code",
+        "message",
+        "retryable"
+      ],
+      "properties": {
+        "code": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[a-z][a-z0-9_.-]*$"
+        },
+        "message": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "retryable": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

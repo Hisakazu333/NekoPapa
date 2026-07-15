@@ -1,6 +1,28 @@
-# 排除构建输出
+# Build outputs
 **/build/
+build-*/
+dist/
+target/
+*.dmg
+*.msi
+*.AppImage
 
-# 排除文档文件夹
+# JavaScript and Tauri generated files
+node_modules/
+.vite/
+app/control-desktop/src-tauri/binaries/*
+!app/control-desktop/src-tauri/binaries/.gitkeep
+
+# Local configuration and signing material
+.env
+.env.*
+!.env.example
+*.p12
+*.mobileprovision
+
+# Operating-system metadata
+.DS_Store
+
+# Excluded document workspace
 OpenAI/ChatGPT/文档/
 /文档/

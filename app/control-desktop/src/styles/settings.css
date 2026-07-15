@@ -1,0 +1,124 @@
+/* Settings */
+.settings-workspace {
+  display: grid;
+  grid-template-columns: clamp(220px, 22vw, 284px) minmax(0, 1fr);
+}
+
+.settings-sidebar button > span {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.settings-content {
+  min-width: 0;
+  overflow: auto;
+  padding: 22px clamp(22px, 5vw, 60px) 42px;
+}
+
+.settings-content > * {
+  width: min(100%, 760px);
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.settings-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  margin-bottom: 20px;
+}
+
+.settings-section-header > span {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--surface-subtle);
+  color: var(--text-secondary);
+}
+
+.settings-section-header h2 {
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.settings-section-header p {
+  margin-top: 4px;
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.settings-section {
+  margin-bottom: 22px;
+}
+
+.settings-section > h3 {
+  margin: 0 0 7px 3px;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.setting-value {
+  color: var(--text-secondary);
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.color-swatch {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 1px var(--border-strong);
+}
+
+.account-panel,
+.about-panel {
+  display: grid;
+  min-height: 86px;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-raised);
+  margin-bottom: 22px;
+  padding: 14px;
+}
+
+.account-panel__avatar,
+.about-panel__mark {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+}
+
+.about-panel__mark {
+  border-radius: var(--radius-sm);
+}
+
+.account-panel strong,
+.about-panel h2 {
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.account-panel p,
+.about-panel p {
+  margin-top: 3px;
+  color: var(--text-tertiary);
+  font-size: 10px;
+  line-height: 1.45;
+}
+

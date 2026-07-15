@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Build options
-option(NNA_BUILD_APP "Build Qt6 desktop application" ON)
-option(NNA_ENABLE_LIVE2D "Enable Live2D Cubism SDK integration" OFF)
+option(NNA_BUILD_APP "Build the legacy Qt6 desktop application" OFF)
+option(NNA_BUILD_LIVE2D_STAGE "Build the independent native Live2D stage" ON)
+option(NNA_ENABLE_LIVE2D "Enable Live2D Cubism SDK integration" ON)
 set(NNA_CORE_NANO_MODE "stub" CACHE STRING "NekoCore-Nano integration mode: stub, source, or binary")
 set_property(CACHE NNA_CORE_NANO_MODE PROPERTY STRINGS stub source binary)
 set(NNA_CORE_NANO_SOURCE_DIR
@@ -38,7 +39,15 @@ if(NNA_ENABLE_LIVE2D)
     endif()
 endif()
 
+if(NNA_BUILD_LIVE2D_STAGE AND NOT NNA_ENABLE_LIVE2D)
+    message(FATAL_ERROR "NNA_BUILD_LIVE2D_STAGE requires a usable Cubism SDK and NNA_ENABLE_LIVE2D=ON")
+endif()
+
 add_subdirectory(engine)
+
+if(NNA_BUILD_LIVE2D_STAGE)
+    add_subdirectory(app/live2d-stage)
+endif()
 
 if(NNA_CORE_NANO_MODE STREQUAL "source")
     get_filename_component(NNA_CORE_NANO_SOURCE_DIR "${NNA_CORE_NANO_SOURCE_DIR}" ABSOLUTE)

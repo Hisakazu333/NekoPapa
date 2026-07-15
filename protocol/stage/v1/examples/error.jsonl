@@ -1,0 +1,1 @@
+{"protocol_version":"1.0","kind":"event","type":"stage.error","message_id":"stage-error-1","reply_to":"control-1","payload":{"code":"protocol.unsupported_version","message":"No mutually supported protocol version","retryable":false}}

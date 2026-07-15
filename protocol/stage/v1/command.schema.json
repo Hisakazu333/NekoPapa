@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenNeko Stage Protocol v1 Command",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "protocol_version",
+    "kind",
+    "type",
+    "message_id",
+    "payload"
+  ],
+  "properties": {
+    "protocol_version": {
+      "const": "1.0"
+    },
+    "kind": {
+      "const": "command"
+    },
+    "type": {
+      "enum": [
+        "stage.handshake",
+        "stage.show",
+        "stage.hide",
+        "stage.set_passthrough",
+        "stage.shutdown"
+      ]
+    },
+    "message_id": {
+      "$ref": "#/$defs/message_id"
+    },
+    "payload": {
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "type": {
+          "const": "stage.handshake"
+        },
+        "payload": {
+          "$ref": "#/$defs/handshake_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.show"
+        },
+        "payload": {
+          "$ref": "#/$defs/empty_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.hide"
+        },
+        "payload": {
+          "$ref": "#/$defs/empty_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.set_passthrough"
+        },
+        "payload": {
+          "$ref": "#/$defs/set_passthrough_payload"
+        }
+      }
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "stage.shutdown"
+        },
+        "payload": {
+          "$ref": "#/$defs/shutdown_payload"
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+    },
+    "empty_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "maxProperties": 0
+    },
+    "handshake_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "client_name",
+        "supported_versions"
+      ],
+      "properties": {
+        "client_name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "client_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "supported_versions": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[1-9][0-9]*\\.[0-9]+$"
+          }
+        }
+      }
+    },
+    "set_passthrough_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        }
+      }
+    },
+    "shutdown_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        }
+      }
+    }
+  }
+}

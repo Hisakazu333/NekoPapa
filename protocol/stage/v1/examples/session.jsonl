@@ -1,0 +1,9 @@
+{"protocol_version":"1.0","kind":"command","type":"stage.handshake","message_id":"control-1","payload":{"client_name":"openneko-control","client_version":"0.0.0-v0","supported_versions":["1.0"]}}
+{"protocol_version":"1.0","kind":"event","type":"stage.ready","message_id":"stage-1","reply_to":"control-1","payload":{"stage_version":"0.0.0-v0","status":"degraded","capabilities":{"transparent_window":true,"always_on_top":true,"mouse_passthrough":true,"cubism_native":true,"hit_testing":false},"model_loaded":false,"hidden":true}}
+{"protocol_version":"1.0","kind":"command","type":"stage.show","message_id":"control-2","payload":{}}
+{"protocol_version":"1.0","kind":"event","type":"stage.command_result","message_id":"stage-2","reply_to":"control-2","payload":{"command_type":"stage.show","ok":true,"visible":true}}
+{"protocol_version":"1.0","kind":"command","type":"stage.set_passthrough","message_id":"control-3","payload":{"enabled":true}}
+{"protocol_version":"1.0","kind":"event","type":"stage.command_result","message_id":"stage-3","reply_to":"control-3","payload":{"command_type":"stage.set_passthrough","ok":true,"mouse_passthrough":true}}
+{"protocol_version":"1.0","kind":"command","type":"stage.shutdown","message_id":"control-4","payload":{"reason":"desktop host is exiting"}}
+{"protocol_version":"1.0","kind":"event","type":"stage.command_result","message_id":"stage-4","reply_to":"control-4","payload":{"command_type":"stage.shutdown","ok":true}}
+{"protocol_version":"1.0","kind":"event","type":"stage.stopped","message_id":"stage-5","payload":{"reason":"shutdown","frames_rendered":120}}
