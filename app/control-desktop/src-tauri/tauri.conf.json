@@ -10,6 +10,7 @@
     "frontendDist": "../dist"
   },
   "app": {
+    "macOSPrivateApi": true,
     "windows": [
       {
         "label": "main",
@@ -19,7 +20,9 @@
         "minWidth": 1024,
         "minHeight": 720,
         "center": true,
-        "decorations": true,
+        "decorations": false,
+        "transparent": true,
+        "shadow": true,
         "resizable": true
       }
     ],
@@ -30,6 +33,9 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "externalBin": ["binaries/openneko-live2d-stage"]
+    "externalBin": ["binaries/openneko-live2d-stage"],
+    "resources": {
+      "../../../assets/live2d": "assets/live2d"
+    }
   }
 }

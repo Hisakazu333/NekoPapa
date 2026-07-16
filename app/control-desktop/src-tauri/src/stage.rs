@@ -1,7 +1,8 @@
 use serde::Serialize;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;
-use tauri::{AppHandle, Emitter, State};
+use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_shell::{
     ShellExt,
     process::{CommandChild, CommandEvent},
@@ -75,6 +76,30 @@ impl StageSupervisor {
     }
 }
 
+fn resolve_model_path(app: &AppHandle) -> Result<PathBuf, String> {
+    let relative = PathBuf::from("assets/live2d/hiyori/hiyori_pro_t11.model3.json");
+    let bundled = app
+        .path()
+        .resource_dir()
+        .map_err(|error| format!("cannot resolve resource directory: {error}"))?
+        .join(&relative);
+    if bundled.is_file() {
+        return Ok(bundled);
+    }
+
+    let development = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("../../../")
+        .join(&relative);
+    if development.is_file() {
+        return Ok(development);
+    }
+
+    Err(format!(
+        "Live2D model is missing: {}",
+        bundled.display()
+    ))
+}
+
 #[tauri::command]
 pub fn stage_status(stage: State<'_, Arc<StageSupervisor>>) -> StageStatus {
     stage.status()
@@ -95,11 +120,13 @@ pub fn start_stage(
         }
     }
 
+    let model_path = resolve_model_path(&app)?;
+    let model_argument = model_path.to_string_lossy().into_owned();
     let command = app
         .shell()
         .sidecar("openneko-live2d-stage")
         .map_err(|error| format!("cannot resolve Native Stage sidecar: {error}"))?
-        .args(["--allow-no-model"]);
+        .args(["--model", model_argument.as_str()]);
     let (mut receiver, child) = command
         .spawn()
         .map_err(|error| format!("cannot start Native Stage: {error}"))?;

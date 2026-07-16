@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useEffect, useState } from "react";
 import {
   Archive,
   Bot,
@@ -29,9 +29,26 @@ const initialMessages: Message[] = [
   },
 ];
 
-export function ConversationPage() {
+interface ConversationPageProps {
+  initialMessage?: { id: number; text: string } | null;
+  onInitialMessageConsumed?: () => void;
+}
+
+export function ConversationPage({
+  initialMessage,
+  onInitialMessageConsumed,
+}: ConversationPageProps) {
   const [draft, setDraft] = useState("");
   const [messages, setMessages] = useState<Message[]>(initialMessages);
+
+  useEffect(() => {
+    if (!initialMessage) return;
+
+    setMessages((current) => current.some(({ id }) => id === initialMessage.id)
+      ? current
+      : [...current, { ...initialMessage, role: "user" }]);
+    onInitialMessageConsumed?.();
+  }, [initialMessage, onInitialMessageConsumed]);
 
   const submitMessage = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
