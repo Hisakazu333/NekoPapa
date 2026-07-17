@@ -6,7 +6,7 @@
 
 满足任一条件：
 
-- 改变 React、Tauri、Native Stage、NNA Core 或 renderer 的状态所有权；
+- 改变 React、Tauri、Native Stage、NekoCore-Nano 或 renderer 的状态所有权；
 - 新增/删除进程、稳定 ABI、网络边界或持久数据格式；
 - Stage protocol breaking change 或版本协商策略变化；
 - 引入新的桌面框架、渲染器、第三方 SDK、模型格式或包管理策略；

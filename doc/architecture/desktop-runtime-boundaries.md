@@ -9,7 +9,7 @@ NekoPapa 保留四个明确边界：
 1. React/WebView 负责主窗口展示、交互和短生命周期 UI 状态。
 2. Tauri/Rust host 负责应用、窗口、权限、资源寻址和 Native Stage 子进程生命周期。
 3. Native Stage 负责独立透明桌宠窗口、输入穿透和 Cubism Native 帧循环。
-4. NNA Core 最终负责可持久、可同步的同伴领域状态和高层行为意图。
+4. NekoCore-Nano 最终负责可持久、可同步的同伴领域状态和高层行为意图。
 
 渲染器可以保存 GPU、当前帧和插值等局部状态，但不能成为第二个同伴领域模型。WebView 和 Native Stage 是两个独立渲染面，不能用原生窗口覆盖 WebView 来伪装嵌入式画布。
 
@@ -53,14 +53,14 @@ React feature UI <-- view state --- Tauri application service
                                           |
                                           | domain command through chosen Core port
                                           v
-                                         NNA Core
+                                         NekoCore-Nano
                                           |
                                           | immutable snapshot / presentation intent
                                           v
                               Tauri service / presentation adapters
 
 Tauri application service -- Stage lifecycle v1 --> Native Stage
-NNA Core -- future explicit render-intent contract -->
+NekoCore-Nano -- future explicit render-intent contract -->
             Web Live2D adapter / Native Stage renderer
 ```
 
@@ -121,13 +121,15 @@ NNA Core -- future explicit render-intent contract -->
 ## 状态与事件方向
 
 ```text
-用户输入 -> application command -> NNA Core
-NNA Core -> immutable snapshot / presentation intent -> UI 或 renderer
+用户输入 -> application command -> NekoCore-Nano
+NekoCore-Nano -> immutable snapshot / presentation intent -> UI 或 renderer
 ```
 
 React 可以保存选中标签、输入草稿和面板展开状态；renderer 可以保存纹理、当前帧和插值；Tauri 可以保存子进程 PID 和协议会话。账号、记忆、关系、身体状态和 Agent 执行状态必须有唯一权威来源。
 
-当前原型值必须显式标记为 fixture、preview 或 simulated，且不能写回真实存储。接入真实服务时先定义 port 与 DTO，再替换 adapter，不在 JSX 中直接增加 `fetch` 或散落 `invoke`。
+当前原型值必须在 adapter、contract 或页面状态说明中标记为 fixture、preview 或
+simulated，且不能写回真实存储。页面可以继续消费 mock adapter；接入真实服务时先定义
+port 与 DTO，再替换 adapter，不在 JSX 中直接增加 `fetch` 或散落 `invoke`。
 
 ## 协议与安全边界
 

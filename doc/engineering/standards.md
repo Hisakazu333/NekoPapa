@@ -4,8 +4,9 @@
 
 最后核对：2026-07-18
 
-NNA 与 NekoCore-Nano 指同一底层体系。NNA 是工程前缀，NekoCore-Nano 是核心名称。它通过可验证的边界、命名和
-协作方式体现，不通过给所有文件机械添加前缀体现。
+NNA 与 NekoCore-Nano 指同一底层体系。NNA 是工程前缀，NekoCore-Nano 是正式核心名称；
+用户界面中的 `NekoCore` 只是短称。它通过可验证的边界、命名和协作方式体现，不通过给所有
+文件机械添加前缀体现。
 
 ## 1. 当前技术基线
 
@@ -134,8 +135,8 @@ placeholder。
 - 新依赖必须说明用途、替代方案、维护状态、许可证、二进制/包体影响和安全边界。
 - `engine/third_party/` 不是随意复制上游仓库的入口。SDK 样例、文档和多平台预编译
   库是否需要跟踪，应通过包内容和许可审计决定。
-- Live2D Cubism SDK、Core、Framework 和示例模型遵循各自条款，不属于仓库
-  Apache-2.0 自有代码范围。
+- 根 `LICENSE` 是 Apache-2.0。Live2D Cubism SDK、Core、Framework 和示例模型遵循各自
+  条款；历史源文件中的文件级许可证头在完成逐文件审计前不得机械重写或声称已重许可。
 - 不给每个源文件添加与根许可证冲突的 `All rights reserved` 或混合 SPDX 声明。
   需要文件头时使用项目统一、经确认的 SPDX 标识。
 

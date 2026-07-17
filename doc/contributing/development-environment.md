@@ -62,8 +62,8 @@ Linux 构建通过不能替代 macOS/Windows 发布矩阵。
 ## 3. 获取仓库
 
 ```bash
-git clone https://github.com/Hisakazu333/Nekopapa.git
-cd Nekopapa
+git clone https://github.com/Hisakazu333/NekoPapa.git
+cd NekoPapa
 git status --short --branch
 ```
 

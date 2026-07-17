@@ -19,7 +19,7 @@ git status --short --branch
 ```
 
 NekoPapa 的 GitHub remote 是
-`https://github.com/Hisakazu333/Nekopapa.git`。不要根据文件夹名称猜仓库，也不要
+`https://github.com/Hisakazu333/NekoPapa.git`。不要根据文件夹名称猜仓库，也不要
 在有未提交改动的 checkout 上切换到无关任务。
 
 ## 2. 日常分支流程
