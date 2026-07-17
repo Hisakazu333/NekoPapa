@@ -127,8 +127,18 @@ jobs:
           cmake --version
           ninja --version
 
-      - name: Configure Native Stage
+      - name: Configure Native Stage (macOS)
+        if: runner.os == 'macOS'
         run: cmake -S . -B build/ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DNNA_BUILD_APP=OFF -DNNA_BUILD_LIVE2D_STAGE=ON -DNNA_ENABLE_LIVE2D=ON -DNNA_CORE_NANO_MODE=stub
 
-      - name: Build Native Stage
+      - name: Configure Native Stage (Windows)
+        if: runner.os == 'Windows'
+        run: cmake -S . -B build/ci -G "Visual Studio 17 2022" -A x64 -DNNA_BUILD_APP=OFF -DNNA_BUILD_LIVE2D_STAGE=ON -DNNA_ENABLE_LIVE2D=ON -DNNA_CORE_NANO_MODE=stub
+
+      - name: Build Native Stage (macOS)
+        if: runner.os == 'macOS'
         run: cmake --build build/ci --target openneko_live2d_stage --parallel
+
+      - name: Build Native Stage (Windows)
+        if: runner.os == 'Windows'
+        run: cmake --build build/ci --config Release --target openneko_live2d_stage --parallel
