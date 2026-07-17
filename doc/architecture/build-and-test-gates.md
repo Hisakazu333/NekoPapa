@@ -17,16 +17,17 @@
 
 ## 审计基线与已知缺口
 
-基线提交：`6d575bf`。以下是该提交可从源码证明的事实，后续只能用 CI 运行或新审计更新：
+基线提交：`ebecd44`。以下是该提交及 GitHub CI 运行 `29609447293` 可证明的事实，
+后续只能用新的 CI 运行或新审计更新：
 
 | 区域 | 基线事实 | 缺口 |
 | --- | --- | --- |
-| Git | `HEAD == origin/main` 且有正常 merge base | 分支保护、CODEOWNERS 和 required checks 未由源码证明 |
+| Git | `HEAD == origin/main`、有正常 merge base，`main` 已受保护 | required checks 依赖 GitHub 线上设置，仍需随设置变更回读 |
 | React | 有 TypeScript check 和 production build script | 无 ESLint、unit test、component/viewport test |
 | Window shell | Tauri 使用原生标题栏，React 已移除自定义窗口按钮 | 无跨平台 titlebar/导航 geometry 自动验收 |
 | Rust | 有 fmt/clippy/test 命令说明；`window_state.rs` 有纯逻辑测试 | Stage supervisor、协议和进程失败路径无测试 |
 | Protocol | 有 v1 JSON Schema 和示例 | 无自动 schema/JSONL 正反例校验，无端到端 v1 |
-| C++ | Native Stage 和 Live2D target 可配置 | 无 CTest；Stage runtime 职责集中；无 Windows CI 证据 |
+| C++ | Native Stage 和 Live2D target 可配置；macOS/Windows 构建 CI 已通过 | 无 CTest；Stage runtime 职责集中；两平台 runtime/package 证据缺失 |
 | Package | 有本机 macOS DMG 脚本 | 无签名、公证、Windows installer、干净机器验证和内容 allowlist 门禁 |
 | Hygiene | 常见 build/target/dist 已忽略，48 张原型已有 Markdown 基线 | 受控树仍有 12 个 `.DS_Store`、18 个 Cubism 示例 `.gradle` 缓存、完整 SDK Samples 和大量第三方内容 |
 

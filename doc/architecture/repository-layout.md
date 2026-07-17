@@ -24,7 +24,7 @@ Nekopapa/
 │   ├── live2d-stage/          # GLFW/Cubism Native 独立 sidecar
 │   └── stage-desktop/         # Frozen Legacy Qt，当前缺少 qml/main.qml
 ├── engine/
-│   ├── include/nna/core/      # NNA Core stub 公开类型
+│   ├── include/nna/core/      # NekoCore-Nano stub 公开类型
 │   ├── include/nna/graphics/  # Cubism/OpenGL 公开适配类型
 │   ├── src/                   # Core stub 与 Live2D Native 实现
 │   └── third_party/           # Cubism SDK、GLEW、stb 供应商内容

@@ -28,7 +28,7 @@
 | Tauri/Rust | | | |
 | Stage protocol | | | |
 | Native Stage | | | |
-| NNA Core/graphics | | | |
+| NekoCore-Nano/graphics | | | |
 | Assets/third-party | | | |
 
 删除不适用行。涉及权限、隐私、许可、安装包或持久化时增加专门说明。
