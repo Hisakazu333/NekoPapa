@@ -106,7 +106,7 @@ export function ConversationPage({
                   {message.role === "assistant" ? <Bot size={16} /> : <UserRound size={16} />}
                 </span>
                 <div className="message__body">
-                  <strong>{message.role === "assistant" ? "OpenNeko" : "你"}</strong>
+                  <strong>{message.role === "assistant" ? "NekoPapa" : "你"}</strong>
                   <p>{message.text}</p>
                 </div>
               </article>

@@ -94,7 +94,7 @@ export function TopNavigation({
             onClick={() => void runWindowAction("maximize")}
           />
         </div>
-        <strong>OpenNeko Engine</strong>
+        <strong>NekoPapa</strong>
       </div>
 
       <div

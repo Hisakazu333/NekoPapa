@@ -283,19 +283,35 @@ body:has(.app-shell--windowed) {
   min-height: 0;
   overflow: hidden;
   background-color: #d6b08e;
-  background-position: center 58%;
-  background-size: cover;
   isolation: isolate;
+}
+
+.home-ui-canvas {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.home-scene__background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-color: #d6b08e;
+  background-position: center 56%;
+  background-size: cover;
+  pointer-events: none;
 }
 
 .home-scene__wash {
   position: absolute;
   inset: 0;
-  z-index: -1;
+  z-index: 1;
   background: rgba(249, 246, 240, 0.08);
   box-shadow:
     inset 0 -130px 150px rgba(79, 50, 30, 0.08),
     inset 0 100px 120px rgba(255, 247, 235, 0.06);
+  pointer-events: none;
 }
 
 .home-layout {
@@ -472,8 +488,9 @@ body:has(.app-shell--windowed) {
 
 .home-character-stage {
   position: relative;
+  justify-self: start;
   grid-column: 2;
-  width: 100%;
+  width: 430px;
   height: 100%;
   min-height: 0;
   pointer-events: auto;
@@ -481,13 +498,12 @@ body:has(.app-shell--windowed) {
 
 .home-live2d {
   position: absolute;
-  inset: -4px -14% -7px;
+  inset: -4px -8% -7px;
   min-width: 0;
   min-height: 0;
   overflow: visible;
   cursor: pointer;
   touch-action: none;
-  animation: home-character-enter 600ms 80ms both cubic-bezier(0.18, 0.8, 0.28, 1);
 }
 
 .home-live2d::after {
@@ -518,9 +534,8 @@ body:has(.app-shell--windowed) {
 
 .home-live2d__canvas {
   display: block;
-  width: 100%;
-  height: 100%;
-  filter: drop-shadow(0 14px 17px rgba(72, 46, 32, 0.16));
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .home-live2d__status {
@@ -1057,11 +1072,6 @@ body:has(.app-shell--windowed) {
   to { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes home-character-enter {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
 @keyframes home-live2d-spin {
   to { transform: rotate(360deg); }
 }
@@ -1069,145 +1079,6 @@ body:has(.app-shell--windowed) {
 @keyframes home-composer-enter {
   from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-@media (max-width: 1320px) {
-  body:has(.app-shell--home) {
-    padding: 0;
-  }
-
-  .app-header .topbar {
-    grid-template-columns: minmax(250px, 1fr) auto minmax(225px, 1fr);
-    padding: 0 11px;
-  }
-
-  .runtime-pill {
-    padding: 0 8px;
-    font-size: 10px;
-  }
-
-  .app-header .topnav__item {
-    min-width: 72px;
-  }
-
-  .topbar-actions {
-    gap: 9px;
-  }
-
-  .home-layout {
-    right: 26px;
-    left: 26px;
-    grid-template-columns: 210px minmax(240px, 1fr) 188px 247px;
-    gap: 12px;
-  }
-}
-
-@media (max-width: 1120px) {
-  .app-header .topbar {
-    grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .runtime-pills {
-    display: none;
-  }
-
-  .app-header .topnav {
-    justify-content: flex-start;
-  }
-
-  .home-layout {
-    grid-template-columns: 205px minmax(250px, 1fr) 184px;
-  }
-
-  .home-stack--right {
-    display: none;
-  }
-
-  .home-stack--actions {
-    grid-column: 3;
-  }
-
-  .home-composer {
-    right: 8%;
-    left: 8%;
-  }
-}
-
-@media (max-height: 760px) and (min-width: 761px) {
-  :root {
-    --home-header-height: 98px;
-  }
-
-  .app-header {
-    grid-template-rows: 36px 62px;
-  }
-
-  .app-header .topbar {
-    height: 62px;
-  }
-
-  .home-layout {
-    top: 14px;
-    bottom: 94px;
-  }
-
-  .home-rhythm,
-  .home-quick-actions > button small,
-  .home-stage-message {
-    display: none;
-  }
-
-  .home-greeting {
-    padding: 14px 17px;
-  }
-
-  .home-card__meta {
-    margin-bottom: 9px;
-  }
-
-  .home-vitals {
-    padding-top: 13px;
-    padding-bottom: 14px;
-  }
-
-  .home-meter + .home-meter {
-    margin-top: 10px;
-  }
-
-  .home-current {
-    padding-top: 14px;
-  }
-
-  .home-current > strong {
-    margin-top: 9px;
-    font-size: 12px;
-  }
-
-  .home-current > p {
-    display: none;
-  }
-
-  .home-stage-control {
-    margin-top: 8px;
-  }
-
-  .home-quick-actions {
-    padding-top: 12px;
-  }
-
-  .home-quick-actions > button {
-    min-height: 45px;
-  }
-
-  .home-composer {
-    bottom: 15px;
-    height: 58px;
-  }
-
-  .home-composer > button {
-    width: 42px;
-    height: 42px;
-  }
 }
 
 @media (max-width: 840px) {
@@ -1274,7 +1145,7 @@ body:has(.app-shell--windowed) {
     height: 40px;
   }
 
-  .home-scene {
+  .home-scene__background {
     background-position: center 55%;
   }
 
@@ -1445,5 +1316,31 @@ body:has(.app-shell--windowed) {
   .home-composer,
   .home-stage-message button.is-busy svg {
     animation: none;
+  }
+}
+
+/* Desktop uses one composited scale so every panel changes at the same rate. */
+@media (min-width: 841px) {
+  .app-shell--home .app-header {
+    width: 1550px;
+    height: 114px;
+    align-self: start;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    transform-origin: top left;
+    will-change: transform;
+  }
+
+  .home-ui-canvas {
+    inset: auto;
+    top: 0;
+    left: 0;
+    width: 1550px;
+    height: 800px;
+    contain: layout paint;
+    backface-visibility: hidden;
+    transform: translate3d(0, 0, 0);
+    transform-origin: top left;
+    will-change: transform;
   }
 }

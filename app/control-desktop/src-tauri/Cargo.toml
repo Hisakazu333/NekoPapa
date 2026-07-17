@@ -1,13 +1,13 @@
 [package]
-name = "openneko-control-desktop"
+name = "nekopapa"
 version = "0.2.0"
-description = "OpenNeko Engine desktop control console"
+description = "NekoPapa desktop control console"
 authors = ["Nekonano-Aether"]
 edition = "2024"
 rust-version = "1.96"
 
 [lib]
-name = "openneko_control_desktop_lib"
+name = "nekopapa_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
 [build-dependencies]

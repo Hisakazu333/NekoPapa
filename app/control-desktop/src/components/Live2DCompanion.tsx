@@ -105,6 +105,8 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
 
     let disposed = false;
     let resizeObserver: ResizeObserver | null = null;
+    let renderedWidth = 0;
+    let renderedHeight = 0;
     let application: import("pixi.js").Application | null = null;
     const pendingModelRef: { current: PixiLive2DModel | null } = { current: null };
 
@@ -166,25 +168,35 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
         application.stage.addChild(model);
         pendingModelRef.current = null;
 
-        const layout = () => {
+        const applyLayout = () => {
           if (!application || disposed) return;
           const nextWidth = Math.max(1, host.clientWidth);
           const nextHeight = Math.max(1, host.clientHeight);
+          if (nextWidth === renderedWidth && nextHeight === renderedHeight) return;
+
+          renderedWidth = nextWidth;
+          renderedHeight = nextHeight;
           application.renderer.resize(nextWidth, nextHeight);
 
           const scale = Math.min(
-            (nextWidth * 1.12) / modelWidth,
-            (nextHeight * 1.03) / modelHeight,
+            (nextWidth * 1.06) / modelWidth,
+            (nextHeight * 1.025) / modelHeight,
           );
           model.scale.set(scale);
           model.anchor.set(0.5, 1);
-          model.x = nextWidth * 0.39;
-          model.y = nextHeight * 1.045;
+          model.x = nextWidth * 0.48;
+          model.y = nextHeight * 1.03;
+          application.renderer.render(application.stage);
         };
 
-        layout();
-        resizeObserver = new ResizeObserver(layout);
-        resizeObserver.observe(host);
+        applyLayout();
+        const mobileMedia = window.matchMedia("(max-width: 840px)");
+        if (mobileMedia.matches) {
+          resizeObserver = new ResizeObserver(() => {
+            window.requestAnimationFrame(applyLayout);
+          });
+          resizeObserver.observe(host);
+        }
         void model.motion("Idle", 0, 1);
         publishState("ready");
       } catch (error) {
@@ -223,9 +235,11 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
 
   const pointerPosition = (event: PointerEvent<HTMLDivElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
+    const scaleX = bounds.width > 0 ? event.currentTarget.clientWidth / bounds.width : 1;
+    const scaleY = bounds.height > 0 ? event.currentTarget.clientHeight / bounds.height : 1;
     return {
-      x: event.clientX - bounds.left,
-      y: event.clientY - bounds.top,
+      x: (event.clientX - bounds.left) * scaleX,
+      y: (event.clientY - bounds.top) * scaleY,
     };
   };
 
@@ -245,8 +259,7 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
   const handlePointerLeave = (event: PointerEvent<HTMLDivElement>) => {
     const model = modelRef.current;
     if (!model) return;
-    const bounds = event.currentTarget.getBoundingClientRect();
-    model.focus(bounds.width / 2, bounds.height * 0.35);
+    model.focus(event.currentTarget.clientWidth / 2, event.currentTarget.clientHeight * 0.35);
   };
 
   const playTapMotion = (event?: PointerEvent<HTMLDivElement>) => {

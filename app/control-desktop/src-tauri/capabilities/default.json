@@ -1,7 +1,7 @@
 {
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
-  "description": "Default capability for the OpenNeko control console",
+  "description": "Default capability for the NekoPapa control console",
   "windows": ["main"],
   "permissions": [
     "core:default",

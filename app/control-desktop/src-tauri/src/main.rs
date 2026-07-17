@@ -1,3 +1,3 @@
 fn main() {
-    openneko_control_desktop_lib::run();
+    nekopapa_lib::run();
 }

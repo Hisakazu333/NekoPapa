@@ -59,7 +59,7 @@ export function AgentPage() {
       <header className="agent-toolbar">
         <div className="workspace-switcher">
           <span className="workspace-switcher__mark"><Braces size={16} /></span>
-          <span><strong>OpenNeko Engine</strong><small>main</small></span>
+          <span><strong>NekoPapa</strong><small>main</small></span>
           <ChevronDown size={14} aria-hidden="true" />
         </div>
         <span className="toolbar-divider" />
@@ -82,7 +82,7 @@ export function AgentPage() {
             <Search size={14} />
             <input type="search" placeholder="筛选文件" aria-label="筛选文件" />
           </label>
-          <div className="tree-root"><ChevronDown size={14} /><Folder size={15} /> OpenNeko Engine</div>
+          <div className="tree-root"><ChevronDown size={14} /><Folder size={15} /> NekoPapa</div>
           <div className="file-tree">
             {projectFiles.map((entry, index) => {
               const isFile = entry.type === "file";

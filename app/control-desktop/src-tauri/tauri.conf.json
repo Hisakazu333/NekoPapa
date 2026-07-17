@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "OpenNeko Engine",
+  "productName": "NekoPapa",
   "version": "0.2.0",
-  "identifier": "ai.openneko.engine",
+  "identifier": "ai.nekopapa.desktop",
   "build": {
     "beforeDevCommand": "npm run stage:prepare && npm run dev",
     "devUrl": "http://127.0.0.1:1420",
@@ -14,12 +14,13 @@
     "windows": [
       {
         "label": "main",
-        "title": "OpenNeko Engine",
+        "title": "NekoPapa",
         "width": 1440,
         "height": 900,
         "minWidth": 1024,
         "minHeight": 720,
         "center": true,
+        "visible": false,
         "decorations": false,
         "transparent": true,
         "shadow": true,

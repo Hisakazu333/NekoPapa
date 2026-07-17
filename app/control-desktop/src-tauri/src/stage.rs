@@ -94,10 +94,7 @@ fn resolve_model_path(app: &AppHandle) -> Result<PathBuf, String> {
         return Ok(development);
     }
 
-    Err(format!(
-        "Live2D model is missing: {}",
-        bundled.display()
-    ))
+    Err(format!("Live2D model is missing: {}", bundled.display()))
 }
 
 #[tauri::command]

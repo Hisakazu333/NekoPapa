@@ -117,14 +117,15 @@ export function StagePage({
 
   return (
     <div className="home-page">
-      <section
-        className="home-scene"
-        style={{ backgroundImage: `url("${stageBackground}")` }}
-        aria-label="桃濑日和的小屋"
-      >
-        <div className="home-scene__wash" />
+      <section className="home-scene" aria-label="桃濑日和的小屋">
+        <div className="home-ui-canvas">
+          <div
+            className="home-scene__background"
+            style={{ backgroundImage: `url("${stageBackground}")` }}
+          />
+          <div className="home-scene__wash" />
 
-        <div className="home-layout">
+          <div className="home-layout">
           <aside className="home-stack home-stack--left" aria-label="同伴状态">
             <article className="home-card home-greeting">
               <div className="home-card__meta"><CloudSun size={17} />{dateText}</div>
@@ -153,7 +154,7 @@ export function StagePage({
           <aside className="home-stack home-stack--actions" aria-label="小屋操作">
             <article className="home-card home-current">
               <h2>当日信息</h2>
-              <strong>她应该是桌面上<br />一直陪着你的主角。</strong>
+              <strong>她应该是桌面上一直陪着你的主角。</strong>
               <p>当前由 Live2D 舞台为中心，实时响应互动、情感模拟和输入对话。</p>
             </article>
 
@@ -209,9 +210,9 @@ export function StagePage({
               })}
             </article>
           </aside>
-        </div>
+          </div>
 
-        <div className="home-mobile-summary" aria-label="小屋摘要">
+          <div className="home-mobile-summary" aria-label="小屋摘要">
           <span><HeartPulse size={15} /><strong>84%</strong><small>饱食</small></span>
           <span><CloudSun size={15} /><strong>23°</strong><small>多云</small></span>
           <span><CalendarDays size={15} /><strong>{remainingSchedules}</strong><small>日程</small></span>
@@ -223,9 +224,9 @@ export function StagePage({
             aria-label={stageOnline ? "停止桌面舞台" : "启动桌面舞台"}
             title={stageOnline ? "停止桌面舞台" : "启动桌面舞台"}
           ><Power size={16} /><small>桌面</small></button>
-        </div>
+          </div>
 
-        <form className="home-composer" onSubmit={submit}>
+          <form className="home-composer" onSubmit={submit}>
           <div className="home-composer__field">
             <input
               value={draft}
@@ -246,7 +247,8 @@ export function StagePage({
           <button type="submit" aria-label="发送消息" title="发送消息" disabled={!draft.trim()}>
             <Send size={21} aria-hidden="true" />
           </button>
-        </form>
+          </form>
+        </div>
       </section>
     </div>
   );

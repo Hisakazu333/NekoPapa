@@ -49,7 +49,7 @@ export function SettingsPage({ stageRunning }: SettingsPageProps) {
 
   return (
     <div className="page settings-page">
-      <PageHeading title="设置" description="配置 OpenNeko 的桌面行为、连接与数据边界。" />
+      <PageHeading title="设置" description="配置 NekoPapa 的桌面行为、连接与数据边界。" />
 
       <div className="settings-workspace">
         <aside className="settings-sidebar">
@@ -75,7 +75,7 @@ export function SettingsPage({ stageRunning }: SettingsPageProps) {
                 <SettingRow icon={<Sun size={17} />} title="强调色" description="用于主操作与当前选中状态" control={<span className="color-swatch" title="珊瑚粉" />} />
               </SettingsGroup>
               <SettingsGroup title="系统">
-                <SettingRow icon={<Monitor size={17} />} title="登录时启动" description="登录系统后自动运行 OpenNeko" control={<Toggle checked={launchAtLogin} onChange={setLaunchAtLogin} label="登录时启动" />} />
+                <SettingRow icon={<Monitor size={17} />} title="登录时启动" description="登录系统后自动运行 NekoPapa" control={<Toggle checked={launchAtLogin} onChange={setLaunchAtLogin} label="登录时启动" />} />
                 <SettingRow icon={<Moon size={17} />} title="关闭主窗口后保留托盘" control={<Toggle checked={tray} onChange={setTray} label="保留托盘" />} />
                 <SettingRow icon={<Volume2 size={17} />} title="桌面通知" control={<Toggle checked={notifications} onChange={setNotifications} label="桌面通知" />} />
               </SettingsGroup>
@@ -141,7 +141,7 @@ export function SettingsPage({ stageRunning }: SettingsPageProps) {
               <SettingsSectionHeader title="关于" description="版本、许可和运行组件。" icon={<Info size={19} />} />
               <div className="about-panel">
                 <span className="about-panel__mark"><Cat size={28} /></span>
-                <div><h2>OpenNeko Engine</h2><p>桌面原生的陪伴型 Agent 工作台</p></div>
+                <div><h2>NekoPapa</h2><p>桌面原生的陪伴型 Agent 工作台</p></div>
                 <span className="state-badge">v0.1.0</span>
               </div>
               <SettingsGroup title="组件">
