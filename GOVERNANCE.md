@@ -2,7 +2,7 @@
 
 状态：现行规范
 
-适用范围：NekoPapa 仓库、OpenNeko Engine 及其桌面运行时
+适用范围：NekoPapa 仓库、NNA / NekoCore-Nano layer 及其桌面运行时
 
 最后核对：2026-07-18
 
@@ -13,12 +13,11 @@
 ## 1. 名称与边界
 
 - **NekoPapa**：当前产品、桌面应用、安装包和 GitHub 仓库名称。
-- **OpenNeko Engine**：仓库内 `engine/` 的 C++ 引擎名称。
-- **Nekonano-Aether (NNA)**：工程身份和稳定前缀，不是另一套并行产品。
-  新的引擎公共 API 使用 `nna` 命名空间，构建开关和宏使用 `NNA_`，开发
-  分支保留 `nna-` 前缀。
-- **NekoCore-Nano**：可选的私有 Core 集成。默认 `stub` 构建不代表私有
-  Core 已接入。
+- **Nekonano-Aether (NNA) / NekoCore-Nano**：同一底层体系的工程名与核心名，
+  不是两个并列模块。`engine/` 的新公共 API 使用 `nna` 命名空间，构建开关和宏
+  使用 `NNA_`，开发分支保留 `nna-` 前缀。默认 `stub` 构建不代表完整 Core 已接入。
+- **`openneko`**：现存 CMake target、binary 和 namespace 的 legacy 技术标识，
+  不是现行产品或文档品牌。重命名必须通过兼容迁移完成。
 
 不得用愿景名称替代当前模块名称，也不得把原型、草案或可选依赖描述成已经
 交付的运行时能力。

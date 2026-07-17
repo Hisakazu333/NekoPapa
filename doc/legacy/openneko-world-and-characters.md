@@ -2,6 +2,9 @@
 
 # OpenNeko Engine — 世界观与猫娘人设集
 
+> [!WARNING]
+> 历史资料。本文保留早期品牌和角色设想，不属于 NekoPapa 当前产品定义、正式资产授权或 roadmap。
+
 ## *Worldbuilding & Character Bible*
 
 **Nekonano-Aether · 2026**

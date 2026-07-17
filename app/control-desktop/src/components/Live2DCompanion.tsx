@@ -92,7 +92,11 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
   const modelRef = useRef<PixiLive2DModel | null>(null);
   const onStateChangeRef = useRef(onStateChange);
   const pointerFrameRef = useRef<number | null>(null);
-  const pendingFocusRef = useRef<{ x: number; y: number } | null>(null);
+  const pendingPointerRef = useRef<{
+    target: HTMLDivElement;
+    clientX: number;
+    clientY: number;
+  } | null>(null);
   const [state, setState] = useState<Live2DRenderState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const [retryKey, setRetryKey] = useState(0);
@@ -105,6 +109,7 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
 
     let disposed = false;
     let resizeObserver: ResizeObserver | null = null;
+    let layoutFrame: number | null = null;
     let renderedWidth = 0;
     let renderedHeight = 0;
     let application: import("pixi.js").Application | null = null;
@@ -190,19 +195,24 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
         };
 
         applyLayout();
-        const mobileMedia = window.matchMedia("(max-width: 840px)");
-        if (mobileMedia.matches) {
-          resizeObserver = new ResizeObserver(() => {
-            window.requestAnimationFrame(applyLayout);
+        resizeObserver = new ResizeObserver(() => {
+          if (layoutFrame !== null) return;
+          layoutFrame = window.requestAnimationFrame(() => {
+            layoutFrame = null;
+            applyLayout();
           });
-          resizeObserver.observe(host);
-        }
+        });
+        resizeObserver.observe(host);
         void model.motion("Idle", 0, 1);
         publishState("ready");
       } catch (error) {
         if (disposed) return;
         resizeObserver?.disconnect();
         resizeObserver = null;
+        if (layoutFrame !== null) {
+          window.cancelAnimationFrame(layoutFrame);
+          layoutFrame = null;
+        }
         if (pendingModelRef.current) destroyLive2DModel(pendingModelRef.current);
         pendingModelRef.current = null;
         modelRef.current = null;
@@ -218,6 +228,7 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
     return () => {
       disposed = true;
       resizeObserver?.disconnect();
+      if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
       if (pendingModelRef.current) destroyLive2DModel(pendingModelRef.current);
       pendingModelRef.current = null;
       modelRef.current = null;
@@ -225,7 +236,7 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
         window.cancelAnimationFrame(pointerFrameRef.current);
         pointerFrameRef.current = null;
       }
-      pendingFocusRef.current = null;
+      pendingPointerRef.current = null;
       application?.destroy(true, { children: true, texture: true, baseTexture: true });
       application = null;
       host.replaceChildren();
@@ -233,30 +244,41 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
     };
   }, [retryKey]);
 
-  const pointerPosition = (event: PointerEvent<HTMLDivElement>) => {
-    const bounds = event.currentTarget.getBoundingClientRect();
-    const scaleX = bounds.width > 0 ? event.currentTarget.clientWidth / bounds.width : 1;
-    const scaleY = bounds.height > 0 ? event.currentTarget.clientHeight / bounds.height : 1;
+  const pointerPosition = (target: HTMLDivElement, clientX: number, clientY: number) => {
+    const bounds = target.getBoundingClientRect();
+    const scaleX = bounds.width > 0 ? target.clientWidth / bounds.width : 1;
+    const scaleY = bounds.height > 0 ? target.clientHeight / bounds.height : 1;
     return {
-      x: (event.clientX - bounds.left) * scaleX,
-      y: (event.clientY - bounds.top) * scaleY,
+      x: (clientX - bounds.left) * scaleX,
+      y: (clientY - bounds.top) * scaleY,
     };
   };
 
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!modelRef.current) return;
-    pendingFocusRef.current = pointerPosition(event);
+    pendingPointerRef.current = {
+      target: event.currentTarget,
+      clientX: event.clientX,
+      clientY: event.clientY,
+    };
     if (pointerFrameRef.current !== null) return;
 
     pointerFrameRef.current = window.requestAnimationFrame(() => {
       pointerFrameRef.current = null;
       const model = modelRef.current;
-      const focus = pendingFocusRef.current;
-      if (model && focus) model.focus(focus.x, focus.y);
+      const pointer = pendingPointerRef.current;
+      if (!model || !pointer) return;
+      const focus = pointerPosition(pointer.target, pointer.clientX, pointer.clientY);
+      model.focus(focus.x, focus.y);
     });
   };
 
   const handlePointerLeave = (event: PointerEvent<HTMLDivElement>) => {
+    pendingPointerRef.current = null;
+    if (pointerFrameRef.current !== null) {
+      window.cancelAnimationFrame(pointerFrameRef.current);
+      pointerFrameRef.current = null;
+    }
     const model = modelRef.current;
     if (!model) return;
     model.focus(event.currentTarget.clientWidth / 2, event.currentTarget.clientHeight * 0.35);
@@ -268,7 +290,7 @@ export function Live2DCompanion({ className = "", onStateChange }: Live2DCompani
 
     if (event) {
       if (!event.isPrimary || event.button !== 0) return;
-      const point = pointerPosition(event);
+      const point = pointerPosition(event.currentTarget, event.clientX, event.clientY);
       if (!model.hitTest(point.x, point.y).includes("Body")) return;
     }
     void model.motion("Tap@Body", 0, 3);

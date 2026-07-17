@@ -2,6 +2,9 @@
 
 # OpenNeko Engine — 数字生命愿景书
 
+> [!WARNING]
+> 历史资料。本文保留早期品牌和远期设想，不属于 NekoPapa 当前产品定义、架构或 roadmap。任何功能声明都必须回到当前代码、GitHub Issue 和验收证据重新核对。
+
 ## *Digital Life Vision Document*
 
 **Nekonano-Aether · 2026**

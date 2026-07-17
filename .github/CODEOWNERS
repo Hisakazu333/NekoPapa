@@ -20,6 +20,9 @@
 /assets/live2d/ @Hisakazu333
 /doc/product/ @Hisakazu333
 /doc/architecture/ @Hisakazu333
+/doc/engineering/ @Hisakazu333
+/doc/contributing/ @Hisakazu333
+/doc/legacy/ @Hisakazu333
 
 # Project-wide governance.
 /GOVERNANCE.md @Hisakazu333

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CloudOff, Database, ShieldCheck } from "lucide-react";
 import { TopNavigation } from "./components/TopNavigation";
 import type { Live2DRenderState } from "./components/Live2DCompanion";
@@ -39,12 +39,7 @@ const errorStatus = (error: unknown): StageStatus => ({
   updatedAt: new Date().toISOString(),
 });
 
-const HOME_DESIGN_WIDTH = 1550;
-const HOME_DESIGN_HEIGHT = 914;
-const HOME_HEADER_HEIGHT = 114;
-
 export default function App() {
-  const shellRef = useRef<HTMLDivElement>(null);
   const [activePage, setActivePage] = useState<PageId>("stage");
   const [stageStatus, setStageStatus] = useState<StageStatus>(initialStageStatus);
   const [stageBusy, setStageBusy] = useState(false);
@@ -65,53 +60,6 @@ export default function App() {
   useEffect(() => {
     void refreshStageStatus();
   }, [refreshStageStatus]);
-
-  useLayoutEffect(() => {
-    const shell = shellRef.current;
-    if (!shell) return;
-    const header = shell.querySelector<HTMLElement>(".app-header");
-    const canvas = shell.querySelector<HTMLElement>(".home-ui-canvas");
-    if (activePage !== "stage" || !header || !canvas) return;
-
-    const clearDesktopScale = () => {
-      shell.style.removeProperty("grid-template-rows");
-      header.style.removeProperty("transform");
-      canvas.style.removeProperty("transform");
-    };
-
-    const updateScale = () => {
-      if (window.innerWidth <= 840) {
-        clearDesktopScale();
-        return;
-      }
-
-      // Keep the resize hot path compositor-only. The Live2D renderer and the
-      // fixed design canvas retain their internal dimensions while this changes.
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      const scale = Math.max(
-        0.6,
-        Math.min(1, width / HOME_DESIGN_WIDTH, height / HOME_DESIGN_HEIGHT),
-      );
-      const offsetX = Math.max(0, (width - HOME_DESIGN_WIDTH * scale) / 2);
-      const offsetY = Math.max(0, (height - HOME_DESIGN_HEIGHT * scale) / 2);
-
-      const compositorScale = scale.toFixed(5);
-      const compositorOffsetX = offsetX.toFixed(2);
-      const compositorOffsetY = offsetY.toFixed(2);
-      shell.style.gridTemplateRows = `${(HOME_HEADER_HEIGHT * scale).toFixed(2)}px minmax(0, 1fr)`;
-      header.style.transform = `translate3d(${compositorOffsetX}px, 0, 0) scale(${compositorScale})`;
-      canvas.style.transform = `translate3d(${compositorOffsetX}px, ${compositorOffsetY}px, 0) scale(${compositorScale})`;
-    };
-
-    window.addEventListener("resize", updateScale, { passive: true });
-    updateScale();
-
-    return () => {
-      window.removeEventListener("resize", updateScale);
-      clearDesktopScale();
-    };
-  }, [activePage]);
 
   const runStageAction = useCallback(async (action: "start" | "stop") => {
     setStageBusy(true);
@@ -143,7 +91,6 @@ export default function App() {
 
   return (
     <div
-      ref={shellRef}
       className={`app-shell app-shell--windowed ${activePage === "stage" ? "app-shell--home" : ""}`}
     >
       <TopNavigation

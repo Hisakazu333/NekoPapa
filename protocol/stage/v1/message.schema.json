@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "OpenNeko Stage Protocol v1 Message",
+  "title": "NekoPapa Stage Protocol v1 Message",
   "description": "A command or event in the draft Stage JSONL protocol.",
   "oneOf": [
     {

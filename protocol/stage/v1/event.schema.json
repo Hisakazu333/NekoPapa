@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "OpenNeko Stage Protocol v1 Event",
+  "title": "NekoPapa Stage Protocol v1 Event",
   "type": "object",
   "additionalProperties": false,
   "required": [

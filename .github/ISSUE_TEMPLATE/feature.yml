@@ -34,7 +34,7 @@ body:
         - House UI and embedded Live2D
         - Tauri desktop host
         - Native Live2D Stage
-        - OpenNeko C++ engine
+        - NNA / NekoCore-Nano native layer
         - Stage protocol
         - Build, packaging, or release
         - Documentation
@@ -45,8 +45,8 @@ body:
     id: prototype
     attributes:
       label: Product prototype reference
-      description: For UI work, provide the exact repository path under img/.
-      placeholder: "img/<prototype-file>.png"
+      description: For UI work, provide the P-xxx ID and exact repository path under img/.
+      placeholder: "P-028 / img/9a3f525406ac74f80e1fc52b120e1a04.png"
 
   - type: textarea
     id: scope

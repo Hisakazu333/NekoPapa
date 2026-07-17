@@ -47,7 +47,7 @@ labels:
     description: Independent native Live2D Stage process.
   - name: "area:engine"
     color: "0b7285"
-    description: OpenNeko C++ engine and private Core adapter.
+    description: NNA / NekoCore-Nano C++ native layer.
   - name: "area:protocol"
     color: "0366d6"
     description: Stage schemas, messages, and compatibility.

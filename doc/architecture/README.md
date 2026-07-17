@@ -10,13 +10,14 @@
 - [Qt 到 Tauri 迁移](qt-to-tauri-migration.md)：Frozen Legacy Qt 政策、分阶段迁移和回滚条件。
 - [构建与测试门禁](build-and-test-gates.md)：PR、跨平台构建、运行时和发布证据。
 - [Stage Protocol v1](../../protocol/stage/v1/README.md)：Tauri host 与 Native Stage 之间的 JSONL 草案。
-- [项目结构](../OpenNeko%20Engine%20完整项目结构.md)：当前目录、目标目录和文件归属规则。
+- [项目结构](repository-layout.md)：当前目录、目标目录和文件归属规则。
 - [架构决策记录](adr/README.md)：需要 ADR 的变更、状态流转和模板。
 
 ## 当前产品口径
 
 - `NekoPapa` 是产品、Tauri 桌面包和 GitHub 仓库名称。
-- `OpenNeko Engine` 是 C++ 引擎名称；公开 C++ 命名空间继续使用 `nna`。
+- `NNA` 是当前工程身份；公开 C++ 命名空间继续使用 `nna`。
+- `openneko` 是源码中的 legacy target/binary/namespace 标识，不是产品品牌。
 - `app/control-desktop/` 是当前桌面入口。
 - `app/live2d-stage/` 是独立 Native Stage sidecar。
 - `app/stage-desktop/` 是 **Frozen Legacy Qt** 代码，只用于迁移取证，不是可发布回退版本。

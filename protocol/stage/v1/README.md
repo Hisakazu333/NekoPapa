@@ -1,4 +1,4 @@
-# OpenNeko Stage Protocol v1
+# NekoPapa Stage Protocol v1
 
 Status: draft contract. Implementation status: v0, not v1 compliant end to end.
 

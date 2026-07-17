@@ -165,4 +165,4 @@ target-triple sidecar 不存在而失败。CI 可使用明确标记的编译期 
 | health check 通过 | model_loaded、frames、退出码 | 窗口交互和打包已通过 |
 | macOS 通过 | 对应 macOS 工具链和运行时 | Windows 也支持 |
 
-完整验证层级见 [构建与测试门禁](architecture/build-and-test-gates.md)。
+完整验证层级见 [构建与测试门禁](../architecture/build-and-test-gates.md)。

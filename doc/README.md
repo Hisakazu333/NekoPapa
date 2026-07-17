@@ -1,58 +1,73 @@
 # NekoPapa 文档中心
 
-状态：现行索引
+本页按读者任务组织 NekoPapa 文档。当前事实、产品意图、工程规范和历史资料使用不同入口，避免把原型或愿景误读为已实现功能。
 
-最后核对：2026-07-18
+## 开始使用
 
-文档按用途分层，避免愿景、目标架构和当前实现互相覆盖。
+这些文档帮助你运行项目并提交第一个变更：
 
-## 从这里开始
+- [项目 README](../README.md)：项目定位、当前状态和 Quick start
+- [贡献指南](../CONTRIBUTING.md)：分支、验证和 Pull Request 要求
+- [开发环境指南](contributing/development-environment.md)：macOS、Windows、浏览器预览和 Native Stage
+- [Git 工作流](contributing/git-workflow.md)：worktree、同步、冲突与恢复
+- [Issue 与 Pull Request 指南](contributing/issue-and-pull-request-guide.md)：表单、证据和 review 流程
 
-| 主题 | 文档 | 性质 |
-| --- | --- | --- |
-| 产品与当前状态 | [项目 README](../README.md) | 当前事实 |
-| 决策与合并规则 | [项目治理](../GOVERNANCE.md) | 规范 |
-| 本地开发与提交 | [贡献指南](../CONTRIBUTING.md) | 规范 |
-| 安全报告 | [安全策略](../SECURITY.md) | 规范 |
-| GitHub 工作管理 | [Issue 治理](ISSUES.md) | 规范 + 已验证候选 |
-| 工程规则 | [NNA 开发规范](%F0%9F%93%9C%20Nekonano-Aether%20%28NNA%29%20%E5%BC%80%E5%8F%91%E8%A7%84%E8%8C%83%E6%89%8B%E5%86%8C.md) | 规范 |
-| GitHub 协作 | [NNA Issue 与 PR 指南](%F0%9F%90%BE%20Nekonano-Aether%20%28NNA%29%20%E5%8D%8F%E4%BD%9C%E6%8C%87%E5%8D%97%EF%BC%9AIssues%20%E4%B8%8E%20Pull%20Request.md) | 操作指南 |
-| 项目目录 | [项目结构与分层](OpenNeko%20Engine%20%E5%AE%8C%E6%95%B4%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84.md) | 当前 + 目标 |
-| 桌面架构 | [架构索引](architecture/README.md) | 当前 + 决策入口 |
-| 产品原型 | [原型目录](product/README.md) | 目标基线 |
+## 治理项目
 
-## 文档类型
+这些文档定义 GitHub 与工程决策规则：
 
-- **规范**：合并前必须遵守；与仓库设置不一致时需要治理 Issue。
-- **当前事实**：必须能由代码、配置或验证记录复核。
-- **目标/提案**：尚未实现，必须写明进入条件和验收方式。
-- **历史参考**：只用于理解迁移背景，不指导新开发。
-- **愿景**：描述长期产品方向，不作为交付状态。
+- [项目治理](../GOVERNANCE.md)：名称、事实来源、分支、合并、ADR 和发布规则
+- [Issue 治理与首批 backlog](ISSUES.md)：标签、生命周期、Ready/Done 和已验证候选
+- [NNA 工程规范](engineering/standards.md)：React、Rust、C++、协议、依赖和资产规则
+- [安全策略](../SECURITY.md)：私密漏洞报告和重点安全边界
 
-## 架构与迁移
+## 设计产品
 
+这些文档把 `img/` 原型转化为可追踪的产品输入：
+
+- [产品原型基线](product/README.md)：模块映射、Issue 切片和使用规则
+- [48 张原型资产目录](product/prototype-baseline.md)：SHA-256、尺寸、重复关系和验收锚点
+- [桌面 UI 架构与验收](product/desktop-ui-architecture.md)：原生标题栏、居中导航、页面布局和小屋缩放规则
+
+原型只描述目标外观和状态。实现状态必须由代码、自动检查和运行时证据共同确认。
+
+## 修改架构
+
+这些文档定义当前边界和渐进迁移：
+
+- [桌面架构索引](architecture/README.md)
 - [桌面运行时边界](architecture/desktop-runtime-boundaries.md)
-- [Qt 到 Tauri 迁移状态](architecture/qt-to-tauri-migration.md)
+- [项目结构与分层](architecture/repository-layout.md)
+- [Frozen Legacy Qt 到 Tauri 的迁移](architecture/qt-to-tauri-migration.md)
 - [构建与测试门禁](architecture/build-and-test-gates.md)
-- [ADR 模板](architecture/adr/0000-template.md)
-- [Stage Protocol v1 草案](../protocol/stage/v1/README.md)
+- [架构决策记录](architecture/adr/README.md)
+- [Stage Protocol v1](../protocol/stage/v1/README.md)
 
-## 产品资料
+## 查阅历史资料
 
-- [产品原型目录](product/README.md)：`img/` 的逐文件索引与验收字段。
-- [数字生命愿景书](OpenNeko%20Engine%20%E2%80%94%20%E6%95%B0%E5%AD%97%E7%94%9F%E5%91%BD%E6%84%BF%E6%99%AF%E4%B9%A6.md)：愿景，不是当前功能清单。
-- [世界观与角色设定](OpenNeko%20Engine%20%E2%80%94%20%E4%B8%96%E7%95%8C%E8%A7%82%E4%B8%8E%E7%8C%AB%E5%A8%98%E4%BA%BA%E8%AE%BE%E9%9B%86.md)：内容参考，不是正式资产授权。
-- [桌面 UI 设计文档](OpenNeko%20Engine%20%E6%A1%8C%E9%9D%A2%E5%AE%A2%E6%88%B7%E7%AB%AFUI%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1.md)：需与原型目录配合使用；旧 Qt/QML 部分仅作历史参考。
+[历史文档索引](legacy/README.md)保存已退出当前产品口径的早期愿景和角色资料。历史内容不指导新开发，也不代表 NekoPapa roadmap。
 
-## 维护规则
+## 判断文档声明
 
-以下变更必须同步更新文档：
+每条关键声明属于一种证据类型：
 
-- 目录或模块所有权变化：更新项目结构和架构索引。
-- 运行时、协议或权限边界变化：更新边界文档，必要时新增 ADR。
-- 构建命令、版本或 CI 变化：更新 README、贡献指南和门禁。
-- 界面目标或原型替换：更新原型目录，不覆盖旧图而不留映射。
-- GitHub 分支、标签、合并或发布设置变化：更新治理和 Issue 规则。
+| 类型 | 含义 |
+| --- | --- |
+| 当前事实 | 当前源码、配置或仓库状态可以直接证明 |
+| 规范 | 合并前必须遵守，仓库设置应与之同步 |
+| 目标决策 | 已接受但尚未完整实现，必须有进入条件 |
+| 产品意图 | 原型或 Issue 定义的目标，不代表实现 |
+| 历史资料 | 只解释过去，不创建当前承诺 |
 
-文档中的 `当前` 必须可验证，`目标` 必须可验收，`历史` 必须显式标记。不能用
-模糊的“已完成”“支持跨平台”或“生产可用”代替平台和验证级别。
+报告进度时还要写明验证层级：Source-reviewed、Static-verified、Build-verified、Runtime-smoke-tested、Package-verified 或 Release-verified。
+
+## 维护文档
+
+提交文档变更时检查：
+
+- 当前路径、版本、命令和 CI job 与仓库一致
+- README 中文与英文状态一致
+- 产品变更引用 `P-xxx` 和 GitHub Issue
+- 架构边界变化包含 ADR 或明确说明为何不需要
+- 相对链接、代码块语法和 `git diff --check` 通过
+- legacy 标识只出现在迁移说明、实际命令或历史目录

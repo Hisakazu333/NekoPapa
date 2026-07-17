@@ -27,7 +27,7 @@ body:
         - React UI and view state
         - Tauri commands, capabilities, and lifecycle
         - Native Stage process and rendering
-        - OpenNeko engine and private Core adapter
+        - NNA / NekoCore-Nano native layer
         - Stage protocol and compatibility
         - Build, packaging, and release
         - Repository governance and documentation

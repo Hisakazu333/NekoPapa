@@ -29,7 +29,7 @@ This table lists only capabilities confirmed in the current source tree:
 | Home Live2D | Development model integrated | Pixi.js + Cubism Web inside the WebView |
 | Native Stage | v0 development target | C++17 + GLFW + OpenGL + Cubism Native in a separate window |
 | Stage lifecycle | Basic control implemented | The Rust host starts, queries, and stops the sidecar |
-| NNA native layer | Stub mode | Native Stage does not yet use complete NekoCore-Nano domain state |
+| NNA / NekoCore-Nano layer | Stub mode | Native Stage does not yet use complete NekoCore-Nano domain state |
 | Stage Protocol v1 | Draft | JSON Schema exists; runtime messages remain unversioned v0 |
 | Conversation, memory, world, Agent | UI prototypes | No complete service, permission, or persistence flow |
 | Legacy Qt | Frozen | Migration evidence only, not a buildable fallback product |
@@ -75,13 +75,13 @@ React UI ── typed bridge ──> Tauri / Rust host ── lifecycle ──> 
 - **WebView character**: participates in page layout, clipping, and input
 - **Native Stage character**: runs in a separate desktop window
 - **Tauri host**: owns windows, capabilities, resource paths, and sidecar lifecycle
-- **NNA native layer**: is intended to own persistent companion state; the current build remains in Stub mode
+- **NNA / NekoCore-Nano layer**: is intended to own persistent companion state; the current build remains in Stub mode
 
 Read the [desktop runtime boundaries](doc/architecture/desktop-runtime-boundaries.md) for state ownership, protocol, and security constraints.
 
 ## Naming
 
-NekoPapa is the only current product, desktop package, and repository name. Nekonano-Aether (NNA) is the engineering system used in the C++ `nna` namespace, `NNA_` build options, and branch names such as `feat/nna-*`.
+NekoPapa is the only current product, desktop package, and repository name. Nekonano-Aether (NNA) and NekoCore-Nano refer to the same underlying system: NNA supplies engineering prefixes such as the C++ `nna` namespace, `NNA_` build options, and `feat/nna-*` branches; NekoCore-Nano is the core name. This public repository builds a Stub by default and does not contain the complete Core implementation.
 
 The `openneko` CMake targets, binaries, and namespace found in source are legacy technical identifiers awaiting migration. They appear only in commands or migration records and must not be used in new product copy, page titles, or document names.
 
@@ -92,7 +92,7 @@ The `openneko` CMake targets, binaries, and namespace found in source are legacy
 | `app/control-desktop/` | React window, Tauri host, and desktop packaging configuration |
 | `app/live2d-stage/` | Independent C++ Native Stage |
 | `app/stage-desktop/` | Frozen Legacy Qt evidence directory |
-| `engine/` | NNA C++ core stub and Cubism Native adapter |
+| `engine/` | NNA / NekoCore-Nano C++ stub and Cubism Native adapter |
 | `protocol/stage/v1/` | Draft Stage JSONL v1 contract and fixtures |
 | `assets/` | Runtime and development assets |
 | `img/` | Source product prototypes, excluded from packages |

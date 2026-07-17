@@ -1,5 +1,3 @@
-import type { MouseEvent as ReactMouseEvent } from "react";
-import { getCurrentWindow } from "@tauri-apps/api/window";
 import type { LucideIcon } from "lucide-react";
 import {
   Bookmark,
@@ -39,26 +37,6 @@ const live2dLabels: Record<Live2DRenderState, string> = {
   error: "Live2D 异常",
 };
 
-type WindowAction = "close" | "minimize" | "maximize";
-
-async function runWindowAction(action: WindowAction) {
-  if (typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) return;
-
-  const appWindow = getCurrentWindow();
-
-  if (action === "close") await appWindow.close();
-  else if (action === "minimize") await appWindow.minimize();
-  else await appWindow.toggleMaximize();
-}
-
-async function startWindowDrag(event: ReactMouseEvent<HTMLElement>) {
-  if (event.button !== 0 || typeof window === "undefined" || !("__TAURI_INTERNALS__" in window)) return;
-  if (event.target instanceof Element && event.target.closest("button")) return;
-
-  event.preventDefault();
-  await getCurrentWindow().startDragging();
-}
-
 export function TopNavigation({
   activePage,
   onNavigate,
@@ -67,40 +45,7 @@ export function TopNavigation({
 }: TopNavigationProps) {
   return (
     <header className="app-header">
-      <div
-        className="window-titlebar"
-        onMouseDown={(event) => void startWindowDrag(event)}
-      >
-        <div className="traffic-lights" aria-label="窗口控制">
-          <button
-            type="button"
-            className="traffic-light traffic-light--close"
-            aria-label="关闭窗口"
-            title="关闭"
-            onClick={() => void runWindowAction("close")}
-          />
-          <button
-            type="button"
-            className="traffic-light traffic-light--minimize"
-            aria-label="最小化窗口"
-            title="最小化"
-            onClick={() => void runWindowAction("minimize")}
-          />
-          <button
-            type="button"
-            className="traffic-light traffic-light--maximize"
-            aria-label="切换窗口大小"
-            title="切换窗口大小"
-            onClick={() => void runWindowAction("maximize")}
-          />
-        </div>
-        <strong>NekoPapa</strong>
-      </div>
-
-      <div
-        className="topbar"
-        onMouseDown={(event) => void startWindowDrag(event)}
-      >
+      <div className="topbar">
         <div className="runtime-pills" aria-label="运行状态">
           <span className={`runtime-pill ${live2dState === "ready" ? "is-online" : ""} ${live2dState === "error" ? "is-error" : ""}`}>
             <i />{live2dLabels[live2dState]}

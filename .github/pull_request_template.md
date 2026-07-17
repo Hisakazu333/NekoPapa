@@ -13,14 +13,14 @@ Closes #
 
 ## Product and prototype evidence
 
-- Prototype reference under `img/` (required for UI changes):
+- Prototype `P-xxx` ID and source path under `img/` (required for UI changes):
 - Before screenshot or recording:
 - After screenshot or recording:
 - Window size, display scale, OS, and architecture:
 
 ## Architecture and risk
 
-- Affected boundary: React UI / Tauri host / Native Stage / engine / protocol / packaging
+- Affected boundary: React UI / Tauri host / Native Stage / NNA/NekoCore-Nano layer / protocol / packaging
 - New permissions, protocol messages, persisted data, or process-lifecycle behavior:
 - Security, privacy, third-party asset, and licensing impact:
 - Compatibility and rollback plan:

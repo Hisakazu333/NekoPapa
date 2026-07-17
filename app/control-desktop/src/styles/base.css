@@ -132,13 +132,6 @@ svg {
   border-bottom: 1px solid var(--border-subtle);
   background: rgba(255, 255, 255, 0.94);
   padding: 0 16px;
-  -webkit-app-region: drag;
-}
-
-.brand,
-.topnav,
-.topbar__status {
-  -webkit-app-region: no-drag;
 }
 
 .brand {
@@ -620,4 +613,3 @@ textarea::placeholder {
   background: var(--success-soft);
   color: var(--success);
 }
-
