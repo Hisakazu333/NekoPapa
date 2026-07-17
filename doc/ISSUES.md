@@ -116,6 +116,20 @@ Issue 只有在以下条件满足时才关闭：
 下面是治理阶段 GitHub Issues 的定义。标记为“已完成”的条目保留线上验收证据；其余
 条目是候选定义，不表示已经完成，也不因为出现在本文中就自动进入开发。
 
+### 已创建的 GitHub Issues
+
+| 清单 ID | GitHub Issue | 当前状态 |
+| --- | --- | --- |
+| TEST-001 | [#4](https://github.com/Hisakazu333/NekoPapa/issues/4) | Open |
+| REPO-001 | [#5](https://github.com/Hisakazu333/NekoPapa/issues/5) | Open |
+| SEC-001 | [#6](https://github.com/Hisakazu333/NekoPapa/issues/6) | Open |
+| PROTO-001 | [#7](https://github.com/Hisakazu333/NekoPapa/issues/7) | Open |
+| ARCH-001 | [#8](https://github.com/Hisakazu333/NekoPapa/issues/8) | Open |
+| ARCH-002 | [#9](https://github.com/Hisakazu333/NekoPapa/issues/9) | Open |
+| DESKTOP-001 | [#10](https://github.com/Hisakazu333/NekoPapa/issues/10) | Open |
+| UI-001 | [#11](https://github.com/Hisakazu333/NekoPapa/issues/11) | Open |
+| RELEASE-001 | [#12](https://github.com/Hisakazu333/NekoPapa/issues/12) | Open |
+
 ### GOV-001：启用仓库治理基线（已完成）
 
 - 类型/区域/优先级：`type:tech-debt`、`area:governance`、`priority:p1`
