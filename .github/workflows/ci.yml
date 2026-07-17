@@ -1,0 +1,134 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  repository-hygiene:
+    name: Repository hygiene
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Reject newly added generated or local-only files
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.sha }}
+        run: bash scripts/check-new-repository-junk.sh "$BASE_SHA" "$HEAD_SHA"
+
+  frontend:
+    name: Frontend typecheck and build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: app/control-desktop
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: app/control-desktop/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run check
+
+      - name: Build frontend
+        run: npm run build
+
+  rust-host:
+    name: Rust format, lint, and test
+    runs-on: macos-14
+    timeout-minutes: 30
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install repository Rust toolchain
+        run: rustup toolchain install 1.96.0 --profile minimal --component rustfmt,clippy
+
+      - name: Cache Cargo dependencies and build output
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            app/control-desktop/src-tauri/target
+          key: ${{ runner.os }}-rust-1.96.0-${{ hashFiles('app/control-desktop/src-tauri/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-rust-1.96.0-
+
+      - name: Prepare compile-time sidecar placeholder
+        shell: bash
+        run: |
+          host_triple="$(rustc +1.96.0 -vV | sed -n 's/^host: //p')"
+          test -n "$host_triple"
+          mkdir -p app/control-desktop/src-tauri/binaries
+          touch "app/control-desktop/src-tauri/binaries/openneko-live2d-stage-${host_triple}"
+          chmod +x "app/control-desktop/src-tauri/binaries/openneko-live2d-stage-${host_triple}"
+
+      - name: Check Rust formatting
+        run: cargo +1.96.0 fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
+
+      - name: Run Clippy
+        run: cargo +1.96.0 clippy --manifest-path app/control-desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+
+      - name: Run Rust tests
+        run: cargo +1.96.0 test --manifest-path app/control-desktop/src-tauri/Cargo.toml
+
+  native-stage:
+    name: Native Stage (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - macos-14
+          - windows-2022
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Show build tool versions
+        run: |
+          cmake --version
+          ninja --version
+
+      - name: Configure Native Stage
+        run: cmake -S . -B build/ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DNNA_BUILD_APP=OFF -DNNA_BUILD_LIVE2D_STAGE=ON -DNNA_ENABLE_LIVE2D=ON -DNNA_CORE_NANO_MODE=stub
+
+      - name: Build Native Stage
+        run: cmake --build build/ci --target openneko_live2d_stage --parallel

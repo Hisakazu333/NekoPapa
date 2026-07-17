@@ -1,0 +1,103 @@
+name: Feature request
+description: Propose a user-facing capability with explicit scope and acceptance criteria.
+title: "[Feature] "
+labels:
+  - "type:feature"
+  - "status:needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the user problem before prescribing implementation. Separate the requested outcome from future roadmap ideas.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: User problem
+      description: Who is affected, what are they trying to do, and why is the current behavior insufficient?
+    validations:
+      required: true
+
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Desired outcome
+      description: Describe observable product behavior without assuming a particular implementation.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Primary area
+      options:
+        - House UI and embedded Live2D
+        - Tauri desktop host
+        - Native Live2D Stage
+        - OpenNeko C++ engine
+        - Stage protocol
+        - Build, packaging, or release
+        - Documentation
+    validations:
+      required: true
+
+  - type: input
+    id: prototype
+    attributes:
+      label: Product prototype reference
+      description: For UI work, provide the exact repository path under img/.
+      placeholder: "img/<prototype-file>.png"
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: In scope
+      description: List the smallest complete behavior this issue should deliver.
+    validations:
+      required: true
+
+  - type: textarea
+    id: non_goals
+    attributes:
+      label: Non-goals
+      description: State adjacent work that this issue must not absorb.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      placeholder: |
+        - [ ] The user can ...
+        - [ ] Resize and display-scale behavior is verified on ...
+        - [ ] The relevant automated checks pass.
+    validations:
+      required: true
+
+  - type: textarea
+    id: boundaries
+    attributes:
+      label: Architecture and data boundaries
+      description: Note affected processes, permissions, protocol messages, persistence, or rendering surfaces.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Security, privacy, licensing, and release risks
+      description: Include third-party asset or SDK implications when relevant.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched existing issues and roadmap documents for this request.
+          required: true
+        - label: I separated required behavior from speculative future work.
+          required: true

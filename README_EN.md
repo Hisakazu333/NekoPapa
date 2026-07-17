@@ -1,81 +1,44 @@
-# NekoPapa
+<p align="center">
+  <img src="assets/cat_moon_icon_no_black_corners.png" alt="NekoPapa app icon" width="160">
+</p>
 
-[简体中文](README.md) | English
+<h1 align="center">NekoPapa</h1>
 
-NekoPapa is a desktop digital-life experiment built on OpenNeko Engine. NekoPapa is the current product, desktop package, and GitHub repository name; OpenNeko Engine is the underlying C++ engine name; NekoCore-Nano is an optional private Core integration, not the current Native Stage build target.
+<p align="center">A Live2D desktop companion that runs inside an app home and a separate native desktop stage.</p>
 
-The current version combines a Tauri 2 control console, an embedded Live2D character in the cabin view, and a separate native desktop Stage.
+<p align="center">
+  <a href="https://github.com/Hisakazu333/Nekopapa/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Hisakazu333/Nekopapa/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
+  <img alt="Development preview" src="https://img.shields.io/badge/status-development%20preview-f59e0b.svg">
+</p>
 
-The project is a development preview. Current work is focused on the cabin home screen, Live2D presentation, and Native Stage lifecycle. Conversation, memory, world, and Agent screens are still primarily UI prototypes and do not imply that their backing services are complete.
+<p align="center">English · <a href="README.md">简体中文</a></p>
 
-## Current Status
+NekoPapa combines a React control surface, Tauri desktop capabilities, and a C++ Live2D Native Stage. The current release focuses on the home, character rendering, and Stage lifecycle. Conversation, memory, world, and Agent screens remain product prototypes and do not indicate complete backing services.
 
-| Component | Status | Notes |
+> [!IMPORTANT]
+> NekoPapa is a development preview. A successful source build does not verify installers, signing, notarization, Windows runtime behavior, or release quality.
+
+## Project status
+
+This table lists only capabilities confirmed in the current source tree:
+
+| Component | Current state | Boundary |
 | --- | --- | --- |
-| Desktop control console | In development | Tauri 2 + Rust + React + TypeScript |
-| Embedded cabin Live2D | Development model integrated | Rendered in the WebView with Pixi.js and `pixi-live2d-display` |
-| Native desktop Stage | v0 development build target | C++17 + GLFW + OpenGL + Cubism Native in a separate transparent window; release runtime behavior still requires gate verification |
+| Desktop window | In development | Tauri 2 + Rust + React + TypeScript with a native title bar |
+| Home Live2D | Development model integrated | Pixi.js + Cubism Web inside the WebView |
+| Native Stage | v0 development target | C++17 + GLFW + OpenGL + Cubism Native in a separate window |
 | Stage lifecycle | Basic control implemented | The Rust host starts, queries, and stops the sidecar |
-| C++ engine | Stub mode | Native Stage uses `engine_stub.cpp` by default; `source`/`binary` Core modes are currently wired only to the legacy Qt path |
-| Stage Protocol v1 | Draft | JSON Schemas exist, while the runtime still uses unversioned v0 messages |
-| Conversation, memory, world, Agent | UI prototypes | Complete services and persistence flows are not connected |
-| Legacy Qt client | Migration reference | Disabled by default and not the current desktop entry point |
+| NNA native layer | Stub mode | Native Stage does not yet use complete NekoCore-Nano domain state |
+| Stage Protocol v1 | Draft | JSON Schema exists; runtime messages remain unversioned v0 |
+| Conversation, memory, world, Agent | UI prototypes | No complete service, permission, or persistence flow |
+| Legacy Qt | Frozen | Migration evidence only, not a buildable fallback product |
 
-The repository currently uses the official Momose Hiyori Live2D sample model for development. It is not the final Lumia character asset.
+The repository uses the official Momose Hiyori Live2D sample model for development. It is not the final Lumia character asset.
 
-## Architecture
+## Quick start
 
-```text
-                         NekoPapa desktop
-
-  React / TypeScript UI                         C++ Native Stage
-  - cabin and control UI                        - separate transparent window
-  - Cubism Web / Pixi.js                       - GLFW / OpenGL
-              |                                - Cubism Native
-              v                                       ^
-        Tauri 2 / Rust host ---------------------------|
-        - application and window lifecycle
-        - capability boundary
-        - Stage sidecar supervision
-              |
-              v
-        OpenNeko C++ engine
-        - Native Stage uses Stub by default
-        - private Core integration still needs boundary wiring
-```
-
-The embedded Live2D character and the native desktop Stage are separate rendering surfaces:
-
-- The WebView character uses Cubism Web and participates in normal DOM layout, clipping, and input.
-- The desktop character uses Cubism Native in a separate top-level window.
-- Tauri owns process lifecycle and permissions, not Live2D frame rendering.
-- Persistent companion state is intended to be owned by the C++ engine. During the Stub phase, the full domain state is not connected yet.
-
-See [Desktop Runtime Boundaries](doc/architecture/desktop-runtime-boundaries.md) for the complete ownership rules.
-
-## Quick Start
-
-### Browser preview prerequisites
-
-- Node.js and npm; the current LTS release is recommended
-
-### Desktop build prerequisites
-
-- Node.js and npm
-- Rust 1.96 or newer
-- CMake 3.21 or newer
-- Ninja
-- A C++17 toolchain
-- OpenGL development support
-- [Tauri 2 platform prerequisites](https://v2.tauri.app/start/prerequisites/)
-
-Native Stage development targets macOS and Windows. A Linux source path exists, but this repository does not provide release-level cross-platform verification. The repository includes Cubism SDK and development model resources; their use and redistribution remain subject to Live2D license terms.
-
-During the first Native Stage configuration, CMake uses a system GLFW 3.4 package when available and otherwise fetches a pinned version through `FetchContent`. It also fetches nlohmann/json 3.11.3 through `FetchContent` when that target has not already been defined. The first configure may therefore need GitHub access.
-
-### Browser-only preview
-
-The browser preview is intended for cabin and control-console development. It does not launch the real Native Stage; Stage status shown in this mode is simulated.
+Use browser preview for the React home and Cubism Web. It does not start the Native Stage, so Stage state is simulated.
 
 ```bash
 git clone https://github.com/Hisakazu333/Nekopapa.git
@@ -86,96 +49,78 @@ npm --prefix app/control-desktop run dev
 
 Open `http://127.0.0.1:1420/`.
 
-### Desktop application
+### Run the desktop app
+
+The desktop app also requires Rust 1.96+, CMake 3.21+, Ninja, a C++17 toolchain, OpenGL, and the [Tauri 2 platform prerequisites](https://v2.tauri.app/start/prerequisites/).
 
 ```bash
-cd Nekopapa
 npm --prefix app/control-desktop ci
 npm --prefix app/control-desktop run tauri -- dev
 ```
 
-The Tauri development command runs `npm run stage:prepare` first:
+Tauri first builds the Native Stage sidecar for the active Rust target triple. The first configure may download pinned GLFW and nlohmann/json sources from GitHub.
 
-1. Build `openneko-live2d-stage` with CMake and Ninja.
-2. Copy the sidecar for the active Rust target triple into `src-tauri/binaries/`.
-3. Start Vite, the Tauri main window, and the real Native Stage control path.
+Read the [development environment guide](doc/contributing/development-environment.md) for full setup, standalone Native Stage builds, and troubleshooting.
 
-### Build Native Stage separately
+## Runtime architecture
 
-```bash
-cd Nekopapa
-cmake -S . -B build/stage -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DNNA_BUILD_APP=OFF \
-  -DNNA_BUILD_LIVE2D_STAGE=ON \
-  -DNNA_ENABLE_LIVE2D=ON
+NekoPapa uses two independent Live2D rendering surfaces:
 
-cmake --build build/stage --target openneko_live2d_stage
+```text
+React UI ── typed bridge ──> Tauri / Rust host ── lifecycle ──> Native Stage
+    │                                                            │
+    └── Cubism Web / Pixi.js                                     └── Cubism Native / OpenGL
 ```
 
-After building, run a bounded health check:
+- **WebView character**: participates in page layout, clipping, and input
+- **Native Stage character**: runs in a separate desktop window
+- **Tauri host**: owns windows, capabilities, resource paths, and sidecar lifecycle
+- **NNA native layer**: is intended to own persistent companion state; the current build remains in Stub mode
 
-```bash
-./build/stage/bin/openneko-live2d-stage \
-  --health-check \
-  --model assets/live2d/hiyori/hiyori_pro_t11.model3.json
-```
+Read the [desktop runtime boundaries](doc/architecture/desktop-runtime-boundaries.md) for state ownership, protocol, and security constraints.
 
-The default root CMake options are:
+## Naming
 
-- `NNA_BUILD_LIVE2D_STAGE=ON`
-- `NNA_ENABLE_LIVE2D=ON`
-- `NNA_BUILD_APP=OFF`
-- `NNA_CORE_NANO_MODE=stub`
+NekoPapa is the only current product, desktop package, and repository name. Nekonano-Aether (NNA) is the engineering system used in the C++ `nna` namespace, `NNA_` build options, and branch names such as `feat/nna-*`.
 
-## Development Checks
+The `openneko` CMake targets, binaries, and namespace found in source are legacy technical identifiers awaiting migration. They appear only in commands or migration records and must not be used in new product copy, page titles, or document names.
 
-```bash
-cd Nekopapa
-npm --prefix app/control-desktop run check
-npm --prefix app/control-desktop run build
+## Repository layout
 
-cargo fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
-cargo clippy --manifest-path app/control-desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path app/control-desktop/src-tauri/Cargo.toml
-```
-
-A successful build only proves that the named target compiles. It does not verify transparent-window behavior, a real model, cross-platform installers, or release readiness. See [Desktop Build and Test Gates](doc/architecture/build-and-test-gates.md) for the acceptance levels.
-
-## Repository Layout
-
-| Path | Purpose |
+| Path | Responsibility |
 | --- | --- |
-| `app/control-desktop/` | Tauri 2 control console, React frontend, and Rust host |
+| `app/control-desktop/` | React window, Tauri host, and desktop packaging configuration |
 | `app/live2d-stage/` | Independent C++ Native Stage |
-| `app/stage-desktop/` | Legacy Qt client retained during migration |
-| `engine/` | OpenNeko C++ library and Cubism Native adapter |
-| `assets/live2d/` | Development model assets shared by Cubism Web and the Native Stage |
-| `protocol/stage/v1/` | Draft Stage JSONL v1 contract and examples |
-| `doc/architecture/` | Desktop architecture, migration plan, and verification gates |
+| `app/stage-desktop/` | Frozen Legacy Qt evidence directory |
+| `engine/` | NNA C++ core stub and Cubism Native adapter |
+| `protocol/stage/v1/` | Draft Stage JSONL v1 contract and fixtures |
+| `assets/` | Runtime and development assets |
+| `img/` | Source product prototypes, excluded from packages |
+| `doc/` | Governance, engineering, architecture, and product documentation |
 
-## Known Limitations
+Read [repository structure and layering](doc/architecture/repository-layout.md) for current debt and the incremental target layout.
 
-- Browser preview does not launch the real Native Stage.
-- The embedded and desktop models currently use the Momose Hiyori sample assets, not the final Lumia model.
-- Conversation, memory, weather, sync, world, and Agent features are not complete end-to-end product flows.
-- Stage runtime messages are still v0 and must not be described as compliant with `protocol/stage/v1/`.
-- Native Stage uses Stub by default; `source`/`binary` Core modes are currently wired only to the legacy Qt path.
-- Legacy Qt build scripts are not the recommended entry point.
-- macOS/Windows installers, signing, notarization, and cross-platform CI have not reached release-verified status.
+## Development and governance
+
+Changes use short-lived branches and Pull Requests into `main`; the repository has no long-lived `dev` branch. Use `feat/nna-*`, `fix/nna-*`, `refactor/nna-*`, `docs/nna-*`, or `chore/nna-*` branch names.
+
+- [Contributing](CONTRIBUTING.md)
+- [Project governance](GOVERNANCE.md)
+- [NNA engineering standards](doc/engineering/standards.md)
+- [Issue governance and initial backlog](doc/ISSUES.md)
+- [Security policy](SECURITY.md)
 
 ## Documentation
 
-- [Desktop Architecture Notes](doc/architecture/README.md)
-- [Desktop Runtime Boundaries](doc/architecture/desktop-runtime-boundaries.md)
-- [Qt to Tauri Migration Plan](doc/architecture/qt-to-tauri-migration.md)
-- [Desktop Build and Test Gates](doc/architecture/build-and-test-gates.md)
-- [Stage Protocol v1 Draft](protocol/stage/v1/README.md)
-- [Digital Life Vision](doc/OpenNeko%20Engine%20—%20数字生命愿景书.md)
-- [World and Character Guide](doc/OpenNeko%20Engine%20—%20世界观与猫娘人设集.md)
+- [Documentation index](doc/README.md)
+- [Product prototype baseline](doc/product/README.md)
+- [Desktop UI architecture and acceptance](doc/product/desktop-ui-architecture.md)
+- [Desktop architecture](doc/architecture/README.md)
+- [Build and test gates](doc/architecture/build-and-test-gates.md)
+- [Stage Protocol v1](protocol/stage/v1/README.md)
 
-## License
+## License and third-party assets
 
-Repository-owned code is licensed under the [Apache License 2.0](LICENSE).
+Repository-owned code uses the [Apache License 2.0](LICENSE).
 
-The Live2D Cubism SDK, Cubism Core, and Momose Hiyori sample model are not covered solely by Apache-2.0. Use and redistribution must also comply with the applicable Live2D licenses and model terms. See [Live2D Assets](assets/live2d/README.md) and the Cubism SDK license files included in this repository.
+The Live2D Cubism SDK, Cubism Core, and Momose Hiyori sample model retain their own license and redistribution terms. Apache-2.0 does not cover them. Complete the third-party inventory and package-content audit before publishing an installer. Read the [Live2D asset notes](assets/live2d/README.md) for current source information.

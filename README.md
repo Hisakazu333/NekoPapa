@@ -1,81 +1,44 @@
-# NekoPapa
+<p align="center">
+  <img src="assets/cat_moon_icon_no_black_corners.png" alt="NekoPapa 应用图标" width="160">
+</p>
 
-[English](README_EN.md) | 简体中文
+<h1 align="center">NekoPapa</h1>
 
-NekoPapa 是基于 OpenNeko Engine 构建的桌面数字生命实验项目。NekoPapa 是当前产品、桌面包和 GitHub 仓库名称；OpenNeko Engine 是底层 C++ 引擎名称；NekoCore-Nano 是可选的私有 Core 接入，不是当前 Native Stage 的构建目标。
+<p align="center">一个同时运行于应用小屋和独立桌面舞台的 Live2D 桌面伴侣。</p>
 
-当前版本由一个 Tauri 2 主控制台、一个嵌入小屋页面的 Live2D 角色，以及一个独立运行的原生桌面 Stage 组成。
+<p align="center">
+  <a href="https://github.com/Hisakazu333/Nekopapa/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Hisakazu333/Nekopapa/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
+  <img alt="Development preview" src="https://img.shields.io/badge/status-development%20preview-f59e0b.svg">
+</p>
 
-项目处于开发预览阶段。当前重点是小屋主界面、Live2D 展示和桌面 Stage 生命周期；对话、记忆、世界和 Agent 页面仍以界面原型为主，不代表对应服务已经接入。
+<p align="center"><a href="README_EN.md">English</a> · 简体中文</p>
 
-## 当前状态
+NekoPapa 将 React 控制台、Tauri 桌面能力和 C++ Live2D Native Stage 组合成一个桌面应用。当前版本聚焦小屋、角色渲染和 Stage 生命周期。对话、记忆、世界与 Agent 页面仍是产品原型，不代表后端服务已经接通。
 
-| 模块 | 状态 | 说明 |
+> [!IMPORTANT]
+> NekoPapa 处于开发预览阶段。源码构建成功不代表安装包、签名、公证、Windows 运行或发布质量已经验证。
+
+## 项目状态
+
+下表只描述当前源码中能够确认的能力：
+
+| 模块 | 当前状态 | 技术边界 |
 | --- | --- | --- |
-| 桌面主控制台 | 开发中 | Tauri 2 + Rust + React + TypeScript |
-| 小屋 Live2D | 已接入开发模型 | Pixi.js + `pixi-live2d-display`，在 WebView 中渲染 |
-| 原生桌面 Stage | v0 开发构建目标 | C++17 + GLFW + OpenGL + Cubism Native，独立透明窗口；发布运行行为仍需按门禁验证 |
-| Stage 生命周期 | 已实现基础控制 | Rust host 负责启动、查询和停止 sidecar |
-| C++ 引擎 | Stub 模式 | Native Stage 默认使用 `engine_stub.cpp`；`source/binary` Core 接入目前只连接到 legacy Qt 路径 |
-| Stage Protocol v1 | 草案 | 已有 JSON Schema，当前运行时仍是未版本化的 v0 消息 |
-| 对话、记忆、世界、Agent | 界面原型 | 尚未接入完整业务服务和持久化链路 |
-| Legacy Qt 客户端 | 迁移参考 | 默认不构建，不是当前桌面入口 |
+| 桌面主窗口 | 开发中 | Tauri 2 + Rust + React + TypeScript，使用原生标题栏 |
+| 小屋 Live2D | 已接入开发模型 | Pixi.js + Cubism Web，在 WebView 中渲染 |
+| Native Stage | v0 开发目标 | C++17 + GLFW + OpenGL + Cubism Native，运行于独立窗口 |
+| Stage 生命周期 | 基础控制已实现 | Rust host 启动、查询和停止 sidecar |
+| NNA native layer | Stub 模式 | Native Stage 尚未接入完整 NekoCore-Nano 领域状态 |
+| Stage Protocol v1 | 草案 | JSON Schema 已存在，运行时仍使用未版本化 v0 消息 |
+| 对话、记忆、世界、Agent | 界面原型 | 没有完整服务、权限和持久化闭环 |
+| Legacy Qt | Frozen | 仅用于迁移取证，不是可构建回退产品 |
 
-当前仓库使用 Live2D 官方示例模型桃濑日和（Momose Hiyori）进行开发验证。它不是 Lumia 的正式角色资产。
-
-## 架构
-
-```text
-                         NekoPapa desktop
-
-  React / TypeScript UI                         C++ Native Stage
-  - 小屋与控制界面                              - 独立透明窗口
-  - Cubism Web / Pixi.js                       - GLFW / OpenGL
-              |                                - Cubism Native
-              v                                       ^
-        Tauri 2 / Rust host ---------------------------|
-        - 应用与窗口生命周期
-        - 权限边界
-        - Stage sidecar 监督
-              |
-              v
-        OpenNeko C++ engine
-        - Native Stage 当前默认使用 Stub
-        - 私有 Core 接入仍需完成边界 wiring
-```
-
-主窗口中的 Live2D 与原生桌面 Stage 是两个独立渲染面：
-
-- WebView 内的角色使用 Cubism Web，参与正常的 DOM 布局、裁剪和交互。
-- 桌面角色使用 Cubism Native，在独立顶层窗口中运行。
-- Tauri 负责进程和权限，不负责 Live2D 帧渲染。
-- 角色持久状态最终应由 C++ 引擎统一负责；当前 Stub 阶段不代表完整领域状态已经接入。
-
-更多边界说明见 [桌面运行时边界](doc/architecture/desktop-runtime-boundaries.md)。
+仓库使用 Live2D 官方示例模型桃濑日和进行开发验证。它不是 Lumia 的正式角色资产。
 
 ## 快速开始
 
-### 浏览器预览要求
-
-- Node.js 与 npm，推荐使用当前 LTS
-
-### 桌面构建要求
-
-- Node.js 与 npm
-- Rust 1.96 或更高版本
-- CMake 3.21 或更高版本
-- Ninja
-- 支持 C++17 的编译器
-- OpenGL 开发环境
-- [Tauri 2 平台依赖](https://v2.tauri.app/start/prerequisites/)
-
-Native Stage 的开发目标是 macOS 和 Windows；Linux 源码路径存在，但仓库没有发布级跨平台验证。仓库包含 Cubism SDK 和开发模型资源，使用和再分发仍受 Live2D 许可约束。
-
-首次配置 Native Stage 时，GLFW 3.4 会优先使用系统 CMake package，否则通过 `FetchContent` 获取固定版本；nlohmann/json 3.11.3 在 target 尚未定义时也会通过 `FetchContent` 获取。因此首次配置可能需要访问 GitHub。
-
-### 仅启动浏览器预览
-
-浏览器预览适合开发小屋和控制台界面，不会启动真实的原生 Stage；页面中的 Stage 状态是模拟值。
+浏览器预览适合开发 React 小屋和 Cubism Web。它不会启动真实 Native Stage，页面中的 Stage 状态是模拟值。
 
 ```bash
 git clone https://github.com/Hisakazu333/Nekopapa.git
@@ -86,96 +49,78 @@ npm --prefix app/control-desktop run dev
 
 打开 `http://127.0.0.1:1420/`。
 
-### 启动桌面应用
+### 运行桌面应用
+
+桌面应用还需要 Rust 1.96+、CMake 3.21+、Ninja、C++17 工具链、OpenGL 和 [Tauri 2 平台依赖](https://v2.tauri.app/start/prerequisites/)。
 
 ```bash
-cd Nekopapa
 npm --prefix app/control-desktop ci
 npm --prefix app/control-desktop run tauri -- dev
 ```
 
-Tauri 的开发命令会先执行 `npm run stage:prepare`：
+Tauri 会先构建与当前 Rust target triple 匹配的 Native Stage sidecar。首次配置可能从 GitHub 下载固定版本的 GLFW 和 nlohmann/json。
 
-1. 使用 CMake 和 Ninja 构建 `openneko-live2d-stage`。
-2. 按 Rust target triple 复制 sidecar 到 `src-tauri/binaries/`。
-3. 启动 Vite、Tauri 主窗口和真实的 Native Stage 控制链路。
+完整环境、Native Stage 单独构建和故障排查见 [开发环境指南](doc/contributing/development-environment.md)。
 
-### 单独构建 Native Stage
+## 运行时架构
 
-```bash
-cd Nekopapa
-cmake -S . -B build/stage -G Ninja \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DNNA_BUILD_APP=OFF \
-  -DNNA_BUILD_LIVE2D_STAGE=ON \
-  -DNNA_ENABLE_LIVE2D=ON
+NekoPapa 有两个独立 Live2D 渲染面：
 
-cmake --build build/stage --target openneko_live2d_stage
+```text
+React UI ── typed bridge ──> Tauri / Rust host ── lifecycle ──> Native Stage
+    │                                                            │
+    └── Cubism Web / Pixi.js                                     └── Cubism Native / OpenGL
 ```
 
-构建后可以运行一次有界健康检查：
+- **WebView 角色**：参与页面布局、裁剪和输入
+- **Native Stage 角色**：运行于独立桌面窗口
+- **Tauri host**：拥有窗口、权限、资源路径和 sidecar 生命周期
+- **NNA native layer**：目标上拥有可持久的同伴状态，当前仍是 Stub 阶段
 
-```bash
-./build/stage/bin/openneko-live2d-stage \
-  --health-check \
-  --model assets/live2d/hiyori/hiyori_pro_t11.model3.json
-```
+阅读 [桌面运行时边界](doc/architecture/desktop-runtime-boundaries.md) 了解状态所有权、协议和安全约束。
 
-默认情况下：
+## 命名约定
 
-- `NNA_BUILD_LIVE2D_STAGE=ON`
-- `NNA_ENABLE_LIVE2D=ON`
-- `NNA_BUILD_APP=OFF`
-- `NNA_CORE_NANO_MODE=stub`
+NekoPapa 是当前产品、桌面包和仓库的唯一名称。Nekonano-Aether（NNA）是工程体系，继续用于 C++ `nna` 命名空间、`NNA_` 构建选项和 `feat/nna-*` 等分支名。
 
-## 开发检查
+源码中的 `openneko` CMake target、binary 和 namespace 是待迁移的 legacy 技术标识。它们只在命令或迁移文档中出现，不应进入新产品文案、页面标题或新文档名称。
 
-```bash
-cd Nekopapa
-npm --prefix app/control-desktop run check
-npm --prefix app/control-desktop run build
+## 仓库结构
 
-cargo fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
-cargo clippy --manifest-path app/control-desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path app/control-desktop/src-tauri/Cargo.toml
-```
-
-构建成功只代表对应目标可以编译，不代表透明窗口、真实模型、跨平台安装包或发布质量已经验证。完整验收标准见 [构建与测试门禁](doc/architecture/build-and-test-gates.md)。
-
-## 目录
-
-| 路径 | 用途 |
+| 路径 | 责任 |
 | --- | --- |
-| `app/control-desktop/` | Tauri 2 主控制台、React 前端和 Rust host |
+| `app/control-desktop/` | React 主窗口、Tauri host 和桌面打包配置 |
 | `app/live2d-stage/` | 独立 C++ Native Stage |
-| `app/stage-desktop/` | Legacy Qt 客户端，迁移期间保留 |
-| `engine/` | OpenNeko C++ 库和 Live2D Native 适配层 |
-| `assets/live2d/` | Cubism Web 与 Native Stage 共用的开发模型资源 |
-| `protocol/stage/v1/` | Stage JSONL v1 草案与示例 |
-| `doc/architecture/` | 桌面架构、迁移计划和验证门禁 |
+| `app/stage-desktop/` | Frozen Legacy Qt 取证目录 |
+| `engine/` | NNA C++ core stub 与 Cubism Native adapter |
+| `protocol/stage/v1/` | Stage JSONL v1 草案与 fixtures |
+| `assets/` | 运行时与开发资产 |
+| `img/` | 产品原型源图，不进入安装包 |
+| `doc/` | 治理、工程、架构和产品文档 |
 
-## 已知限制
+当前目录债务和渐进目标结构见 [项目结构与分层](doc/architecture/repository-layout.md)。
 
-- 浏览器预览不会启动真实的原生 Stage。
-- 当前嵌入模型与桌面模型使用桃濑日和示例资产，不是正式 Lumia 模型。
-- 对话、记忆、天气、同步、世界和 Agent 尚未形成完整业务闭环。
-- Stage 当前消息格式仍是 v0，不能宣称已经兼容 `protocol/stage/v1/`。
-- Native Stage 默认使用 Stub；私有 Core 接入目前仍限定在 legacy Qt 构建路径。
-- Legacy Qt 构建脚本不是当前推荐入口。
-- macOS/Windows 安装包、签名、公证和跨平台 CI 尚未达到发布验证级别。
+## 开发与治理
+
+仓库使用短分支通过 Pull Request 合入 `main`，不维护长期 `dev` 分支。新分支使用 `feat/nna-*`、`fix/nna-*`、`refactor/nna-*`、`docs/nna-*` 或 `chore/nna-*`。
+
+- [贡献指南](CONTRIBUTING.md)
+- [项目治理](GOVERNANCE.md)
+- [NNA 工程规范](doc/engineering/standards.md)
+- [Issue 治理与首批 backlog](doc/ISSUES.md)
+- [安全策略](SECURITY.md)
 
 ## 文档
 
-- [桌面架构说明](doc/architecture/README.md)
-- [桌面运行时边界](doc/architecture/desktop-runtime-boundaries.md)
-- [Qt 到 Tauri 迁移计划](doc/architecture/qt-to-tauri-migration.md)
+- [文档中心](doc/README.md)
+- [产品原型基线](doc/product/README.md)
+- [桌面 UI 架构与验收](doc/product/desktop-ui-architecture.md)
+- [桌面架构](doc/architecture/README.md)
 - [构建与测试门禁](doc/architecture/build-and-test-gates.md)
-- [Stage Protocol v1 草案](protocol/stage/v1/README.md)
-- [数字生命愿景书](doc/OpenNeko%20Engine%20—%20数字生命愿景书.md)
-- [世界观与角色设定](doc/OpenNeko%20Engine%20—%20世界观与猫娘人设集.md)
+- [Stage Protocol v1](protocol/stage/v1/README.md)
 
-## 许可证
+## 许可证与第三方资产
 
 仓库自有代码采用 [Apache License 2.0](LICENSE)。
 
-Live2D Cubism SDK、Cubism Core 和桃濑日和示例模型不只受 Apache-2.0 约束，使用和再分发必须同时遵守 Live2D 的相关许可及模型条款。详细说明见 [Live2D 资源说明](assets/live2d/README.md) 和仓库内的 Cubism SDK 许可文件。
+Live2D Cubism SDK、Cubism Core 和桃濑日和示例模型适用各自许可与再分发条款，不由 Apache-2.0 覆盖。发布安装包前必须完成第三方清单和包内容审计。阅读 [Live2D 资产说明](assets/live2d/README.md) 获取当前来源信息。

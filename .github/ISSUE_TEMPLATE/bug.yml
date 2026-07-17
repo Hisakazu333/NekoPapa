@@ -1,0 +1,128 @@
+name: Bug report
+description: Report a reproducible product, runtime, build, or packaging defect.
+title: "[Bug] "
+labels:
+  - "type:bug"
+  - "status:needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Provide evidence from the current code or a reproducible build. Remove secrets, tokens, and private asset paths before submitting.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - House UI and embedded Live2D
+        - Tauri desktop host
+        - Native Live2D Stage
+        - OpenNeko C++ engine
+        - Stage protocol
+        - Build, packaging, or release
+        - Documentation
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version or commit
+      description: Use the application version and commit SHA when available.
+      placeholder: "0.2.0 / 08941bc"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Browser preview
+        - Multiple platforms
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS version, CPU architecture, and relevant tool versions.
+      placeholder: "macOS 15.5, Apple Silicon, Node.js 24, Rust 1.96"
+    validations:
+      required: true
+
+  - type: input
+    id: window_scale
+    attributes:
+      label: Window and display scale
+      description: Required for layout, resize, drag, and Live2D rendering defects.
+      placeholder: "Window 1440x900, display 2560x1440, scale 2x"
+
+  - type: input
+    id: prototype
+    attributes:
+      label: Product prototype reference
+      description: For UI work, provide the exact repository path under img/.
+      placeholder: "img/<prototype-file>.png"
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Problem
+      description: State what is broken and its user impact.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      placeholder: |
+        1. Start the application with ...
+        2. Resize or interact with ...
+        3. Observe ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, screenshots, or recordings
+      description: Attach focused evidence and include the first relevant error. Do not paste secrets.
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Verification already performed
+      description: List commands, clean-checkout builds, and platforms already checked.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: I searched for an existing issue describing this defect.
+          required: true
+        - label: I reproduced this against the current main branch or identified the exact commit.
+          required: true
+        - label: I removed credentials, private asset paths, and personal data from the evidence.
+          required: true

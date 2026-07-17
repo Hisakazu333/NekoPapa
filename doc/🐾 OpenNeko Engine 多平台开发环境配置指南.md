@@ -1,158 +1,168 @@
-# 🐾 Nekonano-Aether (NNA Core) 多平台开发环境配置指南
+# NekoPapa / NNA 多平台开发环境指南
 
-欢迎加入 **Nekonano-Aether** 团队！本指南将帮助你在不同操作系统上构建统一的 `Qt 6.5+ / CMake` 开发环境，为 NNA Core 引擎的开发做好准备。
+状态：现行开发指南
 
-## 1. 核心工具链对比
+最后核对：2026-07-18
 
-所有开发者必须确保 C++ 编译器支持 **C++20** 标准。
+本指南覆盖当前 Tauri 2 + React + Rust + C++17 Native Stage。Qt/QML 客户端已冻结
+为 legacy 参考，不是默认环境要求。
 
-| **工具**     | **Windows 11**     | **macOS (Intel/Apple)** | **Linux (Ubuntu/Arch)** |
-| ------------ | ------------------ | ----------------------- | ----------------------- |
-| **编译器**   | MSVC 2022 (v17.0+) | Apple Clang (Xcode 15+) | GCC 11+ / Clang 14+     |
-| **构建系统** | CMake 3.21+        | CMake 3.21+             | CMake 3.21+             |
-| **包管理器** | vcpkg (可选)       | Homebrew                | apt / pacman            |
+## 1. 当前工具链
 
-------
+| 工具 | 最低/约束 | 用途 |
+| --- | --- | --- |
+| Node.js | 当前 LTS | Vite/React/Tauri CLI |
+| npm | 随 Node，使用 lockfile | 前端依赖 |
+| Rust | 1.96+ | Tauri host |
+| CMake | 3.21+ | Engine/Native Stage |
+| Ninja | 推荐 | C++ 构建 |
+| C++ compiler | 支持 C++17 | Engine/Native Stage |
+| OpenGL | 平台开发环境 | Native Stage |
 
-## 2. 详细安装步骤 (官方安装器方案)
+还需要 [Tauri 2 平台依赖](https://v2.tauri.app/start/prerequisites/)。首次配置
+Native Stage 时，如果系统没有匹配的 CMake package，CMake 会从 GitHub 获取固定
+版本的 GLFW 和 nlohmann/json。
 
-### 📦 第一步：安装 Qt 6 框架 (全平台通用)
+## 2. 平台准备
 
-1. 前往 Qt 官网下载 [Qt Online Installer](https://www.google.com/search?q=https://www.qt.io/download-qt-installer)。
-2. 安装时选择 **Qt 6.5 LTS** (或最新稳定版)，并务必勾选以下组件：
-   - **Windows:** `MSVC 2022 64-bit`
-   - **macOS:** `macOS` (包含 ARM64 和 x86_64)
-   - **Linux:** `Desktop gcc 64-bit`
-   - **通用组件 (必选):** `Qt Quick`, `Qt Shader Tools`, `Qt 5 Compatibility Module`
+### macOS
 
-### 💻 第二步：配置操作系统特有依赖
+- 安装并启动一次 Xcode，接受许可证。
+- 安装 Xcode Command Line Tools。
+- 安装 Node.js LTS、Rust、CMake 和 Ninja。
+- Apple Silicon 和 Intel 结果必须分别标注；不要混用不同架构的 Cubism Core。
 
-- **Windows 11:** 安装 Visual Studio 2022 时，必须勾选**“使用 C++ 的桌面开发”**工作负载。建议将 `C:\Qt\6.x.x\msvc2022_64\bin` 添加到系统环境变量 `PATH` 中。
+可用 Homebrew 安装通用工具：
 
-- **macOS:**
-
-  在 App Store 下载 Xcode 并运行一次，确保执行过 `sudo xcodebuild -license`。然后使用 Homebrew 安装依赖：
-
-  Bash
-
-  ```
-  brew install cmake ninja git-lfs
-  ```
-
-- **Linux (以 Ubuntu 为例):**
-
-  安装基础构建库：
-
-  Bash
-
-  ```
-  sudo apt update
-  sudo apt install build-essential libgl1-mesa-dev libxkbcommon-x11-0 libxcb-cursor0 cmake ninja-build git-lfs
-  ```
-
-------
-
-## 3. 获取代码与资源
-
-NNA Core 涉及情绪引擎的 AI 权重与高精度模型资产，我们使用 **Git LFS** 存储大文件。克隆前请务必初始化：
-
-Bash
-
-```
-# 1. 安装 LFS 插件
-git lfs install
-
-# 2. 克隆项目 (请替换为实际的 NNA 组织仓库地址)
-git clone https://github.com/Nekonano-Aether/NNA-Core.git
-cd NNA-Core
-
-# 3. 拉取大文件（如果克隆时没自动下载）
-git lfs pull
+```bash
+brew install cmake ninja node rustup-init
 ```
 
-------
+若使用已有 `rustup`，不要重复初始化；确认 `rustc --version` 满足 manifest 的
+`rust-version`。
 
-## 4. IDE 配置建议
+### Windows 11
 
-- **推荐：Qt Creator (最稳定)**
+- 安装 Visual Studio 2022 的 “Desktop development with C++” workload 和 Windows
+  10/11 SDK。
+- 安装 Node.js LTS、Rust MSVC toolchain、CMake 和 Ninja。
+- 在 x64 Native Tools Command Prompt 或正确加载 MSVC 环境的终端中构建。
+- WebView2 运行时和 Tauri prerequisites 必须可用。
 
-  直接在 Qt Creator 中打开项目根目录的 `CMakeLists.txt`。在 Projects 选项卡中，根据你的系统选择对应的 Kit (例如 `Desktop Qt 6.5.0 MSVC2022`)。
+Native Stage 的发布目标是 Windows x64；其他架构必须有独立 Issue 和工具链验证。
 
-- **备选：VS Code**
+### Linux
 
-  安装插件：`C/C++ Extension Pack`, `CMake Tools`, `Qt All-in-One`。
+Linux 目前是源码开发路径，不是承诺发布的平台。需要 C/C++ 工具链、OpenGL、
+X11/Wayland 对应的 GLFW/Tauri 系统包、Node.js、Rust、CMake 和 Ninja。具体包名随
+发行版变化，以 Tauri 和 GLFW 当前文档为准。
 
-  *Windows 用户注意：请确保从 Developer PowerShell for VS 2022 启动 VS Code，否则 CMake 可能找不到 MSVC 编译器。*
+Linux 构建通过不能替代 macOS/Windows 发布矩阵。
 
-------
+## 3. 获取仓库
 
-## 5. 编译预检 (Troubleshooting)
-
-| **现象**                           | **原因**           | **解决方法**                                                 |
-| ---------------------------------- | ------------------ | ------------------------------------------------------------ |
-| **Windows:** 找不到 `xcb` 或 DLL   | 运行环境路径缺失   | 使用 `windeployqt` 打包，或手动添加 Qt bin 目录到系统 PATH。 |
-| **macOS:** 提示“开发者无法验证”    | 系统安全限制       | 在“系统设置 -> 隐私与安全”中点击“仍要打开”。                 |
-| **Linux:** 编译提示 `GL/gl.h` 缺失 | 缺少 OpenGL 开发库 | 执行 `sudo apt install libgl1-mesa-dev`。                    |
-| **通用:** QML 界面显示黑屏         | Shader 编译失败    | 返回安装器，确保勾选了 `Qt Shader Tools` 组件。              |
-
-------
-
-## 6. 协作规范提醒
-
-- **换行符：** Git 已配置 `autocrlf`，请不要手动修改换行符格式。
-- **编码：** 所有文件必须严格使用 **UTF-8 (无 BOM)** 编码。
-- **构建目录：** 严禁将 `build` 文件夹提交到 Git（项目已配置 `.gitignore`）。
-
-------
-
-## 🚀 备选方案：免登录极速安装 (推荐国内网络环境使用)
-
-如果 Qt 官方在线安装器卡在账号登录界面，请使用以下 `aqtinstall` 命令行方案。**该方案免注册、免登录、速度快。**
-
-### 1. 安装 aqt 工具
-
-确保电脑已安装 Python，在终端运行：
-
-Bash
-
-```
-pip install aqtinstall
+```bash
+git clone https://github.com/Hisakazu333/Nekopapa.git
+cd Nekopapa
+git status --short --branch
 ```
 
-### 2. 执行安装命令
+当前仓库不要求为了普通源码 checkout 额外执行 Git LFS。若以后启用 LFS，以
+`.gitattributes` 和仓库治理说明为准。
 
-根据操作系统运行对应命令（以 Qt 6.5.3 为例）：
+## 4. 安装前端与 Rust 依赖
 
-- **Windows (MSVC 2022):**
+```bash
+npm --prefix app/control-desktop ci
+rustc --version
+cargo --version
+```
 
-  Bash
+`npm ci` 必须使用已跟踪 lockfile。不要用 `npm install` 顺手改写依赖版本后又把
+lockfile 排除在 PR 外。
 
-  ```
-  aqt install-qt windows desktop 6.5.3 win64_msvc2022_64 -m qtshadertools qt5compat
-  ```
+## 5. 浏览器预览
 
-- **macOS (通用):**
+```bash
+npm --prefix app/control-desktop run dev
+```
 
-  Bash
+打开 `http://127.0.0.1:1420/`。浏览器预览用于 React/Cubism Web 调试，不会启动
+真实 Tauri sidecar；页面中的模拟状态不是 Native Stage 运行证据。
 
-  ```
-  aqt install-qt mac desktop 6.5.3 clang_64 -m qtshadertools qt5compat
-  ```
+## 6. Tauri 桌面开发
 
-- **Linux:**
+```bash
+npm --prefix app/control-desktop run tauri -- dev
+```
 
-  Bash
+Tauri 的 `beforeDevCommand` 会先运行 `stage:prepare`，构建并复制与 Rust target
+triple 匹配的 sidecar，然后启动 Vite 和桌面窗口。若失败，分别检查：
 
-  ```
-  aqt install-qt linux desktop 6.5.3 gcc_64 -m qtshadertools qt5compat
-  ```
+1. Node/Rust/Tauri prerequisites；
+2. CMake、Ninja、OpenGL 和编译器；
+3. Cubism SDK/Core 的平台与架构；
+4. sidecar 是否生成到预期 target-triple 路径；
+5. 模型资源是否存在且许可允许本地使用。
 
-> **提示：** 安装完成后，会在当前目录下生成一个 `6.5.3/` 文件夹。你可以将其移动到任意合适的位置（如 `D:\Qt`）。
+不要手工提交 `src-tauri/binaries/` 中的生成 sidecar。
 
-### 3. 跳过账号配置 IDE
+## 7. 单独构建 Native Stage
 
-1. 下载独立版 Qt Creator：前往 [Qt 官方镜像](https://download.qt.io/official_releases/qtcreator/)，下载最新版 (如 14.0) 的 `opensource` 安装包。
-2. 打开 Qt Creator，遇到登录弹窗直接点击 **Skip** 或关闭。
-3. 进入 `工具 (Tools)` -> `选项 (Options)` -> `构建和运行 (Build & Run)`。
-4. **Qt Versions:** 点击“添加”，选择你刚才用 aqt 下载路径里的 `bin/qmake.exe`。
-5. **Kits:** 新建一个 Kit，关联对应的编译器和刚才添加的 Qt Version 即可。
+```bash
+cmake -S . -B build/stage -G Ninja \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DNNA_BUILD_APP=OFF \
+  -DNNA_BUILD_LIVE2D_STAGE=ON \
+  -DNNA_ENABLE_LIVE2D=ON \
+  -DNNA_CORE_NANO_MODE=stub
+cmake --build build/stage --target openneko_live2d_stage
+```
+
+有界健康检查：
+
+```bash
+./build/stage/bin/openneko-live2d-stage \
+  --health-check \
+  --model assets/live2d/hiyori/hiyori_pro_t11.model3.json
+```
+
+Windows 可执行文件名带 `.exe`。记录退出码、stdout JSON、stderr 诊断、平台、架构和
+模型。健康检查通过不等于交互式协议、透明窗口、多屏或安装包门禁通过。
+
+## 8. 基线检查
+
+```bash
+npm --prefix app/control-desktop run check
+npm --prefix app/control-desktop run build
+npm --prefix app/control-desktop run stage:prepare
+cargo fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
+cargo clippy --manifest-path app/control-desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
+cargo test --manifest-path app/control-desktop/src-tauri/Cargo.toml
+```
+
+干净 checkout 在编译 Tauri/Rust 前需要 `stage:prepare`，否则 Tauri build script 会因
+target-triple sidecar 不存在而失败。CI 可使用明确标记的编译期 placeholder 将 Rust
+检查与 C++ job 解耦，但 placeholder 不能作为 Native Stage 构建或运行证据。
+
+当前前端没有独立 lint/unit-test script，CMake 没有 CTest。这些是已记录的测试
+缺口，不要运行不存在的命令或在 PR 中声称已经覆盖。
+
+## 9. Legacy Qt
+
+`app/stage-desktop/` 只用于迁移取证，默认 `NNA_BUILD_APP=OFF`。它当前不能作为可靠
+构建或发布入口，新功能不得继续同时写入 Qt 和 Tauri。确需调查 legacy 行为时使用
+独立 build 目录，并在 Issue 中说明取证目标；不要把 Qt 安装写成新贡献者前置条件。
+
+## 10. 常见问题
+
+| 现象 | 首先检查 | 不能直接得出的结论 |
+| --- | --- | --- |
+| CMake 下载失败 | 网络、proxy、固定依赖是否已有本地 package | 源码错误 |
+| Cubism Core 链接失败 | OS、CPU 架构和 SDK 文件 | React 页面错误 |
+| 浏览器中 Stage 显示 stopped | 是否处于浏览器模拟模式 | Native Stage 崩溃 |
+| Tauri 主窗口打开但角色缺失 | Web 模型路径、sidecar 状态、stderr 分开检查 | Engine 已失败 |
+| health check 通过 | model_loaded、frames、退出码 | 窗口交互和打包已通过 |
+| macOS 通过 | 对应 macOS 工具链和运行时 | Windows 也支持 |
+
+完整验证层级见 [构建与测试门禁](architecture/build-and-test-gates.md)。

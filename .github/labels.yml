@@ -1,0 +1,72 @@
+# Canonical label taxonomy. This file is data only; no workflow mutates labels.
+labels:
+  - name: "type:bug"
+    color: "d73a4a"
+    description: Confirmed or reproducible defect.
+  - name: "type:feature"
+    color: "a2eeef"
+    description: User-facing capability or product improvement.
+  - name: "type:tech-debt"
+    color: "c2e0c6"
+    description: Evidenced maintainability or structural debt.
+  - name: "type:docs"
+    color: "0075ca"
+    description: Documentation-only change.
+  - name: "type:security"
+    color: "b60205"
+    description: Security hardening or privately coordinated remediation.
+
+  - name: "priority:p0"
+    color: "b60205"
+    description: Active security incident, data loss, or released app cannot start.
+  - name: "priority:p1"
+    color: "d93f0b"
+    description: Core development path blocked or high-impact defect without a workaround.
+  - name: "priority:p2"
+    color: "fbca04"
+    description: Important planned feature, quality work, or technical debt.
+  - name: "priority:p3"
+    color: "0e8a16"
+    description: Low-impact improvement or unscheduled exploration.
+
+  - name: "status:needs-triage"
+    color: "ededed"
+    description: Requires evidence, ownership, and priority review.
+  - name: "status:blocked"
+    color: "000000"
+    description: Cannot proceed until a named dependency is resolved.
+
+  - name: "area:ui"
+    color: "1d76db"
+    description: React UI, layout, product prototypes, and embedded Live2D.
+  - name: "area:desktop-host"
+    color: "0052cc"
+    description: Tauri commands, capabilities, windows, and lifecycle.
+  - name: "area:native-stage"
+    color: "006b75"
+    description: Independent native Live2D Stage process.
+  - name: "area:engine"
+    color: "0b7285"
+    description: OpenNeko C++ engine and private Core adapter.
+  - name: "area:protocol"
+    color: "0366d6"
+    description: Stage schemas, messages, and compatibility.
+  - name: "area:build-release"
+    color: "6f42c1"
+    description: CI, dependencies, packaging, signing, and releases.
+  - name: "area:governance"
+    color: "7057ff"
+    description: Repository settings, templates, standards, and documentation system.
+
+  - name: "platform:macos"
+    color: "d4c5f9"
+    description: Specific to or verified on macOS.
+  - name: "platform:windows"
+    color: "c5def5"
+    description: Specific to or verified on Windows.
+  - name: "platform:linux"
+    color: "bfdadc"
+    description: Specific to or verified on Linux.
+  - name: "platform:browser-preview"
+    color: "f9d0c4"
+    description: Browser preview behavior without the native Stage.

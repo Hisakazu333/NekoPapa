@@ -1,0 +1,90 @@
+name: Architecture or technical debt
+description: Track a proven structural constraint, migration, or maintainability risk.
+title: "[Architecture] "
+labels:
+  - "type:tech-debt"
+  - "status:needs-triage"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Architecture issues require concrete repository evidence. Avoid proposing a rewrite without a bounded migration and rollback path.
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Current evidence
+      description: Cite files, dependency direction, failing checks, duplication, or measured operational impact.
+      placeholder: "path/to/file:line and the observed constraint"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Primary boundary
+      options:
+        - React UI and view state
+        - Tauri commands, capabilities, and lifecycle
+        - Native Stage process and rendering
+        - OpenNeko engine and private Core adapter
+        - Stage protocol and compatibility
+        - Build, packaging, and release
+        - Repository governance and documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: target
+    attributes:
+      label: Desired boundary or invariant
+      description: State the rule the resulting architecture must enforce.
+    validations:
+      required: true
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and non-goals
+      description: Identify files or modules in scope and adjacent work explicitly excluded.
+    validations:
+      required: true
+
+  - type: textarea
+    id: plan
+    attributes:
+      label: Incremental migration plan
+      description: Break the work into independently reviewable steps that preserve a working main branch.
+    validations:
+      required: true
+
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility and rollback
+      description: Cover protocol versions, stored data, platform behavior, and the rollback trigger.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance and verification
+      description: Define automated checks plus any platform-specific runtime evidence.
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Security, privacy, licensing, and performance risks
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Submission checks
+      options:
+        - label: This issue describes a current, evidenced constraint rather than a hypothetical future concern.
+          required: true
+        - label: The plan can be delivered through bounded pull requests without a flag-day rewrite.
+          required: true

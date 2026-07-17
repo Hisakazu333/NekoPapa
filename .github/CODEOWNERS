@@ -1,0 +1,27 @@
+# Default ownership while the maintainer team is small.
+* @Hisakazu333
+
+# Governance, build, and release controls.
+/.github/ @Hisakazu333
+/scripts/ @Hisakazu333
+/cmake/ @Hisakazu333
+/CMakeLists.txt @Hisakazu333
+
+# Product and runtime boundaries.
+/app/control-desktop/src/ @Hisakazu333
+/app/control-desktop/src-tauri/ @Hisakazu333
+/app/live2d-stage/ @Hisakazu333
+/app/stage-desktop/ @Hisakazu333
+/engine/ @Hisakazu333
+/protocol/ @Hisakazu333
+
+# Product source material and architecture records.
+/img/ @Hisakazu333
+/assets/live2d/ @Hisakazu333
+/doc/product/ @Hisakazu333
+/doc/architecture/ @Hisakazu333
+
+# Project-wide governance.
+/GOVERNANCE.md @Hisakazu333
+/CONTRIBUTING.md @Hisakazu333
+/SECURITY.md @Hisakazu333

@@ -1,188 +1,209 @@
-# 🐾 Nekonano-Aether (NNA) 团队全流程 Git 实战手册
+# Nekonano-Aether (NNA) Git 实战手册
 
-Git 不是简单的“云盘备份工具”，它是 NNA Core 引擎的**时间机器**。本手册将带你掌握从日常开发到灾难恢复的核心指令，确保我们的开源协同像齿轮一样精密咬合。
+状态：现行操作指南
 
-## 🛑 第一章：NNA 团队的 Git 绝对禁忌
+最后核对：2026-07-18
 
-在敲下任何 Git 命令前，请将以下三条铁律刻在脑子里：
+NekoPapa 使用 GitHub、单一长期分支 `main` 和短期 NNA 工作分支。本文只给出可
+恢复、不会改写共享历史的日常流程。合并规则见 [项目治理](../GOVERNANCE.md)。
 
-1. **绝对禁止修改 Git 历史：** 严禁在共享分支（如 `dev`、`main`）上使用 `git push -f`（强制推送）。这会抹除其他人的代码。
-2. **绝对禁止提交编译产物：** 永远不要把 `build/` 目录、`.user` 文件、`.obj`、`.exe` 或任何由 CMake 自动生成的文件 `git add` 进仓库。
-3. **主分支神圣不可侵犯：** 严禁直接在 `dev` 或 `main` 上写代码。所有改动必须在自己的 `feature/` 分支进行。
+## 1. 开始前确认仓库
 
-------
+同一台机器可能有多个 checkout 或 worktree。运行写操作前先确认：
 
-## 🐘 第二章：Git LFS (大文件存储) 必修课
-
-NNA Core 包含 AI 情感引擎的权重文件（如 `.onnx`, `.bin`）以及 Live2D 物理模型资源。普通 Git 无法处理这些大文件，必须使用 Git LFS。
-
-### 1. 初始化 LFS (仅首次克隆项目时需要)
-
-Bash
-
-```
-git lfs install
-git lfs pull
+```bash
+pwd
+git rev-parse --show-toplevel
+git remote -v
+git status --short --branch
 ```
 
-### 2. 追踪新的大文件类别
+NekoPapa 的 GitHub remote 是
+`https://github.com/Hisakazu333/Nekopapa.git`。不要根据文件夹名称猜仓库，也不要
+在有未提交改动的 checkout 上切换到无关任务。
 
-如果你在项目中引入了新的大文件类型（比如高清材质 `.psd` 或新的模型格式），请告诉 LFS 接管它：
+## 2. 日常分支流程
 
-Bash
+从最新 `main` 创建短分支：
 
-```
-git lfs track "*.psd"
-git lfs track "*.onnx"
-# 记得把生成的 .gitattributes 文件也提交上去
-git add .gitattributes
-```
-
-------
-
-## 🔄 第三章：日常开发标准流 (The NNA Workflow)
-
-这是你每天打开电脑写代码时，必须遵循的标准步骤。
-
-### Step 1: 永远从最新的 dev 分支开始
-
-在你决定写新功能前，先同步远程的最新代码。
-
-Bash
-
-```
-git checkout dev
-git pull origin dev
+```bash
+git switch main
+git pull --ff-only origin main
+git switch -c feat/nna-stage-handshake
 ```
 
-### Step 2: 创建你的专属阵地
+常用前缀：
 
-切出一个新的特性分支。命名规范：`feature/nna-功能描述-你的名字`。
-
-Bash
-
-```
-# 例如：开发 RBF 情绪计算模块
-git checkout -b feature/nna-rbf-routing-zj
-```
-
-### Step 3: 编写代码并暂存
-
-完成一段逻辑后，将变动加入暂存区（Stage）。
-
-Bash
-
-```
-# 查看改了哪些文件
-git status 
-
-# 将你的 C++ 源码和 QML 文件加入暂存区
-git add src/core/PhysiologySolver.cpp
-git add src/ui/NNAWindow.qml
-
-# 警告：不要无脑 git add . 除非你确定没有混入不需要的文件！
+```text
+feat/nna-*       新能力
+fix/nna-*        缺陷修复
+refactor/nna-*   不改变外部行为的重构
+docs/nna-*       文档和治理
+test/nna-*       测试
+chore/nna-*      构建、依赖和维护
+hotfix/nna-*     紧急修复
 ```
 
-### Step 4: 语义化提交
+仓库不使用长期 `dev` 分支。旧文档中的 `feature/* -> dev -> main` 流程已废止。
 
-Bash
+## 3. 隔离并行工作
 
-```
-git commit -m "feat: 接入 nna::emotion 模块的 RBF 权重重排逻辑"
-```
+当前 checkout 有未提交改动时，优先使用 worktree：
 
-### Step 5: 推送到远程仓库
-
-Bash
-
-```
-git push origin feature/nna-rbf-routing-zj
+```bash
+git fetch origin
+git worktree add ../Nekopapa-stage -b feat/nna-stage-handshake origin/main
 ```
 
-*推送完成后，去 GitHub 页面点击 "Compare & pull request"，请求合并到 `dev` 分支。*
+完成并合并后，在确认 worktree 干净的前提下移除：
 
-------
-
-## ⚔️ 第四章：化解代码冲突 (Merge Conflicts)
-
-**场景：** 你和队友同时修改了 `NNAWindow.cpp` 的同一行代码，当你试图把他的代码拉取下来时，Git 会报红并提示冲突。
-
-**不要慌，千万不要直接关掉终端。**
-
-### 解决步骤：
-
-1. 打开发生冲突的文件（IDE 通常会用高亮标出）。你会看到类似这样的标记：
-
-   C++
-
-   ```
-   <<<<<<< HEAD
-   m_currentSatiety -= 10.0f; // 你本地写的代码
-   =======
-   m_currentSatiety -= 15.0f; // 队友在远程写的代码
-   >>>>>>> origin/dev
-   ```
-
-2. **人工决断：** 删掉 `<<<<<<<`, `=======`, `>>>>>>>` 这些标记符号，并保留正确的代码逻辑。
-
-3. **标记已解决并提交：**
-
-   Bash
-
-   ```
-   git add NNAWindow.cpp
-   git commit -m "fix: 解决 NNAWindow.cpp 的饥饿值计算冲突"
-   ```
-
-------
-
-## ⏪ 第五章：后悔药与时间旅行 (高级技巧)
-
-人在写 Bug 时总会犯错，这里是 Git 提供的“后悔药”。
-
-### 1. 代码写乱了，想重置回最近一次提交的状态
-
-Bash
-
-```
-# 放弃所有未提交的本地修改（极度危险，确认你真的不要这些代码了）
-git checkout .
+```bash
+git worktree list
+git worktree remove ../Nekopapa-stage
+git branch -d feat/nna-stage-handshake
 ```
 
-### 2. 刚才的 Commit 写错了名字，或者漏加了一个文件
+不要复制整个仓库目录，也不要用 reset/checkout 清掉另一个任务的本地修改。
 
-Bash
+## 4. 检查和暂存
 
-```
-git add 漏掉的文件.cpp
-# 将改动合并到上一次的 commit 中，并允许你修改 commit 信息
-git commit --amend
-```
+提交前先审阅：
 
-### 3. 想切换分支，但手头的代码还没写完不想 commit
-
-使用“暂存大法”把未完成的代码藏起来。
-
-Bash
-
-```
-git stash save "正在写情绪阈值，还没写完"
-
-# 现在你可以安全地切换到别的分支去修 Bug 了
-git checkout hotfix/xxx
-
-# 修完回来后，恢复之前藏起来的代码
-git checkout feature/nna-rbf-routing-zj
-git stash pop
+```bash
+git status --short
+git diff
+git diff --check
 ```
 
-------
+按路径暂存，随后再次核对 staged diff：
 
-## 📋 附录：常用的 Git 状态查询
+```bash
+git add app/control-desktop/src/App.tsx
+git add app/control-desktop/src/styles/home.css
+git diff --cached
+```
 
-| **命令**            | **作用**                 | **使用场景**                                 |
-| ------------------- | ------------------------ | -------------------------------------------- |
-| `git status`        | 查看当前工作区状态       | **每天敲 100 遍都不嫌多**，提交前必看。      |
-| `git log --oneline` | 查看历史提交记录         | 想看看项目最近合并了什么新功能。             |
-| `git diff`          | 查看具体修改了哪些代码行 | `git add` 之前用来做最后的自我 Code Review。 |
-| `git branch -a`     | 查看本地和远程的所有分支 | 检查队友的新分支是否已经推送到云端。         |
+只有确认所有未跟踪文件都属于当前任务时才使用 `git add -A`。绝不提交构建目录、
+`.DS_Store`、`node_modules`、`target`、sidecar 生成物、密钥或本机配置。
+
+## 5. 提交和推送
+
+使用说明意图的 Conventional Commit：
+
+```bash
+git commit -m "fix(ui): keep home navigation centered while resizing"
+git push -u origin fix/nna-home-resize
+```
+
+在 GitHub 创建目标为 `main` 的 PR。后续修改继续提交到同一分支；PR 会自动更新。
+合并前是否整理 commit 由审查者决定，最终使用 squash merge。
+
+## 6. 同步主线
+
+短分支落后时，先确保工作区干净，再选择一种团队认可的方式：
+
+```bash
+git fetch origin
+git rebase origin/main
+```
+
+只在自己的工作分支尚未被他人使用时 rebase。已经共享的分支优先 merge
+`origin/main`，避免强制推送影响协作者。无论哪种方式，解决冲突后重新运行适用检查。
+
+不要对 `main` rebase 或 force-push。不要为普通同步使用
+`--allow-unrelated-histories`；NekoPapa 的 GitHub 历史已经统一。
+
+## 7. 解决冲突
+
+```bash
+git status
+git diff --name-only --diff-filter=U
+```
+
+逐文件理解两侧意图，删除冲突标记并验证行为：
+
+```bash
+git add path/to/resolved-file
+git status
+```
+
+rebase 中使用 `git rebase --continue`；merge 中创建正常 merge commit。无法确认哪一侧
+正确时中止操作并保留现场：
+
+```bash
+git rebase --abort
+```
+
+或：
+
+```bash
+git merge --abort
+```
+
+不要用 `ours`/`theirs` 批量覆盖没有读过的文件。
+
+## 8. 撤销自己的错误
+
+未暂存的单文件修改可以在确认后撤销：
+
+```bash
+git restore path/to/file
+```
+
+取消暂存但保留修改：
+
+```bash
+git restore --staged path/to/file
+```
+
+已推送或已合并的错误使用新的 revert commit：
+
+```bash
+git revert <commit-sha>
+```
+
+`git reset --hard`、`git clean -fd` 和 `git checkout .` 会破坏未提交工作，不属于
+日常恢复流程。除非工作区所有者明确确认，否则不要执行。
+
+## 9. 暂存未完成工作
+
+优先创建 draft commit 或独立 worktree。必须 stash 时先命名并检查：
+
+```bash
+git stash push -u -m "wip: home resize investigation"
+git stash list
+```
+
+恢复时先用 `apply`，确认无误后再删除 stash：
+
+```bash
+git stash apply stash@{0}
+git status
+git stash drop stash@{0}
+```
+
+## 10. 大文件与 Git LFS
+
+当前仓库是否采用 LFS 由 `.gitattributes` 和治理决策决定，不能因为文件扩展名很大就
+临时执行 `git lfs track`。新增模型、权重、视频、音频、字体或 SDK 二进制前先建立
+Issue，确认：
+
+- 是否允许进入公开仓库；
+- 许可证和再分发条件；
+- Git LFS、Release artifact 或外部对象存储哪种更合适；
+- 下载完整性、版本和离线开发策略。
+
+历史文件迁移到 LFS 会改写对象历史，必须用独立方案和维护窗口，不能在普通功能
+PR 中执行。
+
+## 11. 合并后清理
+
+```bash
+git switch main
+git pull --ff-only origin main
+git branch -d fix/nna-home-resize
+git fetch --prune origin
+```
+
+只有在 GitHub 确认 PR 已合并、分支没有未推送提交、相关 worktree 已移除后才删除
+本地分支。

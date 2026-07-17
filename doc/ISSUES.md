@@ -1,876 +1,222 @@
-# OpenNeko Engine — Gitee Issues 提交清单
+# NekoPapa GitHub Issue 治理与首批 Backlog
 
-> 最后更新: 2026-03-18
->
-> 每个 Issue 可直接复制标题和正文到 https://gitee.com/Hisakazu/open-neko-engine/issues 提交。
-> 标签建议写在每个 Issue 开头，提交时手动选择对应标签。
+状态：现行规范
 
----
+最后核对：2026-07-18
 
-## ISS-001 | 缺少 nna_c_api.h 稳定 C ABI 接口
+权威任务系统：<https://github.com/Hisakazu333/Nekopapa/issues>
 
-**标题:** `[P0][基础设施] 缺少 nna_c_api.h 稳定 C ABI 接口`
+本文件取代旧的 “OpenNeko Engine Gitee Issues 提交清单”。旧清单中的 35 个
+`ISS-*` 条目大多基于已废弃的 Qt/Gitee 架构或未验证的远期设想，不能直接迁移
+为当前 GitHub Issues。下面只保留由当前代码、仓库配置或产品原型能够证明的工作。
 
-**标签:** `优先级: 紧急` `类型: 新功能` `模块: engine`
+## 1. Issue 是什么
 
-**正文:**
+Issue 用来记录一个可判断、可分配、可验收的问题。愿景、随手想法和大型功能树
+先进入讨论或设计文档，不应一次性生成几十个“看起来完整”但无法验真的任务。
 
-### 问题描述
+以下改动通常需要 Issue：
 
-engine/ 目前只有 C++ 类 `NNAEngine`，没有 `extern "C"` 导出层。
+- 用户可见 Bug、功能或行为变化；
+- 跨模块重构、协议变化和依赖升级；
+- 安全、隐私、许可、安装包和发布工作；
+- 超出一个小 PR 的技术债；
+- 改变原型基线或架构边界。
 
-### 影响
+拼写、坏链接等低风险单文件修正可以直接提交 PR，但 PR 仍需说明证据和验证。
 
-- 无法作为闭源 .dll/.dylib 被第三方或插件系统安全调用
-- ABI 随编译器/版本变化会断裂
+## 2. 表单选择
 
-### 期望目标
+| 表单 | 使用条件 | 必需证据 |
+| --- | --- | --- |
+| Bug | 当前行为偏离可复现预期 | commit、平台、步骤、实际/期望、日志或截图 |
+| Feature | 有明确用户问题和交付边界 | 用户场景、非目标、替代方案、验收条件 |
+| Architecture / Tech Debt | 边界、迁移、依赖或维护性问题 | 当前证据、风险、目标边界、迁移与回滚 |
 
-在 `engine/include/nna/c_api/nna_c_api.h` 中实现：
-- opaque handle 设计
-- 纯 C 函数导出，覆盖 init / tick / shutdown / getState / injectEvent 等核心操作
+界面 Issue 还必须填写：
 
-### 关联
+- `img/` 原型文件名或“无对应原型”；
+- Tauri 桌面或浏览器预览；
+- 操作系统、窗口尺寸、显示缩放和设备像素比；
+- 当前截图/视频及期望状态；
+- 拖拽、缩放、导航、窗口按钮等交互的可观察验收条件。
 
-- 插件系统 (#ISS-014) 和 ToolCall 安全执行引擎 (#ISS-021) 依赖此接口
+## 3. 标签体系
 
----
+一个已完成 triage 的 Issue 至少有一个 `type:*`、一个 `area:*`、一个
+`priority:*`。状态和平台标签按需添加。
 
-## ISS-002 | 缺少 .clang-format / .clang-tidy 配置文件
+### 类型
 
-**标题:** `[P1][基础设施] 缺少 .clang-format / .clang-tidy 配置文件`
+- `type:bug`
+- `type:feature`
+- `type:tech-debt`
+- `type:docs`
+- `type:security`
 
-**标签:** `优先级: 高` `类型: 新功能` `模块: 工程规范`
+### 所有权区域
 
-**正文:**
+- `area:ui`：React、样式、Cubism Web 和产品原型。
+- `area:desktop-host`：Tauri/Rust、窗口和应用生命周期。
+- `area:native-stage`：独立 C++ 桌面角色窗口。
+- `area:engine`：OpenNeko Engine 公共 API 和领域实现。
+- `area:protocol`：跨进程 schema、JSONL 和兼容性。
+- `area:build-release`：CI、依赖、安装包、签名和发布。
+- `area:governance`：仓库设置、模板、规范和文档系统。
 
-### 问题描述
+### 优先级
 
-开发规范手册要求 4 空格缩进 + K&R 大括号，但项目根目录没有实际配置文件来强制执行。
+- `priority:p0`：已发布版本存在安全事件、数据损坏或无法启动，需立即处理。
+- `priority:p1`：当前核心开发路径被阻断，或高影响 Bug 无合理绕过方式。
+- `priority:p2`：已确认的重要功能、质量或技术债，进入近期计划。
+- `priority:p3`：低影响改进或尚未排期的探索。
 
-### 期望目标
+### 状态与平台
 
-- 根目录创建 `.clang-format`（BasedOnStyle: Google，按规范手册调整缩进等参数）
-- 根目录创建 `.clang-tidy`（启用 modernize-\*、bugprone-\*、performance-\* 检查集）
+- `status:needs-triage`：尚未完成证据和范围判断。
+- `status:blocked`：存在明确外部依赖，Issue 中必须写出解除条件。
+- `platform:macos`、`platform:windows`、`platform:linux`。
 
-### 关联
+不要创建 `in progress` 标签代替负责人和关联 PR；不要用 `critical` 等第二套优先
+级体系。
 
-- CI/CD (#ISS-003) 依赖此配置运行静态分析
+## 4. 生命周期
 
----
-
-## ISS-003 | 缺少 CI/CD Pipeline
-
-**标题:** `[P1][基础设施] 缺少 CI/CD Pipeline`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: 工程规范`
-
-**正文:**
-
-### 问题描述
-
-项目目前没有任何自动化构建/测试流水线。
-
-### 期望目标
-
-配置 Gitee Go 或 GitHub Actions：
-- macOS + Windows + Linux 三平台构建
-- clang-tidy 静态分析
-- 单元测试自动运行
-
-### 前置依赖
-
-- #ISS-002 (.clang-tidy 配置)
-
----
-
-## ISS-004 | 缺少 Issue / PR 模板文件
-
-**标题:** `[P2][基础设施] 缺少 Issue / PR 模板文件`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: 工程规范`
-
-**正文:**
-
-### 问题描述
-
-`doc/` 里有协作指南文档描述了模板格式，但实际的模板文件不存在。
-
-### 期望目标
-
-- 创建 `.gitee/ISSUE_TEMPLATE/bug_report.md`
-- 创建 `.gitee/ISSUE_TEMPLATE/feature_request.md`
-- 创建 `.gitee/PULL_REQUEST_TEMPLATE.md`
-
-将文档中已有的模板格式落地为实际文件。
-
----
-
-## ISS-005 | 缺少单元测试框架
-
-**标题:** `[P2][基础设施] 缺少单元测试框架`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: 工程规范`
-
-**正文:**
-
-### 问题描述
-
-`tests/` 目录不存在，项目无任何测试代码。
-
-### 期望目标
-
-- 引入 GoogleTest
-- 创建 `tests/CMakeLists.txt`
-- 至少覆盖 engine stub 的 init / tick / getState 基本流程
-
-### 前置依赖
-
-- #ISS-009 (有真实 ODE 代码后才有实质性测试内容)
-
----
-
-## ISS-006 | 缺少 CHANGELOG.md + 语义化版本管理
-
-**标题:** `[P3][基础设施] 缺少 CHANGELOG.md + 语义化版本管理`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: 工程规范`
-
-**正文:**
-
-### 问题描述
-
-CMakeLists.txt 写了 `VERSION 0.1.0` 但无 CHANGELOG 文件。
-
-### 期望目标
-
-- 根目录创建 `CHANGELOG.md`，遵循 [Keep a Changelog](https://keepachangelog.com/) 格式
-- 记录从 0.1.0 开始的变更历史
-
----
-
-## ISS-007 | 缺少 CONTRIBUTING.md
-
-**标题:** `[P3][基础设施] 缺少 CONTRIBUTING.md`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: 工程规范`
-
-**正文:**
-
-### 问题描述
-
-协作指南在 `doc/` 里，但根目录没有标准的 CONTRIBUTING.md（Gitee/GitHub 自动识别的入口）。
-
-### 期望目标
-
-- 根目录创建 `CONTRIBUTING.md`，引用 `doc/` 下的详细文档
-
----
-
-## ISS-008 | CMake 模块化拆分
-
-**标题:** `[P3][基础设施] CMake 模块化拆分`
-
-**标签:** `优先级: 低` `类型: 优化` `模块: 构建系统`
-
-**正文:**
-
-### 问题描述
-
-根 CMakeLists.txt 目前只有 26 行，够用但随着子系统增加会膨胀。当前 `cmake/` 目录下只有 `FindLive2D.cmake`。
-
-### 期望目标
-
-在 `cmake/` 目录下拆分：
-- `NNAOptions.cmake` — 编译选项定义
-- `NNACompilerFlags.cmake` — 编译器标志
-- `NNADependencies.cmake` — 第三方依赖查找
-- `NNAInstall.cmake` — 安装规则
-
-### 备注
-
-可等引擎子系统增多后再做，当前不急。
-
----
-
-## ISS-009 | engine/ 只有 stub，无真实 ODE 内核
-
-**标题:** `[P0][引擎核心] engine/ 只有 stub，无真实 ODE 内核`
-
-**标签:** `优先级: 紧急` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-`engine_stub.cpp` 用 sin 波 mock 所有数值，没有真正的微分方程求解。
-
-### 期望目标
-
-从 NekoCore-Nano (HarmonyOS C++ 引擎) 迁入以下核心模块到 `engine/src/`，加 `nna::` 命名空间：
-
-- `nna::core` — 7 层 ODE 生理计算 (soul_math_models)
-- `nna::core` — PADState / PhysiologicalState 真实结构体（替换 types.h 中的简化版）
-- `nna::core` — MetabolismConfig + chaosFactor + maxDecayMultiplier（含衰减乘数溢出修复）
-
-### 迁移来源
-
-`Neko-Buddy-APPWEB/NekoCore-Nano/` 中已有完整 C++ 实现。
-
-### 注意事项
-
-迁移时需去除 HarmonyOS NAPI 依赖，保持纯 C++ 零平台依赖。
-
-### 关联
-
-此 Issue 是大量下游子系统的前置依赖（双PAD、裁剪层、积分器、记忆、角色、存储、表情驱动等）。
-
----
-
-## ISS-010 | 缺少双 PAD 空间融合 (dual_pad)
-
-**标题:** `[P0][引擎核心] 缺少双 PAD 空间融合 (dual_pad)`
-
-**标签:** `优先级: 紧急` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-types.h 只有单一 PADState {pleasure, arousal, dominance}，缺少认知-躯体双通道融合。
-
-### 期望目标
-
-实现认知 E_mind + 躯体 E_body 双 PAD 融合，对应设计文档 `dual_pad.h` 的规划。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-
----
-
-## ISS-011 | 缺少生理裁剪层 Φ (physio_clipper)
-
-**标题:** `[P1][引擎核心] 缺少生理裁剪层 Φ (physio_clipper)`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无外部载荷裁剪机制。
-
-### 期望目标
-
-实现 Tanh 钳制外部载荷，防止极端输入导致 ODE 发散。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-
----
-
-## ISS-012 | 缺少混合数值积分器 (hybrid_integrator)
-
-**标题:** `[P1][引擎核心] 缺少混合数值积分器 (hybrid_integrator)`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前 stub 中使用简单 sin 波模拟，无真实数值积分。
-
-### 期望目标
-
-实现 RKF45 自适应步长 + 辛积分器，替代 stub 中的简单 sin 波。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-
----
-
-## ISS-013 | 缺少事件总线 (events)
-
-**标题:** `[P1][引擎核心] 缺少事件总线 (events)`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-`NNAEngine::injectEvent` 直接操作内部状态，无发布/订阅机制，子系统间耦合严重。
-
-### 期望目标
-
-实现 `nna::core::EventBus`：
-- 类型安全的事件分发
-- 支持引擎内部子系统间解耦通信
-
-### 关联
-
-行为树 (#ISS-017)、环境嗅探 (#ISS-020)、ToolCall (#ISS-021) 依赖此组件。
-
----
-
-## ISS-014 | 插件系统
-
-**标题:** `[P1][子系统] 插件系统`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无插件加载机制。
-
-### 期望目标
-
-- dlopen / LoadLibrary 动态加载 .so / .dll
-- 插件通过 C API 交互
-
-### 前置依赖
-
-- #ISS-001 (C API)
-
----
-
-## ISS-015 | 记忆系统 (memory/)
-
-**标题:** `[P1][子系统] 记忆系统 (memory/)`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无记忆管理模块。
-
-### 期望目标
-
-- 分层记忆管理
-- 情感引力场重排
-- 不应期机制
-
-### 迁移来源
-
-NekoCore-Nano 已有 `gravity_reranker.h/.cpp` 可迁移。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-
----
-
-## ISS-016 | AI/LLM 具身内分泌计算 (ai/)
-
-**标题:** `[P1][子系统] AI/LLM 具身内分泌计算 (ai/)`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无 LLM 对接层和生理变量→解码超参绑定。
-
-### 期望目标
-
-- ILLMProvider 抽象接口
-- 生理变量→解码超参绑定（PAD → temperature / maxTokens）
-
-### 迁移来源
-
-NekoCore-Nano 已有 `endocrine_modulator.h/.cpp`。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-- #ISS-010 (双PAD)
-
----
-
-## ISS-017 | 行为决策 (behavior/)
-
-**标题:** `[P2][子系统] 行为决策 (behavior/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无行为决策模块。
-
-### 期望目标
-
-- 行为树 (BT) Selector / Sequence / Decorator
-- FSM 有限状态机
-- JSON / Lua 加载行为树定义
-
-### 前置依赖
-
-- #ISS-013 (事件总线)
-
----
-
-## ISS-018 | 暗影管道 & DPO 训练 (evolution/)
-
-**标题:** `[P2][子系统] 暗影管道 & DPO 训练 (evolution/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无暗影生成管道和 DPO 训练支持。
-
-### 期望目标
-
-- 暗影生成管道
-- 生理沙盒推演
-- JSONL DPO 持久化
-- LoRA 微调代理
-
-### 迁移来源
-
-NekoCore-Nano 已有 `shadow_pipeline` / `physiology_sandbox` / `jsonl_dpo_storage`。
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-- #ISS-016 (AI/LLM)
-
----
-
-## ISS-019 | 梦境系统 (dream/)
-
-**标题:** `[P2][子系统] 梦境系统 (dream/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-UI 有 DreamPage.qml 占位，引擎无实现。
-
-### 期望目标
-
-- 图游走算法梦境合成
-- 潜意识层
-- 异步情感打标
-
-### 前置依赖
-
-- #ISS-015 (记忆系统)
-
----
-
-## ISS-020 | 环境嗅探 (perception/)
-
-**标题:** `[P2][子系统] 环境嗅探 (perception/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-UI 有 PerceptionPage.qml 占位，引擎无实现。
-
-### 期望目标
-
-- OS 进程/状态监听
-- 感觉过滤 Sigmoid 阈值
-- 多模态融合
-
-### 前置依赖
-
-- #ISS-013 (事件总线)
-
----
-
-## ISS-021 | ToolCall 安全执行引擎 (toolcall/)
-
-**标题:** `[P2][子系统] ToolCall 安全执行引擎 (toolcall/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-UI 有 ToolCallPage.qml 占位，引擎无实现。
-
-### 期望目标
-
-- 工具注册表
-- 指令解析器
-- 本地执行器
-- 安全沙盒
-- HITL (Human-In-The-Loop) 审批
-
-### 前置依赖
-
-- #ISS-001 (C API)
-- #ISS-013 (事件总线)
-
----
-
-## ISS-022 | 角色系统 (character/)
-
-**标题:** `[P2][子系统] 角色系统 (character/)`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-types.h 有简化的 CharacterInfo，UI 有 CharacterPage.qml，但缺少完整的角色系统。
-
-### 期望目标
-
-- 完整的 Soul + 外观 + 行为树 + 记忆容器
-- 性格矩阵 / PAD 基线
-- 成长 / 进化曲线
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-- #ISS-015 (记忆系统)
-- #ISS-017 (行为决策)
-
----
-
-## ISS-023 | 音频/语音 (audio/)
-
-**标题:** `[P3][子系统] 音频/语音 (audio/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无音频/语音模块。
-
-### 期望目标
-
-- TTS / STT 引擎抽象
-- VAD (Voice Activity Detection)
-- BGM 情绪联动
-
-### 备注
-
-需要 VITS / Whisper 等第三方库，优先级较低。
-
----
-
-## ISS-024 | 同步引擎 (sync/)
-
-**标题:** `[P3][子系统] 同步引擎 (sync/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无跨设备同步机制。
-
-### 期望目标
-
-- 后端中转：HTTP 客户端拉取 RUOYI ODE 快照
-- 局域网直连：mDNS + WebSocket
-
-### 备注
-
-桌面端与手机端联动的基础。
-
----
-
-## ISS-025 | 存储引擎 (storage/)
-
-**标题:** `[P3][子系统] 存储引擎 (storage/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无本地持久化存储。
-
-### 期望目标
-
-- SQLite 存储
-- ChaCha20 AEAD 加密持久化
-- 数据迁移机制
-
-### 前置依赖
-
-- #ISS-009 (ODE 内核)
-
----
-
-## ISS-026 | IoT 硬件联动 (iot/)
-
-**标题:** `[P3][子系统] IoT 硬件联动 (iot/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-UI 有 IoTPage.qml 占位，引擎无实现。
-
-### 期望目标
-
-- 串口 / UDP / MQTT 桥接
-- 情绪→硬件指令协议
-
----
-
-## ISS-027 | Lua 脚本绑定 (scripting/)
-
-**标题:** `[P3][子系统] Lua 脚本绑定 (scripting/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-CMake 有 `NNA_ENABLE_LUA` 选项但无实现代码。
-
-### 期望目标
-
-- Lua 运行时集成
-- 热重载
-- 行为树 Lua 节点
-
-### 前置依赖
-
-- #ISS-017 (行为决策)
-
----
-
-## ISS-028 | 调试协议 (debug/)
-
-**标题:** `[P3][子系统] 调试协议 (debug/)`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-当前无远程调试/遥测能力。
-
-### 期望目标
-
-- WebSocket 调试服务
-- 遥测数据导出
-
----
-
-## ISS-029 | Live2D ExpressionDriver 缺失
-
-**标题:** `[P1][桌面端UI] Live2D ExpressionDriver 缺失`
-
-**标签:** `优先级: 高` `类型: 新功能` `模块: app`
-
-**正文:**
-
-### 问题描述
-
-Live2D 模型能渲染和显示，但没有 PAD → Live2D 参数的表情驱动。
-
-### 期望目标
-
-实现 `ExpressionDriver`，将引擎输出的 PAD 值映射到 Live2D 表情参数：
-- ParamEyeLOpen / ParamEyeROpen
-- ParamMouthForm / ParamMouthOpenY
-- ParamBrowLY / ParamBrowRY
-- 等
-
-### 前置依赖
-
-- #ISS-009 (需要真实 PAD 数据)
-
----
-
-## ISS-030 | 聊天功能未接通
-
-**标题:** `[P2][桌面端UI] 聊天功能未接通`
-
-**标签:** `优先级: 中` `类型: 新功能` `模块: app`
-
-**正文:**
-
-### 问题描述
-
-HomePage.qml 有聊天输入框 UI，但无后端 / LLM 对接。
-
-### 期望目标
-
-接通 LLM Provider，实现基本的 聊天 → 引擎注入 → 回复 流程。
-
-### 前置依赖
-
-- #ISS-016 (AI/LLM)
-
----
-
-## ISS-031 | 大量子页面为占位状态
-
-**标题:** `[P2][桌面端UI] 大量子页面为占位状态`
-
-**标签:** `优先级: 中` `类型: 跟踪` `模块: app`
-
-**正文:**
-
-### 问题描述
-
-以下页面均为 PlaceholderPage，无实质内容：
-- MemoryPage
-- DreamPage
-- StatusPage
-- ToolCallPage
-- AgentPage
-- EvolutionPage
-- PerceptionPage
-- IoTPage
-- SettingsPage
-
-### 备注
-
-这不是一个单独的任务，而是跟随各子系统 Issue 逐步完成。随对应引擎子系统实现逐步替换为真实 UI。
-
----
-
-## ISS-032 | 设置页功能
-
-**标题:** `[P3][桌面端UI] 设置页功能`
-
-**标签:** `优先级: 低` `类型: 新功能` `模块: app`
-
-**正文:**
-
-### 问题描述
-
-SettingsPage.qml 为占位状态。
-
-### 期望目标
-
-- 模型选择
-- 主题切换
-- 引擎参数调节
-- 账号登录入口
-
----
-
-## ISS-033 | README.md 中的路径为 Windows 硬编码
-
-**标题:** `[P2][Bug] README.md 中的路径为 Windows 硬编码`
-
-**标签:** `优先级: 中` `类型: Bug` `模块: 文档`
-
-**正文:**
-
-### 问题描述
-
-README.md 和 README_EN.md 中的文档链接使用了 Windows 绝对路径 `F:\open-neko-engine\doc\...`，在 macOS / Linux 和 Gitee 网页上无法点击。
-
-### 受影响文件
-
-- `README.md`（3 处）
-- `README_EN.md`（2 处）
-
-### 修复方案
-
-将所有 `F:\open-neko-engine\...` 改为相对路径 `doc/...`。
-
----
-
-## ISS-034 | macOS AGL.framework workaround 需要长期方案
-
-**标题:** `[P2][技术债] macOS AGL.framework workaround 需要长期方案`
-
-**标签:** `优先级: 中` `类型: 技术债` `模块: 构建系统`
-
-**正文:**
-
-### 问题描述
-
-macOS 26.2 SDK 移除了 AGL tbd stub，当前用 CMake strip WrapOpenGL 的 AGL 链接项绕过。
-
-### 期望目标
-
-跟踪 Qt 上游修复（QTBUG-xxx），SDK 更新后移除 workaround。
-
----
-
-## ISS-035 | engine/ 头文件目录结构与设计文档不一致
-
-**标题:** `[P3][跟踪] engine/ 头文件目录结构与设计文档不一致`
-
-**标签:** `优先级: 低` `类型: 跟踪` `模块: engine`
-
-**正文:**
-
-### 问题描述
-
-设计文档规划了 `include/nna/` 下 20+ 子目录，实际只有 `core/` 和 `graphics/live2d/` 下的头文件 + `export.h`。
-
-### 备注
-
-跟踪性 Issue，随各子系统实现逐步补齐，不需要提前创建空文件。
-
----
-
-## 依赖关系总览
-
-提交 Issue 时可在描述中用 `#ISS-xxx` 互相引用。实际 Gitee Issue 编号会在创建后自动分配，届时替换为真实编号即可。
-
-```
-ISS-001 (C API) ──┬──→ ISS-014 (插件系统)
-                   └──→ ISS-021 (ToolCall)
-
-ISS-009 (ODE 内核) ──┬──→ ISS-010 (双PAD)  ──→ ISS-016 (AI/LLM)
-                      ├──→ ISS-011 (裁剪层)
-                      ├──→ ISS-012 (积分器)
-                      ├──→ ISS-015 (记忆)    ──→ ISS-019 (梦境)
-                      ├──→ ISS-022 (角色)
-                      ├──→ ISS-025 (存储)
-                      └──→ ISS-029 (表情驱动)
-
-ISS-013 (事件总线) ──┬──→ ISS-017 (行为树)  ──→ ISS-027 (Lua)
-                      ├──→ ISS-020 (环境嗅探)
-                      └──→ ISS-021 (ToolCall)
-
-ISS-016 (AI/LLM) ───→ ISS-018 (暗影/DPO)
-                  ───→ ISS-030 (聊天接通)
-
-ISS-002 (clang) ────→ ISS-003 (CI/CD)
+```text
+提交 -> needs-triage -> 接受并排期 -> PR -> 验证 -> 关闭
+                       \-> blocked
+                       \-> 不采纳/重复/无法复现
 ```
 
-## 建议提交顺序
+### Ready for Development
 
-1. **ISS-001** + **ISS-009** — 并行，最高优先级
-2. **ISS-002** + **ISS-005** + **ISS-013** — 基础设施 + 事件总线
-3. **ISS-010** ~ **ISS-012** — 双PAD / 裁剪层 / 积分器
-4. **ISS-003** — CI/CD
-5. **ISS-015** + **ISS-016** + **ISS-029** — 记忆 + AI/LLM + 表情驱动
-6. **ISS-014** + **ISS-017** — 插件系统 + 行为树
-7. 其余子系统按需推进
+进入开发前必须满足：
+
+- 问题、范围和非目标明确；
+- 当前事实有代码、配置、日志或原型证据；
+- 验收条件可以由人或自动化检查判断；
+- 依赖和平台范围明确；
+- 安全、许可或数据迁移影响已标出；
+- 跨运行时决策已有 ADR 或被要求在 PR 中补充。
+
+### Done
+
+Issue 只有在以下条件满足时才关闭：
+
+- 关联 PR 已合入 `main`；
+- 适用 CI 和本地检查通过；
+- 验收证据记录在 PR 或 Issue；
+- 文档、schema、原型状态和用户可见文本已同步；
+- 未验证的平台和剩余限制明确记录；
+- 后续工作拆成独立 Issue，而不是藏在合并说明中。
+
+## 5. 首批已验证 Backlog
+
+下面是治理阶段可创建的 GitHub Issues。它们是候选定义，不表示已经完成，也不
+因为出现在本文中就自动进入开发。
+
+### GOV-001：启用仓库治理基线
+
+- 类型/区域/优先级：`type:tech-debt`、`area:governance`、`priority:p1`
+- 证据：仓库此前没有 CI、Issue/PR 模板、CODEOWNERS、Dependabot 或保护规则；
+  远端只有未保护的 `main`。
+- 范围：合入治理文件；统一 squash merge；自动删除已合并分支；在基线 CI 稳定
+  后配置 `main` ruleset。
+- 验收：线上设置与 [GOVERNANCE.md](../GOVERNANCE.md) 一致，required checks 名称
+  与实际 workflow 完全相同。
+
+### CI-001：建立真实可执行的 CI 基线
+
+- 类型/区域/优先级：`type:tech-debt`、`area:build-release`、`priority:p1`
+- 证据：仓库此前没有 workflow；前端只有 `check` 和 `build`，没有 lint/test；
+  Rust 已有 fmt/clippy/test 命令。
+- 范围：repository hygiene、前端 `npm ci/check/build`、Rust
+  `fmt/clippy/test`；不把尚不存在的检查伪装成 required checks。
+- 验收：PR 和 `main` 都会触发，锁文件安装可复现，job 名称可用于 ruleset。
+
+### TEST-001：补齐前端、C++ 与协议自动测试
+
+- 类型/区域/优先级：`type:tech-debt`、`area:build-release`、`priority:p1`
+- 证据：前端没有单元测试脚本，CMake 没有 CTest，Stage Protocol v1 没有自动
+  schema/JSONL 验证器；Rust 当前只有窗口状态相关单元测试。
+- 范围：按模块建立最小测试基线和负向用例，随后把稳定命令加入 CI。
+- 验收：每项测试能在干净 checkout 中独立运行，失败时指出具体模块和用例。
+
+### REPO-001：清理跟踪的系统文件并限制打包资源
+
+- 类型/区域/优先级：`type:tech-debt`、`area:build-release`、`priority:p1`
+- 证据：仓库跟踪 12 个 `.DS_Store`；Vite 当前 `publicDir` 指向整个 `assets/`，
+  Tauri 又单独打包 `assets/live2d`，资源边界重复且可能带入本机文件。
+- 范围：从索引移除系统文件；添加 hygiene 检查；为 Web 和 Tauri 建立显式资源
+  allowlist/manifest；不在本 Issue 中删除有许可要求的第三方源码。
+- 验收：生成的 `dist` 和安装包内容可列举、无 `.DS_Store`、无重复模型副本和开发
+  SDK 样例。
+
+### SEC-001：收紧 Tauri 与 WebView 安全边界
+
+- 类型/区域/优先级：`type:security`、`area:desktop-host`、`priority:p1`
+- 证据：当前 Tauri 配置使用 `csp: null` 和 `macOSPrivateApi: true`，并启用了 shell
+  plugin；发布级 capability 和 CSP 尚无审计记录。
+- 范围：最小 capability、固定 sidecar/参数、生产 CSP、日志脱敏、异常子进程输入
+  和退出行为。
+- 验收：安全测试覆盖任意命令/路径拒绝、畸形输出、Stage 缺失/崩溃和敏感信息
+  泄露；开发与发布配置差异有文档。
+
+### PROTO-001：实现并验证 Stage Protocol v1
+
+- 类型/区域/优先级：`type:feature`、`area:protocol`、`priority:p1`
+- 证据：`protocol/stage/v1/` 只有草案 schema 和示例；当前 Stage 流仍是未版本化
+  v0，Tauri 主要通过进程生命周期管理 Stage。
+- 范围：schema 验证器、handshake、版本拒绝、相关 ID、stdout/stderr 隔离、EOF 与
+  畸形输入；不加入模型热加载、逐帧参数或账户数据。
+- 验收：两端正向和负向测试通过，v0 不再被描述为 v1。
+
+### ARCH-001：冻结并退出不可回退的 legacy Qt 客户端
+
+- 类型/区域/优先级：`type:tech-debt`、`area:desktop-host`、`priority:p2`
+- 证据：`app/stage-desktop/` 仍包含旧登录、同步、Git、模型和 Dock 逻辑，但入口
+  引用不存在的 `qml/main.qml`，已不能作为可构建回退目标。
+- 范围：先建立只读归档和能力清单，迁移仍有价值的服务；禁止继续双写；删除动作
+  单独 ADR/PR 执行。
+- 验收：每项保留能力有新 owner 或明确废弃，默认构建和文档不再指向 Qt。
+
+### DESKTOP-001：建立 macOS/Windows Native Stage 验证矩阵
+
+- 类型/区域/优先级：`type:tech-debt`、`area:native-stage`、`priority:p1`
+- 证据：源码包含 macOS/Windows 路径，但没有跨平台 CI 或发布级运行记录。
+- 范围：干净构建、真实模型 health check、透明窗口、缩放、输入穿透、多屏/DPI、
+  sleep/wake、父进程退出和崩溃恢复。
+- 验收：两平台分别保留工具链、命令、日志和可观察结果；单平台通过不关闭另一平台
+  任务。
+
+### UI-001：以 `img/` 建立桌面视觉验收链路
+
+- 类型/区域/优先级：`type:tech-debt`、`area:ui`、`priority:p1`
+- 证据：`img/` 有 48 张哈希命名原型图，过去没有索引、页面映射、状态或重复图
+  说明，代码也无法反向追踪采用了哪张原型。
+- 范围：维护原型 manifest；Issue/PR 强制引用原型 ID；为窗口栏、顶部导航、主页
+  缩放和外层控件建立桌面尺寸验收场景。
+- 验收：48/48 图像可追踪；每个已实现页面有原型映射、当前截图和可执行验收条件；
+  无法识别或重复图明确标记。
+
+### RELEASE-001：建立可审计的桌面发布流程
+
+- 类型/区域/优先级：`type:tech-debt`、`area:build-release`、`priority:p2`
+- 证据：仓库没有 Releases、tags、受保护 release environment、签名/公证 CI 或包
+  内容审计；Cubism SDK/模型还有额外再分发条件。
+- 范围：版本与 changelog、macOS 签名公证、Windows 签名、SBOM/许可证清单、包内容
+  allowlist、校验和、安装/卸载与回滚。
+- 验收：从 tag 到已验证安装包的过程可复现，秘密只进入受保护发布 job，第三方
+  通知随包分发。
+
+## 6. 旧 `ISS-*` 条目的处理
+
+- CI、模板、CONTRIBUTING、测试、CHANGELOG、CMake/目录和 UI 占位等仍有效部分，
+  已并入上面的治理候选。
+- ODE、生理裁剪、双 PAD、梦境、IoT、Lua、训练管线等远期条目没有当前代码或已
+  批准产品范围，暂不迁移。若重新提出，必须使用 Feature/Architecture 表单并给出
+  当前用户问题和边界。
+- 旧条目中的 Qt/QML、Gitee、Windows 硬编码和“不相关历史阻塞”等描述已失效，
+  不得继续作为实现依据。
+- 是否创建实际 GitHub Issue 由维护者 triage 决定；创建后用 GitHub 编号替代本文
+  中的候选 ID，并在此处保留映射。
