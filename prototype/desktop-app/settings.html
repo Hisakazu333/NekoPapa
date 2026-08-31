@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 设置</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(224, 107, 151, 0.14), transparent 60%),
+      radial-gradient(1000px 700px at 105% 110%, rgba(122, 132, 146, 0.16), transparent 60%),
+      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    display: grid; place-items: center;
+    color: var(--tInk1);
+  }
+  button { font-family: inherit; }
+
+  /* ================= 窗口 ================= */
+  .app-window {
+    width: min(1280px, 92vw); height: min(830px, 88vh);
+    background: var(--surface-0);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.08);
+    box-shadow: var(--shadow-window);
+    display: flex; overflow: hidden;
+  }
+
+  /* ================= 左侧导航（L1 表面，深半级） ================= */
+  .side {
+    width: 244px; flex-shrink: 0;
+    background: var(--surface-1);
+    border-right: 1px solid var(--tBorder);
+    display: flex; flex-direction: column;
+  }
+  .traffic { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; }
+  .traffic .dot { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-left: 8px; height: 28px; padding: 0 10px;
+    border: 0; border-radius: var(--r-sm); background: transparent;
+    color: var(--tInk2); font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: background var(--dur-fast);
+  }
+  .back:hover { background: rgba(255,255,255,.7); color: var(--tInk1); }
+
+  .side-search {
+    margin: 4px 14px 10px; position: relative;
+  }
+  .side-search input {
+    width: 100%; height: 32px; padding: 0 10px 0 32px;
+    border: 1px solid transparent; border-radius: var(--r-sm);
+    background: rgba(255,255,255,.65);
+    font-family: inherit; font-size: 13px; color: var(--tInk1); outline: none;
+    transition: all var(--dur-fast);
+  }
+  .side-search input:focus { background: #fff; border-color: var(--tPrimary); box-shadow: 0 0 0 3px var(--tPrimarySoft); }
+  .side-search input::placeholder { color: var(--tInk3); }
+  .side-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--tInk3); pointer-events: none; }
+
+  .side-nav { flex: 1; overflow-y: auto; padding: 0 10px 16px; }
+  .nav-group { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--tInk3);
+    padding: 14px 10px 5px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 9px;
+    height: 32px; padding: 0 10px; margin: 1px 0;
+    border-radius: var(--r-sm);
+    font-size: 13px; color: var(--tInk2); cursor: pointer;
+    text-decoration: none; user-select: none;
+    transition: background var(--dur-fast), color var(--dur-fast);
+  }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; transition: color var(--dur-fast); }
+  .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .nav-item.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .nav-item.active svg { color: var(--tPrimary); }
+  .nav-item.hidden, .nav-group.hidden { display: none; }
+
+  .side-foot { padding: 10px 16px; border-top: 1px solid var(--tBorder);
+    font-size: 11px; color: var(--tInk3); display: flex; justify-content: space-between; }
+
+  /* ================= 右侧内容（L0 基底 + L2 卡片） ================= */
+  .content { flex: 1; overflow-y: auto; min-width: 0; scroll-behavior: smooth; }
+  .content-inner { max-width: 720px; margin: 0 auto; padding: 18px 40px 90px; }
+
+  .page-head { padding: 14px 2px 20px; position: sticky; top: 0; z-index: 10;
+    background: linear-gradient(var(--surface-0) 78%, transparent); }
+  .page-head h1 { font-size: 22px; font-weight: 700; }
+  .page-head p { font-size: 12px; color: var(--tInk3); margin-top: 4px; }
+
+  .sect { margin-bottom: 34px; scroll-margin-top: 74px; }
+  .sect-title { display: flex; align-items: baseline; gap: 10px; padding: 0 2px 10px; }
+  .sect-title h2 { font-size: 16px; font-weight: 700; }
+  .sect-title span { font-size: 11px; color: var(--tInk3); }
+
+  .card { background: var(--surface-2); border: 1px solid var(--tBorder);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; }
+
+  .row {
+    display: flex; align-items: center; gap: 16px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--tBorder);
+    transition: background var(--dur-fast);
+  }
+  .row:last-child { border-bottom: 0; }
+  .row:hover { background: #FAFBFD; }
+  .row .txt { flex: 1; min-width: 0; }
+  .row .t { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+  .row .d { font-size: 12px; color: var(--tInk3); margin-top: 3px; line-height: 1.5; }
+  .row .ctl { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+  .row.navigable { cursor: pointer; }
+  .row.navigable:hover .go { color: var(--tInk1); transform: translateX(2px); }
+  .row .go { color: var(--tInk3); transition: all var(--dur-fast); }
+  .row mark { background: var(--tPrimarySoft); color: var(--tPrimary); border-radius: 3px; padding: 0 1px; }
+
+  /* 快捷键行 */
+  .kbd-row { display: flex; align-items: center; gap: 6px; }
+  .kbd-row .edit { height: 24px; padding: 0 10px; border: 0; border-radius: var(--r-pill);
+    background: var(--surface-1); color: var(--tInk2); font-size: 11px; font-weight: 600; cursor: pointer;
+    opacity: 0; transition: opacity var(--dur-fast); }
+  .row:hover .kbd-row .edit { opacity: 1; }
+
+  /* 输入框行 */
+  .np-input {
+    height: 32px; padding: 0 12px; width: 240px;
+    border: 1px solid var(--tBorder); border-radius: var(--r-sm);
+    font-family: inherit; font-size: 13px; color: var(--tInk1); outline: none;
+    background: var(--surface-0);
+    transition: all var(--dur-fast);
+  }
+  .np-input:focus { background: #fff; border-color: var(--tPrimary); box-shadow: 0 0 0 3px var(--tPrimarySoft); }
+
+  /* 账号卡（略高半级） */
+  .account-card { display: flex; align-items: center; gap: 14px; padding: 18px;
+    background: var(--surface-2); border: 1px solid var(--tBorder);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm);
+    cursor: pointer; transition: box-shadow var(--dur) var(--ease-out); }
+  .account-card:hover { box-shadow: var(--shadow-md); }
+  .account-card .av { width: 46px; height: 46px; border-radius: 50%;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center; font-size: 17px; font-weight: 700; }
+  .account-card .nm { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .account-card .em { font-size: 12px; color: var(--tInk3); margin-top: 3px; }
+  .account-card .go { margin-left: auto; color: var(--tInk3); }
+
+  /* 额度条 */
+  .quota { padding: 14px 18px; }
+  .quota .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--tInk2); margin-bottom: 8px; }
+  .quota .bar { height: 6px; border-radius: var(--r-pill); background: var(--surface-1); overflow: hidden; }
+  .quota .bar i { display: block; height: 100%; width: 62%; border-radius: var(--r-pill);
+    background: linear-gradient(90deg, var(--tPrimary), #EE8FB2); }
+
+  /* 服务商行 */
+  .svc { display: flex; align-items: center; gap: 12px; padding: 13px 18px;
+    border-bottom: 1px solid var(--tBorder); transition: background var(--dur-fast); }
+  .svc:last-child { border-bottom: 0; }
+  .svc:hover { background: #FAFBFD; }
+  .svc .ic { width: 34px; height: 34px; border-radius: var(--r-sm);
+    background: var(--surface-1); display: grid; place-items: center;
+    font-size: 13px; font-weight: 700; color: var(--tInk2); flex-shrink: 0; }
+  .svc .nm { font-size: 14px; font-weight: 500; }
+  .svc .st { font-size: 11px; color: var(--tInk3); margin-top: 2px; }
+  .svc .ctl { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  /* 危险区 */
+  .danger-card { border-color: #F0C4C8; }
+  .danger-card .row .t { color: var(--tDanger); }
+
+  /* 版本卡 */
+  .ver-card { display: flex; align-items: center; gap: 14px; padding: 18px; }
+  .ver-card .logo { width: 46px; height: 46px; border-radius: 12px;
+    background: linear-gradient(135deg, var(--tPrimary), #EE8FB2);
+    display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 17px;
+    box-shadow: 0 4px 12px rgba(224,107,151,.35); }
+  .ver-card .nm { font-size: 15px; font-weight: 700; }
+  .ver-card .ver { font-size: 12px; color: var(--tInk3); margin-top: 3px; }
+
+
+  /* ---------- 使用统计板块 ---------- */
+  .sec-label { font-size: 13px; font-weight: 600; color: var(--tInk2); margin: 18px 2px 10px;
+    display: flex; align-items: center; justify-content: space-between; }
+  .sec-label .sub { font-size: 11px; font-weight: 400; color: var(--tInk3); }
+  .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+  .stat-row.c4 { grid-template-columns: repeat(4, 1fr); }
+  .stat {
+    background: var(--surface-2); border: 1px solid var(--tBorder);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm);
+    padding: 13px 14px 11px;
+    transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+  .stat:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .stat .v { font-size: 18px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 3px; }
+  .stat .v small { font-size: 11px; font-weight: 500; color: var(--tInk3); }
+  .stat .k { font-size: 11px; color: var(--tInk3); margin-top: 5px; }
+  .stat .delta { font-size: 11px; font-weight: 600; color: var(--tSuccess); margin-top: 3px; }
+  .card-pad { padding: 16px 18px; }
+  .card-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .card-head .t { font-size: 14px; font-weight: 600; }
+  .heat-wrap { overflow-x: auto; }
+  .heat { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 1fr); gap: 3px; width: max-content; margin: 0 auto; }
+  .heat i { width: 11px; height: 11px; border-radius: 3px; background: var(--surface-1); transition: transform .1s; }
+  .heat i:hover { transform: scale(1.25); outline: 1px solid var(--tInk3); }
+  .heat i.l1 { background: #F8DDE7; } .heat i.l2 { background: #F0AEC9; }
+  .heat i.l3 { background: #E783AE; } .heat i.l4 { background: var(--tPrimary); }
+  .heat-months { display: flex; justify-content: space-between; font-size: 10px; color: var(--tInk3); margin-top: 8px; padding: 0 2px; }
+  .heat-legend { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--tInk3); justify-content: flex-end; margin-top: 10px; }
+  .heat-legend i { width: 10px; height: 10px; border-radius: 3px; }
+  .chart-legend { display: flex; gap: 16px; font-size: 11px; color: var(--tInk2); margin-bottom: 8px; }
+  .chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .chart-legend i { width: 8px; height: 8px; border-radius: 50%; }
+  #trendChart { width: 100%; height: auto; display: block; }
+  .chart-x { display: flex; justify-content: space-between; font-size: 10px; color: var(--tInk3); margin-top: 6px; }
+  .quota-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .quota-card {
+    background: var(--surface-2); border: 1px solid var(--tBorder);
+    border-radius: var(--r-md); box-shadow: var(--shadow-sm); padding: 14px 16px;
+    transition: box-shadow var(--dur) var(--ease-out), transform var(--dur) var(--ease-out);
+  }
+  .quota-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .quota-card .k { font-size: 12px; color: var(--tInk2); }
+  .quota-card .v { font-size: 20px; font-weight: 700; margin-top: 6px; display: flex; align-items: baseline; gap: 6px; }
+  .quota-card .v small { font-size: 11px; font-weight: 400; color: var(--tInk3); }
+  .quota-card .bar { height: 6px; border-radius: var(--r-pill); background: var(--surface-1); margin-top: 10px; overflow: hidden; }
+  .quota-card .bar i { display: block; height: 100%; border-radius: var(--r-pill); }
+  .use-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+  .use-row + .use-row { border-top: 1px solid var(--tBorder); }
+  .use-row .nm { width: 92px; font-size: 13px; flex-shrink: 0; }
+  .use-row .bar { flex: 1; height: 8px; border-radius: var(--r-pill); background: var(--surface-1); overflow: hidden; }
+  .use-row .bar i { display: block; height: 100%; border-radius: var(--r-pill);
+    background: linear-gradient(90deg, var(--tPrimarySoft), var(--tPrimary));
+    transition: width .8s var(--ease-out); }
+  .use-row .val { width: 86px; text-align: right; font-size: 12px; color: var(--tInk2); flex-shrink: 0; }
+  .tab-panel { display: none; }
+  .tab-panel.on { display: block; animation: fadeUp .25s var(--ease-out); }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } }
+  .usage-head { display: flex; align-items: center; gap: 12px; }
+  .usage-refresh { margin-left: auto; display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--tInk3); }
+  .usage-refresh svg { cursor: pointer; transition: transform .6s var(--ease-out); }
+  .usage-refresh svg:hover { color: var(--tInk1); }
+  .usage-refresh svg.spinning { transform: rotate(360deg); }
+
+
+  .no-result { display: none; }
+  .no-result.show { display: flex; }
+
+  .sect.hidden { display: none; }
+</style>
+</head>
+<body>
+
+<div class="app-window">
+
+  <!-- ============ 左侧导航 ============ -->
+  <aside class="side">
+    <div class="traffic">
+      <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+      <button class="back" onclick="location.href='index.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+        设置
+      </button>
+    </div>
+
+    <div class="side-search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="searchInput" type="text" placeholder="搜索设置…">
+    </div>
+
+    <nav class="side-nav np-scroll" id="sideNav">
+      <div class="nav-group">账号</div>
+      <a class="nav-item" href="#sec-account" data-key="账号 订阅 额度 设备 资料 退出">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+        账号与订阅</a>
+      <a class="nav-item" href="#sec-usage" data-key="使用统计 用量 活动 趋势 统计">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+        使用统计</a>
+
+      <div class="nav-group">通用</div>
+      <a class="nav-item" href="#sec-general" data-key="通用 外观 主题 语言 启动 窗口">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        通用</a>
+      <a class="nav-item" href="#sec-shortcuts" data-key="快捷键 全局唤起 截图 新对话 桌宠 专注">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/></svg>
+        快捷键</a>
+
+      <div class="nav-group">模型</div>
+      <a class="nav-item" href="#sec-model" data-key="模型 默认 场景 温度 上下文">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 2.4-1.2 4.2-2.6 5.6-.9.9-1.4 2.2-1.4 3.4h-6c0-1.2-.5-2.5-1.4-3.4C6.2 13.2 5 11.4 5 9a7 7 0 0 1 7-7z"/><path d="M9 21h6"/></svg>
+        模型设置</a>
+      <a class="nav-item" href="#sec-api" data-key="API 接入 自定义 OpenAI Anthropic Ollama 密钥 用量 额度">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+        API 接入与用量</a>
+
+      <div class="nav-group">学习</div>
+      <a class="nav-item" href="#sec-learn" data-key="学习 偏好 目标 时长 讲解 出题">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        学习偏好</a>
+      <a class="nav-item" href="#sec-memory" data-key="记忆 错题 收录 间隔重复 遗忘曲线">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21a9 9 0 1 1 9-9"/><path d="M12 7v5l3 3"/><path d="M17 21l4-4"/></svg>
+        记忆与错题</a>
+      <a class="nav-item" href="#sec-notify" data-key="通知 提醒 复习 免打扰 勿扰">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        通知与提醒</a>
+
+      <div class="nav-group">桌宠</div>
+      <a class="nav-item" href="#sec-avatar" data-key="形象 声音 音色 语速 搭话 Live2D">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8.5 15c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/></svg>
+        形象与声音</a>
+      <a class="nav-item" href="#sec-pet" data-key="桌宠 形态 透明 常驻 大小 穿透 双击">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8"/></svg>
+        桌宠形态</a>
+
+      <div class="nav-group">助手</div>
+      <a class="nav-item" href="#sec-perm" data-key="权限 电脑控制 文件 终端 浏览器 审批">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-3.5 8-10V5l-8-3-8 3v7c0 6.5 8 10 8 10z"/></svg>
+        权限与电脑控制</a>
+      <a class="nav-item" href="#sec-mcp" data-key="插件 MCP 服务器 扩展">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 7h3a4 4 0 0 1 0 8h-3M10 7H7a4 4 0 0 0 0 8h3"/><path d="M8 11h8"/></svg>
+        插件与 MCP</a>
+      <a class="nav-item" href="#sec-cron" data-key="定时任务 计划 自动">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        定时任务</a>
+
+      <div class="nav-group">数据</div>
+      <a class="nav-item" href="#sec-data" data-key="存储 缓存 导出 备份 清除">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>
+        存储与数据</a>
+      <a class="nav-item" href="#sec-privacy" data-key="隐私 遥测 改进 报告">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        隐私</a>
+
+      <div class="nav-group">关于</div>
+      <a class="nav-item" href="#sec-about" data-key="关于 版本 更新 帮助 日志 反馈">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+        关于与帮助</a>
+    </nav>
+
+    <div class="side-foot"><span>NekoPapa 0.9.2</span><span>Beta</span></div>
+  </aside>
+
+  <!-- ============ 右侧内容 ============ -->
+  <main class="content np-scroll" id="content">
+    <div class="content-inner">
+
+      <div class="page-head">
+        <h1>设置</h1>
+        <p>NekoPapa Desktop · 所有改动即时生效，自动保存</p>
+      </div>
+
+      <div class="np-empty no-result" id="noResult">
+        <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></div>
+        <div class="t">没有找到相关设置</div>
+        <div class="d">换个关键词试试，比如「快捷键」「模型」「桌宠」</div>
+      </div>
+
+      <!-- ======== 账号 ======== -->
+      <section class="sect" id="sec-account">
+        <div class="sect-title"><h2>账号与订阅</h2></div>
+        <div class="account-card" style="margin-bottom:14px" onclick="location.href='subscribe.html'" title="进入订阅管理">
+          <div class="av">H</div>
+          <div>
+            <div class="nm">Hisakazu <span class="np-badge">Pro</span></div>
+            <div class="em">hisakazu@example.com · 订阅至 2026-09-30</div>
+          </div>
+          <svg class="go" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+        </div>
+        <div class="card">
+          <div class="quota">
+            <div class="top"><span>本月 Pro 额度</span><span>剩余 62% · 9月1日 00:00 重置</span></div>
+            <div class="bar"><i></i></div>
+          </div>
+          <div class="row navigable" onclick="document.querySelector('.nav-item[href=\'#sec-usage\']').click()">
+            <div class="txt"><div class="t">用量明细</div><div class="d">就在本页下方 · 按场景查看对话、拆解、出题的消耗</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t">登录设备管理</div><div class="d">MacBook Pro · iPhone 15 · 共 2 台</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t" style="color:var(--tDanger)">退出登录</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ======== 使用统计 ======== -->
+      <section class="sect" id="sec-usage">
+        <div class="sect-title">
+          <div class="usage-head">
+            <h2>使用统计</h2>
+            <div class="np-seg" id="pageTabs">
+              <button class="on" data-tab="learn">学习用量</button>
+              <button data-tab="plan">套餐额度</button>
+            </div>
+            <span class="usage-refresh">最近刷新：今天 22:41
+              <svg id="refreshBtn" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 3v6h-6"/></svg>
+            </span>
+          </div>
+        </div>
+
+        <!-- 页签 1：学习用量 -->
+        <div class="tab-panel on" id="panel-learn">
+          <div class="stat-row">
+            <div class="stat"><div class="v">86.5<small>小时</small></div><div class="k">累计学习时长</div><div class="delta">+3.2h 本周</div></div>
+            <div class="stat"><div class="v">1,240<small>次</small></div><div class="k">累计对话</div><div class="delta">+47 本周</div></div>
+            <div class="stat"><div class="v">312<small>道</small></div><div class="k">消灭错题</div><div class="delta">+18 本周</div></div>
+            <div class="stat"><div class="v">12<small>天</small></div><div class="k">当前连续学习</div></div>
+            <div class="stat"><div class="v">21<small>天</small></div><div class="k">最长连续纪录</div></div>
+          </div>
+
+          <div class="sec-label">学习活动<span class="sub">颜色越深，那天学得越多</span></div>
+          <div class="card card-pad">
+            <div class="card-head">
+              <span class="t">近一年</span>
+              <div class="np-seg" id="heatTabs">
+                <button class="on">每日</button><button>每周</button><button>累计</button>
+              </div>
+            </div>
+            <div class="heat-wrap"><div class="heat" id="heat"></div></div>
+            <div class="heat-months">
+              <span>9月</span><span>10月</span><span>11月</span><span>12月</span><span>1月</span><span>2月</span><span>3月</span><span>4月</span><span>5月</span><span>6月</span><span>7月</span><span>8月</span>
+            </div>
+            <div class="heat-legend">少
+              <i style="background:var(--surface-1)"></i><i style="background:#F8DDE7"></i>
+              <i style="background:#F0AEC9"></i><i style="background:#E783AE"></i>
+              <i style="background:var(--tPrimary)"></i>多
+            </div>
+          </div>
+
+          <div class="sec-label">每日学习趋势</div>
+          <div class="card card-pad">
+            <div class="card-head">
+              <div class="chart-legend">
+                <span><i style="background:var(--tPrimary)"></i>学习时长（分钟）</span>
+                <span><i style="background:var(--tSuccess)"></i>消灭错题（道）</span>
+              </div>
+              <div class="np-seg" id="trendTabs">
+                <button class="on">近 7 日</button><button>近 30 日</button>
+              </div>
+            </div>
+            <svg id="trendChart" viewBox="0 0 700 220" preserveAspectRatio="none"></svg>
+            <div class="chart-x" id="chartX"></div>
+          </div>
+        </div>
+
+        <!-- 页签 2：套餐额度 -->
+        <div class="tab-panel" id="panel-plan">
+          <div class="sec-label" style="margin-top:2px">剩余额度<span class="sub">Pro 套餐 · 每月 1 日重置</span></div>
+          <div class="quota-row">
+            <div class="quota-card">
+              <div class="k">对话与讲题</div>
+              <div class="v">62%<small>9月1日 00:00 重置</small></div>
+              <div class="bar"><i style="width:62%;background:linear-gradient(90deg,var(--tPrimary),#EE8FB2)"></i></div>
+            </div>
+            <div class="quota-card">
+              <div class="k">文档拆解</div>
+              <div class="v">38%<small>9月1日 00:00 重置</small></div>
+              <div class="bar"><i style="width:38%;background:linear-gradient(90deg,var(--tSuccess),#7CC79B)"></i></div>
+            </div>
+            <div class="quota-card">
+              <div class="k">语音识别</div>
+              <div class="v">85%<small>9月1日 00:00 重置</small></div>
+              <div class="bar"><i style="width:85%;background:linear-gradient(90deg,var(--tWarning),#F0BE6E)"></i></div>
+            </div>
+          </div>
+
+          <div class="sec-label">本月活跃</div>
+          <div class="stat-row c4">
+            <div class="stat"><div class="v">214<small>次</small></div><div class="k">本月对话</div><div class="delta">+301%</div></div>
+            <div class="stat"><div class="v">8.6<small>万</small></div><div class="k">本月 Token</div><div class="delta">+186%</div></div>
+            <div class="stat"><div class="v">23<small>份</small></div><div class="k">本月拆解文档</div></div>
+            <div class="stat"><div class="v">97.5%</div><div class="k">缓存命中率</div><div class="delta">+3%</div></div>
+          </div>
+
+          <div class="sec-label">消耗明细</div>
+          <div class="card card-pad">
+            <div class="card-head">
+              <span class="t">本月消耗构成</span>
+              <div class="np-seg" id="useTabs">
+                <button class="on">按场景</button><button>按模型</button>
+              </div>
+            </div>
+            <div id="useByScene">
+              <div class="use-row"><span class="nm">对话讲题</span><div class="bar"><i data-w="45%"></i></div><span class="val">3.9 万 Token</span></div>
+              <div class="use-row"><span class="nm">文档拆解</span><div class="bar"><i data-w="28%"></i></div><span class="val">2.4 万 Token</span></div>
+              <div class="use-row"><span class="nm">出题测验</span><div class="bar"><i data-w="18%"></i></div><span class="val">1.5 万 Token</span></div>
+              <div class="use-row"><span class="nm">语音识别</span><div class="bar"><i data-w="9%"></i></div><span class="val">0.8 万 Token</span></div>
+            </div>
+            <div id="useByModel" style="display:none">
+              <div class="use-row"><span class="nm">NekoCore Nano</span><div class="bar"><i data-w="58%"></i></div><span class="val">5.0 万 Token</span></div>
+              <div class="use-row"><span class="nm">NekoCore Pro</span><div class="bar"><i data-w="33%"></i></div><span class="val">2.8 万 Token</span></div>
+              <div class="use-row"><span class="nm">NekoVoice Lite</span><div class="bar"><i data-w="9%"></i></div><span class="val">0.8 万 Token</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+      <!-- ======== 通用 ======== -->
+      <section class="sect" id="sec-general">
+        <div class="sect-title"><h2>通用</h2><span>外观、语言与启动行为</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">外观主题</div><div class="d">深色模式下 Neko 会换上夜间装扮</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>浅色</button><button>深色</button><button class="on">跟随系统</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">界面字号</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>小</button><button class="on">标准</button><button>大</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">语言</div></div>
+            <div class="ctl"><button class="np-select">简体中文
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">开机自动启动</div><div class="d">登录后 Neko 自动出现在菜单栏</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">在菜单栏中显示</div><div class="d">关闭主窗口后，Neko 仍在菜单栏陪着你</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">关闭主窗口时</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button class="on">最小化到菜单栏</button><button>直接退出</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">默认进入模式</div><div class="d">打开主窗口时先进入学习还是助手</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button class="on">学习</button><button>助手</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">记住窗口位置与大小</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 快捷键 ======== -->
+      <section class="sect" id="sec-shortcuts">
+        <div class="sect-title"><h2>快捷键</h2><span>悬停任意一行可修改</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">全局唤起 Neko</div><div class="d">在任何应用里一键呼出对话</div></div>
+            <div class="ctl kbd-row"><span class="np-kbd">⌥</span><span class="np-kbd">Space</span><button class="edit">修改</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">截图提问</div><div class="d">框选屏幕区域，直接问她</div></div>
+            <div class="ctl kbd-row"><span class="np-kbd">⇧</span><span class="np-kbd">⌘</span><span class="np-kbd">2</span><button class="edit">修改</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">新对话</div></div>
+            <div class="ctl kbd-row"><span class="np-kbd">⌘</span><span class="np-kbd">K</span><button class="edit">修改</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">开始 / 结束专注</div></div>
+            <div class="ctl kbd-row"><span class="np-kbd">⌃</span><span class="np-kbd">⌘</span><span class="np-kbd">F</span><button class="edit">修改</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">显示 / 隐藏桌宠</div></div>
+            <div class="ctl kbd-row"><span class="np-kbd">⌥</span><span class="np-kbd">N</span><button class="edit">修改</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 模型设置 ======== -->
+      <section class="sect" id="sec-model">
+        <div class="sect-title"><h2>模型设置</h2><span>默认模型与场景分配</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">默认对话模型</div><div class="d">日常对话与讲题使用</div></div>
+            <div class="ctl"><button class="np-select">NekoCore Nano
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">文档拆解</div><div class="d">把 PDF / EPUB 拆成学习路径，长文档建议用更强的模型</div></div>
+            <div class="ctl"><button class="np-select">NekoCore Pro
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">出题与批改</div></div>
+            <div class="ctl"><button class="np-select">NekoCore Nano
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">语音识别</div><div class="d">背单词跟读、语音提问</div></div>
+            <div class="ctl"><button class="np-select">NekoVoice Lite
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">创造力（温度）</div><div class="d">越高回答越发散，学习场景建议偏低</div></div>
+            <div class="ctl"><input type="range" class="np-slider" min="0" max="100" value="35"><span style="font-size:12px;color:var(--tInk2);width:28px;text-align:right">0.35</span></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">上下文长度</div></div>
+            <div class="ctl"><button class="np-select">128K
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== API 接入 ======== -->
+      <section class="sect" id="sec-api">
+        <div class="sect-title"><h2>API 接入与用量</h2><span>用官方账号，或接自己的服务</span></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="svc">
+            <div class="ic" style="background:var(--tPrimarySoft);color:var(--tPrimary)">N</div>
+            <div><div class="nm">NekoPapa 官方账号</div><div class="st">使用订阅额度 · 无需配置</div></div>
+            <div class="ctl"><span class="np-badge green">当前使用</span></div>
+          </div>
+          <div class="svc">
+            <div class="ic">OA</div>
+            <div><div class="nm">OpenAI 兼容接口</div><div class="st">Base URL + API Key，可接任意兼容服务</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">配置</button></div>
+          </div>
+          <div class="svc">
+            <div class="ic">An</div>
+            <div><div class="nm">Anthropic</div><div class="st">Claude 系列模型</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">配置</button></div>
+          </div>
+          <div class="svc">
+            <div class="ic">Ol</div>
+            <div><div class="nm">Ollama 本地模型</div><div class="st">localhost:11434 · 完全离线，数据不出本机</div></div>
+            <div class="ctl"><span class="np-badge gray">未连接</span><button class="np-btn ghost" style="height:28px">连接</button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">API Key</div><div class="d">仅存储在本机钥匙串，不会上传</div></div>
+            <div class="ctl"><input class="np-input" type="password" placeholder="sk-…"></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">连接测试</div><div class="d" id="testHint">保存后自动测试连通性</div></div>
+            <div class="ctl"><button class="np-btn ghost" id="testBtn" style="height:28px">测试连接</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">自定义服务失败时</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button class="on">回落到官方账号</button><button>直接报错</button>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 学习偏好 ======== -->
+      <section class="sect" id="sec-learn">
+        <div class="sect-title"><h2>学习偏好</h2><span>Neko 按这个节奏陪你学</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">每日学习目标</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>15 分钟</button><button class="on">30 分钟</button><button>60 分钟</button><button>自定义</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">偏好学习时段</div><div class="d">她会在这个时段主动提醒你</div></div>
+            <div class="ctl"><button class="np-select">晚间 20:00 – 23:00
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">讲解深度</div><div class="d">讲知识点时的展开程度</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>点到为止</button><button class="on">循序渐进</button><button>刨根问底</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">随堂测频率</div><div class="d">讲完一个知识点后抽查你的频率</div></div>
+            <div class="ctl"><input type="range" class="np-slider" min="0" max="100" value="60"><span style="font-size:12px;color:var(--tInk2);width:28px;text-align:right">适中</span></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">错题自动收录</div><div class="d">测验答错的题自动进入错题本</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 记忆与错题 ======== -->
+      <section class="sect" id="sec-memory">
+        <div class="sect-title"><h2>记忆与错题</h2><span>她记住的东西，你都能看、能改、能删</span></div>
+        <div class="card">
+          <div class="row navigable" onclick="location.href='memory.html'">
+            <div class="txt"><div class="t">管理记忆</div><div class="d">已存 128 条 · 包括你的偏好、进度和生活细节</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">间隔重复强度</div><div class="d">基于遗忘曲线安排复习，越严格复习越频繁</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>宽松</button><button class="on">标准</button><button>严格</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">允许她主动记东西</div><div class="d">聊天中有价值的信息自动存入记忆</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t" style="color:var(--tDanger)">清空错题本</div><div class="d">23 道待复习错题将被删除，不可恢复</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 通知与提醒 ======== -->
+      <section class="sect" id="sec-notify">
+        <div class="sect-title"><h2>通知与提醒</h2></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">复习提醒</div><div class="d">错题到了最佳复习时机时通知你</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">连续学习守护</div><div class="d">快断档的那天，她会来戳你一下</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">任务完成通知</div><div class="d">助手任务跑完后通知</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">免打扰时段</div><div class="d">期间只保留桌宠陪伴，不发任何通知</div></div>
+            <div class="ctl"><button class="np-select">22:30 – 次日 8:00
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">专注模式联动</div><div class="d">进入专注后自动开启系统勿扰</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+      </section>
+      <!-- ======== 形象与声音 ======== -->
+      <section class="sect" id="sec-avatar">
+        <div class="sect-title"><h2>Neko 的形象与声音</h2></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">当前形象</div><div class="d">Live2D 模型，支持导入自定义模型</div></div>
+            <div class="ctl"><button class="np-select">Neko · 默认
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">音色</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">试听</button><button class="np-select">元气少女
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">语速</div></div>
+            <div class="ctl"><input type="range" class="np-slider" min="0" max="100" value="50"><span style="font-size:12px;color:var(--tInk2);width:28px;text-align:right">1.0x</span></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">主动搭话频率</div><div class="d">她主动开启话题的频繁程度</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>安静</button><button class="on">适中</button><button>话痨</button>
+            </div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 桌宠形态 ======== -->
+      <section class="sect" id="sec-pet">
+        <div class="sect-title"><h2>桌宠形态</h2><span>完全透明、常驻桌面的那个她</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">常驻桌面</div><div class="d">以完全透明窗口浮在所有窗口之上</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">桌宠大小</div></div>
+            <div class="ctl"><input type="range" class="np-slider" min="0" max="100" value="45"><span style="font-size:12px;color:var(--tInk2);width:28px;text-align:right">45%</span></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">鼠标穿透</div><div class="d">开启后点击会穿过她，需要快捷键唤出菜单</div></div>
+            <div class="ctl"><button class="np-toggle"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">双击桌宠</div></div>
+            <div class="ctl"><button class="np-select">打开对话
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">悬停显示快捷菜单</div><div class="d">鼠标靠近时浮现对话 / 复习 / 专注入口</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row navigable" onclick="location.href='pet.html'">
+            <div class="txt"><div class="t" style="color:var(--tPrimary);font-weight:600">预览桌宠效果</div><div class="d">看看她常驻桌面、完全透明时是什么样子</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">闲置小动作</div><div class="d">她无聊时会自己玩、打瞌睡</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 权限与电脑控制 ======== -->
+      <section class="sect" id="sec-perm">
+        <div class="sect-title"><h2>权限与电脑控制</h2><span>她能碰什么、碰之前要不要问你</span></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">文件访问范围</div></div>
+            <div class="ctl"><button class="np-select">仅允许的目录
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">允许的目录</div><div class="d">~/Documents · ~/Downloads · ~/Projects</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">管理</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">终端命令执行</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button class="on">每次询问</button><button>白名单自动</button><button>完全自动</button>
+            </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">浏览器控制</div><div class="d">允许她打开网页、查资料</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">删除文件前必须确认</div><div class="d">此开关锁定开启，防止误删</div></div>
+            <div class="ctl"><button class="np-toggle on" style="opacity:.55;pointer-events:none"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">屏幕内容识别</div><div class="d">截图提问时可以读取屏幕内容</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 插件与 MCP ======== -->
+      <section class="sect" id="sec-mcp">
+        <div class="sect-title"><h2>插件与 MCP 服务器</h2></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="svc">
+            <div class="ic">文</div>
+            <div><div class="nm">文件管理</div><div class="st">整理、归档、查重 · 内置</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="svc">
+            <div class="ic">网</div>
+            <div><div class="nm">网页搜索</div><div class="st">实时检索学习资料 · 内置</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="svc">
+            <div class="ic">图</div>
+            <div><div class="nm">截图识别</div><div class="st">读题、读代码、读图表 · 内置</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="svc">
+            <div class="ic"><span class="np-dot green"></span></div>
+            <div><div class="nm">filesystem</div><div class="st">MCP · 已连接 · 12 个工具</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">管理</button></div>
+          </div>
+          <div class="svc">
+            <div class="ic"><span class="np-dot" style="background:var(--tBorder)"></span></div>
+            <div><div class="nm">github</div><div class="st">MCP · 未配置</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">配置</button></div>
+          </div>
+          <div class="row navigable" style="justify-content:center">
+            <div class="t" style="color:var(--tPrimary);font-weight:600;font-size:13px">＋ 添加 MCP 服务器</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 定时任务 ======== -->
+      <section class="sect" id="sec-cron">
+        <div class="sect-title"><h2>定时任务</h2><span>到点她自己就会去做</span></div>
+        <div class="card">
+          <div class="svc">
+            <div class="ic">22</div>
+            <div><div class="nm">每晚复习提醒</div><div class="st">每天 22:00 · 若有到期错题</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="svc">
+            <div class="ic">日</div>
+            <div><div class="nm">周报草稿</div><div class="st">每周日 20:00 · 汇总本周学习数据</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row navigable" style="justify-content:center">
+            <div class="t" style="color:var(--tPrimary);font-weight:600;font-size:13px">＋ 新建定时任务</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 存储与数据 ======== -->
+      <section class="sect" id="sec-data">
+        <div class="sect-title"><h2>存储与数据</h2></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">数据存储位置</div><div class="d">~/Library/Application Support/NekoPapa</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">更改</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">缓存</div><div class="d">342 MB · 模型缓存与临时文件</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">清理</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">导出全部数据</div><div class="d">记忆、错题、学习计划打包为 ZIP</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">导出</button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">导入备份</div></div>
+            <div class="ctl"><button class="np-btn ghost" style="height:28px">导入</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 隐私 ======== -->
+      <section class="sect" id="sec-privacy">
+        <div class="sect-title"><h2>隐私</h2></div>
+        <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">使用统计与改进计划</div><div class="d">匿名统计功能使用情况，帮助改进产品</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">崩溃报告</div><div class="d">自动发送崩溃日志，不含任何对话内容</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+        </div>
+        <div class="card danger-card" style="margin-top:14px">
+          <div class="row">
+            <div class="txt"><div class="t">清除全部数据</div><div class="d" style="color:var(--tInk3)">删除本机所有记忆、错题、学习记录与设置</div></div>
+            <div class="ctl"><button class="np-btn danger-ghost" style="height:30px">清除全部数据…</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======== 关于 ======== -->
+      <section class="sect" id="sec-about">
+        <div class="sect-title"><h2>关于与帮助</h2></div>
+        <div class="card" style="margin-bottom:14px">
+          <div class="ver-card">
+            <div class="logo">N</div>
+            <div>
+              <div class="nm">NekoPapa</div>
+              <div class="ver">0.9.2 (Beta) · macOS 14+</div>
+            </div>
+            <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+              <span class="np-badge green">已是最新</span>
+              <button class="np-btn ghost" style="height:30px">检查更新</button>
+            </div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">更新通道</div></div>
+            <div class="ctl"><div class="np-seg">
+              <button>正式版</button><button class="on">Beta</button>
+            </div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="row navigable" onclick="location.href='index.html#welcome'">
+            <div class="txt"><div class="t">新手引导</div><div class="d">重新看一遍产品介绍</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t">反馈问题</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t">导出诊断日志</div><div class="d">反馈问题时附上，能快很多</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable">
+            <div class="txt"><div class="t">开源许可</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</div>
+
+<script>
+/* ---------- 开关 & 分段选择器交互 ---------- */
+document.querySelectorAll('.np-toggle').forEach(t => {
+  t.addEventListener('click', () => t.classList.toggle('on'));
+});
+document.querySelectorAll('.np-seg').forEach(seg => {
+  seg.querySelectorAll('button').forEach(b => {
+    b.addEventListener('click', () => {
+      seg.querySelectorAll('button').forEach(x => x.classList.remove('on'));
+      b.classList.add('on');
+    });
+  });
+});
+
+/* ---------- 滚动联动高亮（scroll-spy） ---------- */
+const content = document.getElementById('content');
+const sections = [...document.querySelectorAll('.sect')];
+const navItems = [...document.querySelectorAll('.nav-item')];
+function spy() {
+  const cTop = content.getBoundingClientRect().top;
+  let cur = sections[0];
+  for (const s of sections) {
+    if (s.classList.contains('hidden')) continue;
+    if (s.getBoundingClientRect().top - cTop <= 100) cur = s;
+  }
+  navItems.forEach(n => n.classList.toggle('active', n.getAttribute('href') === '#' + cur.id));
+}
+content.addEventListener('scroll', spy, { passive: true });
+spy();
+
+/* 点击导航平滑滚动 */
+navItems.forEach(n => n.addEventListener('click', e => {
+  e.preventDefault();
+  const t = document.querySelector(n.getAttribute('href'));
+  if (t) {
+    const cTop = content.getBoundingClientRect().top;
+    content.scrollTo({ top: content.scrollTop + t.getBoundingClientRect().top - cTop - 72, behavior: 'smooth' });
+  }
+}));
+
+/* ---------- 搜索过滤 ---------- */
+const searchInput = document.getElementById('searchInput');
+const noResult = document.getElementById('noResult');
+searchInput.addEventListener('input', () => {
+  const q = searchInput.value.trim().toLowerCase();
+  let anyVisible = false;
+  sections.forEach(sec => {
+    let secVisible = false;
+    sec.querySelectorAll('.row, .svc, .use-row').forEach(row => {
+      const hit = !q || row.textContent.toLowerCase().includes(q);
+      row.style.display = hit ? '' : 'none';
+      if (hit) secVisible = true;
+    });
+    sec.classList.toggle('hidden', !secVisible);
+    if (secVisible) anyVisible = true;
+  });
+  /* 左侧导航同步过滤 */
+  document.querySelectorAll('.nav-group').forEach(g => {
+    let vis = false;
+    let el = g.nextElementSibling;
+    while (el && el.classList.contains('nav-item')) {
+      const hit = !q || (el.dataset.key + ' ' + el.textContent).toLowerCase().includes(q);
+      el.classList.toggle('hidden', !hit);
+      if (hit) vis = true;
+      el = el.nextElementSibling;
+    }
+    g.classList.toggle('hidden', !vis);
+  });
+  noResult.classList.toggle('show', !anyVisible);
+});
+
+/* ---------- 测试连接小交互 ---------- */
+const testBtn = document.getElementById('testBtn');
+const testHint = document.getElementById('testHint');
+testBtn.addEventListener('click', () => {
+  testBtn.textContent = '测试中…'; testBtn.disabled = true;
+  setTimeout(() => {
+    testBtn.textContent = '测试连接'; testBtn.disabled = false;
+    testHint.innerHTML = '<span style="color:var(--tSuccess)">✓ 连接成功 · 延迟 218ms</span>';
+  }, 900);
+});
+
+
+/* ---------- 使用统计：热力图 + 趋势图 + 页签 ---------- */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+const heat = document.getElementById('heat');
+function buildHeat(mode) {
+  heat.innerHTML = '';
+  const rnd = mulberry32(20260830);
+  const weeks = 52;
+  for (let w = 0; w < weeks; w++) {
+    let weekP = 0;
+    if (mode === 'weekly') {
+      for (let d = 0; d < 7; d++) weekP += rnd();
+      weekP /= 7;
+      if (w >= weeks - 12) weekP = Math.min(1, weekP + 0.42);
+    }
+    for (let d = 0; d < 7; d++) {
+      const cell = document.createElement('i');
+      let p = mode === 'weekly' ? weekP : rnd();
+      if (mode !== 'weekly' && w >= weeks - 12) p = Math.min(1, p + 0.42);
+      if (mode === 'total') p = Math.min(1, p * (w / weeks) + 0.15);
+      const lv = p > 0.82 ? 4 : p > 0.62 ? 3 : p > 0.42 ? 2 : p > 0.24 ? 1 : 0;
+      if (lv) cell.className = 'l' + lv;
+      cell.title = mode === 'weekly'
+        ? `本周约 ${Math.round(p * 8)} 小时`
+        : lv ? `学习 ${Math.round(p * 95)} 分钟` : '休息了一天';
+      heat.appendChild(cell);
+    }
+  }
+}
+buildHeat('daily');
+document.querySelectorAll('#heatTabs button').forEach((b, i) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#heatTabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    buildHeat(['daily', 'weekly', 'total'][i]);
+  });
+});
+
+const chart = document.getElementById('trendChart');
+const chartX = document.getElementById('chartX');
+function buildTrend(days) {
+  const rnd = mulberry32(days === 7 ? 77 : 3030);
+  const W = 700, H = 220, pad = 8;
+  const s1 = [], s2 = [];
+  for (let i = 0; i < days; i++) {
+    const base = 35 + 30 * Math.sin(i / (days / 3.2)) + rnd() * 25;
+    s1.push(Math.max(6, base));
+    s2.push(Math.max(1, base / 6 + rnd() * 4));
+  }
+  const max1 = Math.max(...s1) * 1.15, max2 = Math.max(...s2) * 1.3;
+  const px = i => pad + i * (W - pad * 2) / (days - 1);
+  const smooth = (arr, max) => {
+    let d = `M ${px(0)} ${H - arr[0] / max * (H - 30)}`;
+    for (let i = 1; i < arr.length; i++) {
+      const x0 = px(i - 1), y0 = H - arr[i - 1] / max * (H - 30);
+      const x1 = px(i), y1 = H - arr[i] / max * (H - 30);
+      const cx = (x0 + x1) / 2;
+      d += ` C ${cx} ${y0}, ${cx} ${y1}, ${x1} ${y1}`;
+    }
+    return d;
+  };
+  const line1 = smooth(s1, max1), line2 = smooth(s2, max2);
+  const area = `${line1} L ${px(days - 1)} ${H - 4} L ${px(0)} ${H - 4} Z`;
+  chart.innerHTML = `
+    <defs><linearGradient id="ag" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E06B97" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#E06B97" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${[0.25, 0.5, 0.75].map(f => `<line x1="${pad}" y1="${H * f}" x2="${W - pad}" y2="${H * f}" stroke="#E1E7EF" stroke-dasharray="3 5"/>`).join('')}
+    <path d="${area}" fill="url(#ag)"/>
+    <path d="${line1}" fill="none" stroke="#E06B97" stroke-width="2.4" stroke-linecap="round"/>
+    <path d="${line2}" fill="none" stroke="#4FAF73" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+    ${s1.map((v, i) => `<circle cx="${px(i)}" cy="${H - v / max1 * (H - 30)}" r="3" fill="#fff" stroke="#E06B97" stroke-width="2"/>`).join('')}
+  `;
+  const labels = [];
+  for (let i = 0; i < days; i += Math.ceil(days / 7)) {
+    const dt = new Date(2026, 7, 31 - (days - 1 - i));
+    labels.push(`${dt.getMonth() + 1}月${dt.getDate()}日`);
+  }
+  chartX.innerHTML = labels.map(l => `<span>${l}</span>`).join('');
+}
+buildTrend(7);
+document.querySelectorAll('#trendTabs button').forEach((b, i) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#trendTabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    buildTrend(i === 0 ? 7 : 30);
+  });
+});
+
+document.querySelectorAll('#pageTabs button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#pageTabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('on'));
+    document.getElementById('panel-' + b.dataset.tab).classList.add('on');
+  });
+});
+
+document.querySelectorAll('#useTabs button').forEach((b, i) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#useTabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    document.getElementById('useByScene').style.display = i === 0 ? '' : 'none';
+    document.getElementById('useByModel').style.display = i === 1 ? '' : 'none';
+    animBars();
+  });
+});
+function animBars() {
+  document.querySelectorAll('.use-row .bar i').forEach(el => {
+    el.style.width = '0';
+    requestAnimationFrame(() => requestAnimationFrame(() => { el.style.width = el.dataset.w; }));
+  });
+}
+animBars();
+
+document.getElementById('refreshBtn').addEventListener('click', function () {
+  this.classList.add('spinning');
+  setTimeout(() => this.classList.remove('spinning'), 650);
+});
+
+
+/* ⌘, 打开设置是桌面惯例——已在设置页则返回首页 */
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === ',') { e.preventDefault(); location.href = 'index.html'; }
+});
+</script>
+</body>
+</html>

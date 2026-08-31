@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 学习计划</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  :root {
+    --tPageBg:#F5F7FA; --tCardBg:#FFFFFF; --tInk1:#181C23; --tInk2:#4E5763; --tInk3:#7A8492;
+    --tBorder:#E1E7EF; --tPrimary:#E06B97; --tPrimarySoft:#F8DDE7;
+    --tSuccess:#4FAF73;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --shadow-card:0 2px 10px rgba(24,28,35,0.06);
+    --font:-apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
+      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
+      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    display:grid; place-items:center;
+  }
+  button { font-family:inherit; }
+  .app-window {
+    width:min(1280px,92vw); height:min(830px,88vh);
+    background:var(--surface-0); border-radius:16px;
+    border:1px solid rgba(24,28,35,.08);
+    box-shadow:0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
+    display:flex; overflow:hidden;
+  }
+  .sidebar { width:248px; flex-shrink:0; background:var(--surface-1);
+    border-right:1px solid var(--tBorder); display:flex; flex-direction:column; }
+  .traffic { display:flex; gap:8px; padding:14px 16px 12px; }
+  .traffic span.dot { width:12px; height:12px; border-radius:50%; }
+  .traffic .r{background:#FF5F57} .traffic .y{background:#FEBC2E} .traffic .g{background:#28C840}
+  .back-link { display:flex; align-items:center; gap:8px; margin:0 16px 12px;
+    height:36px; padding:0 12px; border-radius:var(--r-sm);
+    color:var(--tInk2); font-size:14px; text-decoration:none; }
+  .back-link:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .group-label { font-size:11px; color:var(--tInk3); padding:14px 12px 6px; }
+  .side-scroll { flex:1; overflow-y:auto; padding:4px 16px 12px; }
+  .conv { display:flex; align-items:center; height:32px; padding:0 12px;
+    border-radius:var(--r-sm); font-size:14px; color:var(--tInk2); text-decoration:none; }
+  .conv:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .conv.active { background:var(--tPrimarySoft); color:var(--tPrimary); font-weight:600; }
+
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden;
+    background:var(--surface-0); }
+  .titlebar { height:46px; flex-shrink:0; display:flex; align-items:center; padding:0 18px; }
+  .titlebar .app-title { position:absolute; left:50%; transform:translateX(-50%);
+    font-size:14px; font-weight:600; color:var(--tInk2); }
+  .titlebar .sp { flex:1; }
+  .btn-main { height:32px; padding:0 16px; border:0; border-radius:var(--r-pill);
+    background:var(--tPrimary); color:#FFF9FB; font-size:11px; font-weight:700; cursor:pointer; }
+
+  .scroll { flex:1; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:0; }
+  .inner { width:min(720px, 100% - 80px); margin:0 auto; padding:20px 0 40px; }
+
+  .page-head { display:flex; align-items:baseline; gap:14px; margin-bottom:20px; }
+  .page-title { font-size:26px; font-weight:700; }
+  .page-sub { font-size:14px; color:var(--tInk3); }
+
+  /* 本周格子 */
+  .week { display:grid; grid-template-columns:repeat(7, 1fr); gap:8px; margin-bottom:24px; }
+  .day { background:var(--surface-1); border-radius:var(--r-sm); padding:10px 10px 12px;
+    min-height:120px; border:1px solid transparent; }
+  .day.today { background:var(--tPrimarySoft); border-color:var(--tPrimary); box-shadow:var(--shadow-sm); }
+  .day .d-name { font-size:11px; color:var(--tInk3); margin-bottom:2px; }
+  .day .d-num { font-size:14px; font-weight:700; margin-bottom:8px; }
+  .day.today .d-num { color:var(--tPrimary); }
+  .block { font-size:11px; line-height:1.4; padding:5px 8px; border-radius:7px;
+    background:var(--tCardBg); border:1px solid var(--tBorder);
+    color:var(--tInk2); margin-bottom:6px; }
+  .day.today .block { border-color:var(--tPrimarySoft); }
+  .block.done { color:var(--tInk3); text-decoration:line-through; }
+  .day .more { font-size:11px; color:var(--tInk3); }
+
+  /* 今日待办 */
+  .group-label { font-size:11px; color:var(--tInk3); letter-spacing:.08em; margin-bottom:8px; }
+  .rows { background:var(--tCardBg); border:1px solid var(--tBorder);
+    border-radius:var(--r-md); box-shadow:var(--shadow-card); overflow:hidden; margin-bottom:20px; }
+  .todo { display:flex; align-items:center; gap:12px; padding:13px 18px; cursor:pointer; }
+  .todo + .todo { border-top:1px solid var(--tBorder); }
+  .todo .cb { width:20px; height:20px; border-radius:50%; border:1.5px solid var(--tBorder);
+    flex-shrink:0; display:grid; place-items:center; transition:all .2s; color:transparent; }
+  .todo.done .cb { background:var(--tSuccess); border-color:var(--tSuccess); color:#fff; }
+  .todo .t { font-size:14px; font-weight:600; }
+  .todo .m { font-size:11px; color:var(--tInk3); margin-top:2px; }
+  .todo.done .t { color:var(--tInk3); text-decoration:line-through; }
+  .todo .dur { margin-left:auto; font-size:11px; color:var(--tInk3); flex-shrink:0; }
+  .todo .go { font-size:11px; font-weight:700; color:var(--tPrimary); flex-shrink:0; }
+
+  .add-row { display:flex; gap:10px; }
+  .add-row input { flex:1; height:40px; border:1px solid var(--tBorder); border-radius:var(--r-pill);
+    padding:0 18px; font-family:inherit; font-size:14px; color:var(--tInk1); outline:none; }
+  .add-row input:focus { border-color:var(--tPrimary); box-shadow:var(--shadow-md); }
+  .add-row button { height:40px; padding:0 22px; border:0; border-radius:var(--r-pill);
+    background:var(--tPrimary); color:#FFF9FB; font-size:14px; font-weight:600; cursor:pointer; }
+</style>
+</head>
+<body>
+<div class="app-window">
+  <aside class="sidebar">
+    <div class="traffic"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <a class="back-link" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      返回首页
+    </a>
+    <div class="side-scroll">
+      <div class="group-label">学习</div>
+      <div class="conv active">学习计划</div>
+      <a class="conv" href="review.html">错题本</a>
+      <a class="conv" href="lib.html">知识库</a>
+    </div>
+  </aside>
+
+  <section class="main">
+    <div class="titlebar">
+      <span class="app-title">学习计划</span>
+      <span class="sp"></span>
+      <button class="btn-main" id="askNeko">让 Neko 帮我排下周</button>
+    </div>
+
+    <div class="scroll"><div class="inner">
+      <div class="page-head">
+        <div class="page-title">本周计划</div>
+        <div class="page-sub">已完成 2 / 4 项 · 比上周多学了 1.5 小时</div>
+      </div>
+
+      <div class="week" id="week"></div>
+
+      <div class="group-label">今天</div>
+      <div class="rows" id="todayList"></div>
+
+      <div class="add-row">
+        <input id="addInput" placeholder="加一项，比如：睡前读 20 页《小王子》">
+        <button id="addBtn">加入今天</button>
+      </div>
+    </div></div>
+  </section>
+</div>
+
+<script>
+  const days = ["周一","周二","周三","周四","今天","周六","周日"];
+  const plan = [
+    ["高数 · 极限 30min ✓"], ["英语单词 List 6 ✓", "《小王子》第 2 章 ✓"],
+    ["操作系统 第 3 章 ✓"], ["高数 · 错题 5 道 ✓", "英语听力 20min ✓"],
+    ["操作系统 · 进程与线程", "英语单词 List 7"],
+    ["论文精读 · Attention"], ["复盘 + 自由阅读"],
+  ];
+  const week = document.getElementById("week");
+  plan.forEach((blocks, i) => {
+    const d = document.createElement("div");
+    d.className = "day" + (i === 4 ? " today" : "");
+    d.innerHTML = `<div class="d-name">${days[i]}</div><div class="d-num">${24 + i}</div>` +
+      blocks.map(b => {
+        const done = b.endsWith("✓");
+        return `<div class="block${done ? " done" : ""}">${b.replace(" ✓", "")}</div>`;
+      }).join("");
+    week.appendChild(d);
+  });
+
+  const todos = [
+    { t: "英语单词 · List 7", m: "间隔重复 · 50 个词", dur: "20 分钟", done: true },
+    { t: "高数 · 极限专题复习", m: "接着昨天 · 第 3 节", dur: "30 分钟", done: true },
+    { t: "操作系统 · 进程与线程", m: "今天的主线 · 上次学到线程", dur: "25 分钟", done: false, go: true },
+    { t: "错题复习 · 5 道", m: "到了最佳复习时机", dur: "10 分钟", done: false, go: true },
+  ];
+  const list = document.getElementById("todayList");
+  function renderTodos() {
+    list.innerHTML = "";
+    todos.forEach(td => {
+      const el = document.createElement("div");
+      el.className = "todo" + (td.done ? " done" : "");
+      el.innerHTML = `
+        <span class="cb"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <div><div class="t">${td.t}</div><div class="m">${td.m}</div></div>
+        <span class="dur">${td.dur}</span>
+        ${td.go && !td.done ? '<a class="go" href="learn-flow.html" style="text-decoration:none" onclick="event.stopPropagation()">开始 →</a>' : ""}`;
+      el.addEventListener("click", () => { td.done = !td.done; renderTodos(); });
+      list.appendChild(el);
+    });
+  }
+  renderTodos();
+
+  document.getElementById("addBtn").onclick = () => {
+    const v = document.getElementById("addInput").value.trim();
+    if (!v) return;
+    todos.push({ t: v, m: "刚刚添加", dur: "待定", done: false });
+    document.getElementById("addInput").value = "";
+    renderTodos();
+  };
+  document.getElementById("addInput").addEventListener("keydown",
+    e => { if (e.key === "Enter") document.getElementById("addBtn").click(); });
+  document.getElementById("askNeko").onclick = () => location.href = "learn-flow.html";
+</script>
+</body>
+</html>

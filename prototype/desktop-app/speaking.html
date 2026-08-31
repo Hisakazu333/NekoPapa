@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 口语对练</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
+      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
+      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    display: grid; place-items: center;
+    color: var(--tInk1);
+  }
+  button { font-family: inherit; }
+
+  .app-window {
+    width: min(1320px, 94vw); height: min(840px, 90vh);
+    background: var(--surface-0);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.08);
+    box-shadow: var(--shadow-window);
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ================= 顶部：会话栏 + 场景分页 ================= */
+  .sess-bar {
+    height: 52px; flex-shrink: 0;
+    display: flex; align-items: center; gap: 12px;
+    padding: 0 14px;
+    background: var(--surface-2);
+    border-bottom: 1px solid var(--tBorder);
+  }
+  .traffic { display: flex; gap: 8px; }
+  .traffic span { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .back {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 30px; padding: 0 10px; border: 0; border-radius: var(--r-sm);
+    background: transparent; color: var(--tInk2);
+    font-size: 13px; font-weight: 600; cursor: pointer; text-decoration: none;
+    transition: background var(--dur-fast);
+  }
+  .back:hover { background: var(--surface-1); color: var(--tInk1); }
+  .sess-title { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .sess-title .np-badge { font-weight: 700; }
+
+  .scene-tabs { position: absolute; left: 50%; transform: translateX(-50%); }
+  .scene-tabs { display: flex; padding: 3px; gap: 2px; background: var(--surface-1); border-radius: var(--r-pill); }
+  .scene-tabs button {
+    height: 30px; padding: 0 18px; border: 0; border-radius: var(--r-pill);
+    background: transparent; color: var(--tInk2);
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: all var(--dur-fast) var(--ease-out);
+  }
+  .scene-tabs button:hover { color: var(--tInk1); }
+  .scene-tabs button.on { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .scene-tabs button .nb { font-size: 10px; font-weight: 700; color: var(--tPrimary);
+    background: var(--tPrimarySoft); padding: 1px 6px; border-radius: var(--r-pill); }
+
+  .sess-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
+  .sess-prog { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--tInk3); }
+  .sess-prog .bar { width: 72px; height: 4px; border-radius: var(--r-pill); background: var(--tBorder); overflow: hidden; }
+  .sess-prog .bar i { display: block; height: 100%; width: 40%; background: var(--tPrimary); border-radius: var(--r-pill); }
+
+  /* ================= 主体：左对话 + 右练习舞台 ================= */
+  .sess-body { flex: 1; display: flex; min-height: 0; }
+
+  /* ---- 左：她 ---- */
+  .buddy-stage { position: relative; height: 252px; flex-shrink: 0;
+    background:
+      radial-gradient(260px 150px at 50% 108%, rgba(224,107,151,.14), transparent 70%),
+      var(--surface-0);
+    border-bottom: 1px solid var(--tBorder);
+    overflow: hidden;
+  }
+  .buddy-stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .buddy-floor { position: absolute; left: 50%; bottom: 7px; transform: translateX(-50%);
+    width: 150px; height: 18px; border-radius: 50%;
+    background: radial-gradient(closest-side, rgba(24,28,35,.16), transparent 70%);
+    pointer-events: none; }
+  .buddy-tag { position: absolute; left: 12px; top: 10px; z-index: 2;
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.82); backdrop-filter: blur(8px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    padding: 5px 12px 5px 8px; box-shadow: var(--shadow-sm); }
+  .buddy-tag .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tSuccess); }
+  .buddy-tag .nm { font-size: 12px; font-weight: 700; }
+  .buddy-tag .st { font-size: 10px; color: var(--tInk3); }
+  .buddy-stage.speaking .buddy-tag .dot { background: var(--tPrimary); animation: npPulse .9s ease-in-out infinite; }
+
+  .chat-col {
+    width: 380px; flex-shrink: 0;
+    background: var(--surface-2);
+    border-right: 1px solid var(--tBorder);
+    display: flex; flex-direction: column;
+  }
+
+  .chat-scroll { flex: 1; overflow-y: auto; padding: 16px 14px 8px; }
+  .msg { display: flex; gap: 8px; margin-bottom: 14px; animation: msgIn .28s var(--ease-out); }
+  @keyframes msgIn { from { opacity: 0; transform: translateY(8px); } }
+  .msg .m-av { width: 26px; height: 26px; border-radius: 50%; overflow: hidden; flex-shrink: 0; margin-top: 2px; }
+  .msg .m-av img { width: 100%; height: 100%; object-fit: cover; }
+  .msg .bub {
+    max-width: 260px; padding: 9px 13px;
+    background: var(--surface-1); border-radius: 4px 14px 14px 14px;
+    font-size: 13px; line-height: 1.65; color: var(--tInk1);
+  }
+  .msg .bub .hl { color: var(--tPrimary); font-weight: 600; }
+  .msg.me { flex-direction: row-reverse; }
+  .msg.me .bub { background: var(--tPrimary); color: #FFF9FB; border-radius: 14px 4px 14px 14px; }
+  .msg .m-time { font-size: 10px; color: var(--tInk3); margin-top: 4px; }
+  .msg.sys { justify-content: center; }
+  .msg.sys .bub { background: transparent; color: var(--tInk3); font-size: 11px; padding: 2px 8px; max-width: none; }
+
+  .typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+  .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--tInk3);
+    animation: tp 1.2s ease-in-out infinite; }
+  .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+  @keyframes tp { 30% { transform: translateY(-4px); opacity: .5; } }
+
+  .chat-input { padding: 10px 12px 14px; }
+  .chat-input .box {
+    display: flex; align-items: flex-end; gap: 8px;
+    background: var(--surface-0); border: 1px solid var(--tBorder);
+    border-radius: var(--r-md); padding: 8px 8px 8px 14px;
+    transition: all var(--dur) var(--ease-out);
+  }
+  .chat-input .box:focus-within { border-color: var(--tPrimary); box-shadow: 0 0 0 3px var(--tPrimarySoft); }
+  .chat-input textarea {
+    flex: 1; border: 0; outline: 0; resize: none; background: transparent;
+    font-family: inherit; font-size: 13px; line-height: 1.5; max-height: 80px; color: var(--tInk1);
+  }
+  .chat-input textarea::placeholder { color: var(--tInk3); }
+  .chat-send {
+    width: 30px; height: 30px; border: 0; border-radius: 50%; flex-shrink: 0;
+    background: var(--tPrimary); color: #fff; cursor: pointer;
+    display: grid; place-items: center;
+    transition: transform var(--dur-fast) var(--ease-spring);
+  }
+  .chat-send:hover { transform: scale(1.1); }
+
+  /* ---- 右：练习舞台 ---- */
+  .stage { flex: 1; overflow-y: auto; min-width: 0; background: var(--surface-0); }
+  .stage-inner { max-width: 640px; margin: 0 auto; padding: 26px 40px 60px; }
+  .scene { display: none; }
+  .scene.on { display: block; animation: sceneIn .3s var(--ease-out); }
+  @keyframes sceneIn { from { opacity: 0; transform: translateY(10px); } }
+
+  .stage-card {
+    background: var(--surface-2); border: 1px solid var(--tBorder);
+    border-radius: var(--r-lg); box-shadow: var(--shadow-sm);
+    padding: 22px 24px; margin-bottom: 16px;
+  }
+  .stage-card .cap { font-size: 11px; font-weight: 700; letter-spacing: .06em; color: var(--tPrimary);
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+  /* 情景卡 */
+  .scene-card {
+    background: linear-gradient(135deg, #FDF3F7, #F3F5FB);
+    border: 1px solid var(--tBorder); border-radius: var(--r-md);
+    padding: 18px 20px; margin-bottom: 14px;
+  }
+  .scene-card .sc-t { font-size: 15px; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .scene-card .sc-d { font-size: 13px; line-height: 1.7; color: var(--tInk2); }
+
+  /* 示范句卡 */
+  .demo-row {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 16px; margin-bottom: 10px;
+    background: var(--surface-0); border: 1px solid var(--tBorder); border-radius: var(--r-md);
+  }
+  .demo-row .play {
+    width: 38px; height: 38px; border: 0; border-radius: 50%; flex-shrink: 0;
+    background: var(--tPrimary); color: #fff; cursor: pointer;
+    display: grid; place-items: center; box-shadow: 0 2px 8px rgba(224,107,151,.35);
+    transition: transform var(--dur-fast) var(--ease-spring);
+  }
+  .demo-row .play:hover { transform: scale(1.08); }
+  .demo-row .play.playing { animation: npPulse .8s ease-in-out infinite; }
+  .demo-row .en { font-size: 15px; font-weight: 600; line-height: 1.5; }
+  .demo-row .cn { font-size: 12px; color: var(--tInk3); margin-top: 3px; }
+
+  /* 跟读纠音 */
+  .target-sent { text-align: center; padding: 8px 0 4px; }
+  .target-sent .en { font-size: 19px; font-weight: 700; line-height: 1.6; letter-spacing: .01em; }
+  .target-sent .cn { font-size: 12px; color: var(--tInk3); margin-top: 6px; }
+  .target-sent .mini-play {
+    display: inline-flex; align-items: center; gap: 6px; margin-top: 10px;
+    height: 28px; padding: 0 14px; border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    background: var(--surface-0); color: var(--tInk2); font-size: 12px; cursor: pointer;
+    transition: all var(--dur-fast);
+  }
+  .target-sent .mini-play:hover { border-color: var(--tPrimary); color: var(--tPrimary); }
+
+  /* 波形 */
+  .wave-wrap {
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    height: 72px; margin: 10px 0 4px;
+    background: var(--surface-1); border-radius: var(--r-md);
+  }
+  .wave-wrap i {
+    width: 4px; border-radius: 2px; background: #C9D2DE;
+    height: 8px; transition: height .18s var(--ease-out), background .18s;
+  }
+  .wave-wrap.live i { background: var(--tPrimary); animation: waveJump .5s ease-in-out infinite alternate; }
+  @keyframes waveJump { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+  .wave-hint { text-align: center; font-size: 11px; color: var(--tInk3); margin-top: 8px; }
+  .wave-hint.live { color: var(--tPrimary); font-weight: 600; }
+
+  /* 按住说话 */
+  .mic-btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+    width: 108px; height: 108px; margin: 14px auto 4px;
+    border: 0; border-radius: 50%; cursor: pointer; user-select: none;
+    background: var(--tPrimary); color: #fff;
+    box-shadow: 0 4px 16px rgba(224,107,151,.4);
+    font-size: 12px; font-weight: 700;
+    transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .mic-btn:hover { transform: scale(1.04); }
+  .mic-btn.holding { transform: scale(.94); box-shadow: 0 0 0 10px var(--tPrimarySoft), 0 4px 16px rgba(224,107,151,.4); }
+
+  /* 评分卡 */
+  .score-card { display: none; }
+  .score-card.show { display: block; animation: sceneIn .3s var(--ease-out); }
+  .score-top { display: flex; align-items: center; gap: 16px; margin-bottom: 12px; }
+  .score-num {
+    font-size: 40px; font-weight: 800; color: var(--tPrimary); line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .score-num small { font-size: 14px; font-weight: 600; color: var(--tInk3); }
+  .score-word { font-size: 12px; color: var(--tInk2); line-height: 1.6; }
+  .word-line { font-size: 17px; font-weight: 700; line-height: 2; padding: 10px 14px;
+    background: var(--surface-0); border-radius: var(--r-sm); }
+  .word-line .w { padding: 1px 4px; border-radius: 5px; }
+  .word-line .w.ok { color: var(--tSuccess); background: #E3F3EA; }
+  .word-line .w.fix { color: var(--tWarning); background: #FBF0DC; }
+  .score-tip { margin-top: 12px; font-size: 13px; line-height: 1.7; color: var(--tInk2); }
+  .score-tip b { color: var(--tWarning); }
+
+  /* 自由聊 */
+  .topic-chip {
+    display: flex; align-items: center; gap: 12px; width: 100%;
+    padding: 15px 18px; margin-bottom: 10px; text-align: left;
+    background: var(--surface-0); border: 1.5px solid var(--tBorder); border-radius: var(--r-md);
+    font-size: 14px; color: var(--tInk1); cursor: pointer;
+    transition: all var(--dur-fast) var(--ease-out);
+  }
+  .topic-chip:hover { border-color: var(--tPrimary); transform: translateX(3px); }
+  .topic-chip.picked { border-color: var(--tPrimary); background: var(--tPrimarySoft); }
+  .topic-chip .tg { font-size: 15px; font-weight: 700; }
+  .topic-chip .td { font-size: 12px; color: var(--tInk3); margin-top: 2px; }
+  .topic-chip .go { margin-left: auto; color: var(--tInk3); flex-shrink: 0; }
+</style>
+</head>
+<body>
+
+<div class="app-window">
+
+  <!-- ============ 顶部：会话栏 + 场景分页 ============ -->
+  <div class="sess-bar" style="position:relative">
+    <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <a class="back" href="index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回
+    </a>
+    <div class="sess-title">口语对练 · 自我介绍 <span class="np-badge">第 2 课</span></div>
+
+    <div class="scene-tabs" id="sceneTabs">
+      <button class="on" data-scene="dialog">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        情景对话</button>
+      <button data-scene="shadow">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+        跟读纠音 <span class="nb">新</span></button>
+      <button data-scene="free">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8M12 8v8"/></svg>
+        自由聊</button>
+    </div>
+
+    <div class="sess-right">
+      <div class="sess-prog">本课进度 <span class="bar"><i></i></span> 40%</div>
+      <button class="np-btn ghost" style="height:30px" onclick="location.href='focus.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/></svg>
+        进入专注</button>
+    </div>
+  </div>
+
+  <!-- ============ 主体 ============ -->
+  <div class="sess-body">
+
+    <!-- 左：她 -->
+    <div class="chat-col">
+      <div class="buddy-stage" id="buddyStage">
+        <canvas id="buddyCanvas"></canvas>
+        <div class="buddy-floor"></div>
+        <div class="buddy-tag">
+          <span class="dot"></span>
+          <div><div class="nm">Neko</div><div class="st" id="buddyStatus">陪练中 · 第 2 课</div></div>
+        </div>
+      </div>
+
+      <div class="chat-scroll np-scroll" id="chatScroll">
+        <div class="msg sys"><div class="bub">今天 19:30 · 口语第 2 课开始</div></div>
+        <div class="msg">
+          <span class="m-av"><img src="assets/icon.png" alt=""></span>
+          <div><div class="bub">上节课你已经会打招呼了，今天进阶一步：<span class="hl">完整的自我介绍</span>。</div></div>
+        </div>
+        <div class="msg">
+          <span class="m-av"><img src="assets/icon.png" alt=""></span>
+          <div><div class="bub">先看右边的情景卡，假装你明天就要见到新外教。听两遍我的示范，然后去「<span class="hl">跟读纠音</span>」试试 🎤</div></div>
+        </div>
+      </div>
+
+      <div class="chat-input">
+        <div class="box">
+          <textarea id="chatTa" rows="1" placeholder="卡住了就直接问，比如：introduce 到底怎么发音？"></textarea>
+          <button class="chat-send" id="chatSend">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右：练习舞台 -->
+    <div class="stage np-scroll">
+
+      <!-- 场景 1：情景对话 -->
+      <div class="stage-inner scene on" id="scene-dialog">
+        <div class="stage-card">
+          <div class="cap">今日情景</div>
+          <div class="scene-card">
+            <div class="sc-t">🌍 第一次见外教</div>
+            <div class="sc-d">明天的英语角来了一位新外教 Emma。轮到你自我介绍——不用长，三句话，说清楚「你是谁、你从哪来、你喜欢什么」就够了。</div>
+          </div>
+        </div>
+
+        <div class="stage-card">
+          <div class="cap">她的示范 · 点喇叭听</div>
+          <div class="demo-row">
+            <button class="play" data-say="Hi, I'm Neko. Nice to meet you!" aria-label="播放示范">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div><div class="en">Hi, I'm Neko. Nice to meet you!</div><div class="cn">你好，我是 Neko，很高兴见到你！</div></div>
+          </div>
+          <div class="demo-row">
+            <button class="play" data-say="Let me introduce myself a little." aria-label="播放示范">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div><div class="en">Let me introduce myself a little.</div><div class="cn">让我简单介绍一下自己。</div></div>
+          </div>
+          <div class="demo-row">
+            <button class="play" data-say="I like reading and playing the piano." aria-label="播放示范">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <div><div class="en">I like reading and playing the piano.</div><div class="cn">我喜欢读书和弹钢琴。</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 场景 2：跟读纠音 -->
+      <div class="stage-inner scene" id="scene-shadow">
+        <div class="stage-card">
+          <div class="cap">目标句 · 听一遍再跟读</div>
+          <div class="target-sent">
+            <div class="en">"Let me introduce myself a little."</div>
+            <div class="cn">让我简单介绍一下自己。</div>
+            <button class="mini-play" id="targetPlay">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+              听示范
+            </button>
+          </div>
+        </div>
+
+        <div class="stage-card" style="text-align:center">
+          <div class="cap" style="justify-content:center">轮到你了 · 按住说话</div>
+          <div class="wave-wrap" id="waveWrap"></div>
+          <div class="wave-hint" id="waveHint">准备就绪，按住下面的按钮开始跟读</div>
+          <button class="mic-btn" id="micBtn">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2a4 4 0 0 0-4 4v6a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+            按住说话
+          </button>
+        </div>
+
+        <div class="stage-card score-card" id="scoreCard">
+          <div class="cap">发音评分</div>
+          <div class="score-top">
+            <div class="score-num">87<small> 分</small></div>
+            <div class="score-word">整体很流畅，节奏感不错！<br>只有一个词需要再练一下 👇</div>
+          </div>
+          <div class="word-line">
+            <span class="w ok">Let</span> <span class="w ok">me</span> <span class="w fix">introduce</span> <span class="w ok">myself</span> <span class="w ok">a little</span>.
+          </div>
+          <div class="score-tip"><b>introduce</b>：中间的 /tr/ 别读成「出」，舌尖顶住上齿龈再放开——再按住说一遍，专练这个词就行。</div>
+        </div>
+      </div>
+
+      <!-- 场景 3：自由聊 -->
+      <div class="stage-inner scene" id="scene-free">
+        <div class="stage-card">
+          <div class="cap">自由聊 · 挑一个话题开局</div>
+          <button class="topic-chip" data-topic="hobbies">
+            <div><div class="tg">Hobbies 🎨</div><div class="td">聊聊你的爱好 —— What do you do for fun?</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+          <button class="topic-chip" data-topic="school">
+            <div><div class="tg">School 🏫</div><div class="td">聊聊学校生活 —— What's your favorite subject?</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+          <button class="topic-chip" data-topic="weekend">
+            <div><div class="tg">Weekend 🌤️</div><div class="td">聊聊周末计划 —— Any plans for the weekend?</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ---------- 场景分页切换 ---------- */
+const chatScroll = document.getElementById('chatScroll');
+function scrollChat() { chatScroll.scrollTop = chatScroll.scrollHeight; }
+
+document.querySelectorAll('#sceneTabs button').forEach(b => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('#sceneTabs button').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    document.querySelectorAll('.scene').forEach(s => s.classList.remove('on'));
+    document.getElementById('scene-' + b.dataset.scene).classList.add('on');
+  });
+});
+function goScene(name) {
+  document.querySelector(`#sceneTabs button[data-scene="${name}"]`).click();
+}
+
+/* ---------- 左右联动：她在左栏说话 ---------- */
+function herSay(html, delay = 500) {
+  return new Promise(res => setTimeout(() => {
+    const m = document.createElement('div');
+    m.className = 'msg';
+    m.innerHTML = `<span class="m-av"><img src="assets/icon.png" alt=""></span>
+      <div><div class="bub"><span class="typing"><i></i><i></i><i></i></span></div></div>`;
+    chatScroll.appendChild(m); scrollChat();
+    setTimeout(() => {
+      m.querySelector('.bub').innerHTML = html;
+      scrollChat();
+      buddySpeak(m.querySelector('.bub').textContent);
+      res();
+    }, 750);
+  }, delay));
+}
+function meSay(text) {
+  const m = document.createElement('div');
+  m.className = 'msg me';
+  const t = new Date();
+  m.innerHTML = `<div><div class="bub"></div><div class="m-time" style="text-align:right">${t.getHours()}:${String(t.getMinutes()).padStart(2,'0')}</div></div>`;
+  m.querySelector('.bub').textContent = text;
+  chatScroll.appendChild(m); scrollChat();
+}
+
+/* ---------- 示范句播放（原型：只表现播放态，不出声） ---------- */
+function speakEn(text) { /* 正式版接 TTS 服务；原型仅视觉反馈 */ }
+document.querySelectorAll('.demo-row .play, #targetPlay').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const text = btn.dataset.say || 'Let me introduce myself a little.';
+    btn.classList.add('playing');
+    setTimeout(() => btn.classList.remove('playing'), 1600);
+    speakEn(text);
+    if (btn.id === 'targetPlay') herSay('听清楚了吗？注意 <span class="hl">introduce</span> 的 /tr/，按住下面的大按钮跟读一遍 👇', 400);
+  });
+});
+
+/* ---------- 跟读纠音：按住说话 + 波形 ---------- */
+const waveWrap = document.getElementById('waveWrap');
+const waveHint = document.getElementById('waveHint');
+const micBtn = document.getElementById('micBtn');
+const scoreCard = document.getElementById('scoreCard');
+const BARS = 36;
+for (let i = 0; i < BARS; i++) {
+  const bar = document.createElement('i');
+  bar.style.animationDelay = (Math.random() * 0.5).toFixed(2) + 's';
+  bar.style.animationDuration = (0.35 + Math.random() * 0.4).toFixed(2) + 's';
+  waveWrap.appendChild(bar);
+}
+let waveTimer = null, holding = false, scored = false;
+function waveIdle() { waveWrap.querySelectorAll('i').forEach(b => b.style.height = '8px'); }
+function startWave() {
+  waveWrap.classList.add('live');
+  waveHint.textContent = '正在听… 说完松开';
+  waveHint.classList.add('live');
+  waveTimer = setInterval(() => {
+    waveWrap.querySelectorAll('i').forEach(b => {
+      b.style.height = (6 + Math.random() * 52).toFixed(0) + 'px';
+    });
+  }, 120);
+}
+async function stopWave() {
+  clearInterval(waveTimer); waveTimer = null;
+  waveWrap.classList.remove('live');
+  waveHint.classList.remove('live');
+  waveIdle();
+  waveHint.textContent = '评分中…';
+  await new Promise(r => setTimeout(r, 700));
+  waveHint.textContent = '准备就绪，按住下面的按钮开始跟读';
+  scoreCard.classList.add('show');
+  if (!scored) {
+    scored = true;
+    await herSay('🎉 <span class="hl">87 分</span>！第一次跟读就到这个分数，节奏感是真的好', 500);
+    await herSay('就 <span class="hl">introduce</span> 一个词拖了后腿——舌尖顶住上齿龈再松开，跟我念：in-truh-DOOSE。再按住试一次？');
+  } else {
+    await herSay('这次 <span class="hl">introduce</span> 顺多了！保持这个口型，下一句继续 💪', 500);
+  }
+}
+micBtn.addEventListener('mousedown', () => { holding = true; micBtn.classList.add('holding'); startWave(); });
+micBtn.addEventListener('mouseup', () => { if (!holding) return; holding = false; micBtn.classList.remove('holding'); stopWave(); });
+micBtn.addEventListener('mouseleave', () => { if (!holding) return; holding = false; micBtn.classList.remove('holding'); stopWave(); });
+waveIdle();
+
+/* ---------- 自由聊：话题 chips → 她开话题 ---------- */
+const topics = {
+  hobbies: '好，聊爱好！我先来：I like drawing cats. 🐱 轮到你了——<span class="hl">What do you do for fun?</span> 随便说，说错了我帮你兜着。',
+  school: '学校生活，这题你素材最多！先来个热身：<span class="hl">What\'s your favorite subject?</span> 用英语说一句就行，不用完美。',
+  weekend: '周末计划！我先抛砖：I\'m going to watch a movie this weekend. 你呢——<span class="hl">Any plans for the weekend?</span> 试着用 "I\'m going to…" 开头。'
+};
+document.querySelectorAll('.topic-chip').forEach(chip => {
+  chip.addEventListener('click', async () => {
+    document.querySelectorAll('.topic-chip').forEach(c => c.classList.remove('picked'));
+    chip.classList.add('picked');
+    meSay('聊聊 ' + chip.querySelector('.tg').textContent.trim() + ' 吧');
+    await herSay(topics[chip.dataset.topic], 600);
+  });
+});
+
+/* ---------- 对话输入：发送 → 她回 ---------- */
+const ta = document.getElementById('chatTa');
+const send = document.getElementById('chatSend');
+async function doSend() {
+  const v = ta.value.trim();
+  if (!v) { ta.focus(); return; }
+  meSay(v); ta.value = '';
+  await herSay('敢开口就已经赢了一半！这句的意思我明白了——换成更地道的说法是 "…"，跟我念一遍，然后去「跟读纠音」里按住说出来试试 🎤');
+}
+send.addEventListener('click', doSend);
+ta.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); doSend(); } });
+
+scrollChat();
+</script>
+
+<!-- ============ Live2D：她站在左栏 + 开口说话 ============ -->
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
+<script>
+let buddyModel = null, mouthTimer = null;
+const buddyStageEl = document.getElementById('buddyStage');
+const buddyStatus = document.getElementById('buddyStatus');
+buddyStatus.dataset.idle = buddyStatus.textContent;
+
+(async () => {
+  const canvas = document.getElementById('buddyCanvas');
+  try {
+    const app = new PIXI.Application({
+      view: canvas, transparent: true, autoStart: true, resizeTo: buddyStageEl,
+      resolution: window.devicePixelRatio || 1, autoDensity: true,
+    });
+    const model = await PIXI.live2d.Live2DModel.from(
+      '../../assets/live2d/hiyori/hiyori_pro_t11.model3.json', { autoInteract: false });
+    buddyModel = model;
+    app.stage.addChild(model);
+    const fit = () => {
+      const w = buddyStageEl.clientWidth, h = buddyStageEl.clientHeight;
+      const s = Math.min(w / model.internalModel.width, (h - 8) / model.internalModel.height) * 1.14;
+      model.scale.set(s);
+      model.x = (w - model.width) / 2;
+      model.y = h - 6 - model.height;
+    };
+    fit(); window.addEventListener('resize', fit);
+    const idle = () => model.motion('Idle');
+    idle(); setInterval(idle, 16000);
+    buddyStageEl.addEventListener('click', () => model.motion('Tap'));
+    window.addEventListener('pointermove', e => {
+      const r = canvas.getBoundingClientRect();
+      model.focus(e.clientX - r.left, e.clientY - r.top);
+    });
+  } catch (err) {
+    console.warn('Live2D 未加载：', err);
+  }
+})();
+
+
+/* 嘴型驱动 */
+function setMouth(v) {
+  try { buddyModel && buddyModel.internalModel.coreModel.setParameterValueById('ParamMouthOpenY', v); } catch (e) {}
+}
+function startMouth() {
+  stopMouth();
+  buddyStageEl.classList.add('speaking');
+  buddyStatus.textContent = '说话中…';
+  mouthTimer = setInterval(() => setMouth(0.15 + Math.random() * 0.85), 110);
+}
+function stopMouth() {
+  clearInterval(mouthTimer); mouthTimer = null;
+  buddyStageEl.classList.remove('speaking');
+  setMouth(0);
+}
+
+/* 她的"说话"：只做嘴型和状态，不出声（语音交给正式 TTS 服务，原型不接浏览器合成音） */
+function buddySpeak(text) {
+  if (!text) return;
+  startMouth();
+  const dur = Math.min(3600, 900 + text.length * 70);
+  setTimeout(() => { stopMouth(); buddyStatus.textContent = buddyStatus.dataset.idle || '陪伴中'; }, dur);
+}
+</script>
+</body>
+</html>

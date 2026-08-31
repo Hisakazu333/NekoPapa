@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 她的记忆</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  :root {
+    --tPageBg:#F5F7FA; --tCardBg:#FFFFFF; --tInk1:#181C23; --tInk2:#4E5763; --tInk3:#7A8492;
+    --tBorder:#E1E7EF; --tPrimary:#E06B97; --tPrimarySoft:#F8DDE7;
+    --tDanger:#E0646E; --tSuccess:#4FAF73;
+    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+    --shadow-card:0 2px 10px rgba(24,28,35,0.06);
+    --font:-apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
+    background:
+      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
+      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
+      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    display:grid; place-items:center;
+  }
+  button { font-family:inherit; }
+  .app-window {
+    width:min(1280px,92vw); height:min(830px,88vh);
+    background:var(--surface-0); border-radius:16px;
+    border:1px solid rgba(24,28,35,.08);
+    box-shadow:0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
+    display:flex; overflow:hidden;
+  }
+  .sidebar { width:248px; flex-shrink:0; background:var(--surface-1);
+    border-right:1px solid var(--tBorder); display:flex; flex-direction:column; }
+  .traffic { display:flex; gap:8px; padding:14px 16px 12px; }
+  .traffic span.dot { width:12px; height:12px; border-radius:50%; }
+  .traffic .r{background:#FF5F57} .traffic .y{background:#FEBC2E} .traffic .g{background:#28C840}
+  .back-link { display:flex; align-items:center; gap:8px; margin:0 16px 12px;
+    height:36px; padding:0 12px; border-radius:var(--r-sm);
+    color:var(--tInk2); font-size:14px; text-decoration:none; }
+  .back-link:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .group-label { font-size:11px; color:var(--tInk3); padding:14px 12px 6px; }
+  .side-scroll { flex:1; overflow-y:auto; padding:4px 16px 12px; }
+  .conv { display:flex; align-items:center; height:32px; padding:0 12px;
+    border-radius:var(--r-sm); font-size:14px; color:var(--tInk2); text-decoration:none; }
+  .conv:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .conv.active { background:var(--tPrimarySoft); color:var(--tPrimary); font-weight:600; }
+
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden;
+    background:var(--surface-0); }
+  .titlebar { height:46px; flex-shrink:0; display:flex; align-items:center; padding:0 18px; }
+  .titlebar .app-title { position:absolute; left:50%; transform:translateX(-50%);
+    font-size:14px; font-weight:600; color:var(--tInk2); }
+  .titlebar .sp { flex:1; }
+  .btn-main { height:32px; padding:0 16px; border:0; border-radius:var(--r-pill);
+    background:var(--tPrimary); color:#FFF9FB; font-size:11px; font-weight:700; cursor:pointer; }
+
+  .scroll { flex:1; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:0; }
+  .inner { width:min(760px, 100% - 80px); margin:0 auto; padding:20px 0 40px; }
+
+  .page-head { display:flex; align-items:baseline; gap:14px; margin-bottom:18px; }
+  .page-title { font-size:26px; font-weight:700; }
+  .page-sub { font-size:14px; color:var(--tInk3); }
+
+  .tabs-row { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+
+  /* 记忆卡 */
+  .mem { display:flex; gap:14px; background:var(--tCardBg); border:1px solid var(--tBorder);
+    border-radius:var(--r-md); box-shadow:var(--shadow-card);
+    padding:15px 18px; margin-bottom:10px;
+    transition:transform .15s ease, opacity .28s ease; }
+  .mem:hover { transform:translateY(-1px); }
+  .mem.leaving { opacity:0; transform:translateX(40px); }
+  .mem .body { flex:1; min-width:0; }
+  .mem .row1 { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
+  .mem .txt { font-size:14px; font-weight:600; line-height:1.6; }
+  .mem .txt-input { width:100%; border:1px solid var(--tPrimary); border-radius:8px;
+    padding:7px 10px; font-family:inherit; font-size:14px; color:var(--tInk1);
+    outline:none; box-shadow:var(--shadow-sm); background:var(--surface-3); }
+  .mem .meta { display:flex; align-items:center; gap:12px; margin-top:8px;
+    font-size:11px; color:var(--tInk3); }
+  .mem .meta .src { display:inline-flex; align-items:center; gap:5px; }
+  .mem .acts { display:flex; flex-direction:column; align-items:flex-end; gap:6px;
+    flex-shrink:0; }
+  .mem .icons { display:flex; gap:2px; }
+  .icon-btn { width:28px; height:28px; border:0; border-radius:8px; background:transparent;
+    color:var(--tInk3); cursor:pointer; display:grid; place-items:center;
+    transition:all var(--dur-fast); }
+  .icon-btn:hover { background:var(--surface-1); color:var(--tInk1); }
+  .confirm-btn { height:26px; padding:0 12px; border:0; border-radius:var(--r-pill);
+    background:var(--tDanger); color:#FFF9FB; font-size:11px; font-weight:700;
+    cursor:pointer; white-space:nowrap; animation:pop .2s var(--ease-spring); }
+  @keyframes pop { from { transform:scale(.85); opacity:.4; } }
+
+  /* 底部隐私卡 */
+  .privacy { display:flex; align-items:center; gap:12px; margin-top:18px;
+    background:var(--tCardBg); border:1px solid var(--tBorder);
+    border-radius:var(--r-md); box-shadow:var(--shadow-sm); padding:14px 18px; }
+  .privacy .ic { width:34px; height:34px; border-radius:var(--r-sm); flex-shrink:0;
+    background:var(--tPrimarySoft); color:var(--tPrimary); display:grid; place-items:center; }
+  .privacy .t { font-size:13px; font-weight:600; }
+  .privacy .d { font-size:11px; color:var(--tInk3); margin-top:2px; }
+  .privacy a { color:var(--tPrimary); text-decoration:none; font-weight:600; }
+  .privacy a:hover { text-decoration:underline; }
+</style>
+</head>
+<body>
+<div class="app-window">
+  <aside class="sidebar">
+    <div class="traffic"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <a class="back-link" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      返回首页
+    </a>
+    <div class="side-scroll">
+      <div class="group-label">学习</div>
+      <a class="conv" href="plan.html">学习计划</a>
+      <a class="conv" href="mistakes.html">错题本</a>
+      <a class="conv" href="lib.html">知识库</a>
+      <div class="conv active">她的记忆</div>
+    </div>
+  </aside>
+
+  <section class="main">
+    <div class="titlebar">
+      <span class="app-title">她的记忆</span>
+      <span class="sp"></span>
+      <button class="btn-main" id="addBtn">＋ 添加记忆</button>
+    </div>
+
+    <div class="scroll"><div class="inner">
+      <div class="page-head">
+        <div class="page-title">她的记忆</div>
+        <div class="page-sub">共 128 条 · 她会用这些让陪伴更贴心</div>
+      </div>
+
+      <div class="tabs-row">
+        <div class="np-seg" id="segCat">
+          <button class="on" data-v="all">全部</button>
+          <button data-v="学习偏好">学习偏好</button>
+          <button data-v="进度状态">进度状态</button>
+          <button data-v="生活细节">生活细节</button>
+          <button data-v="重要约定">重要约定</button>
+        </div>
+      </div>
+
+      <div id="list"></div>
+
+      <div class="np-empty" id="emptyBox" style="display:none">
+        <div class="ic">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+        </div>
+        <div class="t">这个分类下还没有记忆</div>
+        <div class="d">和她多聊聊，她会慢慢记住的</div>
+      </div>
+
+      <div class="privacy">
+        <div class="ic">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div>
+          <div class="t">记忆只存在本机</div>
+          <div class="d">设置里可以随时让她停止记东西 · <a href="settings.html#sec-memory">去设置 →</a></div>
+        </div>
+      </div>
+    </div></div>
+  </section>
+</div>
+
+<script>
+  const editSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
+  const trashSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg>';
+  const chatIco = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
+  const bookIco = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/></svg>';
+
+  const catBadge = { "学习偏好":"", "进度状态":"amber", "生活细节":"green", "重要约定":"red" };
+
+  const items = [
+    { cat:"学习偏好", txt:"晚上 10 点后学习效率最高，适合安排难题", src:"chat", time:"8月22日 · 来自对话" },
+    { cat:"进度状态", txt:"对「递归」一直理解不透彻，需要多举例子、多画调用栈", src:"book", time:"8月25日 · 来自学习记录" },
+    { cat:"重要约定", txt:"下周三考操作系统，考前三天要每天过一遍错题", src:"chat", time:"8月27日 · 来自对话" },
+    { cat:"生活细节", txt:"不喜欢被叫「同学」，直接叫名字就好", src:"chat", time:"8月18日 · 来自对话" },
+    { cat:"学习偏好", txt:"背单词喜欢先听读音再看拼写，出声读记得更牢", src:"book", time:"8月20日 · 来自学习记录" },
+    { cat:"进度状态", txt:"高数极限部分已掌握，错题集中在复合函数求导", src:"book", time:"8月26日 · 来自学习记录" },
+    { cat:"生活细节", txt:"周一晚上有社团活动，那天别排学习任务", src:"chat", time:"8月23日 · 来自对话" },
+    { cat:"重要约定", txt:"每天睡前一起读 20 页《小王子》，读完要聊感想", src:"chat", time:"8月19日 · 来自对话" },
+    { cat:"学习偏好", txt:"讲新概念时先打比方再讲定义，接受度明显更高", src:"book", time:"8月24日 · 来自学习记录" },
+  ];
+
+  let curCat = "all";
+  const list = document.getElementById("list");
+  const emptyBox = document.getElementById("emptyBox");
+
+  function render() {
+    list.innerHTML = "";
+    const shown = items.filter(it => curCat === "all" || it.cat === curCat);
+    emptyBox.style.display = shown.length ? "none" : "flex";
+    shown.forEach(it => list.appendChild(buildRow(it)));
+  }
+
+  function buildRow(it) {
+    const el = document.createElement("div");
+    el.className = "mem";
+    el.innerHTML = `
+      <div class="body">
+        <div class="row1"><span class="np-badge ${catBadge[it.cat] ?? "gray"}">${it.cat}</span></div>
+        <div class="txt">${it.txt}</div>
+        <div class="meta">
+          <span class="src">${it.src === "chat" ? chatIco : bookIco}${it.time}</span>
+        </div>
+      </div>
+      <div class="acts">
+        <div class="icons">
+          <button class="icon-btn edit" data-tip="编辑">${editSvg}</button>
+          <button class="icon-btn del" data-tip="删除">${trashSvg}</button>
+        </div>
+      </div>`;
+    wireRow(el, it);
+    return el;
+  }
+
+  function wireRow(el, it) {
+    const txtEl = el.querySelector(".txt");
+    const editBtn = el.querySelector(".edit");
+    const delBtn = el.querySelector(".del");
+
+    // 编辑：点击变输入框，blur / Enter 保存
+    editBtn.addEventListener("click", () => {
+      if (el.querySelector(".txt-input")) return;
+      const input = document.createElement("input");
+      input.className = "txt-input";
+      input.value = it.txt;
+      txtEl.replaceWith(input);
+      input.focus(); input.select();
+      const save = () => {
+        it.txt = input.value.trim() || it.txt;
+        txtEl.textContent = it.txt;
+        input.replaceWith(txtEl);
+      };
+      input.addEventListener("blur", save);
+      input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
+    });
+
+    // 删除：先变「确认删除？」3 秒不点恢复
+    let timer = null;
+    const doDelete = () => {
+      clearTimeout(timer);
+      el.classList.add("leaving");
+      setTimeout(() => {
+        items.splice(items.indexOf(it), 1);
+        el.remove(); checkEmpty();
+      }, 280);
+    };
+    delBtn.addEventListener("click", () => {
+      if (delBtn.dataset.armed === "1") return;
+      delBtn.dataset.armed = "1";
+      const confirm = document.createElement("button");
+      confirm.className = "confirm-btn";
+      confirm.textContent = "确认删除？";
+      delBtn.replaceWith(confirm);
+      const restore = () => {
+        delBtn.dataset.armed = "";
+        confirm.replaceWith(delBtn);
+      };
+      confirm.addEventListener("click", doDelete, { once:true });
+      timer = setTimeout(restore, 3000);
+    });
+  }
+
+  function checkEmpty() {
+    emptyBox.style.display = list.children.length ? "none" : "flex";
+  }
+
+  document.getElementById("segCat").addEventListener("click", e => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    e.currentTarget.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+    curCat = b.dataset.v;
+    render();
+  });
+
+  // 顶部「添加记忆」：列表顶部插入编辑态新行
+  document.getElementById("addBtn").addEventListener("click", () => {
+    const it = { cat: curCat === "all" ? "生活细节" : curCat, txt: "", src: "chat",
+      time: "刚刚 · 手动添加" };
+    items.unshift(it);
+    const el = buildRow(it);
+    list.prepend(el);
+    emptyBox.style.display = "none";
+    el.scrollIntoView({ block:"nearest", behavior:"smooth" });
+    // 直接进入编辑态
+    const txtEl = el.querySelector(".txt");
+    const input = document.createElement("input");
+    input.className = "txt-input";
+    input.placeholder = "告诉她要记住什么，比如：周三下午没课";
+    txtEl.replaceWith(input);
+    input.focus();
+    const save = () => {
+      it.txt = input.value.trim() || "一条还没写完的记忆";
+      txtEl.textContent = it.txt;
+      input.replaceWith(txtEl);
+    };
+    input.addEventListener("blur", save);
+    input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
+  });
+
+  render();
+</script>
+</body>
+</html>

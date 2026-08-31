@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 桌宠形态</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  :root {
+    --tPageBg:   #F5F7FA;
+    --tCardBg:   #FFFFFF;
+    --tInk1:     #181C23;
+    --tInk2:     #4E5763;
+    --tInk3:     #7A8492;
+    --tBorder:   #E1E7EF;
+    --tPrimary:  #E06B97;
+    --tPrimarySoft: #F8DDE7;
+    --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-pill: 999px;
+    --shadow-card: 0 2px 10px rgba(24, 28, 35, 0.06);
+    --font: -apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font); overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    /* 桌面壁纸：模拟真实 Mac 桌面 */
+    background:
+      radial-gradient(1100px 750px at 15% -10%, rgba(224, 107, 151, 0.22), transparent 60%),
+      radial-gradient(1200px 800px at 105% 110%, rgba(122, 132, 146, 0.28), transparent 60%),
+      radial-gradient(700px 500px at 85% 5%, rgba(240, 163, 94, 0.12), transparent 60%),
+      linear-gradient(150deg, #F6EEF2 0%, #E9EDF5 50%, #F4F1EC 100%);
+  }
+
+  /* 原型说明标签 */
+  .proto-tag {
+    position: fixed; left: 20px; bottom: 16px;
+    font-size: 11px; color: var(--tInk3); letter-spacing: .06em;
+    background: rgba(255,255,255,.65); backdrop-filter: blur(10px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    padding: 6px 14px;
+  }
+
+  /* 桌宠本体：无窗口、无背景、完全透明 */
+  .pet {
+    position: fixed; right: 36px; bottom: 0;
+    width: 300px; height: 480px;
+    cursor: pointer; z-index: 10;
+  }
+  .pet canvas { width: 100%; height: 100%; display: block; }
+
+  /* 她的气泡 */
+  .bubble {
+    position: fixed; right: 260px; bottom: 400px;
+    width: 250px;
+    background: rgba(255,255,255,.82); backdrop-filter: blur(18px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+    box-shadow: var(--shadow-md);
+    padding: 14px 16px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .5s ease, transform .5s ease;
+    z-index: 11;
+  }
+  .bubble.show { opacity: 1; transform: translateY(0); }
+  .bubble .who { font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    color: var(--tPrimary); margin-bottom: 6px; }
+  .bubble .line { font-size: 14px; line-height: 1.7; color: var(--tInk1); }
+  .bubble .acts { display: flex; gap: 8px; margin-top: 10px; }
+  .bubble .acts button {
+    height: 28px; padding: 0 14px; border-radius: var(--r-pill);
+    font-size: 11px; font-weight: 600; cursor: pointer;
+  }
+  .bubble .acts .a1 { border: 0; background: var(--tPrimary); color: #FFF9FB; }
+  .bubble .acts .a2 { border: 1px solid var(--tBorder); background: var(--tCardBg); color: var(--tInk2); }
+
+  /* 悬停出现的快捷菜单 */
+  .pet-menu {
+    position: fixed; right: 30px; bottom: 400px;
+    display: flex; flex-direction: column; gap: 6px;
+    opacity: 0; transform: translateX(6px);
+    transition: opacity .25s ease, transform .25s ease;
+    z-index: 12;
+  }
+  .pet-zone:hover .pet-menu { opacity: 1; transform: translateX(0); }
+  .pet-menu a, .pet-menu button {
+    display: flex; align-items: center; gap: 8px;
+    height: 34px; padding: 0 14px;
+    background: rgba(255,255,255,.82); backdrop-filter: blur(18px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    box-shadow: var(--shadow-card);
+    font-size: 11px; font-weight: 600; color: var(--tInk2);
+    cursor: pointer; text-decoration: none; white-space: nowrap;
+  }
+  .pet-menu a:hover, .pet-menu button:hover { color: var(--tPrimary); border-color: var(--tPrimarySoft); }
+
+  /* 双击出现的迷你对话 */
+  .mini-composer {
+    position: fixed; right: 250px; bottom: 240px;
+    width: 300px;
+    background: rgba(255,255,255,.9); backdrop-filter: blur(20px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-lg);
+    box-shadow: var(--shadow-md);
+    padding: 10px 10px 10px 16px;
+    display: none; align-items: center; gap: 8px;
+    z-index: 12;
+  }
+  .mini-composer.show { display: flex; animation: pop .3s ease; }
+  @keyframes pop { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+  .mini-composer input { flex: 1; border: 0; outline: 0; background: transparent;
+    font-family: inherit; font-size: 14px; color: var(--tInk1); }
+  .mini-composer input::placeholder { color: var(--tInk3); }
+  .mini-composer .send { width: 32px; height: 32px; border: 0; border-radius: 50%;
+    background: var(--tPrimary); color: #FFF9FB;
+    display: grid; place-items: center; cursor: pointer; flex-shrink: 0; }
+
+  /* 偷袭复习的迷你选项 */
+  .quiz-opts { display: grid; gap: 6px; margin-top: 8px; }
+  .quiz-opts button {
+    border: 1px solid var(--tBorder); border-radius: var(--r-sm);
+    background: var(--surface-0); color: var(--tInk1);
+    font-family: inherit; font-size: 13px; text-align: left;
+    padding: 7px 12px; cursor: pointer; transition: all .15s;
+  }
+  .quiz-opts button:hover { border-color: var(--tPrimary); }
+  .quiz-opts button.ok { border-color: var(--tSuccess); background: #F0F9F4; color: var(--tSuccess); font-weight: 600; }
+  .quiz-opts button.no { border-color: var(--tDanger); background: #FBEBEC; color: var(--tDanger); }
+  .quiz-opts button:disabled { cursor: default; opacity: .75; }
+</style>
+</head>
+<body>
+
+  <!-- 桌宠：完全透明，没有窗口 -->
+  <div class="pet-zone">
+    <div class="pet" id="pet"><canvas id="live2d"></canvas></div>
+    <div class="pet-menu">
+      <a href="index.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11.5 12 4l9 7.5M5.5 10.5V20h13v-9.5"/></svg>
+        打开主窗口
+      </a>
+      <button id="quietBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z"/></svg>
+        安静一会儿
+      </button>
+      <a href="settings.html?page=pet">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.2.63.83 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.68 0-1.31.4-1.51 1z"/></svg>
+        桌宠设置
+      </a>
+    </div>
+  </div>
+
+  <!-- 她主动说话 -->
+  <div class="bubble" id="bubble">
+    <div class="who">NEKO</div>
+    <div class="line" id="line">有 3 道错题到了最佳复习时间，现在来两道？</div>
+    <div class="acts">
+      <button class="a1">开始复习</button>
+      <button class="a2" id="laterBtn">稍后</button>
+    </div>
+  </div>
+
+  <!-- 双击对话 -->
+  <div class="mini-composer" id="mini">
+    <input id="miniInput" placeholder="说点什么…">
+    <button class="send" id="miniSend">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+  </div>
+
+  <div class="proto-tag">桌宠形态原型 · 完全透明常驻桌面 · 点她互动 · 双击对话 · 悬停右侧出菜单</div>
+
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
+<script>
+  const petLines = [
+    "欸？想我啦？",
+    "正在学「进程与线程」哦，别偷懒。",
+    "喝点水再继续吧，我盯着呢。",
+  ];
+  let li = 0;
+
+  (async () => {
+    const wrap = document.getElementById("pet");
+    try {
+      const canvas = document.getElementById("live2d");
+      const app = new PIXI.Application({ view: canvas, transparent: true, autoStart: true,
+        resizeTo: wrap, resolution: window.devicePixelRatio || 1, autoDensity: true });
+      const model = await PIXI.live2d.Live2DModel.from(
+        "../../assets/live2d/hiyori/hiyori_pro_t11.model3.json", { autoInteract: false });
+      app.stage.addChild(model);
+      const fit = () => {
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
+        model.scale.set(s);
+        model.x = (w - model.width) / 2; model.y = h - model.height;
+      };
+      fit(); window.addEventListener("resize", fit);
+      const idle = () => model.motion("Idle");
+      idle(); setInterval(idle, 14000);
+
+      // 点她：Tap 动作 + 换一句话
+      wrap.addEventListener("click", () => {
+        model.motion("Tap");
+        const b = document.getElementById("bubble");
+        document.getElementById("line").textContent = petLines[li++ % petLines.length];
+        b.classList.add("show");
+      });
+      // 双击：迷你对话
+      wrap.addEventListener("dblclick", () => {
+        document.getElementById("mini").classList.toggle("show");
+        document.getElementById("miniInput").focus();
+      });
+      // 目光跟随
+      window.addEventListener("pointermove", e => {
+        const r = canvas.getBoundingClientRect();
+        model.focus(e.clientX - r.left, e.clientY - r.top);
+      });
+    } catch (err) {
+      console.warn("Live2D 未加载：", err);
+      // 不再静默消失：给出明确原因和解决办法
+      const tip = document.createElement("div");
+      tip.style.cssText = "position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#fff;border:1px solid #E1E7EF;border-radius:14px;box-shadow:0 6px 20px rgba(24,28,35,.09),0 24px 64px rgba(24,28,35,.13);padding:14px 20px;font-size:13px;color:#4E5763;z-index:99;max-width:420px;line-height:1.7";
+      tip.innerHTML = location.protocol === "file:"
+        ? "<b style='color:#181C23'>她的模型加载不出来</b><br>桌宠页需要本地 HTTP 预览（浏览器拦截了 file:// 的模型请求）。<br>在终端跑：<code style='background:#EDF0F5;padding:2px 8px;border-radius:6px'>bash prototype/desktop-app/serve.sh</code> 再打开提示的地址"
+        : "<b style='color:#181C23'>她的模型加载失败</b><br>请确认服务是从 NekoPapa 项目根目录启动的（serve.sh），模型文件在 assets/live2d/ 下";
+      document.body.appendChild(tip);
+      wrap.style.display = "none";
+    }
+  })();
+
+  // 进入页面 1.2s 后她主动开口
+  setTimeout(() => document.getElementById("bubble").classList.add("show"), 1200);
+
+  // ---------- 偷袭复习：气泡里直接答 ----------
+  const bubble = document.getElementById("bubble");
+  const line = document.getElementById("line");
+  const acts = bubble.querySelector(".acts");
+  document.querySelector(".a1").addEventListener("click", () => {
+    line.innerHTML = "快问快答：<b>the only</b> 修饰先行词时，关系词用哪个？";
+    acts.outerHTML = `<div class="quiz-opts" id="pq">
+      <button data-ok="0">which</button>
+      <button data-ok="1">that</button>
+      <button data-ok="0">who</button>
+    </div>`;
+    document.querySelectorAll("#pq button").forEach(b => {
+      b.addEventListener("click", () => {
+        const ok = b.dataset.ok === "1";
+        document.querySelectorAll("#pq button").forEach(x => x.disabled = true);
+        b.classList.add(ok ? "ok" : "no");
+        if (!ok) document.querySelector('#pq button[data-ok="1"]').classList.add("ok");
+        line.innerHTML = ok
+          ? "✓ 对！就 3 秒的事，这道错题后天再来找你～"
+          : "这题记错啦，没关系——她已把它排进明天的复习。";
+        setTimeout(() => bubble.classList.remove("show"), 2200);
+      });
+    });
+  });
+  document.getElementById("laterBtn").onclick =
+    () => document.getElementById("bubble").classList.remove("show");
+
+  // 安静一会儿：她收声退下
+  document.getElementById("quietBtn").onclick = () => {
+    const b = document.getElementById("bubble");
+    document.getElementById("line").textContent = "好，我安静一会儿，有事叫我～";
+    document.querySelector(".bubble .acts").style.display = "none";
+    b.classList.add("show");
+    setTimeout(() => b.classList.remove("show"), 1800);
+  };
+  // （旧的「开始复习」跳转已由上面的气泡内答题取代）
+
+  document.getElementById("miniSend").onclick = () => {
+    document.getElementById("mini").classList.remove("show");
+    const b = document.getElementById("bubble");
+    document.getElementById("line").textContent = "嗯嗯，我记下了！";
+    b.classList.add("show");
+  };
+  document.getElementById("miniInput").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("miniSend").click();
+    if (e.key === "Escape") document.getElementById("mini").classList.remove("show");
+  });
+</script>
+</body>
+</html>

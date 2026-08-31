@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NekoBuddy 设计 Token 展示</title>
+<style>
+  :root {
+    --page-bg: #F5F7FA;
+    --card-bg: #FFFFFF;
+    --ink-1: #181C23;
+    --ink-2: #4E5763;
+    --ink-3: #7A8492;
+    --line: #E1E7EF;
+    --accent: #E06B97;
+    --accent-soft: #F8DDE7;
+    --danger: #E0646E;
+    --success: #4FAF73;
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 20px;
+    --r-pill: 999px;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    display: block;
+    margin: 0 auto;
+    padding: 40px 24px 64px;
+    max-width: 960px;
+    background: var(--page-bg);
+    color: var(--ink-1);
+    font-family: -apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", sans-serif;
+  }
+
+  h1 { font-size: 26px; margin: 0 0 6px; }
+  .sub { color: var(--ink-2); margin-bottom: 32px; font-size: 14px; }
+  h2 { font-size: 17px; margin: 32px 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+
+  .row { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+
+  .sw { width: 84px; }
+  .sw .c { height: 56px; border-radius: var(--r-sm); border: 1px solid var(--line); }
+  .sw .n { font-size: 11px; color: var(--ink-2); margin-top: 6px; text-align: center; }
+  .sw .v { font-size: 10px; color: var(--ink-3); text-align: center; }
+
+  .rbox {
+    background: var(--card-bg);
+    border: 1px solid var(--line);
+    width: 90px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    color: var(--ink-2);
+  }
+  .rbox.card-shadow {
+    width: 140px;
+    border: 0;
+    box-shadow: 0 2px 10px rgba(24, 28, 35, 0.06);
+  }
+
+  .type b { display: block; }
+  .type small { color: var(--ink-3); }
+
+  .sp { background: var(--accent-soft); border-radius: 4px; }
+  .sp-label { font-size: 11px; color: var(--ink-2); }
+
+  .btn-primary {
+    height: 54px;
+    width: 100%;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--accent);
+    color: #FFF9FB;
+    font-size: 17px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .btn-primary.disabled {
+    background: var(--accent-soft);
+    color: var(--ink-3);
+    cursor: not-allowed;
+  }
+  .btn-chip {
+    height: 40px;
+    padding: 0 20px;
+    border: 0;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: var(--r-pill);
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-size: 11px;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+<h1>NekoBuddy 设计 Token</h1>
+<div class="sub">全站唯一视觉真相源：颜色（ThemeState 运行时色板） / 圆角 3 档 / 字级 4 档 / 4px 间距网格 / 1 种阴影 / 2 种按钮。新代码只准用这套。</div>
+
+<h2>颜色（与 core/state/ui/ThemeState.ets 对齐）</h2>
+<div class="row">
+  <div class="sw"><div class="c" style="background:#F5F7FA"></div><div class="n">tPageBg</div><div class="v">#F5F7FA</div></div>
+  <div class="sw"><div class="c" style="background:#FFFFFF"></div><div class="n">tCardBg</div><div class="v">#FFFFFF</div></div>
+  <div class="sw"><div class="c" style="background:#181C23"></div><div class="n">tInk1</div><div class="v">#181C23</div></div>
+  <div class="sw"><div class="c" style="background:#4E5763"></div><div class="n">tInk2</div><div class="v">#4E5763</div></div>
+  <div class="sw"><div class="c" style="background:#7A8492"></div><div class="n">tInk3</div><div class="v">#7A8492</div></div>
+  <div class="sw"><div class="c" style="background:#E1E7EF"></div><div class="n">tBorder</div><div class="v">#E1E7EF</div></div>
+  <div class="sw"><div class="c" style="background:#E06B97"></div><div class="n">tPrimaryStrong</div><div class="v">#E06B97</div></div>
+  <div class="sw"><div class="c" style="background:#F8DDE7"></div><div class="n">tPrimarySoft</div><div class="v">#F8DDE7</div></div>
+  <div class="sw"><div class="c" style="background:#E0646E"></div><div class="n">tDanger</div><div class="v">#E0646E</div></div>
+  <div class="sw"><div class="c" style="background:#4FAF73"></div><div class="n">tSuccess</div><div class="v">#4FAF73</div></div>
+</div>
+
+<h2>圆角（只有 3 档 + 胶囊）</h2>
+<div class="row">
+  <div class="rbox" style="border-radius:10px">sm 10</div>
+  <div class="rbox" style="border-radius:14px">md 14</div>
+  <div class="rbox" style="border-radius:20px">lg 20</div>
+  <div class="rbox" style="border-radius:999px; width:120px">pill 999</div>
+</div>
+
+<h2>字级（只有 4 档 + 展示级）</h2>
+<div class="row" style="align-items:flex-end">
+  <div class="type"><b style="font-size:11px">caption 11</b><small>辅助/徽章</small></div>
+  <div class="type"><b style="font-size:14px">body 14</b><small>正文/选项</small></div>
+  <div class="type"><b style="font-size:17px">title 17</b><small>标题/按钮</small></div>
+  <div class="type"><b style="font-size:22px">hero 22</b><small>页头数字</small></div>
+  <div class="type"><b style="font-size:26px">display 26</b><small>卡片主词</small></div>
+</div>
+
+<h2>间距（4 的倍数网格）</h2>
+<div class="row">
+  <div class="sp" style="width:4px;height:24px"></div><span class="sp-label">4</span>
+  <div class="sp" style="width:8px;height:24px"></div><span class="sp-label">8</span>
+  <div class="sp" style="width:12px;height:24px"></div><span class="sp-label">12</span>
+  <div class="sp" style="width:16px;height:24px"></div><span class="sp-label">16</span>
+  <div class="sp" style="width:20px;height:24px"></div><span class="sp-label">20</span>
+  <div class="sp" style="width:24px;height:24px"></div><span class="sp-label">24</span>
+</div>
+
+<h2>阴影（只有 1 种）</h2>
+<div class="row"><div class="rbox card-shadow">card shadow</div></div>
+
+<h2>按钮（只有 2 种）</h2>
+<div class="row" style="flex-direction:column; align-items:flex-start; max-width:320px; gap:10px">
+  <button class="btn-primary">主按钮 · 54 胶囊</button>
+  <button class="btn-primary disabled">主按钮 · 禁用态</button>
+  <button class="btn-chip">次级按钮 · 40 chip</button>
+  <span class="badge">徽章 / 连对 3</span>
+</div>
+
+</body>
+</html>
