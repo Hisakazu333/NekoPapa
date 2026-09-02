@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 她的小屋</title>
+<link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background: #EDF0F4;
+    display: grid; place-items: center;
+    color: var(--tInk1);
+  }
+  button { font-family: inherit; }
+
+  .app-window {
+    width: min(1280px, 92vw); height: min(830px, 88vh);
+    background: var(--surface-0);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.09);
+    box-shadow: var(--shadow-window);
+    display: flex; overflow: hidden;
+  }
+
+  /* ---------- 侧栏 ---------- */
+  .sidebar {
+    width: 216px; flex-shrink: 0;
+    background: var(--surface-1);
+    border-right: 1px solid rgba(24,28,35,.06);
+    display: flex; flex-direction: column;
+  }
+  .traffic { display: flex; gap: 8px; padding: 14px 16px 10px; }
+  .traffic span { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .back {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin: 2px 0 6px 14px; height: 28px; padding: 0 10px;
+    border: 0; border-radius: 8px; background: transparent;
+    color: var(--tInk2); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    text-decoration: none; width: fit-content; transition: background .15s;
+  }
+  .back:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .side-nav { padding: 0 12px; }
+  .nav-group { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3); padding: 12px 10px 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    height: 28px; padding: 0 10px; margin: 1px 0;
+    border-radius: 8px; font-size: 12.5px; color: var(--tInk2);
+    text-decoration: none; transition: background .15s;
+  }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; }
+  .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .nav-item.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .nav-item.active svg { color: var(--tPrimary); }
+
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .titlebar { height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .titlebar .t { font-size: 12.5px; font-weight: 600; color: var(--tInk3); }
+  .scroll { flex: 1; overflow-y: auto; }
+  .inner { max-width: 880px; margin: 0 auto; padding: 6px 32px 60px; }
+
+  .hut-grid { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
+
+  /* ---------- 她的房间卡（左） ---------- */
+  .room {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 14px; box-shadow: var(--shadow-sm);
+    overflow: hidden;
+  }
+  .stage-wrap {
+    position: relative; height: 300px;
+    background: radial-gradient(220px 200px at 50% 78%, rgba(224,107,151,.13), transparent 75%);
+  }
+  .stage-wrap .buddy { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+    width: 210px; height: 290px; cursor: pointer; }
+  .stage-wrap .buddy canvas { width: 100%; height: 100%; display: block; }
+  .stage-wrap .poke { position: absolute; left: 0; right: 0; bottom: 8px; text-align: center;
+    font-size: 10px; color: var(--tInk3); pointer-events: none; }
+  .room-bd { padding: 14px 16px 16px; border-top: 1px solid rgba(24,28,35,.06); }
+  .room-bd .nm { font-size: 15px; font-weight: 700; letter-spacing: -.01em; display: flex; align-items: center; gap: 8px; }
+  .room-bd .nm .lv { font-size: 9px; font-weight: 700; color: var(--tPrimary);
+    background: var(--tPrimarySoft); padding: 2px 7px; border-radius: 999px; letter-spacing: .04em; }
+  .room-bd .rel { font-size: 11px; color: var(--tInk3); margin-top: 3px; }
+  .room-bd .doing {
+    display: flex; align-items: center; gap: 7px; margin-top: 10px;
+    font-size: 11.5px; color: var(--tInk2);
+  }
+  .room-bd .acts { display: flex; gap: 8px; margin-top: 12px; }
+  .room-bd .acts .np-btn { flex: 1; height: 28px; font-size: 11.5px; }
+
+  /* ---------- 右栏分区 ---------- */
+  .sect { margin-bottom: 18px; }
+  .sect-h { display: flex; align-items: baseline; gap: 8px; padding: 0 2px 8px; }
+  .sect-h h2 { font-size: 12.5px; font-weight: 600; }
+  .sect-h .d { font-size: 10.5px; color: var(--tInk3); }
+  .sect-h .right { margin-left: auto; font-size: 10.5px; color: var(--tInk3); }
+  .card {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 2px 16px;
+  }
+  .row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(24,28,35,.05); }
+  .row:last-child { border-bottom: 0; }
+  .row .bd { flex: 1; min-width: 0; }
+  .row .t { font-size: 12.5px; font-weight: 500; display: flex; align-items: center; gap: 7px; }
+  .row .d { font-size: 10.5px; color: var(--tInk3); margin-top: 2px; }
+  .row .side { flex-shrink: 0; font-size: 10.5px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+
+  /* 状态条 */
+  .stat-row { padding: 10px 0; border-bottom: 1px solid rgba(24,28,35,.05); }
+  .stat-row:last-child { border-bottom: 0; }
+  .stat-row .sh { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; }
+  .stat-row .sh .k { font-size: 12px; font-weight: 500; }
+  .stat-row .sh .v { font-size: 11px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .stat-row .bar { height: 5px; border-radius: 999px; background: var(--surface-1); overflow: hidden; }
+  .stat-row .bar i { display: block; height: 100%; border-radius: 999px; background: var(--tPrimary); }
+
+  /* 日程时间线 */
+  .sch-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(24,28,35,.05); }
+  .sch-row:last-child { border-bottom: 0; }
+  .sch-row .tm { width: 46px; flex-shrink: 0; font-size: 11px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .sch-row .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(24,28,35,.18); flex-shrink: 0; }
+  .sch-row.done .dot { background: var(--tSuccess); }
+  .sch-row.next .dot { background: var(--tPrimary); animation: npPulse 1.6s ease-in-out infinite; }
+  .sch-row .what { flex: 1; font-size: 12.5px; }
+  .sch-row.done .what { color: var(--tInk3); }
+  .sch-row .tag { font-size: 9.5px; font-weight: 600; color: var(--tPrimary); background: var(--tPrimarySoft);
+    padding: 1px 7px; border-radius: 999px; }
+
+  .foot { text-align: center; font-size: 10.5px; color: var(--tInk3); padding-top: 4px; }
+  .foot a { color: var(--tPrimary); text-decoration: none; }
+  .foot a:hover { text-decoration: underline; }
+
+  /* toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(10px);
+    background: var(--tInk1); color: #fff; font-size: 12px; font-weight: 500;
+    padding: 8px 16px; border-radius: 9px; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transition: all .25s var(--ease-out); z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-window">
+  <aside class="sidebar">
+    <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <a class="back" href="index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回首页
+    </a>
+    <nav class="side-nav">
+      <div class="nav-group">学习</div>
+      <a class="nav-item" href="plan.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        学习计划</a>
+      <a class="nav-item" href="mistakes.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        错题本</a>
+      <a class="nav-item" href="lib.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        知识库</a>
+      <a class="nav-item" href="map.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6.7 6.4 9.8 9.7M17.4 7.4l-3.2 2.9M7.4 17.6l2.9-3.2"/></svg>
+        知识地图</a>
+      <a class="nav-item" href="report.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        她的周报</a>
+      <a class="nav-item" href="memory.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+        她的记忆</a>
+      <div class="nav-group">互联</div>
+      <a class="nav-item" href="drop.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect x="16" y="9" width="6" height="11" rx="1.5"/></svg>
+        设备互联</a>
+    </nav>
+  </aside>
+
+  <section class="main">
+    <div class="titlebar"><span class="t">她的小屋</span></div>
+    <div class="scroll np-scroll">
+      <div class="inner">
+        <div class="hut-grid">
+
+          <!-- 她的房间 -->
+          <div class="room">
+            <div class="stage-wrap">
+              <div class="buddy" id="buddy"><canvas id="live2d"></canvas></div>
+              <div class="poke">点她一下，她会有反应</div>
+            </div>
+            <div class="room-bd">
+              <div class="nm">Neko <span class="lv">同桌 LV.6</span></div>
+              <div class="rel">同桌第 142 天 · 她叫你的名字，不叫「同学」</div>
+              <div class="doing"><span class="np-dot pink"></span>正在后台整理你的错题本 · 23/40</div>
+              <div class="acts">
+                <a class="np-btn primary" href="chat.html" style="text-decoration:none">跟她说说话</a>
+                <a class="np-btn ghost" href="pet.html" style="text-decoration:none">桌宠形态</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右栏 -->
+          <div>
+            <div class="sect">
+              <div class="sect-h"><h2>此刻的她</h2><span class="d">她的状态会随你们的学习变化</span></div>
+              <div class="card" style="padding:4px 16px">
+                <div class="stat-row">
+                  <div class="sh"><span class="k">心情</span><span class="v">85 · 不错，你连续学习她很高兴</span></div>
+                  <div class="bar"><i style="width:85%"></i></div>
+                </div>
+                <div class="stat-row">
+                  <div class="sh"><span class="k">精力</span><span class="v">72 · 今天陪你学了 50 分钟</span></div>
+                  <div class="bar"><i style="width:72%"></i></div>
+                </div>
+                <div class="stat-row">
+                  <div class="sh"><span class="k">了解你</span><span class="v">128 条记忆 · 比上周 +9</span></div>
+                  <div class="bar"><i style="width:64%"></i></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="sect">
+              <div class="sect-h"><h2>她今天的安排</h2><span class="d">她按约定自己排好的</span></div>
+              <div class="card">
+                <div class="sch-row done"><span class="tm">上午</span><span class="dot"></span><span class="what">整理错题本 · 按考点重排</span><span class="side">已完成</span></div>
+                <div class="sch-row done"><span class="tm">14:00</span><span class="dot"></span><span class="what">把「递归」的答疑记录整理进记忆</span><span class="side">已完成</span></div>
+                <div class="sch-row next"><span class="tm">21:30</span><span class="dot"></span><span class="what">共读《小王子》· 第 3 章</span><span class="tag">约定</span></div>
+                <div class="sch-row"><span class="tm">22:00</span><span class="dot"></span><span class="what">复习提醒 · 5 道错题到期</span><span class="side">定时</span></div>
+              </div>
+            </div>
+
+            <div class="sect">
+              <div class="sect-h"><h2>她最近为你做的</h2><span class="d">她都记着，也会告诉你</span></div>
+              <div class="card">
+                <div class="row"><div class="bd"><div class="t">写完周报的第三版草稿</div><div class="d">这周你 6 天都来找她学习，她写进去了</div></div><span class="side">2 小时前</span></div>
+                <div class="row"><div class="bd"><div class="t">发现你 22 点后效率最高</div><div class="d">已在首页建议你调整学习时段</div></div><span class="side">昨天</span></div>
+                <div class="row"><div class="bd"><div class="t">把错题本打包发到了你的台式机</div><div class="d">NekoDrop 加密传输 · 对方已确认</div></div><span class="side">周一</span></div>
+              </div>
+            </div>
+
+            <div class="foot">
+              形象与声音在 <a href="settings.html#sec-avatar">设置 · 形象与声音</a> 里调整 · 她的习惯在 <a href="settings.html#sec-memory">记忆与错题</a> 里管理
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
+<script>
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+(async () => {
+  const wrap = document.getElementById("buddy");
+  try {
+    const canvas = document.getElementById("live2d");
+    const app = new PIXI.Application({ view: canvas, transparent: true, autoStart: true,
+      resizeTo: wrap, resolution: window.devicePixelRatio || 1, autoDensity: true });
+    const model = await PIXI.live2d.Live2DModel.from(
+      "../../assets/live2d/hiyori/hiyori_pro_t11.model3.json", { autoInteract: false });
+    app.stage.addChild(model);
+    const fit = () => {
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
+      model.scale.set(s);
+      model.x = (w - model.width) / 2; model.y = h - model.height;
+    };
+    fit(); window.addEventListener("resize", fit);
+    const idle = () => model.motion("Idle");
+    idle(); setInterval(idle, 15000);
+    const reactions = ["欸？", "怎么啦？", "我在呢。", "想我了？"];
+    let ri = 0;
+    wrap.addEventListener("click", () => {
+      model.motion("Tap");
+      toast(reactions[ri++ % reactions.length]);
+    });
+    window.addEventListener("pointermove", e => {
+      const r = canvas.getBoundingClientRect();
+      model.focus(e.clientX - r.left, e.clientY - r.top);
+    });
+  } catch (err) {
+    console.warn("Live2D 未加载：", err);
+    wrap.style.display = "none";
+  }
+})();
+</script>
+</body>
+</html>

@@ -35,7 +35,7 @@ Issue 用来记录一个可判断、可分配、可验收的问题。愿景、�
 
 界面 Issue 还必须填写：
 
-- `img/` 原型文件名或“无对应原型”；
+- `prototype/desktop-app/` 原型页面或“无对应原型”；
 - Tauri 桌面或浏览器预览；
 - 操作系统、窗口尺寸、显示缩放和设备像素比；
 - 当前截图/视频及期望状态；
@@ -186,20 +186,19 @@ Issue 只有在以下条件满足时才关闭：
   畸形输入；不加入模型热加载、逐帧参数或账户数据。
 - 验收：两端正向和负向测试通过，v0 不再被描述为 v1。
 
-### ARCH-001：冻结并退出不可回退的 legacy Qt 客户端
+### ARCH-001：退出不可回退的 legacy Qt 客户端（已完成）
 
 - 类型/区域/优先级：`type:tech-debt`、`area:desktop-host`、`priority:p2`
-- 证据：`app/stage-desktop/` 仍包含旧登录、同步、Git、模型和 Dock 逻辑，但入口
-  引用不存在的 `qml/main.qml`，已不能作为可构建回退目标。
-- 范围：先建立只读归档和能力清单，迁移仍有价值的服务；禁止继续双写；删除动作
-  单独 ADR/PR 执行。
-- 验收：每项保留能力有新 owner 或明确废弃，默认构建和文档不再指向 Qt。
+- 结果：`app/stage-desktop/`、根目录旧 Qt 构建脚本和 `NNA_BUILD_APP` 选项已于
+  2026-09 删除；默认构建和文档不再指向 Qt。删除记录见
+  [Qt 到 Tauri 迁移完成记录](architecture/qt-to-tauri-migration.md)，历史源码只通过
+  Git 历史查阅。
 
 ### ARCH-002：迁移 `openneko` legacy 技术标识
 
 - 类型/区域/优先级：`type:tech-debt`、`area:engine`、`priority:p2`
-- 证据：产品和桌面包已统一为 NekoPapa，但 CMake project/target、sidecar binary、
-  Stage namespace 和 Frozen Qt 资源 URI 仍包含 `openneko` legacy 标识。
+- 证据：产品和桌面包已统一为 NekoPapa，但 CMake project/target、sidecar binary 和
+  Stage namespace 仍包含 `openneko` legacy 标识。
 - 范围：确定 `nna` namespace、`NNA_` option 和 `nekopapa-*` app binary 的目标命名；
   为 externalBin、构建脚本和消费者提供有期限的兼容迁移。
 - 验收：新产品文案和文档名称不出现 legacy 品牌；源码标识迁移后，干净 checkout、
@@ -215,15 +214,14 @@ Issue 只有在以下条件满足时才关闭：
 - 验收：两平台分别保留工具链、命令、日志和可观察结果；单平台通过不关闭另一平台
   任务。
 
-### UI-001：以 `img/` 建立桌面视觉验收链路
+### UI-001：以 `prototype/desktop-app/` 建立桌面视觉验收链路
 
 - 类型/区域/优先级：`type:tech-debt`、`area:ui`、`priority:p1`
-- 证据：治理文档已登记 48 张原型及一组字节级重复图，但代码、Issue/PR 和自动
-  viewport tests 仍无法反向追踪采用了哪个 `P-xxx` 状态。
-- 范围：维护原型基线；Issue/PR 强制引用原型 ID；为原生标题栏、顶部导航、主页
+- 证据：`prototype/desktop-app/` 已是产品 UI 设计基线，但代码、Issue/PR 和自动
+  viewport tests 仍无法反向追踪采用了哪个原型页面状态。
+- 范围：维护原型设计基线；Issue/PR 强制引用原型页面；为原生标题栏、顶部导航、主页
   缩放和外层控件建立桌面尺寸验收场景。
-- 验收：48/48 图像可追踪；每个已实现页面有原型映射、当前截图和可执行验收条件；
-  无法识别或重复图明确标记。
+- 验收：每个已实现页面有原型页面映射、当前截图和可执行验收条件。
 
 ### RELEASE-001：建立可审计的桌面发布流程
 

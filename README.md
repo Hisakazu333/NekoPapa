@@ -38,7 +38,6 @@ NekoPapa 将 React 控制台、Tauri 桌面能力和 C++ Live2D Native Stage 组
 | Nekonano-Aether（NNA）/ NekoCore-Nano layer | Stub 模式 | Native Stage 尚未接入完整 NekoCore-Nano 领域状态 |
 | Stage Protocol v1 | 草案 | JSON Schema 已存在，运行时仍使用未版本化 v0 消息 |
 | 对话、记忆、世界、Agent | 界面原型 | 没有完整服务、权限和持久化闭环 |
-| Legacy Qt | Frozen | 仅用于迁移取证，不是可构建回退产品 |
 
 仓库使用 Live2D 官方示例模型桃濑日和进行开发验证。它不是 Lumia 的正式角色资产。
 
@@ -105,11 +104,10 @@ NekoPapa 是当前产品、桌面包和仓库的唯一名称。Nekonano-Aether�
 | --- | --- |
 | `app/control-desktop/` | React 主窗口、Tauri host 和桌面打包配置 |
 | `app/live2d-stage/` | 独立 C++ Native Stage |
-| `app/stage-desktop/` | Frozen Legacy Qt 取证目录 |
+| `prototype/desktop-app/` | 产品 UI 设计基线原型：零构建纯静态 HTML+CSS+JS；`serve.sh` 从仓库根起 `http.server` 8123 预览 |
 | `engine/` | NNA / NekoCore-Nano C++ stub 与 Cubism Native adapter |
 | `protocol/stage/v1/` | Stage JSONL v1 草案与 fixtures |
 | `assets/` | 运行时与开发资产 |
-| `img/` | 产品原型源图，不进入安装包 |
 | `doc/` | 治理、工程、架构和产品文档 |
 
 当前目录债务和渐进目标结构见 [项目结构与分层](doc/architecture/repository-layout.md)。

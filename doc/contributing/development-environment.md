@@ -4,8 +4,8 @@
 
 最后核对：2026-07-18
 
-本指南覆盖当前 Tauri 2 + React + Rust + C++17 Native Stage。Qt/QML 客户端已冻结
-为 legacy 参考，不是默认环境要求。
+本指南覆盖当前 Tauri 2 + React + Rust + C++17 Native Stage。旧 Qt/QML 客户端已于
+2026-09 删除，不是环境要求；历史参考见 [Qt 到 Tauri 迁移完成记录](../architecture/qt-to-tauri-migration.md)。
 
 ## 1. 当前工具链
 
@@ -112,7 +112,6 @@ triple 匹配的 sidecar，然后启动 Vite 和桌面窗口。若失败，分�
 ```bash
 cmake -S . -B build/stage -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DNNA_BUILD_APP=OFF \
   -DNNA_BUILD_LIVE2D_STAGE=ON \
   -DNNA_ENABLE_LIVE2D=ON \
   -DNNA_CORE_NANO_MODE=stub
@@ -148,13 +147,7 @@ target-triple sidecar 不存在而失败。CI 可使用明确标记的编译期 
 当前前端没有独立 lint/unit-test script，CMake 没有 CTest。这些是已记录的测试
 缺口，不要运行不存在的命令或在 PR 中声称已经覆盖。
 
-## 9. Legacy Qt
-
-`app/stage-desktop/` 只用于迁移取证，默认 `NNA_BUILD_APP=OFF`。它当前不能作为可靠
-构建或发布入口，新功能不得继续同时写入 Qt 和 Tauri。确需调查 legacy 行为时使用
-独立 build 目录，并在 Issue 中说明取证目标；不要把 Qt 安装写成新贡献者前置条件。
-
-## 10. 常见问题
+## 9. 常见问题
 
 | 现象 | 首先检查 | 不能直接得出的结论 |
 | --- | --- | --- |

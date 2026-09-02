@@ -33,8 +33,6 @@ React App
   `-- Live2DCompanion --> Pixi.js / Cubism Web
 ```
 
-`Frozen Legacy Qt -> NNAEngine stub / private Core adapter / Qt services` 只表示仓库中仍有隔离的历史源码；默认 CMake 与当前 Tauri 入口都不会启动这条路径。
-
 当前限制：
 
 - `app/control-desktop/src/App.tsx` 同时承担页面选择、Stage 生命周期状态和页面编排。
@@ -78,7 +76,6 @@ NekoCore-Nano -- future explicit render-intent contract -->
 | Native Stage | 透明顶层窗口、穿透、输入、帧循环、Native renderer | 主窗口 UI、账号、网络业务、持久领域状态 |
 | `nna::core` | 同伴状态、确定性规则、快照和高层意图 | Qt、Tauri、DOM、GLFW、Cubism、OpenGL |
 | `nna::graphics` | Cubism Native 模型与渲染适配 | 账号、同步、记忆和产品流程 |
-| Frozen Legacy Qt | 迁移取证和历史行为参考 | 新功能、发布入口、新协议所有权 |
 
 ## 依赖规则
 
@@ -143,14 +140,14 @@ port 与 DTO，再替换 adapter，不在 JSX 中直接增加 `fetch` 或散落 
 ## 资产、原型和第三方边界
 
 - `assets/` 只放运行时或安装包确实需要的资产；Vite 与 Tauri 使用显式 allowlist，不能复制整个仓库资产目录。
-- `img/` 是产品原型输入，不是运行时资源。48 张当前资产由[产品原型基线](../product/prototype-baseline.md)索引；目标位置和 manifest 见[项目结构](repository-layout.md)。
+- `prototype/desktop-app/` 是产品设计基线输入，不是运行时资源；页面清单与验收准入由[原型设计基线](../product/prototype-baseline.md)维护。
 - Web 与 Native 共用模型时，必须有一个资产 manifest 记录 ID、版本、哈希、用途、许可和打包目标。
 - `engine/third_party/` 是供应商边界。业务代码不得修改第三方源码；补丁、版本、来源和许可单独登记。
 - SDK Samples、无关平台二进制、生成缓存和 `.DS_Store` 不得进入发布包。
 
 ## 当前明确非目标
 
-- 不把 Frozen Legacy Qt 恢复为第二条产品主线。
+- 不重建已删除的 Qt/QML 客户端或任何形式的第二条产品主线。
 - 不在目录尚未有实现时批量创建愿景模块空壳。
 - 不把 Native Stage 叠在 WebView 上。
 - 不通过 JSONL 传输逐帧画面、音频或大块模型文件。

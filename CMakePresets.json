@@ -3,12 +3,11 @@
     "configurePresets": [
         {
             "name": "macos",
-            "displayName": "macOS (Homebrew Qt6)",
+            "displayName": "macOS (Ninja)",
             "generator": "Ninja",
             "binaryDir": "${sourceDir}/build",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_PREFIX_PATH": "/opt/homebrew/opt/qt",
                 "NNA_ENABLE_LIVE2D": "ON"
             }
         },

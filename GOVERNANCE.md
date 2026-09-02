@@ -29,8 +29,8 @@
 
 1. 当前分支的源代码、锁文件、构建清单和可复现的测试结果，决定“现在能做
    什么”。
-2. `img/` 及 [产品原型目录](doc/product/README.md)，决定界面目标和视觉验收
-   基线。原型图本身不证明功能已经实现。
+2. `prototype/desktop-app/` 及 [产品原型目录](doc/product/README.md)，决定界面目标和视觉验收
+   基线。原型页面本身不证明功能已经实现。
 3. 已接受的架构决策和 [架构索引](doc/architecture/README.md)，决定模块所有权
    和目标边界。
 4. GitHub Issues、Pull Requests 和 Milestones，决定已批准的工作及其状态。
@@ -107,7 +107,7 @@ Dependabot 等受控自动化分支使用其机器人前缀，不受人工 `nna-
 - 新增跨进程或持久化协议；
 - 引入不可轻易替换的运行时依赖；
 - 改变安全、隐私、更新、签名或发布模型；
-- 移除 legacy Qt 或改变受支持平台。
+- 移除遗留（legacy）组件或改变受支持平台。
 
 ADR 使用 [模板](doc/architecture/adr/0000-template.md)，状态只能是
 `Proposed`、`Accepted`、`Superseded` 或 `Rejected`。被替代的决策保留原文并

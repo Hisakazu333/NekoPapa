@@ -6,7 +6,7 @@ NekoPapa 使用 NNA 工程规范。开始前请阅读 [项目治理](GOVERNANCE.
 ## 开始工作
 
 除拼写修正等极小变更外，先创建或认领一个 GitHub Issue。Bug 必须提供复现证据；
-界面工作必须引用 `img/` 中的原型文件名或明确说明没有对应原型。
+界面工作必须引用 `prototype/desktop-app/` 中的原型页面或明确说明没有对应原型。
 
 从最新 `main` 创建短分支：
 
@@ -29,7 +29,7 @@ npm --prefix app/control-desktop ci
 ```
 
 首次配置 Native Stage 时，CMake 可能下载固定版本的 GLFW 和
-nlohmann/json。Qt 只用于冻结的 legacy 参考目标，不是默认开发依赖。
+nlohmann/json。
 
 完整平台说明见 [开发环境指南](doc/contributing/development-environment.md)。
 
@@ -58,7 +58,6 @@ placeholder，并由独立 Native Stage job 负责真实 C++ 构建；placeholde
 ```bash
 cmake -S . -B build/stage -G Ninja \
   -DCMAKE_BUILD_TYPE=Release \
-  -DNNA_BUILD_APP=OFF \
   -DNNA_BUILD_LIVE2D_STAGE=ON \
   -DNNA_ENABLE_LIVE2D=ON
 cmake --build build/stage --target openneko_live2d_stage

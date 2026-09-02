@@ -7,7 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 # Build options
-option(NNA_BUILD_APP "Build the legacy Qt6 desktop application" OFF)
 option(NNA_BUILD_LIVE2D_STAGE "Build the independent native Live2D stage" ON)
 option(NNA_ENABLE_LIVE2D "Enable Live2D Cubism SDK integration" ON)
 set(NNA_CORE_NANO_MODE "stub" CACHE STRING "NekoCore-Nano integration mode: stub, source, or binary")
@@ -80,6 +79,3 @@ else()
     message(STATUS "NekoCore-Nano stub mode enabled. Private core source is not added to this build.")
 endif()
 
-if(NNA_BUILD_APP)
-    add_subdirectory(app/stage-desktop)
-endif()

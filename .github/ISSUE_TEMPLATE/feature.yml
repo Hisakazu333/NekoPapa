@@ -45,8 +45,8 @@ body:
     id: prototype
     attributes:
       label: Product prototype reference
-      description: For UI work, provide the P-xxx ID and exact repository path under img/.
-      placeholder: "P-028 / img/9a3f525406ac74f80e1fc52b120e1a04.png"
+      description: For UI work, provide the page name and exact repository path under prototype/desktop-app/.
+      placeholder: "index / prototype/desktop-app/index.html"
 
   - type: textarea
     id: scope

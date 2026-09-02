@@ -34,7 +34,7 @@ Bug 是能够在指定版本和环境中复现的实际行为，不是功能愿�
 
 桌面界面 Bug 还需要：
 
-- 对应 `img/<hash>.png`，没有则写“无对应原型”；
+- 对应 `prototype/desktop-app/` 原型页面，没有则写“无对应原型”；
 - Tauri 桌面或浏览器预览；
 - 窗口宽高、系统显示缩放和 device pixel ratio；
 - 问题发生在主窗口、WebView 内 Live2D 还是独立 Native Stage；

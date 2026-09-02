@@ -7,7 +7,7 @@
 ## 文档地图
 
 - [桌面运行时边界](desktop-runtime-boundaries.md)：当前依赖图、目标依赖图、模块所有权和禁止依赖。
-- [Qt 到 Tauri 迁移](qt-to-tauri-migration.md)：Frozen Legacy Qt 政策、分阶段迁移和回滚条件。
+- [Qt 到 Tauri 迁移完成记录](qt-to-tauri-migration.md)：Qt/QML 客户端与旧构建脚本的删除记录及仍然有效的约束。
 - [构建与测试门禁](build-and-test-gates.md)：PR、跨平台构建、运行时和发布证据。
 - [Stage Protocol v1](../../protocol/stage/v1/README.md)：Tauri host 与 Native Stage 之间的 JSONL 草案。
 - [项目结构](repository-layout.md)：当前目录、目标目录和文件归属规则。
@@ -20,7 +20,8 @@
 - `openneko` 是源码中的 legacy target/binary/namespace 标识，不是产品品牌。
 - `app/control-desktop/` 是当前桌面入口。
 - `app/live2d-stage/` 是独立 Native Stage sidecar。
-- `app/stage-desktop/` 是 **Frozen Legacy Qt** 代码，只用于迁移取证，不是可发布回退版本。
+- `prototype/desktop-app/` 是产品 UI 设计基线（零构建静态原型）。
+- Qt/QML legacy 客户端已于 2026-09 删除，不是可发布回退版本；历史参考只通过 Git 历史查阅。
 - `protocol/stage/v1/` 是目标协议；当前 Rust/C++ 运行链仍使用未版本化 v0 消息。
 
 ## 事实、目标和证据
@@ -44,7 +45,7 @@
 - 改变 C++ Core、渲染器、Tauri host 或 React 的状态所有权；
 - 新增或破坏 Stage 协议字段、版本或生命周期语义；
 - 引入新的平台运行时、第三方 SDK、模型许可或安装包资源；
-- 解冻、删除或从 Legacy Qt 迁移功能；
-- 移动顶层目录或改变生成物、原型图、发布资产边界。
+- 删除 legacy 组件或改变已接受的运行时边界；
+- 移动顶层目录或改变生成物、原型、发布资产边界。
 
 架构文档不能长期保存易失真的本机结论。涉及分支、远端、CI 或平台构建状态时，PR 必须附上当次命令、提交号和平台证据。

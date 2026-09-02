@@ -17,9 +17,8 @@ NNA 与 NekoCore-Nano 指同一底层体系。NNA 是工程前缀，NekoCore-Nan
 | Native Stage | GLFW + OpenGL + Cubism Native | C++17 | 独立透明桌面角色窗口 |
 | NNA / NekoCore-Nano layer | Core stub + Native adapter | C++17 | 可复用领域/渲染能力和 NNA 公共 API |
 | 进程协议 | JSONL + JSON Schema | Stage v0 / v1 草案 | Host 与 Stage 的版本化契约 |
-| Legacy | Qt/QML | 冻结参考 | 不接受新产品功能 |
 
-不得把旧文档中的 C++20、默认 Qt/QML、Gitee 或 `dev` 分支规则当作当前基线。
+不得把旧文档中的 C++20、Gitee 或 `dev` 分支规则当作当前基线。
 升级语言标准必须以独立 PR 证明工具链、依赖和平台矩阵。
 
 ## 2. 架构原则

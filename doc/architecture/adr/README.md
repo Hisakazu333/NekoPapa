@@ -10,7 +10,7 @@
 - 新增/删除进程、稳定 ABI、网络边界或持久数据格式；
 - Stage protocol breaking change 或版本协商策略变化；
 - 引入新的桌面框架、渲染器、第三方 SDK、模型格式或包管理策略；
-- 改变默认桌面入口、顶层目录或 Frozen Legacy Qt 政策；
+- 改变默认桌面入口、顶层目录或已接受的 legacy 组件政策；
 - 改变安装、签名、更新、回滚或敏感权限模型；
 - 方案会约束多个 feature 或未来多个平台。
 
@@ -38,4 +38,4 @@ Accepted ADR 只允许修复链接、拼写或补充不改变决定的证据。�
 - 当前事实必须给出仓库路径、配置或运行证据。
 - 至少记录两个可行替代方案，包括维持现状。
 - 明确 rollout、rollback、兼容窗口和可观测信号。
-- 更新[运行时边界](../desktop-runtime-boundaries.md)、[迁移计划](../qt-to-tauri-migration.md)或[项目结构](../repository-layout.md)中的受影响部分。
+- 更新[运行时边界](../desktop-runtime-boundaries.md)、[迁移完成记录](../qt-to-tauri-migration.md)或[项目结构](../repository-layout.md)中的受影响部分。

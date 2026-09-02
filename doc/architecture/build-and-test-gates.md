@@ -29,7 +29,7 @@
 | Protocol | 有 v1 JSON Schema 和示例 | 无自动 schema/JSONL 正反例校验，无端到端 v1 |
 | C++ | Native Stage 和 Live2D target 可配置；macOS/Windows 构建 CI 已通过 | 无 CTest；Stage runtime 职责集中；两平台 runtime/package 证据缺失 |
 | Package | 有本机 macOS DMG 脚本 | 无签名、公证、Windows installer、干净机器验证和内容 allowlist 门禁 |
-| Hygiene | 常见 build/target/dist 已忽略，48 张原型已有 Markdown 基线 | 受控树仍有 12 个 `.DS_Store`、18 个 Cubism 示例 `.gradle` 缓存、完整 SDK Samples 和大量第三方内容 |
+| Hygiene | 常见 build/target/dist 已忽略，`prototype/desktop-app/` 已建立设计基线 | 受控树仍有 12 个 `.DS_Store`、18 个 Cubism 示例 `.gradle` 缓存、完整 SDK Samples 和大量第三方内容 |
 
 治理 PR 新增 workflow 后，只有 workflow 在目标分支真实运行通过，才能把对应项从“缺口”改为“已验证”。
 
@@ -49,7 +49,7 @@
 - 禁止受控的 `.DS_Store`、`.gradle/`、`build/`、`dist/`、`target/`、sidecar binary、安装包和签名材料；
 - 锁文件、manifest、capability 和必要生成 schema 的跟踪策略明确；
 - 新增二进制资产有 owner、来源、哈希、用途、许可和体积说明；
-- `img/` 或目标 prototype 目录中的新图必须登记到 manifest，禁止只有哈希文件名而无产品语义；
+- `prototype/desktop-app/` 中的新页面或状态必须登记到[原型设计基线](../product/prototype-baseline.md)，禁止无产品语义的页面；
 - 第三方版本、来源和许可发生变化时必须更新 notice/manifest；
 - 检查 Git diff 中的秘密、绝对本机路径和不允许的供应商文件修改；
 - 单文件或产物体积超预算时阻塞，预算通过 ADR 或仓库规则维护。
@@ -85,7 +85,7 @@ npm --prefix app/control-desktop run build
 - Live2D host resize/DPR、隐藏暂停、加载失败与 retry；
 - bundle report 和预算，Pixi/Cubism 等重型模块必须保持可分析的动态加载。
 
-截图差异只对经过确认的产品基准更新；更新基准必须附 `img/` 原型或产品决策来源。
+截图差异只对经过确认的产品基准更新；更新基准必须附 `prototype/desktop-app/` 原型页面或产品决策来源。
 
 ### 4. `rust`
 
@@ -221,6 +221,5 @@ PR 可运行无签名 smoke package；受保护 release job 才可使用签名�
 - 合并到受保护主分支：Fast、Native 和适用 Integration/Package checks 通过并完成 review。
 - Preview package：至少达到 Package-verified，明确未签名/未公证限制。
 - Public release：macOS 与 Windows 的所有适用门禁、许可和回滚证据通过。
-- 删除 Frozen Legacy Qt：除上述门禁外，还需满足[迁移计划](qt-to-tauri-migration.md)中的 Phase 6。
 
 任何失败的强制门禁都阻止晋级，不能以“已知问题”隐藏在 aggregate success 后面。

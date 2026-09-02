@@ -37,7 +37,6 @@ run("cmake", [
   "-B", buildDir,
   "-G", "Ninja",
   "-DCMAKE_BUILD_TYPE=Release",
-  "-DNNA_BUILD_APP=OFF",
   "-DNNA_BUILD_LIVE2D_STAGE=ON",
   "-DNNA_ENABLE_LIVE2D=ON",
 ]);

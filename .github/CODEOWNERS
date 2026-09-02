@@ -11,18 +11,16 @@
 /app/control-desktop/src/ @Hisakazu333
 /app/control-desktop/src-tauri/ @Hisakazu333
 /app/live2d-stage/ @Hisakazu333
-/app/stage-desktop/ @Hisakazu333
 /engine/ @Hisakazu333
 /protocol/ @Hisakazu333
 
 # Product source material and architecture records.
-/img/ @Hisakazu333
+/prototype/ @Hisakazu333
 /assets/live2d/ @Hisakazu333
 /doc/product/ @Hisakazu333
 /doc/architecture/ @Hisakazu333
 /doc/engineering/ @Hisakazu333
 /doc/contributing/ @Hisakazu333
-/doc/legacy/ @Hisakazu333
 
 # Project-wide governance.
 /GOVERNANCE.md @Hisakazu333

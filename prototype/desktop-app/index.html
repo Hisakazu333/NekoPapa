@@ -183,6 +183,16 @@
     background: transparent; color: var(--tInk3); cursor: pointer;
     display: grid; place-items: center; margin-left: 3px; transition: all .15s; text-decoration: none; }
   .tb-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
+  /* 时段氛围：夜深了，主区罩一层极淡的暖暗 */
+  .main.night .assist-home {
+    background:
+      radial-gradient(640px 420px at 62% 62%, rgba(224,107,151,.045), transparent 72%),
+      var(--surface-0);
+  }
+
+  /* 她的小屋：桌宠专用入口（她的东西，hover 给一点粉） */
+  .tb-btn.hut:hover { background: var(--tPrimarySoft); color: var(--tPrimary); }
+
   .bell-wrap { position: relative; }
   .bell-dot { position: absolute; top: 5px; right: 6px; width: 6px; height: 6px;
     border-radius: 50%; background: var(--tPrimary); border: 1.5px solid var(--surface-0); }
@@ -216,9 +226,44 @@
   .home-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column;
     align-items: center; justify-content: center; padding: 0 48px 2vh; }
   .home-inner { width: min(600px, 100%); display: flex; flex-direction: column; align-items: center; }
+  .scene { width: 100%; display: flex; flex-direction: column; align-items: center; }
+
+  /* 她的建议横幅（Codex 式智能建议，可采纳可忽略，她的事用粉色左边线） */
+  .her-suggest {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; margin-bottom: 18px;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-left: 2.5px solid var(--tPrimary);
+    border-radius: 10px; box-shadow: var(--shadow-sm);
+    padding: 9px 12px 9px 14px;
+    font-size: 12px; color: var(--tInk1); line-height: 1.55;
+    transition: opacity .3s ease, transform .3s ease;
+  }
+  .her-suggest.bye { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+  .her-suggest .hs-ic { color: var(--tPrimary); flex-shrink: 0; display: grid; place-items: center; }
+  .her-suggest .hs-t { flex: 1; min-width: 0; }
+  .her-suggest .hs-t b { font-weight: 600; }
+  .her-suggest .hs-yes {
+    height: 24px; padding: 0 11px; border: 0; border-radius: 7px;
+    background: var(--tInk1); color: #fff; font-size: 11px; font-weight: 600; cursor: pointer;
+    flex-shrink: 0; transition: background .15s;
+  }
+  .her-suggest .hs-yes:hover { background: #2A303B; }
+  .her-suggest .hs-no {
+    width: 22px; height: 22px; border: 0; border-radius: 6px; background: transparent;
+    color: var(--tInk3); cursor: pointer; flex-shrink: 0;
+    display: grid; place-items: center; transition: all .15s;
+  }
+  .her-suggest .hs-no:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
 
   .word-row { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
-  .word-row img { width: 24px; height: 24px; border-radius: 7px; }
+  .word-row img { width: 28px; height: 28px; border-radius: 50%;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft); }
+  /* 问候里的她：和小屋/记忆页同款粉环 N 头像，画风统一 */
+  .word-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center; font-size: 12px; font-weight: 700;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft); }
   .greet { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
   .streak {
     display: inline-flex; align-items: center; gap: 4px;
@@ -227,6 +272,31 @@
   }
 
   /* 她的一句话：动作缝在句子里 */
+  /* 她的话做成气泡，在她身边 */
+  .neko-bubble {
+    position: absolute; right: 214px; bottom: 200px; width: 236px; z-index: 30;
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 14px; box-shadow: var(--shadow-md);
+    padding: 11px 14px;
+    font-size: 13.5px; line-height: 1.7; color: var(--tInk1);
+    pointer-events: none;  /* 气泡不挡点她的区域 */
+    transition: opacity .25s ease;
+    animation: bubbleIn .55s var(--ease-spring) .35s both;
+  }
+  #bubbleText.typing::after {
+    content: "▍"; color: var(--tPrimary); font-size: 12px;
+    animation: caretBlink 1s steps(2) infinite;
+  }
+  @keyframes caretBlink { 50% { opacity: 0; } }
+  @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(.96); } }
+  .neko-bubble::after {
+    content: ""; position: absolute; right: -6.5px; bottom: 24px;
+    width: 12px; height: 12px; transform: rotate(45deg);
+    background: var(--surface-3);
+    border-top: 1px solid rgba(24,28,35,.08); border-right: 1px solid rgba(24,28,35,.08);
+  }
+  @media (max-width: 980px) { .neko-bubble { display: none; } }
+
   .neko-line { font-size: 13.5px; line-height: 2.05; text-align: center;
     color: var(--tInk2); margin: 0 0 26px; }
   .nl-main { color: var(--tPrimary); font-weight: 600; text-decoration: none;
@@ -238,25 +308,35 @@
 
   /* 今日焦点卡：唯一主角 */
   .focus-card {
-    display: flex; align-items: center; gap: 14px;
+    display: flex; align-items: center; gap: 16px;
+    position: relative;
     width: 100%; margin-bottom: 10px;
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
-    border-radius: 12px; box-shadow: var(--shadow-sm);
-    padding: 13px 16px; text-decoration: none; color: var(--tInk1);
-    transition: border-color .2s ease, box-shadow .2s ease;
+    border-radius: 14px; box-shadow: var(--shadow-sm);
+    padding: 18px 20px 26px; text-decoration: none; color: var(--tInk1);
+    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
   }
-  .focus-card:hover { border-color: rgba(24,28,35,.16); box-shadow: var(--shadow-md); }
+  .focus-card:hover { border-color: rgba(24,28,35,.16); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .fc-ic { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center; }
+  .fc-t { font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
   .fc-l { flex: 1; display: flex; flex-direction: column; gap: 2px; }
   .fc-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--tPrimary); }
-  .fc-t { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
   .fc-s { font-size: 11.5px; color: var(--tInk3); }
   .fc-go {
     display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
-    height: 30px; padding: 0 14px; border-radius: 8px;
-    background: var(--tInk1); color: #fff; font-size: 12.5px; font-weight: 500;
+    height: 34px; padding: 0 18px; border-radius: 8px;
+    background: var(--tInk1); color: #fff; font-size: 13px; font-weight: 500;
     transition: background .15s;
   }
   .focus-card:hover .fc-go { background: #2A303B; }
+  .fc-go svg { transition: transform .18s var(--ease-out); }
+  .focus-card:hover .fc-go svg { transform: translateX(2.5px); }
+  /* 本周计划进度细线（2/4） */
+  .fc-prog { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 2px;
+    border-radius: 2px; background: var(--surface-1); overflow: hidden; }
+  .fc-prog i { display: block; height: 100%; width: 50%; background: var(--tPrimary); border-radius: 2px; }
 
   .today-quiet {
     display: flex; align-items: center; gap: 9px;
@@ -272,10 +352,19 @@
   .composer {
     width: 100%;
     background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
-    border-radius: 12px; box-shadow: var(--shadow-sm);
-    padding: 11px 14px 8px;
+    border-radius: 16px; box-shadow: var(--shadow-md);
+    padding: 12px 16px 10px;
     transition: border-color .2s ease, box-shadow .2s ease;
   }
+  /* 她推荐的（框内 chips，点击填入） */
+  .reco-chips { display: flex; gap: 6px; margin-bottom: 8px; }
+  .reco-chips button {
+    display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px;
+    border: 0; border-radius: 6px; background: var(--surface-1); color: var(--tInk2);
+    font-family: inherit; font-size: 10.5px; font-weight: 500; cursor: pointer; transition: all .15s;
+  }
+  .reco-chips button:hover { background: #E3E8F0; color: var(--tInk1); }
+  .reco-chips button svg { color: var(--tPrimary); }
   .composer:focus-within { border-color: rgba(224,107,151,.5); box-shadow: 0 0 0 3px rgba(224,107,151,.12); }
   .composer textarea {
     width: 100%; border: 0; outline: 0; resize: none;
@@ -307,19 +396,26 @@
   .send-btn:hover { background: #D05A88; }
   .send-btn:active { transform: scale(.92); }
 
-  /* 安静快捷入口：文字链接，不是按钮 */
-  .quick-links { display: flex; gap: 18px; margin-top: 12px; }
+  /* 快捷入口：带图标的小按钮 */
+  .quick-links { display: flex; gap: 8px; margin-top: 12px; }
   .quick-links a {
-    font-size: 11.5px; color: var(--tInk3); text-decoration: none; cursor: pointer;
-    transition: color .15s;
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 26px; padding: 0 11px; border-radius: 8px;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.08);
+    font-size: 11px; color: var(--tInk2); text-decoration: none; cursor: pointer;
+    transition: all .15s;
   }
-  .quick-links a:hover { color: var(--tInk1); }
+  .quick-links a svg { color: var(--tInk3); }
+  .quick-links a:hover { border-color: rgba(24,28,35,.2); color: var(--tInk1); }
 
   /* ---------- 助手模式：任务列表 ---------- */
   .assist-home {
     position: absolute; inset: 0; z-index: 5;
     display: flex; flex-direction: column;
-    background: var(--surface-0);
+    /* 中心聚光：极淡的粉，视觉重心往她和内容中间收 */
+    background:
+      radial-gradient(720px 480px at 62% 64%, rgba(224,107,151,.05), transparent 72%),
+      var(--surface-0);
   }
   .assist-scroll { flex: 1; overflow-y: auto; padding: 28px 0 12px; }
   .assist-scroll::-webkit-scrollbar { width: 0; }
@@ -359,9 +455,15 @@
   /* ---------- Live2D 搭档 ---------- */
   .buddy {
     position: absolute; right: 16px; bottom: 0;
-    width: 230px; height: 380px;
+    width: 264px; height: 430px;
     pointer-events: auto; cursor: pointer;
     z-index: 15;
+  }
+  /* 她脚下的落点：极淡的椭圆地影，让她站在窗口里 */
+  .buddy::after {
+    content: ""; position: absolute; left: 18%; right: 18%; bottom: -2px; height: 16px;
+    background: radial-gradient(50% 100% at 50% 50%, rgba(24,28,35,.12), transparent 72%);
+    border-radius: 50%; pointer-events: none;
   }
   .buddy canvas { width: 100%; height: 100%; display: block; }
 
@@ -553,6 +655,9 @@
         <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
         整理错题本 · <span id="pillCnt">23</span>/40
       </div>
+      <a class="tb-btn hut" data-tip="她的小屋" href="hut.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+      </a>
       <a class="tb-btn" data-tip="专注模式" href="focus.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
       </a>
@@ -587,6 +692,14 @@
         <div class="assist-scroll home-scroll">
           <div class="assist-inner home-inner">
 
+            <!-- 她的智能建议（参考 Codex：基于使用数据的建议，可采纳可忽略） -->
+            <div class="her-suggest" id="herSuggest">
+              <span class="hs-ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg></span>
+              <span class="hs-t">她注意到：你最近 3 天都在 <b>22 点后效率最高</b>——要不要把每日学习时段调到晚间？</span>
+              <button class="hs-yes" id="hsYes">调成晚间</button>
+              <button class="hs-no" id="hsNo" title="忽略"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
+            </div>
+
             <div class="word-row" style="justify-content:center">
               <img src="assets/icon.png" alt="">
               <h1 class="greet" id="greet">早上好，Hisakazu</h1>
@@ -597,7 +710,6 @@
             </div>
 
             <p class="neko-line">
-              昨天的「进程与线程」还剩最后一点，今天 25 分钟就能收尾。<br>
               <a class="nl-main" href="learn-flow.html">现在开始</a>
               <span class="nl-sep">·</span>
               <a class="nl-sub" href="review.html">先复习 5 道错题</a>
@@ -605,7 +717,9 @@
               <span class="nl-sub" data-fill="今天不想学操作系统了，我们换个别的">换个话题</span>
             </p>
 
+            <div class="scene">
             <a class="focus-card" href="learn-flow.html">
+              <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
               <div class="fc-l">
                 <span class="fc-tag">下一项 · 25 分钟</span>
                 <span class="fc-t">操作系统 · 进程与线程</span>
@@ -615,11 +729,13 @@
                 开始
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </span>
+              <span class="fc-prog" data-tip="本周计划 2/4"><i></i></span>
             </a>
             <div class="today-quiet">
               <span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> 英语单词 · List 7 已完成</span>
               <span class="sep">·</span>
               <a href="review.html">错题复习 5 道（到了最佳复习时机）</a>
+            </div>
             </div>
 
           </div>
@@ -627,6 +743,16 @@
 
         <div class="assist-composer">
           <div class="composer">
+            <div class="reco-chips">
+              <button data-fill="接着昨天的进度，把「进程与线程」收尾">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+                进程与线程 · 收尾
+              </button>
+              <button data-fill="把到期的 5 道错题带我复习一遍">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+                定语从句 · 复习 5 道
+              </button>
+            </div>
             <textarea placeholder="想学什么、想问什么，直接说…" rows="1"></textarea>
             <div class="composer-bar">
               <button class="c-btn" data-tip="附件">
@@ -646,9 +772,15 @@
             </div>
           </div>
           <div class="quick-links" style="justify-content:center">
-            <a data-fill="进程和线程到底有什么区别？用人话给我讲明白">讲透知识点</a>
-            <a data-fill="从我最近学的内容里出 5 道题考我">出题考我</a>
-            <a data-fill="把这份文档拆解成学习路径，再出一套测验">拆解文档</a>
+            <a data-fill="进程和线程到底有什么区别？用人话给我讲明白">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
+              讲透知识点</a>
+            <a data-fill="从我最近学的内容里出 5 道题考我">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.8.3-.9 1-.9 1.7M12 16.5h.01"/></svg>
+              出题考我</a>
+            <a data-fill="把这份文档拆解成学习路径，再出一套测验">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M8 13h8M8 17h5"/></svg>
+              拆解文档</a>
           </div>
         </div>
       </div>
@@ -715,6 +847,9 @@
         </div>
       </div>
 
+      <!-- 她的话：气泡在她身边 -->
+      <div class="neko-bubble" id="nekoBubble"><span id="bubbleText"></span></div>
+
       <!-- Live2D 搭档 -->
       <div class="buddy" id="buddy" title="点我一下"><canvas id="live2d"></canvas></div>
     </div>
@@ -753,6 +888,8 @@
   const h = new Date().getHours();
   const g = h < 6 ? "夜深了" : h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : h < 23 ? "晚上好" : "夜深了";
   document.getElementById("greet").textContent = `${g}，Hisakazu`;
+  /* 时段氛围：深夜主区罩暖暗 */
+  if (h >= 22 || h < 6) document.querySelector(".main").classList.add("night");
 
   /* ---------- 全局状态渲染 ---------- */
   (function renderState() {
@@ -778,6 +915,8 @@
     tabAssist.classList.toggle("on", m === "assist");
     stageLearn.style.display = m === "learn" ? "" : "none";
     stageAssist.style.display = m === "assist" ? "" : "none";
+    const nb = document.getElementById("nekoBubble");
+    if (nb) nb.style.display = m === "learn" ? "" : "none";
   }
   tabLearn.addEventListener("click", () => setMode("learn"));
   tabAssist.addEventListener("click", () => setMode("assist"));
@@ -958,6 +1097,79 @@
     localStorage.setItem("np-onboarded", "1");
     welcomeMask.classList.remove("show");
   });
+
+  /* ---------- 她的建议横幅 ---------- */
+  (function () {
+    const bar = document.getElementById("herSuggest");
+    if (!bar) return;
+    if (localStorage.getItem("np-suggest-done")) { bar.remove(); return; }
+    const bye = () => {
+      bar.classList.add("bye");
+      setTimeout(() => bar.remove(), 320);
+    };
+    document.getElementById("hsNo").addEventListener("click", () => {
+      localStorage.setItem("np-suggest-done", "1"); bye();
+    });
+    document.getElementById("hsYes").addEventListener("click", () => {
+      bar.querySelector(".hs-t").innerHTML = "调好了——今晚 <b>21:00</b> 她会提醒你开始学习。";
+      bar.querySelector(".hs-yes").remove();
+      bar.querySelector(".hs-no").remove();
+      localStorage.setItem("np-suggest-done", "1");
+      setTimeout(bye, 2200);
+    });
+  })();
+
+  /* ---------- 输入框 placeholder 轮播（空且不聚焦时） ---------- */
+  (function () {
+    const PH = [
+      "想学什么、想问什么，直接说…",
+      "比如：定语从句什么时候只能用 that？",
+      "小技巧：输入 / 可以快速出题、拆解、复习",
+    ];
+    let pi = 0;
+    setInterval(() => {
+      document.querySelectorAll(".composer textarea").forEach(ta => {
+        if (ta.value || document.activeElement === ta) return;
+        ta.placeholder = PH[pi];
+      });
+      pi = (pi + 1) % PH.length;
+    }, 6000);
+  })();
+
+  /* ---------- 她的气泡：打字机 + 定时换话 ---------- */
+  const BUBBLE_LINES = [
+    "昨天的「进程与线程」还剩最后一点，今天 25 分钟就能收尾。",
+    "5 道错题到了最佳复习时机，趁热打铁效果最好。",
+    "周报我写到第三版了，周日晚上给你看。",
+    "21:30 是共读时间，到时候别让我找不到你。",
+  ];
+  const nbEl = document.getElementById("nekoBubble");
+  const btEl = document.getElementById("bubbleText");
+  let bi = 0, typeTimer = null, holdTimer = null;
+  function typeLine(s) {
+    clearInterval(typeTimer);
+    btEl.textContent = ""; btEl.classList.add("typing");
+    let i = 0;
+    typeTimer = setInterval(() => {
+      btEl.textContent = s.slice(0, ++i);
+      if (i >= s.length) { clearInterval(typeTimer); btEl.classList.remove("typing"); scheduleNext(); }
+    }, 45);
+  }
+  function scheduleNext() {
+    clearTimeout(holdTimer);
+    holdTimer = setTimeout(nextLine, 14000);
+  }
+  function nextLine() {
+    bi = (bi + 1) % BUBBLE_LINES.length;
+    nbEl.style.opacity = 0;
+    setTimeout(() => { nbEl.style.opacity = 1; typeLine(BUBBLE_LINES[bi]); }, 300);
+  }
+  ["nekoBubble", "buddy"].forEach(id => {
+    const el = document.getElementById(id);
+    el.addEventListener("mouseenter", () => clearTimeout(holdTimer));
+    el.addEventListener("mouseleave", scheduleNext);
+  });
+  setTimeout(() => typeLine(BUBBLE_LINES[0]), 900);
 
   /* ---------- 会话 hover「⋯」 ---------- */
   document.querySelectorAll(".conv").forEach(cv => {

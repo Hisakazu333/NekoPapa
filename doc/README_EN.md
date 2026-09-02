@@ -22,7 +22,7 @@ This index routes readers by task and states the language boundary explicitly. T
 ## Product And Architecture
 
 - [Product prototype baseline](product/README.md) (Chinese)
-- [48 prototype assets](product/prototype-baseline.md) (Chinese)
+- [Prototype design baseline](product/prototype-baseline.md) (Chinese)
 - [Desktop UI architecture and acceptance](product/desktop-ui-architecture.md) (Chinese)
 - [Desktop architecture index](architecture/README.md) (Chinese)
 - [Runtime boundaries](architecture/desktop-runtime-boundaries.md) (Chinese)
@@ -30,10 +30,8 @@ This index routes readers by task and states the language boundary explicitly. T
 - [Build and test gates](architecture/build-and-test-gates.md) (Chinese)
 - [Stage Protocol v1](../protocol/stage/v1/README.md)
 
-Prototype images describe intended states, not delivered backend capabilities. Current behavior must be supported by source, automated checks, and named runtime evidence.
+The design baseline lives in `prototype/desktop-app/` (zero-build static pages). Prototypes describe intended states, not delivered backend capabilities. Current behavior must be supported by source, automated checks, and named runtime evidence.
 
 ## Documentation Status
 
 Use these evidence levels when reading status claims: Source-reviewed, Static-verified, Build-verified, Runtime-smoke-tested, Package-verified, and Release-verified. A result on one platform does not establish support on another.
-
-Historical OpenNeko material is isolated under [legacy](legacy/README.md) and does not define the current NekoPapa roadmap.

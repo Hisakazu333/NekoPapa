@@ -13,7 +13,7 @@ Closes #
 
 ## Product and prototype evidence
 
-- Prototype `P-xxx` ID and source path under `img/` (required for UI changes):
+- Prototype page and source path under `prototype/desktop-app/` (required for UI changes):
 - Before screenshot or recording:
 - After screenshot or recording:
 - Window size, display scale, OS, and architecture:

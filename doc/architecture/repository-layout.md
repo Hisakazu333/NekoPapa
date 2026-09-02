@@ -9,7 +9,7 @@
 3. 每个持久状态只有一个 owner；UI、host、renderer 和 Core 不互相复制领域规则。
 4. `NekoPapa` 是唯一产品名，`NNA` 是工程体系，公开 C++ API 保留 `nna` 命名空间。
 5. 运行时资产、产品原型、第三方供应商代码、生成物和发布物必须分开。
-6. Frozen Legacy Qt 只做迁移取证，不是第二条开发主线。
+6. 已删除的遗留方案（Qt/QML 客户端、旧构建脚本）不保留第二入口；历史参考只通过 Git 历史查阅。
 
 ## 当前受控目录
 
@@ -22,23 +22,22 @@ Nekopapa/
 │   │   ├── src-tauri/         # Rust host、capabilities、icons、Tauri 配置
 │   │   └── scripts/           # Native Stage sidecar 准备脚本
 │   ├── live2d-stage/          # GLFW/Cubism Native 独立 sidecar
-│   └── stage-desktop/         # Frozen Legacy Qt，当前缺少 qml/main.qml
 ├── engine/
 │   ├── include/nna/core/      # NekoCore-Nano stub 公开类型
 │   ├── include/nna/graphics/  # Cubism/OpenGL 公开适配类型
 │   ├── src/                   # Core stub 与 Live2D Native 实现
 │   └── third_party/           # Cubism SDK、GLEW、stb 供应商内容
 ├── protocol/stage/v1/         # Stage v1 草案、Schema、JSONL 示例
+├── prototype/
+│   └── desktop-app/           # 产品 UI 设计基线：零构建静态页面，serve.sh 起 8123 预览
 ├── assets/                    # 当前运行时/开发模型和品牌图混放
-├── img/                       # 已由 doc/product 建立索引的原型源图
 ├── cmake/                     # Live2D SDK CMake adapter
 ├── scripts/                   # 当前 macOS Tauri DMG 脚本
-├── doc/                       # architecture/product/engineering/contributing/legacy
-├── build_*.{sh,bat}           # 旧 Qt 语义的根构建脚本
+├── doc/                       # architecture/product/engineering/contributing
 ├── GOVERNANCE.md              # 决策、分支、合并和发布规则
 ├── CONTRIBUTING.md            # 贡献入口和验证命令
 ├── SECURITY.md                # 私密漏洞报告与安全边界
-└── CMakeLists.txt             # Native Stage 默认 ON，Legacy Qt 默认 OFF
+└── CMakeLists.txt             # Native Stage 默认 ON
 ```
 
 ## 当前结构问题
@@ -50,12 +49,9 @@ Nekopapa/
 | `src-tauri/src/stage.rs` | command、资源、进程、协议、状态混合 | 先用 module 拆分并注入 process driver |
 | `app/live2d-stage/src/stage_runtime.cpp` | GLFW、协议、输入、渲染、health 混合 | 抽纯 v0/v1 codec 和 window/renderer port |
 | `engine/CMakeLists.txt` | Core stub 与 Cubism adapter 共用 target | 先拆 CMake target，保持 include 兼容 |
-| `app/stage-desktop/` | 约束过期、入口缺失但业务代码仍多 | Frozen、建立迁移 inventory，不继续开发 |
 | `engine/third_party/` | 完整 SDK Samples/多平台库与业务树混在一起 | 建 manifest，确认最小 vendored surface |
 | `assets/` | Vite publicDir 与 Tauri resource 边界不清 | 建 allowlist/asset manifest，清除包污染 |
-| `img/` | 原图仍使用哈希文件名，当前 Markdown 基线已建立 | 下一阶段补机器可读 manifest，再决定是否移动 |
-| `doc/` | 当前资料已分层，旧内容仍需保持 legacy 隔离 | 用链接和 reader test 防止重新混用 |
-| 根 `build_*` | 文件名像默认入口，内容仍找 Legacy Qt binary | 隔离到 legacy scripts，当前入口单独命名 |
+| `doc/` | 当前资料已分层 | 用链接和 reader test 防止事实漂移 |
 
 ## 目标目录
 
@@ -98,7 +94,6 @@ Nekopapa/
 │   │   │   ├── protocol/v1/        # 严格 codec 与 session
 │   │   │   └── render/             # NNA graphics adapter
 │   │   └── tests/                   # options、codec、state、bounded process
-│   └── stage-desktop/               # Frozen Legacy Qt，删除前保留 inventory
 ├── engine/
 │   ├── include/nna/
 │   │   ├── core/                    # 不暴露 Qt/Cubism/OpenGL
@@ -119,21 +114,17 @@ Nekopapa/
 │   ├── manifest.json                # ID、hash、license、bundle targets
 │   ├── brand/                       # 产品品牌源资产
 │   └── models/                      # 明确授权的 runtime/dev 模型
-├── product/
-│   └── prototypes/
-│       ├── manifest.yaml            # 页面、viewport、状态、来源、日期
-│       └── images/                  # 有语义文件名或 stable ID
+├── prototype/
+│   └── desktop-app/                 # 设计基线原型，proto.css/DESIGN.md 为 token 与规范真相源
 ├── tests/
 │   ├── fixtures/stage-protocol/     # Rust/C++ 共用正反例
 │   └── integration/                 # 跨进程与 package smoke
 ├── scripts/
 │   ├── ci/                          # 本地/CI 共用检查入口
-│   ├── package/                     # macOS/Windows 显式打包入口
-│   └── legacy-qt/                   # 不作为默认入口
+│   └── package/                     # macOS/Windows 显式打包入口
 └── doc/
     ├── architecture/                # 规范性架构与 ADR
-    ├── product/                     # 产品定义和原型索引说明
-    └── legacy/                      # 历史 Qt/Gitee/旧流程，仅供参考
+    └── product/                     # 产品定义和原型索引说明
 ```
 
 目标树不是一次性重构任务。不存在实现、owner、测试或已排期 Issue 的目录不得提前创建。
@@ -173,8 +164,7 @@ Web Live2D adapter          Stage protocol adapter
 - React feature 直接导入另一个 feature 的内部文件；
 - JSX 中散落原始 `invoke`、`fetch` 或模型绝对路径；
 - Native Stage 承担账号、网络、记忆或 Agent 业务；
-- Frozen Legacy Qt 被新模块依赖；
-- runtime code 读取 `product/prototypes`；
+- runtime code 读取 `prototype/`；
 - 业务代码直接 include 供应商目录而绕过 CMake adapter。
 
 ## React 文件分层
@@ -262,15 +252,12 @@ Vite 和 Tauri 从 manifest 生成 allowlist。禁止把 `../../assets` 整目�
 
 ### Product prototypes
 
-当前 `img/` 迁移前先建立 manifest，字段至少包括：
+`prototype/desktop-app/` 是当前设计基线，为零构建静态页面：
 
-- prototype ID、页面/流程、版本和状态；
-- desktop viewport、平台 chrome 和缩放规则；
-- 图片路径、来源、创建日期和 owner；
-- 对应 Issue/验收标准；
-- `reference`、`approved-baseline` 或 `deprecated`。
-
-原型不进安装包。视觉基准更新必须说明对应产品决策，不能因为当前实现截图不同就覆盖原型。
+- token 唯一真相源是 `assets/proto.css`，设计纪律见 `DESIGN.md`；
+- 页面改动必须同步 [原型设计基线](../product/prototype-baseline.md) 与关联 Issue；
+- 页面间相对链接不得出现指向已删除页面的死链；
+- 原型不进安装包；视觉基准更新必须说明对应产品决策，不能因为当前实现截图不同就覆盖原型。
 
 ## 第三方边界
 
@@ -325,18 +312,16 @@ Tauri capability schema 和多尺寸 icon 属于“需要明确生成策略”�
 | 0 治理 | 文档、owner、Issue、CI、manifest、入口命名 | 改产品行为 |
 | 1 模块化 | 原路径抽 port/adapter/state 与测试 | 顶层目录大搬家 |
 | 2 协议 | v1 垂直切片、共享 fixtures | 添加未定义业务消息 |
-| 3 功能归属 | 从 Qt 逐项迁移到唯一 owner | Qt/Tauri 双写 |
+| 3 功能归属 | 各项能力收敛到唯一 owner | 跨运行时双写 |
 | 4 target 拆分 | Core 与 graphics CMake target 解耦 | 删除兼容 facade |
 | 5 目录收敛 | 机械移动、资产/原型/脚本归位 | 顺便重写功能 |
-| 6 legacy 删除 | 删除 Frozen Qt 与过期脚本 | 未完成回滚观察期 |
 
-完整退出条件见[迁移计划](qt-to-tauri-migration.md)与[构建门禁](build-and-test-gates.md)。
+Qt/QML 客户端与旧构建脚本已于 2026-09 删除，见[迁移完成记录](qt-to-tauri-migration.md)；其余退出条件见[构建门禁](build-and-test-gates.md)。
 
 ## 文档归属
 
 - `doc/architecture/`：规范性、会阻塞不合规实现；
 - `doc/product/`：产品定义、页面状态和 prototype 索引；
-- `doc/legacy/`：旧 Qt、Gitee 和过期流程，只提供历史背景；
 - 研究愿景：明确标注未实现，不能自动生成源码目录或 GitHub milestone。
 
-文档必须包含状态；发生冲突时，当前源码证据和 `doc/architecture/` 中已接受 ADR 优先于 legacy/愿景文档。发现事实漂移时，先修文档或在 PR 中明确阻塞，不继续复制错误结构。
+文档必须包含状态；发生冲突时，当前源码证据和 `doc/architecture/` 中已接受 ADR 优先于愿景文档。发现事实漂移时，先修文档或在 PR 中明确阻塞，不继续复制错误结构。

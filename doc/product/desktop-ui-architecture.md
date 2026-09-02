@@ -2,22 +2,22 @@
 
 状态：现行产品与工程规范
 
-本文件定义桌面窗口、全局导航、页面工作区和小屋场景的坐标边界。它把 `img/` 原型转化为可测试规则，不把原型图当作功能完成证据。
+本文件定义桌面窗口、全局导航、页面工作区和小屋场景的坐标边界。它把 `prototype/desktop-app/` 设计基线转化为可测试规则，不把原型页面当作功能完成证据。
 
 ## 设计事实来源
 
 界面工作按以下顺序取证：
 
-1. [原型资产基线](prototype-baseline.md)定义目标页面、候选状态和验收锚点
+1. [原型设计基线](prototype-baseline.md)与 [`prototype/desktop-app/`](../../prototype/desktop-app/)（token 真相源为 `assets/proto.css`，设计纪律见 `DESIGN.md`）定义目标页面、候选状态和验收锚点
 2. 当前源代码和运行时截图定义已经实现的行为
 3. GitHub Issue 选择采用的原型状态、范围和非目标
 4. Pull Request 记录窗口矩阵、自动检查和运行时证据
 
-`P-028` 是当前唯一的 `1624 x 969` 宽窗口原型参考画布，不等于 WebView viewport。其余
-`1024 x 1024` 图片多数是展示画布，也不能把图片像素直接当成应用 viewport。运行时验收
-必须分别记录 OS 外框、Tauri inner size 和 WebView viewport。
+原型页面是零构建静态 HTML，在浏览器中以自身 viewport 渲染，不等于 Tauri WebView 的
+最终 viewport。运行时验收必须分别记录 OS 外框、Tauri inner size 和 WebView viewport，
+不能把原型页面的浏览器尺寸直接当成应用窗口尺寸。
 
-原型中的旧品牌文案属于 legacy 债务。新界面只使用 NekoPapa；NNA / NekoCore-Nano 不作为第二个产品标题。
+界面只使用 NekoPapa；NNA / NekoCore-Nano 不作为第二个产品标题。
 
 ## 窗口分层
 
@@ -206,7 +206,7 @@ features/home/
 | `1024 x 720` | 最小支持窗口 |
 | `1280 x 800` | 窄桌面工作区 |
 | `1440 x 900` | 默认窗口 |
-| `1600 x 900` | 宽桌面 WebView viewport；与 `P-028` 参考画布分开记录 |
+| `1600 x 900` | 宽桌面 WebView viewport |
 | `1920 x 1080` | 宽桌面与两侧余量 |
 
 macOS 至少记录 1x/2x display scale。Windows 至少记录 100%、125%、150% 和 200%。没有对应平台环境时写 `not verified`，不能用另一平台结果替代。
@@ -245,4 +245,4 @@ UI Pull Request 按以下层级记录证据：
 - `App.tsx` 仍集中拥有页面选择、Stage 状态和跨页消息编排
 - 原型中的对话、记忆、世界和 Agent 流程没有完整服务 owner
 
-任何改动先引用 `P-xxx` 和 GitHub Issue，再提交前后证据。不要在治理或文档 PR 中顺手修改当前 UI 行为。
+任何改动先引用 `prototype/desktop-app/` 中的原型页面和 GitHub Issue，再提交前后证据。不要在治理或文档 PR 中顺手修改当前 UI 行为。

@@ -25,10 +25,10 @@
 
 ## 设计产品
 
-这些文档把 `img/` 原型转化为可追踪的产品输入：
+这些文档把 `prototype/desktop-app/` 设计基线转化为可追踪的产品输入：
 
 - [产品原型基线](product/README.md)：模块映射、Issue 切片和使用规则
-- [48 张原型资产目录](product/prototype-baseline.md)：SHA-256、尺寸、重复关系和验收锚点
+- [原型设计基线](product/prototype-baseline.md)：页面清单、预览方式、判断标签与验收准入
 - [桌面 UI 架构与验收](product/desktop-ui-architecture.md)：原生标题栏、居中导航、页面布局和小屋缩放规则
 
 原型只描述目标外观和状态。实现状态必须由代码、自动检查和运行时证据共同确认。
@@ -40,14 +40,10 @@
 - [桌面架构索引](architecture/README.md)
 - [桌面运行时边界](architecture/desktop-runtime-boundaries.md)
 - [项目结构与分层](architecture/repository-layout.md)
-- [Frozen Legacy Qt 到 Tauri 的迁移](architecture/qt-to-tauri-migration.md)
+- [Qt 到 Tauri 迁移完成记录](architecture/qt-to-tauri-migration.md)
 - [构建与测试门禁](architecture/build-and-test-gates.md)
 - [架构决策记录](architecture/adr/README.md)
 - [Stage Protocol v1](../protocol/stage/v1/README.md)
-
-## 查阅历史资料
-
-[历史文档索引](legacy/README.md)保存已退出当前产品口径的早期愿景和角色资料。历史内容不指导新开发，也不代表 NekoPapa roadmap。
 
 ## 判断文档声明
 
@@ -69,7 +65,7 @@
 
 - 当前路径、版本、命令和 CI job 与仓库一致
 - README 中文与英文状态一致
-- 产品变更引用 `P-xxx` 和 GitHub Issue
+- 产品变更引用原型页面和 GitHub Issue
 - 架构边界变化包含 ADR 或明确说明为何不需要
 - 相对链接、代码块语法和 `git diff --check` 通过
 - legacy 标识只出现在迁移说明、实际命令或历史目录

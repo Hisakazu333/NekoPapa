@@ -38,7 +38,6 @@ This table lists only capabilities confirmed in the current source tree:
 | Nekonano-Aether (NNA) / NekoCore-Nano layer | Stub mode | Native Stage does not yet use complete NekoCore-Nano domain state |
 | Stage Protocol v1 | Draft | JSON Schema exists; runtime messages remain unversioned v0 |
 | Conversation, memory, world, Agent | UI prototypes | No complete service, permission, or persistence flow |
-| Legacy Qt | Frozen | Migration evidence only, not a buildable fallback product |
 
 The repository uses the official Momose Hiyori Live2D sample model for development. It is not the final Lumia character asset.
 
@@ -105,11 +104,10 @@ The `openneko` CMake targets, binaries, and namespace found in source are legacy
 | --- | --- |
 | `app/control-desktop/` | React window, Tauri host, and desktop packaging configuration |
 | `app/live2d-stage/` | Independent C++ Native Stage |
-| `app/stage-desktop/` | Frozen Legacy Qt evidence directory |
+| `prototype/desktop-app/` | Product UI design baseline prototypes: zero-build static HTML+CSS+JS pages; `serve.sh` previews them via `http.server` on port 8123 from the repository root |
 | `engine/` | NNA / NekoCore-Nano C++ stub and Cubism Native adapter |
 | `protocol/stage/v1/` | Draft Stage JSONL v1 contract and fixtures |
 | `assets/` | Runtime and development assets |
-| `img/` | Source product prototypes, excluded from packages |
 | `doc/` | Governance, engineering, architecture, and product documentation |
 
 Read [repository structure and layering](doc/architecture/repository-layout.md) for current debt and the incremental target layout.
