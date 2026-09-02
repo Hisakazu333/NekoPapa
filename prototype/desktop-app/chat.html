@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 答疑会话</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -12,10 +13,7 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
     color: var(--tInk1);
   }
@@ -77,9 +75,7 @@
   /* ---- 左：她（对话通道） ---- */
   /* 她在左栏顶部：Live2D 舞台 */
   .buddy-stage { position: relative; height: 252px; flex-shrink: 0;
-    background:
-      radial-gradient(260px 150px at 50% 108%, rgba(224,107,151,.14), transparent 70%),
-      var(--surface-0);
+    background: var(--surface-0);
     border-bottom: 1px solid var(--tBorder);
     overflow: hidden;
   }
@@ -444,6 +440,7 @@ document.querySelectorAll('#quizOpts .opt').forEach(opt => {
       await herSay('再点一道试试，全对的话这个考点我就给你标「已掌握」啦');
     } else {
       opt.classList.add('wrong');
+      if (window.NP) NP.addMistake(1);
       document.querySelector('#quizOpts .opt[data-ok="1"]').classList.add('correct');
       document.getElementById('quizFoot').classList.add('show');
       await herSay('嗯……再看看题干开头——<span class="hl">the first</span> 是不是和 the only 一个家族？');

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 订阅管理</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -12,10 +13,7 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
     color: var(--tInk1);
   }
@@ -65,7 +63,7 @@
   .plan-hero {
     position: relative; overflow: hidden;
     border-radius: var(--r-lg);
-    background: linear-gradient(120deg, #2A2230 0%, #3E2B3A 55%, #57334A 100%);
+    background: #20242D;
     color: #fff;
     padding: 22px 24px;
     box-shadow: var(--shadow-lg);
@@ -73,16 +71,16 @@
   .plan-hero::before {
     content: ""; position: absolute; right: -70px; top: -90px;
     width: 260px; height: 260px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(224,107,151,.5), transparent 65%);
+    background: rgba(224,107,151,.14);
   }
   .plan-hero .top { display: flex; align-items: center; gap: 12px; position: relative; }
   .plan-hero .logo { width: 44px; height: 44px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--tPrimary), #EE8FB2);
+    background: var(--tPrimary);
     display: grid; place-items: center; font-weight: 800; font-size: 17px;
     box-shadow: 0 4px 14px rgba(224,107,151,.5); }
   .plan-hero .nm { font-size: 17px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
   .plan-hero .badge-pro { font-size: 10px; font-weight: 800; letter-spacing: .06em;
-    background: linear-gradient(135deg, var(--tPrimary), #EE8FB2);
+    background: var(--tPrimary);
     padding: 3px 9px; border-radius: var(--r-pill); }
   .plan-hero .sub { font-size: 12px; color: rgba(255,255,255,.65); margin-top: 4px; }
   .plan-hero .bottom { display: flex; align-items: center; gap: 10px; margin-top: 18px; position: relative; }
@@ -221,11 +219,11 @@
         <div class="sec-label">本月额度<span class="sub">9月1日 00:00 重置 · <a href="settings.html#sec-usage" style="color:var(--tPrimary);text-decoration:none">查看完整使用统计 →</a></span></div>
         <div class="mini-quota">
           <div class="mq"><div class="k">对话与讲题</div><div class="v">剩余 62%</div>
-            <div class="bar"><i style="width:62%;background:linear-gradient(90deg,var(--tPrimary),#EE8FB2)"></i></div></div>
+            <div class="bar"><i style="width:62%;background:var(--tPrimary)"></i></div></div>
           <div class="mq"><div class="k">文档拆解</div><div class="v">剩余 38%</div>
-            <div class="bar"><i style="width:38%;background:linear-gradient(90deg,var(--tSuccess),#7CC79B)"></i></div></div>
+            <div class="bar"><i style="width:38%;background:var(--tSuccess)"></i></div></div>
           <div class="mq"><div class="k">语音识别</div><div class="v">剩余 85%</div>
-            <div class="bar"><i style="width:85%;background:linear-gradient(90deg,var(--tWarning),#F0BE6E)"></i></div></div>
+            <div class="bar"><i style="width:85%;background:var(--tWarning)"></i></div></div>
         </div>
 
         <!-- 套餐对比 -->
@@ -395,5 +393,6 @@ document.getElementById('cancelYes').addEventListener('click', () => {
 });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') modal.classList.remove('show'); });
 </script>
+<script src="assets/np-her.js"></script>
 </body>
 </html>

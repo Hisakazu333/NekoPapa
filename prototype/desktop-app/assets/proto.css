@@ -11,7 +11,7 @@
   --tInk1:        #181C23;
   --tInk2:        #4E5763;
   --tInk3:        #7A8492;
-  --tBorder:      #E1E7EF;
+  --tBorder:      rgba(24,28,35,.08);
   --tPrimary:     #E06B97;
   --tPrimarySoft: #F8DDE7;
   --tDanger:      #E0646E;
@@ -30,14 +30,14 @@
   --surface-3: #FFFFFF;                 /* L3 悬浮 */
 
   /* ---------- 阴影阶梯 ---------- */
-  --shadow-sm:  0 1px 2px rgba(24,28,35,.04), 0 2px 8px rgba(24,28,35,.05);
-  --shadow-md:  0 2px 6px rgba(24,28,35,.05), 0 10px 28px rgba(24,28,35,.09);
-  --shadow-lg:  0 6px 20px rgba(24,28,35,.09), 0 24px 64px rgba(24,28,35,.13);
+  --shadow-sm:  0 1px 2px rgba(24,28,35,.04);
+  --shadow-md:  0 1px 3px rgba(24,28,35,.05), 0 8px 24px rgba(24,28,35,.07);
+  --shadow-lg:  0 4px 14px rgba(24,28,35,.07), 0 20px 56px rgba(24,28,35,.11);
   --shadow-window: 0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
   --shadow-card: var(--shadow-sm);      /* 兼容旧页面引用 */
 
   /* ---------- 圆角 / 字级 / 字体 ---------- */
-  --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-pill: 999px;
+  --r-sm: 8px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px; --r-pill: 999px;
   --font: -apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
 
   /* ---------- 动效 ---------- */
@@ -74,7 +74,7 @@
 
 /* ---------- 开关（带弹性动画） ---------- */
 .np-toggle {
-  position: relative; width: 44px; height: 26px; flex-shrink: 0;
+  position: relative; width: 38px; height: 22px; flex-shrink: 0;
   border: 0; border-radius: var(--r-pill); cursor: pointer;
   background: #D7DEE8;
   transition: background var(--dur) var(--ease-out);
@@ -82,13 +82,13 @@
 }
 .np-toggle::after {
   content: ""; position: absolute; top: 3px; left: 3px;
-  width: 20px; height: 20px; border-radius: 50%;
+  width: 16px; height: 16px; border-radius: 50%;
   background: #fff; box-shadow: 0 1px 3px rgba(24,28,35,.22);
   transition: transform var(--dur) var(--ease-spring);
 }
-.np-toggle.on { background: var(--tPrimary); }
-.np-toggle.on::after { transform: translateX(18px); }
-.np-toggle:active::after { width: 23px; }
+.np-toggle.on { background: var(--tInk1); }
+.np-toggle.on::after { transform: translateX(16px); }
+.np-toggle:active::after { width: 19px; }
 
 /* ---------- 分段选择器 ---------- */
 .np-seg {
@@ -96,9 +96,9 @@
   background: var(--surface-1); border-radius: var(--r-pill);
 }
 .np-seg button {
-  height: 28px; padding: 0 14px; border: 0; border-radius: var(--r-pill);
+  height: 24px; padding: 0 12px; border: 0; border-radius: var(--r-pill);
   background: transparent; color: var(--tInk2);
-  font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  font-family: inherit; font-size: 12px; font-weight: 500; cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
   white-space: nowrap;
 }
@@ -107,10 +107,10 @@
 
 /* ---------- 下拉行（右值 + 箭头） ---------- */
 .np-select {
-  display: inline-flex; align-items: center; gap: 6px;
-  height: 30px; padding: 0 10px; border: 0; border-radius: var(--r-sm);
+  display: inline-flex; align-items: center; gap: 5px;
+  height: 26px; padding: 0 9px; border: 0; border-radius: var(--r-sm);
   background: transparent; color: var(--tInk2);
-  font-family: inherit; font-size: 13px; cursor: pointer;
+  font-family: inherit; font-size: 12px; cursor: pointer;
   transition: background var(--dur-fast);
 }
 .np-select:hover { background: var(--surface-1); color: var(--tInk1); }
@@ -119,17 +119,17 @@
 /* ---------- 滑块 ---------- */
 .np-slider { -webkit-appearance: none; appearance: none; width: 140px; height: 4px;
   border-radius: var(--r-pill); background: var(--tBorder); outline: none; cursor: pointer; }
-.np-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 16px; height: 16px;
+.np-slider::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px;
   border-radius: 50%; background: #fff; border: 1.5px solid var(--tPrimary);
   box-shadow: var(--shadow-sm); transition: transform var(--dur-fast) var(--ease-spring); }
 .np-slider::-webkit-slider-thumb:hover { transform: scale(1.15); }
 
 /* ---------- 快捷键提示 ---------- */
 .np-kbd {
-  display: inline-block; padding: 2px 7px;
+  display: inline-block; padding: 1px 6px;
   border: 1px solid var(--tBorder); border-bottom-width: 2px; border-radius: 6px;
   background: var(--surface-2); color: var(--tInk3);
-  font-family: inherit; font-size: 11px; font-weight: 600; line-height: 1.4;
+  font-family: inherit; font-size: 10px; font-weight: 600; line-height: 1.4;
 }
 
 /* ---------- Tooltip（data-tip 属性驱动） ---------- */
@@ -149,9 +149,9 @@
 /* ---------- 徽标 ---------- */
 .np-badge {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: var(--r-pill);
+  padding: 2px 8px; border-radius: var(--r-pill);
   background: var(--tPrimarySoft); color: var(--tPrimary);
-  font-size: 11px; font-weight: 700;
+  font-size: 10px; font-weight: 600;
 }
 .np-badge.green { background: #E3F3EA; color: var(--tSuccess); }
 .np-badge.gray  { background: var(--surface-1); color: var(--tInk2); }
@@ -161,20 +161,20 @@
 /* ---------- 按钮 ---------- */
 .np-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  height: 34px; padding: 0 18px; border: 0; border-radius: var(--r-pill);
-  font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer;
+  height: 30px; padding: 0 14px; border: 0; border-radius: var(--r-sm);
+  font-family: inherit; font-size: 12.5px; font-weight: 500; cursor: pointer;
   transition: all var(--dur-fast) var(--ease-out);
 }
-.np-btn.primary { background: var(--tPrimary); color: #FFF9FB; box-shadow: 0 2px 8px rgba(224,107,151,.35); }
-.np-btn.primary:hover { filter: brightness(1.06); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(224,107,151,.42); }
-.np-btn.primary:active { transform: translateY(0); }
+.np-btn.primary { background: var(--tInk1); color: #fff; box-shadow: none; }
+.np-btn.primary:hover { background: #2A303B; }
+.np-btn.primary:active { background: #000; }
 .np-btn.ghost { background: var(--surface-2); color: var(--tInk1); border: 1px solid var(--tBorder); }
 .np-btn.ghost:hover { border-color: var(--tInk3); }
 .np-btn.danger-ghost { background: var(--surface-2); color: var(--tDanger); border: 1px solid #F0C4C8; }
 .np-btn.danger-ghost:hover { background: #FBE7E9; border-color: var(--tDanger); }
 
 /* ---------- 状态点 ---------- */
-.np-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.np-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .np-dot.green { background: var(--tSuccess); }
 .np-dot.pink  { background: var(--tPrimary); animation: npPulse 1.6s ease-in-out infinite; }
 @keyframes npPulse { 50% { opacity: .35; } }

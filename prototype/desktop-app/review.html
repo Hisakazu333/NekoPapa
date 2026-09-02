@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 错题复习</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   :root {
     --tPageBg:#F5F7FA; --tCardBg:#FFFFFF; --tInk1:#181C23; --tInk2:#4E5763; --tInk3:#7A8492;
@@ -18,10 +19,7 @@
   html, body { height:100%; }
   body {
     font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display:grid; place-items:center;
   }
   button { font-family:inherit; }
@@ -32,21 +30,22 @@
     box-shadow:0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
     display:flex; overflow:hidden;
   }
-  .sidebar { width:248px; flex-shrink:0; background:var(--surface-1);
+  .sidebar { width:216px; flex-shrink:0; background:var(--surface-1);
     border-right:1px solid var(--tBorder); display:flex; flex-direction:column; }
   .traffic { display:flex; gap:8px; padding:14px 16px 12px; }
   .traffic span.dot { width:12px; height:12px; border-radius:50%; }
   .traffic .r{background:#FF5F57} .traffic .y{background:#FEBC2E} .traffic .g{background:#28C840}
-  .back-link { display:flex; align-items:center; gap:8px; margin:0 16px 12px;
-    height:36px; padding:0 12px; border-radius:var(--r-sm);
-    color:var(--tInk2); font-size:14px; text-decoration:none; }
+  .back-link { display:flex; align-items:center; gap:6px; margin:0 14px 8px;
+    height:28px; padding:0 10px; border-radius:var(--r-sm);
+    color:var(--tInk2); font-size:12.5px; font-weight:500; text-decoration:none; }
   .back-link:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
-  .group-label { font-size:11px; color:var(--tInk3); padding:14px 12px 6px; }
+  .group-label { font-size:10px; font-weight:600; letter-spacing:.09em; color:var(--tInk3); padding:14px 12px 5px; }
   .side-scroll { flex:1; overflow-y:auto; padding:4px 16px 12px; }
-  .conv { display:flex; align-items:center; height:32px; padding:0 12px;
-    border-radius:var(--r-sm); font-size:14px; color:var(--tInk2); text-decoration:none; }
+  .conv { display:flex; align-items:center; height:28px; padding:0 10px; margin:1px 0;
+    border-radius:var(--r-sm); font-size:12.5px; color:var(--tInk2); text-decoration:none;
+    transition:background .15s; }
   .conv:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
-  .conv.active { background:var(--tPrimarySoft); color:var(--tPrimary); font-weight:600; }
+  .conv.active { background:#fff; color:var(--tInk1); font-weight:600; box-shadow:var(--shadow-sm); }
 
   .main { flex:1; display:flex; flex-direction:column; min-width:0; position:relative;
     background:var(--surface-0); }
@@ -124,6 +123,11 @@
       <a class="conv" href="plan.html">学习计划</a>
       <div class="conv active">错题本</div>
       <a class="conv" href="lib.html">知识库</a>
+      <a class="conv" href="map.html">知识地图</a>
+      <a class="conv" href="report.html">她的周报</a>
+            <a class="conv" href="memory.html">她的记忆</a>
+      <div class="group-label">互联</div>
+      <a class="conv" href="drop.html">设备互联</a>
     </div>
   </aside>
 
@@ -207,7 +211,7 @@
       document.getElementById("barFill").style.width = ((cur + 1) / cards.length * 100) + "%";
     }, 280);
   }
-  document.getElementById("btnGot").onclick = e => { e.stopPropagation(); next(true); };
+  document.getElementById("btnGot").onclick = e => { e.stopPropagation(); if (window.NP) NP.resolveMistake(1); next(true); };
   document.getElementById("btnFuzzy").onclick = e => { e.stopPropagation(); next(false); };
 
   (async () => {
@@ -236,5 +240,6 @@
     } catch (err) { console.warn("Live2D 未加载：", err); wrap.style.display = "none"; }
   })();
 </script>
+<script src="assets/np-her.js"></script>
 </body>
 </html>

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 口语对练</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -12,10 +13,7 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
     color: var(--tInk1);
   }
@@ -75,9 +73,7 @@
 
   /* ---- 左：她 ---- */
   .buddy-stage { position: relative; height: 252px; flex-shrink: 0;
-    background:
-      radial-gradient(260px 150px at 50% 108%, rgba(224,107,151,.14), transparent 70%),
-      var(--surface-0);
+    background: var(--surface-0);
     border-bottom: 1px solid var(--tBorder);
     overflow: hidden;
   }
@@ -164,7 +160,7 @@
 
   /* 情景卡 */
   .scene-card {
-    background: linear-gradient(135deg, #FDF3F7, #F3F5FB);
+    background: var(--surface-1);
     border: 1px solid var(--tBorder); border-radius: var(--r-md);
     padding: 18px 20px; margin-bottom: 14px;
   }

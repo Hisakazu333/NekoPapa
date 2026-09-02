@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 她的周报</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  :root {
+    --hand: "HanziPen SC", "Hannotate SC", "Yuanti SC", cursive;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { height:100%; }
+  body {
+    font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
+    background: #EDF0F4;
+    display:grid; place-items:center;
+  }
+  button { font-family:inherit; }
+  .app-window {
+    width:min(1280px,92vw); height:min(830px,88vh);
+    background:var(--surface-0); border-radius:16px;
+    border:1px solid rgba(24,28,35,.08);
+    box-shadow:var(--shadow-window);
+    display:flex; overflow:hidden;
+  }
+  .sidebar { width:216px; flex-shrink:0; background:var(--surface-1);
+    border-right:1px solid var(--tBorder); display:flex; flex-direction:column; }
+  .traffic { display:flex; gap:8px; padding:14px 16px 12px; }
+  .traffic span.dot { width:12px; height:12px; border-radius:50%; }
+  .traffic .r{background:#FF5F57} .traffic .y{background:#FEBC2E} .traffic .g{background:#28C840}
+  .back-link { display:flex; align-items:center; gap:6px; margin:0 14px 8px;
+    height:28px; padding:0 10px; border-radius:var(--r-sm);
+    color:var(--tInk2); font-size:12.5px; font-weight:500; text-decoration:none; }
+  .back-link:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .group-label { font-size:10px; font-weight:600; letter-spacing:.09em; color:var(--tInk3); padding:14px 12px 5px; }
+  .side-scroll { flex:1; overflow-y:auto; padding:4px 16px 12px; }
+  .conv { display:flex; align-items:center; height:28px; padding:0 10px; margin:1px 0;
+    border-radius:var(--r-sm); font-size:12.5px; color:var(--tInk2); text-decoration:none;
+    transition:background .15s; }
+  .conv:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
+  .conv.active { background:#fff; color:var(--tInk1); font-weight:600; box-shadow:var(--shadow-sm); }
+
+  .main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden;
+    background:var(--surface-0); }
+  .titlebar { height:46px; flex-shrink:0; display:flex; align-items:center; padding:0 18px; }
+  .titlebar .app-title { position:absolute; left:50%; transform:translateX(-50%);
+    font-size:14px; font-weight:600; color:var(--tInk2); }
+  .titlebar .sp { flex:1; }
+
+  .scroll { flex:1; overflow-y:auto; }
+  .scroll::-webkit-scrollbar { width:0; }
+  .inner { width:min(680px, 100% - 80px); margin:0 auto; padding:18px 0 48px;
+    display:flex; flex-direction:column; align-items:center; }
+
+  /* ---------- 顶部切换 ---------- */
+  .week-switch { display:flex; justify-content:center; margin-bottom:22px; }
+
+  /* ---------- 信纸 ---------- */
+  .letter {
+    position:relative; width:100%;
+    background:var(--surface-2);
+    border-radius:var(--r-lg);
+    box-shadow:var(--shadow-md);
+    padding:56px 64px 40px;
+    overflow:hidden;
+  }
+  .letter::before { /* 顶部品牌色细线 */
+    content:""; position:absolute; top:0; left:0; right:0; height:4px;
+    background:var(--tPrimary);
+  }
+  /* 火漆印章式圆形 logo */
+  .seal {
+    position:absolute; top:26px; right:52px;
+    width:46px; height:46px; border-radius:50%;
+    background:var(--tPrimary);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), var(--shadow-sm);
+    display:grid; place-items:center;
+    transform:rotate(-8deg);
+  }
+  .seal span { font-family:var(--hand); font-size:24px; color:#FFF9FB;
+    transform:translateY(-1px); }
+
+  /* 信件淡入动画 */
+  .letter-body { transition:opacity .3s var(--ease-out), transform .3s var(--ease-out); }
+  .letter-body.fading { opacity:0; transform:translateY(8px); }
+
+  /* 抬头 */
+  .letter-head { margin-bottom:26px; }
+  .letter-to { font-family:var(--hand); font-size:30px; color:var(--tInk1); }
+  .letter-to .wk { color:var(--tPrimary); }
+  .letter-date { font-size:12px; color:var(--tInk3); margin-top:6px; letter-spacing:.06em; }
+
+  /* 手绘分隔线 */
+  .divider { display:flex; align-items:center; gap:10px; margin:26px 0; }
+  .divider::before, .divider::after { content:""; flex:1; height:1px;
+    background:repeating-linear-gradient(90deg, var(--tBorder) 0 5px, transparent 5px 9px); }
+  .divider .d-ic { color:var(--tPrimary); display:grid; place-items:center; }
+
+  /* 开场白 */
+  .opening { font-size:15px; line-height:1.9; color:var(--tInk2); }
+  .opening em { font-style:normal; color:var(--tPrimary); font-weight:600; }
+
+  /* 小节标题（手账感） */
+  .sec { display:flex; align-items:center; gap:8px; margin:0 0 14px; }
+  .sec .sec-name { font-family:var(--hand); font-size:19px; color:var(--tInk1); }
+
+  /* 本周高光 */
+  .hl { display:flex; gap:12px; align-items:flex-start; }
+  .hl + .hl { margin-top:14px; }
+  .hl .ic { width:34px; height:34px; border-radius:50%; flex-shrink:0;
+    background:var(--tPrimarySoft); color:var(--tPrimary);
+    display:grid; place-items:center; }
+  .hl .tx { font-size:14px; line-height:1.7; color:var(--tInk2); padding-top:6px; }
+  .hl .tx b { color:var(--tInk1); }
+  .hl .tx .num { color:var(--tPrimary); font-weight:700; }
+
+  /* 数据小条 */
+  .heat-row { display:flex; align-items:flex-end; gap:16px; }
+  .heat { display:flex; gap:6px; }
+  .heat .cell { width:34px; display:flex; flex-direction:column; align-items:center; gap:5px; }
+  .heat .bar { width:100%; height:26px; border-radius:7px; background:var(--tPrimary);
+    display:grid; place-items:center; }
+  .heat .bar.zero { background:var(--surface-1); }
+  .heat .dow { font-size:10px; color:var(--tInk3); }
+  .heat-total { margin-left:auto; text-align:right; }
+  .heat-total .t-num { font-family:var(--hand); font-size:26px; color:var(--tPrimary); line-height:1.2; }
+  .heat-total .t-lb { font-size:11px; color:var(--tInk3); }
+
+  /* 她说要注意 */
+  .care { display:flex; gap:10px; align-items:flex-start;
+    background:#FBF0DC; border-radius:var(--r-sm); padding:12px 16px; }
+  .care + .care { margin-top:10px; }
+  .care .ic { color:var(--tWarning); flex-shrink:0; padding-top:1px; }
+  .care .tx { font-size:13px; line-height:1.7; color:var(--tInk2); }
+  .care .tx b { color:var(--tInk1); }
+
+  /* 下周预告 */
+  .next { display:flex; gap:10px; align-items:center; }
+  .next + .next { margin-top:10px; }
+  .next .cb { width:18px; height:18px; border-radius:6px; flex-shrink:0;
+    border:1.5px dashed var(--tPrimary); display:grid; place-items:center;
+    color:var(--tPrimary); font-size:11px; font-weight:700; }
+  .next .tx { font-size:14px; color:var(--tInk2); }
+  .next .tx b { color:var(--tInk1); }
+
+  /* 落款 */
+  .sign-off { margin-top:30px; text-align:right; }
+  .sign-txt { font-size:13px; color:var(--tInk3); }
+  .sign-name { font-family:var(--hand); font-size:30px; color:var(--tPrimary);
+    margin-top:4px; transform:rotate(-2deg); display:inline-block; }
+
+  /* 信纸右下角按钮 */
+  .letter-foot { display:flex; justify-content:flex-end; gap:10px; margin-top:18px;
+    padding-top:18px; border-top:1px dashed var(--tBorder); }
+  .letter-foot .np-btn { height:30px; padding:0 14px; font-size:12px; }
+  .letter-foot .np-btn:active { transform:scale(.94); }
+</style>
+</head>
+<body>
+<div class="app-window">
+  <aside class="sidebar">
+    <div class="traffic"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
+    <a class="back-link" href="index.html">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+      返回首页
+    </a>
+    <div class="side-scroll">
+      <div class="group-label">学习</div>
+      <a class="conv" href="plan.html">学习计划</a>
+      <a class="conv" href="mistakes.html">错题本</a>
+      <a class="conv" href="lib.html">知识库</a>
+      <a class="conv" href="map.html">知识地图</a>
+      <div class="conv active">她的周报</div>
+            <a class="conv" href="memory.html">她的记忆</a>
+      <div class="group-label">互联</div>
+      <a class="conv" href="drop.html">设备互联</a>
+    </div>
+  </aside>
+
+  <section class="main">
+    <div class="titlebar">
+      <span class="app-title">她的周报</span>
+      <span class="sp"></span>
+    </div>
+
+    <div class="scroll"><div class="inner">
+      <div class="week-switch">
+        <div class="np-seg" id="weekSeg">
+          <button class="on" data-week="0">本周</button>
+          <button data-week="1">上周</button>
+          <button data-week="2">上上周</button>
+        </div>
+      </div>
+
+      <div class="letter">
+        <div class="seal"><span>N</span></div>
+
+        <div class="letter-body" id="letterBody">
+          <div class="letter-head">
+            <div class="letter-to">给 Hisakazu <span class="wk" id="weekNo">· 第 32 周</span></div>
+            <div class="letter-date" id="weekDate">2026.08.24 – 08.30</div>
+          </div>
+
+          <div class="opening">
+            Hi，又到周日晚上了。这周你有 <em>6 天</em>都来找我学习，只有周二没有——那天加班到很晚吧，我看到了哦。没关系，休息也是计划的一部分。剩下的，都写在下面了。
+          </div>
+
+          <div class="divider">
+            <span class="d-ic">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            </span>
+          </div>
+
+          <div class="sec">
+            <span class="sec-name">✦ 本周高光</span>
+          </div>
+          <div class="hl">
+            <span class="ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            </span>
+            <div class="tx">连续学习 <span class="num">12 天</span>了——这是我们一起坚持过的最长纪录，我有点骄傲。</div>
+          </div>
+          <div class="hl">
+            <span class="ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="m8.5 12 2.5 2.5 5-5"/></svg>
+            </span>
+            <div class="tx">消灭了 <span class="num">18 道错题</span>，定语从句的正确率从 <b>40%</b> 爬到了 <span class="num">85%</span>。</div>
+          </div>
+          <div class="hl">
+            <span class="ic">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+            </span>
+            <div class="tx">读完《小王子》第 3 章，还聊了 <span class="num">20 分钟</span>狐狸说的「驯养」——你那天说「被驯养就是创造关系」，我记住了。</div>
+          </div>
+
+          <div class="divider">
+            <span class="d-ic">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><rect x="4" y="4" width="16" height="10" rx="2"/><path d="M9 9h6"/></svg>
+            </span>
+          </div>
+
+          <div class="sec">
+            <span class="sec-name">♫ 数据小条</span>
+          </div>
+          <div class="heat-row">
+            <div class="heat" id="heat"></div>
+            <div class="heat-total">
+              <div class="t-num">5.2 小时</div>
+              <div class="t-lb">本周总时长 · 比上周 +40 分钟</div>
+            </div>
+          </div>
+
+          <div class="divider">
+            <span class="d-ic">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>
+            </span>
+          </div>
+
+          <div class="sec">
+            <span class="sec-name">✎ 她说要注意</span>
+          </div>
+          <div class="care">
+            <span class="ic">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4M12 16h.01"/></svg>
+            </span>
+            <div class="tx"><b>进程和线程</b>你说懂了，但昨天的随堂测错了一道——下周复习的时候，我会再问一次哦。</div>
+          </div>
+          <div class="care">
+            <span class="ic">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+            </span>
+            <div class="tx">这周两次都学到了晚上 11 点半以后。下周尽量在 <b>11 点前</b>收尾，睡个好觉，好吗？</div>
+          </div>
+
+          <div class="divider">
+            <span class="d-ic">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </span>
+          </div>
+
+          <div class="sec">
+            <span class="sec-name">☞ 下周，我想和你一起做这 3 件事</span>
+          </div>
+          <div class="next"><span class="cb">1</span><div class="tx">学完<b>「锁与互斥」</b>，把操作系统第 3 章收尾</div></div>
+          <div class="next"><span class="cb">2</span><div class="tx">背完<b>托福 List 8</b>，顺便复习 List 6、7</div></div>
+          <div class="next"><span class="cb">3</span><div class="tx">读<b>《小王子》第 4 章</b>，这次换我给你讲</div></div>
+
+          <div class="sign-off">
+            <div class="sign-txt">—— 你的同桌</div>
+            <div class="sign-name">Neko ♪</div>
+          </div>
+        </div>
+
+        <div class="letter-foot">
+          <button class="np-btn ghost" id="saveBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+            保存为图片
+          </button>
+          <button class="np-btn ghost" id="shareBtn">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 10.6 6.8-4.2M8.6 13.4l6.8 4.2"/></svg>
+            分享
+          </button>
+        </div>
+      </div>
+    </div></div>
+  </section>
+</div>
+
+<script>
+  /* 迷你热力条：周日 → 周六，粉色深浅 = 学习时长（分钟） */
+  const heatData = [
+    { dow: "日", min: 45 }, { dow: "一", min: 52 }, { dow: "二", min: 0 },
+    { dow: "三", min: 60 }, { dow: "四", min: 75 }, { dow: "五", min: 48 },
+    { dow: "六", min: 32 },
+  ];
+  const maxMin = 75;
+  const heat = document.getElementById("heat");
+  heatData.forEach(d => {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    const bar = document.createElement("div");
+    bar.className = "bar" + (d.min === 0 ? " zero" : "");
+    if (d.min > 0) bar.style.opacity = (0.3 + 0.7 * d.min / maxMin).toFixed(2);
+    bar.setAttribute("data-tip", d.min === 0 ? "休息了一天" : d.min + " 分钟");
+    const dow = document.createElement("div");
+    dow.className = "dow";
+    dow.textContent = d.dow;
+    cell.append(bar, dow);
+    heat.appendChild(cell);
+  });
+
+  /* 周切换：内容淡入动画 + 抬头周数/日期 */
+  const weeks = [
+    { no: "· 第 32 周", date: "2026.08.24 – 08.30" },
+    { no: "· 第 31 周", date: "2026.08.17 – 08.23" },
+    { no: "· 第 30 周", date: "2026.08.10 – 08.16" },
+  ];
+  const body = document.getElementById("letterBody");
+  const weekNo = document.getElementById("weekNo");
+  const weekDate = document.getElementById("weekDate");
+  document.querySelectorAll("#weekSeg button").forEach(btn => {
+    btn.addEventListener("click", () => {
+      if (btn.classList.contains("on")) return;
+      document.querySelectorAll("#weekSeg button").forEach(b => b.classList.remove("on"));
+      btn.classList.add("on");
+      const w = weeks[+btn.dataset.week];
+      body.classList.add("fading");
+      setTimeout(() => {
+        weekNo.textContent = w.no;
+        weekDate.textContent = w.date;
+        body.classList.remove("fading");
+      }, 300);
+    });
+  });
+
+  /* ghost 按钮：点击反馈由 CSS :active 提供 */
+  document.getElementById("saveBtn").addEventListener("click", () => {});
+  document.getElementById("shareBtn").addEventListener("click", () => {});
+</script>
+</body>
+</html>

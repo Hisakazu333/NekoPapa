@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 设置</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -12,10 +13,7 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224, 107, 151, 0.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122, 132, 146, 0.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
     color: var(--tInk1);
   }
@@ -88,7 +86,7 @@
   .content-inner { max-width: 720px; margin: 0 auto; padding: 18px 40px 90px; }
 
   .page-head { padding: 14px 2px 20px; position: sticky; top: 0; z-index: 10;
-    background: linear-gradient(var(--surface-0) 78%, transparent); }
+    background: var(--surface-0); }
   .page-head h1 { font-size: 22px; font-weight: 700; }
   .page-head p { font-size: 12px; color: var(--tInk3); margin-top: 4px; }
 
@@ -152,7 +150,7 @@
   .quota .top { display: flex; justify-content: space-between; font-size: 12px; color: var(--tInk2); margin-bottom: 8px; }
   .quota .bar { height: 6px; border-radius: var(--r-pill); background: var(--surface-1); overflow: hidden; }
   .quota .bar i { display: block; height: 100%; width: 62%; border-radius: var(--r-pill);
-    background: linear-gradient(90deg, var(--tPrimary), #EE8FB2); }
+    background: var(--tPrimary); }
 
   /* 服务商行 */
   .svc { display: flex; align-items: center; gap: 12px; padding: 13px 18px;
@@ -173,7 +171,7 @@
   /* 版本卡 */
   .ver-card { display: flex; align-items: center; gap: 14px; padding: 18px; }
   .ver-card .logo { width: 46px; height: 46px; border-radius: 12px;
-    background: linear-gradient(135deg, var(--tPrimary), #EE8FB2);
+    background: var(--tPrimary);
     display: grid; place-items: center; color: #fff; font-weight: 800; font-size: 17px;
     box-shadow: 0 4px 12px rgba(224,107,151,.35); }
   .ver-card .nm { font-size: 15px; font-weight: 700; }
@@ -231,7 +229,7 @@
   .use-row .nm { width: 92px; font-size: 13px; flex-shrink: 0; }
   .use-row .bar { flex: 1; height: 8px; border-radius: var(--r-pill); background: var(--surface-1); overflow: hidden; }
   .use-row .bar i { display: block; height: 100%; border-radius: var(--r-pill);
-    background: linear-gradient(90deg, var(--tPrimarySoft), var(--tPrimary));
+    background: var(--tPrimary);
     transition: width .8s var(--ease-out); }
   .use-row .val { width: 86px; text-align: right; font-size: 12px; color: var(--tInk2); flex-shrink: 0; }
   .tab-panel { display: none; }
@@ -292,9 +290,12 @@
         模型设置</a>
       <a class="nav-item" href="#sec-api" data-key="API 接入 自定义 OpenAI Anthropic Ollama 密钥 用量 额度">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
-        API 接入与用量</a>
+        API 接入</a>
 
       <div class="nav-group">学习</div>
+      <a class="nav-item" href="#sec-subjects" data-key="科目 目标 考试 倒计时 教材 课程">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+        科目与目标</a>
       <a class="nav-item" href="#sec-learn" data-key="学习 偏好 目标 时长 讲解 出题">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
         学习偏好</a>
@@ -455,17 +456,17 @@
             <div class="quota-card">
               <div class="k">对话与讲题</div>
               <div class="v">62%<small>9月1日 00:00 重置</small></div>
-              <div class="bar"><i style="width:62%;background:linear-gradient(90deg,var(--tPrimary),#EE8FB2)"></i></div>
+              <div class="bar"><i style="width:62%;background:var(--tPrimary)"></i></div>
             </div>
             <div class="quota-card">
               <div class="k">文档拆解</div>
               <div class="v">38%<small>9月1日 00:00 重置</small></div>
-              <div class="bar"><i style="width:38%;background:linear-gradient(90deg,var(--tSuccess),#7CC79B)"></i></div>
+              <div class="bar"><i style="width:38%;background:var(--tSuccess)"></i></div>
             </div>
             <div class="quota-card">
               <div class="k">语音识别</div>
               <div class="v">85%<small>9月1日 00:00 重置</small></div>
-              <div class="bar"><i style="width:85%;background:linear-gradient(90deg,var(--tWarning),#F0BE6E)"></i></div>
+              <div class="bar"><i style="width:85%;background:var(--tWarning)"></i></div>
             </div>
           </div>
 
@@ -614,7 +615,7 @@
 
       <!-- ======== API 接入 ======== -->
       <section class="sect" id="sec-api">
-        <div class="sect-title"><h2>API 接入与用量</h2><span>用官方账号，或接自己的服务</span></div>
+        <div class="sect-title"><h2>API 接入</h2><span>用官方账号，或接自己的服务</span></div>
         <div class="card" style="margin-bottom:14px">
           <div class="svc">
             <div class="ic" style="background:var(--tPrimarySoft);color:var(--tPrimary)">N</div>
@@ -655,6 +656,56 @@
         </div>
       </section>
 
+      <!-- ======== 科目与目标 ======== -->
+      <section class="sect" id="sec-subjects">
+        <div class="sect-title"><h2>科目与目标</h2><span>她按这些给你安排一切</span></div>
+
+        <!-- 考试目标卡：倒计时是灵魂 -->
+        <div class="card" style="margin-bottom:14px;display:flex;align-items:center;gap:16px;padding:16px 18px">
+          <div style="width:52px;height:52px;border-radius:var(--r-md);background:var(--tPrimarySoft);color:var(--tPrimary);display:grid;place-items:center;text-align:center;flex-shrink:0">
+            <div><div style="font-size:17px;font-weight:800;line-height:1">8</div><div style="font-size:9px;font-weight:600">天后</div></div>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:600">操作系统 · 期末考试</div>
+            <div style="font-size:12px;color:var(--tInk3);margin-top:3px">2026-09-09 · 覆盖第 3–5 章 · 她已自动加密本周复习</div>
+          </div>
+          <button class="np-btn ghost" style="height:30px">编辑目标</button>
+        </div>
+
+        <div class="card">
+          <div class="row navigable" onclick="location.href='map.html'">
+            <div class="ctl" style="width:36px;height:36px;border-radius:var(--r-sm);background:var(--tPrimarySoft);color:var(--tPrimary);display:grid;place-items:center;font-size:13px;font-weight:700">操</div>
+            <div class="txt">
+              <div class="t">操作系统 <span class="np-badge" style="font-size:10px">备考中</span></div>
+              <div class="d">第 4 章 · 进程与线程 · 知识地图掌握 58%</div>
+            </div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable" onclick="location.href='plan.html'">
+            <div class="ctl" style="width:36px;height:36px;border-radius:var(--r-sm);background:#E3F3EA;color:var(--tSuccess);display:grid;place-items:center;font-size:13px;font-weight:700">英</div>
+            <div class="txt">
+              <div class="t">英语 · 托福 <span class="np-badge gray" style="font-size:10px">长期</span></div>
+              <div class="d">核心词汇 List 7 / 20 · 定语从句正确率 85%</div>
+            </div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable" onclick="location.href='reading.html'">
+            <div class="ctl" style="width:36px;height:36px;border-radius:var(--r-sm);background:#FBF0DC;color:var(--tWarning);display:grid;place-items:center;font-size:13px;font-weight:700">书</div>
+            <div class="txt">
+              <div class="t">阅读 · 《小王子》 <span class="np-badge gray" style="font-size:10px">共读</span></div>
+              <div class="d">第 3 章 · 每晚 21:30 她陪你读一节</div>
+            </div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+          </div>
+          <div class="row navigable" style="justify-content:center">
+            <div class="t" style="color:var(--tPrimary);font-weight:600;font-size:13px">＋ 添加科目或目标</div>
+          </div>
+        </div>
+        <div style="font-size:11px;color:var(--tInk3);padding:8px 4px 0;line-height:1.6">
+          这里的科目会同步出现在：首页今日安排 · 学习计划 · 知识地图 · 她的周报
+        </div>
+      </section>
+
       <!-- ======== 学习偏好 ======== -->
       <section class="sect" id="sec-learn">
         <div class="sect-title"><h2>学习偏好</h2><span>Neko 按这个节奏陪你学</span></div>
@@ -680,10 +731,6 @@
             <div class="txt"><div class="t">随堂测频率</div><div class="d">讲完一个知识点后抽查你的频率</div></div>
             <div class="ctl"><input type="range" class="np-slider" min="0" max="100" value="60"><span style="font-size:12px;color:var(--tInk2);width:28px;text-align:right">适中</span></div>
           </div>
-          <div class="row">
-            <div class="txt"><div class="t">错题自动收录</div><div class="d">测验答错的题自动进入错题本</div></div>
-            <div class="ctl"><button class="np-toggle on"></button></div>
-          </div>
         </div>
       </section>
 
@@ -691,8 +738,12 @@
       <section class="sect" id="sec-memory">
         <div class="sect-title"><h2>记忆与错题</h2><span>她记住的东西，你都能看、能改、能删</span></div>
         <div class="card">
+          <div class="row">
+            <div class="txt"><div class="t">错题自动收录</div><div class="d">测验答错的题自动进入错题本</div></div>
+            <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
           <div class="row navigable" onclick="location.href='memory.html'">
-            <div class="txt"><div class="t">管理记忆</div><div class="d">已存 128 条 · 包括你的偏好、进度和生活细节</div></div>
+            <div class="txt"><div class="t">管理记忆</div><div class="d">已存 128 条 · 包括你的偏好、进度和生活细节 · 点进去可逐条改删</div></div>
             <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
           </div>
           <div class="row">
@@ -704,6 +755,10 @@
           <div class="row">
             <div class="txt"><div class="t">允许她主动记东西</div><div class="d">聊天中有价值的信息自动存入记忆</div></div>
             <div class="ctl"><button class="np-toggle on"></button></div>
+          </div>
+          <div class="row navigable" onclick="location.href='mistakes.html'">
+            <div class="txt"><div class="t">打开错题本</div><div class="d">按学科筛选、掌握度、复习时间管理</div></div>
+            <svg class="go" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
           </div>
           <div class="row navigable">
             <div class="txt"><div class="t" style="color:var(--tDanger)">清空错题本</div><div class="d">23 道待复习错题将被删除，不可恢复</div></div>
@@ -1193,5 +1248,6 @@ document.addEventListener('keydown', e => {
   if ((e.metaKey || e.ctrlKey) && e.key === ',') { e.preventDefault(); location.href = 'index.html'; }
 });
 </script>
+<script src="assets/np-her.js"></script>
 </body>
 </html>

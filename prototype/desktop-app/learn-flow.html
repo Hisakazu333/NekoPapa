@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 同桌学习</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -12,10 +13,7 @@
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
     color: var(--tInk1);
   }
@@ -77,9 +75,7 @@
   /* ---- 左：她（对话通道） ---- */
   /* 她在左栏顶部：Live2D 舞台 */
   .buddy-stage { position: relative; height: 252px; flex-shrink: 0;
-    background:
-      radial-gradient(260px 150px at 50% 108%, rgba(224,107,151,.14), transparent 70%),
-      var(--surface-0);
+    background: var(--surface-0);
     border-bottom: 1px solid var(--tBorder);
     overflow: hidden;
   }
@@ -433,10 +429,16 @@ document.querySelectorAll('#quizOpts .opt').forEach(opt => {
     if (ok) {
       opt.classList.add('correct');
       document.getElementById('quizFoot').classList.add('show');
+      if (window.NP) {
+        NP.setLessonProgress(100);
+        const allDone = NP.completeToday('os-thread');
+        if (allDone) setTimeout(() => { NP.bumpStreakOnce(); NP.celebrate('操作系统 · 进程与线程，拿下！'); }, 1600);
+      }
       await herSay('🎉 一次就对！工厂类比立大功了对不对');
       await herSay('还剩 2 题，都在「随堂练」里。答完今天的任务就收尾了，<span class="hl">连续 13 天</span>在向你招手');
     } else {
       opt.classList.add('wrong');
+      if (window.NP) NP.addMistake(1);
       document.querySelector('#quizOpts .opt[data-ok="1"]').classList.add('correct');
       document.getElementById('quizFoot').classList.add('show');
       await herSay('嗯……这题错了也没关系，<span class="hl">已经帮你收进错题本了</span>，明天复习会再见到它');

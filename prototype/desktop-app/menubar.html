@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 菜单栏常驻</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font); overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    /* 桌面壁纸：模拟真实 Mac 桌面 */
+    background: #E9EDF2;
+  }
+
+  /* ---------- macOS 菜单栏 ---------- */
+  .menubar {
+    position: fixed; top: 0; left: 0; right: 0; height: 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 14px;
+    background: rgba(255,255,255,.48);
+    backdrop-filter: blur(28px) saturate(1.5);
+    -webkit-backdrop-filter: blur(28px) saturate(1.5);
+    box-shadow: 0 1px 0 rgba(24,28,35,.06);
+    font-size: 12.5px; color: var(--tInk1);
+    z-index: 50; user-select: none;
+  }
+  .mb-left, .mb-right { display: flex; align-items: center; gap: 16px; }
+  .mb-left .apple { display: grid; place-items: center; }
+  .mb-left b { font-weight: 700; }
+  .mb-left span { color: var(--tInk2); }
+  .mb-right { gap: 14px; color: var(--tInk2); }
+  .mb-right .ic { display: grid; place-items: center; }
+  .mb-right time { color: var(--tInk1); font-weight: 500; font-variant-numeric: tabular-nums; }
+
+  /* 她的菜单栏图标 */
+  .cat-btn {
+    width: 24px; height: 24px; border: 0; border-radius: 6px;
+    background: transparent; cursor: pointer;
+    display: grid; place-items: center;
+    transition: background var(--dur-fast);
+  }
+  .cat-btn:hover { background: rgba(255,255,255,.55); }
+  .cat-btn.active { background: rgba(224,107,151,.20); }
+  .cat-btn img { width: 16px; height: 16px; border-radius: 50%; display: block;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.7); }
+
+  /* ---------- 下拉面板 ---------- */
+  .panel {
+    position: fixed; top: 34px; right: 10px; width: 300px;
+    background: rgba(255,255,255,.86);
+    backdrop-filter: blur(26px) saturate(1.4);
+    -webkit-backdrop-filter: blur(26px) saturate(1.4);
+    border: 1px solid rgba(255,255,255,.65);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lg);
+    padding: 12px;
+    z-index: 49;
+    transform-origin: top right;
+    opacity: 0; transform: translateY(-8px) scale(.96);
+    pointer-events: none;
+    transition: opacity .26s var(--ease-out), transform .26s var(--ease-spring);
+  }
+  .panel.open { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+  /* 1. 她的一行话 */
+  .p-head { display: flex; align-items: center; gap: 10px; padding: 2px 4px 10px; }
+  .p-head img { width: 30px; height: 30px; border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--tPrimarySoft); flex-shrink: 0; }
+  .p-head .who { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--tPrimary); }
+  .p-head .say { font-size: 13px; font-weight: 600; color: var(--tInk1); margin-top: 1px; }
+
+  /* 2. 今日进度 */
+  .p-prog { padding: 10px 12px; background: var(--surface-1);
+    border-radius: var(--r-sm); margin-bottom: 8px; }
+  .p-prog .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 7px; }
+  .p-prog .lab { font-size: 11px; font-weight: 600; color: var(--tInk2); }
+  .p-prog .val { font-size: 11px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .p-prog .val b { color: var(--tPrimary); font-size: 12px; }
+  .p-prog .track { height: 6px; border-radius: var(--r-pill); background: rgba(24,28,35,.07); overflow: hidden; }
+  .p-prog .fill { height: 100%; width: 0; border-radius: var(--r-pill);
+    background: var(--tPrimary);
+    transition: width .9s var(--ease-out) .2s; }
+  .panel.open .p-prog .fill { width: 62.5%; }
+
+  /* 3. 快捷操作 */
+  .p-acts { display: flex; flex-direction: column; gap: 1px; }
+  .p-act {
+    display: flex; align-items: center; gap: 10px;
+    padding: 7px 8px; border-radius: var(--r-sm);
+    text-decoration: none; color: var(--tInk1);
+    transition: background var(--dur-fast);
+  }
+  .p-act:hover { background: var(--surface-1); }
+  .p-act .ic {
+    width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center;
+  }
+  .p-act .tx { flex: 1; font-size: 13px; font-weight: 500; }
+  .p-act .tx small { display: block; font-size: 10px; color: var(--tInk3); font-weight: 400; margin-top: 1px; }
+
+  /* 4. 底部 */
+  .p-div { height: 1px; background: var(--tBorder); margin: 8px 2px; }
+  .p-foot { display: flex; align-items: center; justify-content: space-between; padding: 2px 8px; }
+  .p-foot .lab { font-size: 12px; color: var(--tInk2); }
+  .p-quit { display: block; text-align: center; padding: 8px 0 2px;
+    font-size: 11px; color: var(--tInk3); cursor: pointer; border-radius: var(--r-sm);
+    transition: all var(--dur-fast); }
+  .p-quit:hover { color: var(--tDanger); background: var(--surface-1); }
+
+  /* ---------- 原型说明标签 ---------- */
+  .proto-tag {
+    position: fixed; left: 20px; bottom: 16px;
+    font-size: 11px; color: var(--tInk3); letter-spacing: .06em;
+    background: rgba(255,255,255,.65); backdrop-filter: blur(10px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    padding: 6px 14px; z-index: 5;
+  }
+
+  /* ---------- 桌宠 ---------- */
+  .pet { position: fixed; right: 36px; bottom: 0; width: 300px; height: 480px;
+    cursor: pointer; z-index: 10; }
+  .pet canvas { width: 100%; height: 100%; display: block; }
+
+  .bubble {
+    position: fixed; right: 260px; bottom: 400px; width: 240px;
+    background: rgba(255,255,255,.82); backdrop-filter: blur(18px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+    box-shadow: var(--shadow-md); padding: 14px 16px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .5s ease, transform .5s ease;
+    z-index: 11;
+  }
+  .bubble.show { opacity: 1; transform: translateY(0); }
+  .bubble .who { font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    color: var(--tPrimary); margin-bottom: 6px; }
+  .bubble .line { font-size: 14px; line-height: 1.7; color: var(--tInk1); }
+</style>
+</head>
+<body>
+
+  <!-- macOS 菜单栏 -->
+  <div class="menubar">
+    <div class="mb-left">
+      <span class="apple">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 12.54c-.03-2.89 2.36-4.27 2.47-4.34-1.35-1.97-3.44-2.24-4.18-2.27-1.78-.18-3.47 1.05-4.37 1.05-.9 0-2.29-1.02-3.76-1-1.93.03-3.71 1.12-4.71 2.85-2.01 3.48-.51 8.63 1.44 11.46.96 1.38 2.1 2.93 3.6 2.87 1.44-.06 1.99-.93 3.73-.93s2.23.93 3.76.9c1.55-.03 2.54-1.4 3.49-2.79 1.1-1.61 1.55-3.17 1.58-3.25-.04-.02-3.02-1.16-3.05-4.55zM14.16 4.06c.79-.96 1.32-2.29 1.18-3.62-1.14.05-2.52.76-3.34 1.72-.73.85-1.38 2.21-1.2 3.51 1.27.1 2.57-.65 3.36-1.61z"/></svg>
+      </span>
+      <b>访达</b><span>编辑</span><span>显示</span><span>窗口</span><span>帮助</span>
+    </div>
+    <div class="mb-right">
+      <span class="ic" data-tip="电池 86%">
+        <svg width="20" height="12" viewBox="0 0 27 13" fill="none" stroke="currentColor"><rect x="0.5" y="0.5" width="22" height="12" rx="3.5"/><rect x="2.5" y="2.5" width="16" height="8" rx="2" fill="currentColor" stroke="none"/><path d="M25 4.5v4a2.2 2.2 0 0 0 0-4z" fill="currentColor" stroke="none"/></svg>
+      </span>
+      <span class="ic" data-tip="Wi-Fi 已连接">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 10.5a10 10 0 0 1 14 0M8.5 14a5 5 0 0 1 7 0M12 17.5h.01"/></svg>
+      </span>
+      <time id="clock"></time>
+      <button class="cat-btn" id="catBtn" data-tip="NekoPapa">
+        <img src="assets/icon.png" alt="NekoPapa">
+      </button>
+    </div>
+  </div>
+
+  <!-- 她的下拉面板 -->
+  <div class="panel" id="panel">
+    <div class="p-head">
+      <img src="assets/icon.png" alt="">
+      <div>
+        <div class="who">NEKO</div>
+        <div class="say">现在有空吗？3 道错题到期了～</div>
+      </div>
+    </div>
+
+    <div class="p-prog">
+      <div class="row"><span class="lab">今日学习</span><span class="val"><b>25</b> / 40 分钟</span></div>
+      <div class="track"><div class="fill"></div></div>
+    </div>
+
+    <div class="p-acts">
+      <a class="p-act" href="review.html">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg></span>
+        <span class="tx">快速复习<small>3 道错题到期</small></span>
+        <span class="np-kbd">⌘⇧R</span>
+      </a>
+      <a class="p-act" href="focus.html">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg></span>
+        <span class="tx">开始专注<small>25 分钟番茄钟</small></span>
+        <span class="np-kbd">⌘⇧F</span>
+      </a>
+      <a class="p-act" href="chat.html">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2-5.6A8.5 8.5 0 1 1 21 11.5z"/></svg></span>
+        <span class="tx">问她一件事<small>随问随答</small></span>
+        <span class="np-kbd">⌘⇧K</span>
+      </a>
+      <a class="p-act" href="index.html">
+        <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 11.5 12 4l9 7.5M5.5 10.5V20h13v-9.5"/></svg></span>
+        <span class="tx">打开主窗口</span>
+        <span class="np-kbd">⌘0</span>
+      </a>
+    </div>
+
+    <div class="p-div"></div>
+    <div class="p-foot">
+      <span class="lab">桌宠：<b id="petState">已开启</b></span>
+      <button class="np-toggle on" id="petToggle" aria-label="桌宠开关"></button>
+    </div>
+    <span class="p-quit" id="quitBtn">退出 NekoPapa</span>
+  </div>
+
+  <!-- 桌宠 -->
+  <div class="pet" id="pet"><canvas id="live2d"></canvas></div>
+  <div class="bubble" id="bubble">
+    <div class="who">NEKO</div>
+    <div class="line" id="line">点菜单栏上我的图标，就能随时找到我～</div>
+  </div>
+
+  <div class="proto-tag">菜单栏常驻原型 · 点她的图标开合 · 快捷键见设置</div>
+
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
+<script>
+  // ---------- 菜单栏时钟 ----------
+  const week = ["日","一","二","三","四","五","六"];
+  const tick = () => {
+    const d = new Date(), p = n => String(n).padStart(2, "0");
+    document.getElementById("clock").textContent =
+      `${d.getMonth()+1}月${d.getDate()}日 周${week[d.getDay()]}  ${p(d.getHours())}:${p(d.getMinutes())}`;
+  };
+  tick(); setInterval(tick, 10000);
+
+  // ---------- 面板开合 ----------
+  const panel = document.getElementById("panel");
+  const catBtn = document.getElementById("catBtn");
+  const setPanel = open => {
+    panel.classList.toggle("open", open);
+    catBtn.classList.toggle("active", open);
+  };
+  catBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    setPanel(!panel.classList.contains("open"));
+  });
+  panel.addEventListener("click", e => e.stopPropagation());
+  document.addEventListener("click", () => setPanel(false));
+  // 加载 0.6s 后自动弹出
+  setTimeout(() => setPanel(true), 600);
+
+  // ---------- 桌宠开关 / 退出 ----------
+  document.getElementById("petToggle").addEventListener("click", function () {
+    this.classList.toggle("on");
+    const on = this.classList.contains("on");
+    document.getElementById("petState").textContent = on ? "已开启" : "已关闭";
+    document.getElementById("pet").style.opacity = on ? "1" : "0";
+    document.getElementById("pet").style.pointerEvents = on ? "auto" : "none";
+  });
+  document.getElementById("quitBtn").addEventListener("click", () => setPanel(false));
+
+  // ---------- Live2D 桌宠 ----------
+  const petLines = ["欸？想我啦？", "错题不复习可是会忘的哦。", "喝点水再继续吧，我盯着呢。"];
+  let li = 0;
+  (async () => {
+    const wrap = document.getElementById("pet");
+    try {
+      const canvas = document.getElementById("live2d");
+      const app = new PIXI.Application({ view: canvas, transparent: true, autoStart: true,
+        resizeTo: wrap, resolution: window.devicePixelRatio || 1, autoDensity: true });
+      const model = await PIXI.live2d.Live2DModel.from(
+        "../../assets/live2d/hiyori/hiyori_pro_t11.model3.json", { autoInteract: false });
+      app.stage.addChild(model);
+      const fit = () => {
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
+        model.scale.set(s);
+        model.x = (w - model.width) / 2; model.y = h - model.height;
+      };
+      fit(); window.addEventListener("resize", fit);
+      const idle = () => model.motion("Idle");
+      idle(); setInterval(idle, 14000);
+      // 点她：Tap 动作 + 一句话
+      wrap.addEventListener("click", () => {
+        model.motion("Tap");
+        document.getElementById("line").textContent = petLines[li++ % petLines.length];
+        const b = document.getElementById("bubble");
+        b.classList.add("show");
+        clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove("show"), 2600);
+      });
+      window.addEventListener("pointermove", e => {
+        const r = canvas.getBoundingClientRect();
+        model.focus(e.clientX - r.left, e.clientY - r.top);
+      });
+    } catch (err) {
+      console.warn("Live2D 未加载：", err);
+      wrap.style.display = "none";
+    }
+  })();
+</script>
+</body>
+</html>

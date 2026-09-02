@@ -3,685 +3,599 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NekoPapa Desktop · 首页原型</title>
+<title>NekoPapa</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
-  /* ================= NekoPapa 设计 Token（唯一真相源） ================= */
-  :root {
-    --tPageBg:   #F5F7FA;
-    --tCardBg:   #FFFFFF;
-    --tInk1:     #181C23;
-    --tInk2:     #4E5763;
-    --tInk3:     #7A8492;
-    --tBorder:   #E1E7EF;
-    --tPrimary:  #E06B97;
-    --tPrimarySoft: #F8DDE7;
-    --tSuccess:  #4FAF73;
-    --r-sm: 10px; --r-md: 14px; --r-lg: 20px; --r-pill: 999px;
-    --shadow-card: 0 2px 10px rgba(24, 28, 35, 0.06);
-    --font: -apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
-  }
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
   body {
     font-family: var(--font);
     -webkit-font-smoothing: antialiased;
     overflow: hidden;
-    /* 桌面壁纸 */
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224, 107, 151, 0.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122, 132, 146, 0.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display: grid; place-items: center;
+    color: var(--tInk1);
   }
   button { font-family: inherit; }
+  ::selection { background: var(--tPrimarySoft); }
 
-  /* ================= 桌面应用窗口 ================= */
+  /* ================= 窗口 ================= */
   .app-window {
-    width: min(1280px, 92vw);
-    height: min(830px, 88vh);
+    width: min(1280px, 92vw); height: min(830px, 88vh);
     background: var(--surface-0);
-    border-radius: 16px;
-    border: 1px solid rgba(24, 28, 35, 0.08);
-    box-shadow: 0 12px 32px rgba(24, 28, 35, 0.10), 0 48px 120px rgba(24, 28, 35, 0.16);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.09);
+    box-shadow: var(--shadow-window);
     display: flex; overflow: hidden;
   }
 
-  /* ================= 侧边栏 ================= */
+  /* ================= 侧栏（216px · 中性 · 发丝线） ================= */
   .sidebar {
-    width: 248px; flex-shrink: 0;
+    width: 216px; flex-shrink: 0;
     background: var(--surface-1);
-    border-right: 1px solid var(--tBorder);
+    border-right: 1px solid rgba(24,28,35,.06);
     display: flex; flex-direction: column;
   }
-  .traffic { display: flex; align-items: center; gap: 8px; padding: 14px 16px 12px; }
+  .traffic { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; }
   .traffic span { width: 12px; height: 12px; border-radius: 50%; }
   .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
-  .traffic .side-toggle { margin-left: 10px; color: var(--tInk3); display: grid; place-items: center; }
+  .traffic .side-toggle { margin-left: 8px; color: var(--tInk3); display: grid; place-items: center; cursor: pointer; }
 
-  /* 模式切换：学习 / 助手 */
   .mode-tabs {
-    margin: 0 16px 12px; padding: 3px;
-    background: rgba(24,28,35,.06); border-radius: var(--r-pill);
+    margin: 0 12px 10px; padding: 2px;
+    background: rgba(24,28,35,.055); border-radius: 8px;
     display: flex;
   }
   .mode-tabs button {
-    flex: 1; height: 30px; border: 0; border-radius: var(--r-pill);
+    flex: 1; height: 26px; border: 0; border-radius: 6px;
     background: transparent; color: var(--tInk2);
-    font-size: 14px; font-weight: 500; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 12px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all .15s;
   }
-  .mode-tabs button.on { background: var(--tCardBg); color: var(--tInk1);
-    font-weight: 600; box-shadow: var(--shadow-card); }
+  .mode-tabs button.on { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
 
-  .side-actions { padding: 0 16px 4px; display: grid; gap: 4px; }
+  .side-actions { padding: 0 12px 2px; display: grid; gap: 2px; }
   .btn-new {
-    display: flex; align-items: center; gap: 8px;
-    height: 36px; padding: 0 12px;
-    border: 1px solid var(--tBorder); border-radius: var(--r-sm);
-    background: var(--surface-2); color: var(--tInk1);
-    font-size: 14px; font-weight: 500; cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+    height: 30px; padding: 0 10px;
+    border: 1px solid rgba(24,28,35,.08); border-radius: 8px;
+    background: #fff; color: var(--tInk1);
+    font-size: 12.5px; font-weight: 500; cursor: pointer;
     box-shadow: var(--shadow-sm);
-    transition: all .2s;
+    transition: all .15s;
   }
-  .btn-new:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
-  .btn-new .kbd { margin-left: auto; font-size: 11px; color: var(--tInk3);
-    border: 1px solid var(--tBorder); border-radius: 6px; padding: 1px 6px; background: var(--surface-0); }
+  .btn-new:hover { border-color: rgba(24,28,35,.18); }
+  .btn-new .kbd { margin-left: auto; }
   .side-search {
-    display: flex; align-items: center; gap: 8px;
-    height: 34px; padding: 0 12px; border-radius: var(--r-sm);
-    color: var(--tInk3); font-size: 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 7px;
+    height: 28px; padding: 0 10px; border-radius: 8px;
+    color: var(--tInk3); font-size: 12.5px; cursor: pointer;
+    transition: all .15s;
   }
-  .side-search:hover { background: rgba(255,255,255,.65); }
+  .side-search:hover { background: rgba(255,255,255,.65); color: var(--tInk2); }
 
-  .side-scroll { flex: 1; overflow-y: auto; padding: 4px 16px 12px; }
+  .side-scroll { flex: 1; overflow-y: auto; padding: 2px 12px 12px; }
   .side-scroll::-webkit-scrollbar { width: 0; }
-  .group-label { font-size: 11px; color: var(--tInk3); padding: 14px 12px 6px; }
+  .group-label {
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 10px; font-weight: 600; letter-spacing: .09em;
+    color: var(--tInk3); padding: 14px 10px 4px;
+    cursor: pointer; user-select: none;
+  }
+  .group-label .chev { color: var(--tInk3); transition: transform .2s ease; }
+  .group-label.collapsed .chev { transform: rotate(-90deg); }
 
   .nav-item {
-    display: flex; align-items: center; gap: 10px;
-    height: 34px; padding: 0 12px; border-radius: var(--r-sm);
-    font-size: 14px; color: var(--tInk2); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    height: 28px; padding: 0 10px; border-radius: 8px;
+    font-size: 12.5px; color: var(--tInk2); cursor: pointer;
+    text-decoration: none;
+    transition: background .15s;
   }
   .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
-  .nav-item .cnt { margin-left: auto; font-size: 11px; color: var(--tInk3); }
-  .nav-item .cnt.hot { color: var(--tPrimary); background: var(--tPrimarySoft);
-    padding: 2px 8px; border-radius: var(--r-pill); font-weight: 700; }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; }
+  .nav-item .cnt { margin-left: auto; font-size: 10px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .nav-item .cnt.hot { color: var(--tPrimary); font-weight: 700; }
 
   .conv {
+    position: relative;
     display: flex; align-items: center;
-    height: 32px; padding: 0 12px; border-radius: var(--r-sm);
-    font-size: 14px; color: var(--tInk2); cursor: pointer;
+    height: 28px; padding: 0 10px; border-radius: 8px;
+    font-size: 12.5px; color: var(--tInk2); cursor: pointer;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background .15s;
   }
   .conv:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
-  .conv .more { margin-left: auto; width: 22px; height: 22px; border: 0; border-radius: 6px;
+  .conv.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .conv.active::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px;
+    width: 2.5px; border-radius: 2px; background: var(--tPrimary); }
+  .conv .more { margin-left: auto; width: 20px; height: 20px; border: 0; border-radius: 6px;
     background: transparent; color: var(--tInk3); cursor: pointer; flex-shrink: 0;
     display: grid; place-items: center; opacity: 0; transition: opacity .15s; }
   .conv:hover .more { opacity: 1; }
   .conv .more:hover { background: rgba(24,28,35,.08); color: var(--tInk1); }
-  .conv.active { background: var(--tPrimarySoft); color: var(--tPrimary); font-weight: 600; }
+  .run-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--tPrimary);
+    flex-shrink: 0; margin-left: auto; animation: pulseDot 1.6s ease-in-out infinite; }
+  @keyframes pulseDot { 50% { opacity: .35; } }
 
-  /* ---------- 账号 + 设置弹出菜单 ---------- */
-  .side-foot { border-top: 1px solid var(--tBorder); padding: 8px 12px 12px; position: relative; }
-  .foot-user { display: flex; align-items: center; gap: 10px; padding: 6px 10px;
-    border-radius: var(--r-sm); cursor: pointer; user-select: none; }
+  /* ---------- 底部账号 ---------- */
+  .side-foot { border-top: 1px solid rgba(24,28,35,.06); padding: 8px 12px 10px; position: relative; }
+  .foot-user { display: flex; align-items: center; gap: 9px; padding: 5px 8px;
+    border-radius: 8px; cursor: pointer; user-select: none; transition: background .15s; }
   .foot-user:hover, .foot-user.open { background: rgba(255,255,255,.65); }
-  .avatar { width: 26px; height: 26px; border-radius: 50%;
-    background: var(--tPrimarySoft); color: var(--tPrimary);
-    display: grid; place-items: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
-  .foot-user .n { font-size: 14px; font-weight: 500; }
-  .foot-user .plan { font-size: 11px; color: var(--tInk3); }
+  .avatar { width: 24px; height: 24px; border-radius: 50%;
+    background: var(--tInk1); color: #fff;
+    display: grid; place-items: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
+  .foot-user .n { font-size: 12.5px; font-weight: 500; }
+  .foot-user .plan { font-size: 10px; font-weight: 600; letter-spacing: .03em;
+    color: var(--tInk3); border: 1px solid rgba(24,28,35,.1);
+    padding: 1px 6px; border-radius: 5px; }
   .foot-icons { margin-left: auto; display: flex; gap: 2px; }
-  .foot-icons button { width: 28px; height: 28px; border: 0; border-radius: 8px;
+  .foot-icons button { width: 26px; height: 26px; border: 0; border-radius: 6px;
     background: transparent; color: var(--tInk3); cursor: pointer;
-    display: grid; place-items: center; transition: all .18s; }
-  .foot-icons button:hover { background: var(--surface-2); color: var(--tInk1); }
+    display: grid; place-items: center; transition: all .15s; }
+  .foot-icons button:hover { background: #fff; color: var(--tInk1); }
 
   .account-menu {
-    position: absolute; left: 12px; bottom: 54px; width: 212px;
-    background: var(--tCardBg); border: 1px solid var(--tBorder);
-    border-radius: var(--r-md); box-shadow: var(--shadow-card);
-    padding: 6px; z-index: 60;
+    position: absolute; left: 12px; bottom: 52px; width: 196px;
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 10px; box-shadow: var(--shadow-lg);
+    padding: 4px; z-index: 60;
     opacity: 0; transform: translateY(6px); pointer-events: none;
     transition: opacity .18s ease, transform .18s ease;
   }
   .account-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
   .menu-item {
-    display: flex; align-items: center; gap: 10px;
-    height: 34px; padding: 0 10px; border-radius: var(--r-sm);
-    font-size: 14px; color: var(--tInk1); cursor: pointer;
+    display: flex; align-items: center; gap: 9px;
+    height: 30px; padding: 0 9px; border-radius: 7px;
+    font-size: 12.5px; color: var(--tInk1); cursor: pointer;
     position: relative; white-space: nowrap;
+    transition: background .15s;
   }
-  .menu-item:hover { background: var(--tPageBg); }
+  .menu-item:hover { background: var(--surface-1); }
   .menu-item svg { color: var(--tInk3); flex-shrink: 0; }
-  .menu-item .chev { margin-left: auto; color: var(--tInk3); }
+  .menu-item .np-badge { margin-left: auto; }
   .menu-item.danger { color: var(--tDanger); }
   .menu-item.danger svg { color: var(--tDanger); }
-  .menu-divider { height: 1px; background: var(--tBorder); margin: 6px 4px; }
-
-  /* 主题子菜单 */
-  .submenu {
-    position: absolute; left: calc(100% + 6px); top: -6px;
-    width: 148px; padding: 6px;
-    background: var(--tCardBg); border: 1px solid var(--tBorder);
-    border-radius: var(--r-md); box-shadow: var(--shadow-card);
-    display: none;
-  }
-  .menu-item:hover > .submenu { display: block; }
-  .sub-item {
-    display: flex; align-items: center; justify-content: space-between;
-    height: 32px; padding: 0 10px; border-radius: var(--r-sm);
-    font-size: 14px; color: var(--tInk2); cursor: pointer;
-  }
-  .sub-item:hover { background: var(--tPageBg); color: var(--tInk1); }
-  .sub-item .check { opacity: 0; color: var(--tPrimary); }
-  .sub-item.on { color: var(--tInk1); font-weight: 500; }
-  .sub-item.on .check { opacity: 1; }
+  .menu-divider { height: 1px; background: rgba(24,28,35,.06); margin: 4px; }
 
   /* ================= 主区 ================= */
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--surface-0); position: relative; }
-  .titlebar {
-    height: 46px; flex-shrink: 0;
-    display: flex; align-items: center; padding: 0 18px;
-  }
+  .titlebar { height: 42px; flex-shrink: 0; display: flex; align-items: center; padding: 0 14px; }
   .titlebar .app-title { position: absolute; left: 50%; transform: translateX(-50%);
-    font-size: 14px; font-weight: 600; color: var(--tInk2); letter-spacing: .02em; }
+    font-size: 12.5px; font-weight: 600; color: var(--tInk3); letter-spacing: .02em; }
   .titlebar .sp { flex: 1; }
-
-  /* 后台任务指示（标题栏右侧） */
   .agent-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    height: 28px; padding: 0 12px;
-    border-radius: var(--r-pill); border: 1px solid var(--tBorder);
-    background: var(--surface-2); box-shadow: var(--shadow-sm);
-    font-size: 11px; color: var(--tInk2); cursor: pointer;
-    transition: all .2s;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 24px; padding: 0 10px;
+    border-radius: 999px; border: 1px solid rgba(24,28,35,.08);
+    background: #fff;
+    font-size: 10.5px; color: var(--tInk2); cursor: pointer;
+    font-variant-numeric: tabular-nums;
+    transition: all .15s;
   }
-  .agent-pill:hover { border-color: var(--tPrimary); box-shadow: var(--shadow-md); }
-  .agent-pill .spin { width: 12px; height: 12px; color: var(--tPrimary);
+  .agent-pill:hover { border-color: rgba(24,28,35,.2); }
+  .agent-pill .spin { width: 11px; height: 11px; color: var(--tPrimary);
     animation: rot 1.4s linear infinite; }
   @keyframes rot { to { transform: rotate(360deg); } }
-  .tb-btn { width: 30px; height: 30px; border-radius: var(--r-sm); border: 0;
+  .tb-btn { width: 28px; height: 28px; border-radius: 7px; border: 0;
     background: transparent; color: var(--tInk3); cursor: pointer;
-    display: grid; place-items: center; margin-left: 4px; transition: all .2s; }
-  .tb-btn:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
+    display: grid; place-items: center; margin-left: 3px; transition: all .15s; text-decoration: none; }
+  .tb-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
+  .bell-wrap { position: relative; }
+  .bell-dot { position: absolute; top: 5px; right: 6px; width: 6px; height: 6px;
+    border-radius: 50%; background: var(--tPrimary); border: 1.5px solid var(--surface-0); }
 
-  /* 中央舞台：大留白 + 单一输入 */
-  .stage { flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; padding: 0 48px 4vh; position: relative; }
-  .stage-inner { width: min(640px, 100%); display: flex; flex-direction: column; align-items: center; }
+  /* ---------- 通知中心 ---------- */
+  .notif-panel {
+    position: absolute; top: 38px; right: 10px; width: 300px; z-index: 80;
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 12px; box-shadow: var(--shadow-lg);
+    padding: 6px; opacity: 0; transform: translateY(-6px); pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease;
+  }
+  .notif-panel.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  .notif-head { display: flex; align-items: center; justify-content: space-between;
+    padding: 5px 8px 7px; font-size: 12px; font-weight: 600; }
+  .notif-head button { border: 0; background: transparent; color: var(--tInk3);
+    font-size: 11px; cursor: pointer; font-family: inherit; }
+  .notif-head button:hover { color: var(--tPrimary); }
+  .notif-item { display: flex; gap: 9px; padding: 8px; border-radius: 8px; cursor: pointer;
+    transition: background .15s; }
+  .notif-item:hover { background: var(--surface-0); }
+  .notif-item .ni { width: 26px; height: 26px; border-radius: 7px; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary); display: grid; place-items: center; }
+  .notif-item .nt { font-size: 12px; font-weight: 600; line-height: 1.4; }
+  .notif-item .nd { font-size: 10.5px; color: var(--tInk3); margin-top: 2px; }
+  .notif-item .unread { width: 6px; height: 6px; border-radius: 50%; background: var(--tPrimary);
+    flex-shrink: 0; margin-top: 6px; margin-left: auto; }
 
-  .word-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-  .word-row img { width: 30px; height: 30px; border-radius: 8px; }
-  .greet { font-size: 26px; font-weight: 700; letter-spacing: .01em; }
+  /* ================= 舞台 ================= */
+  .stage { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
+  .home-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 0 48px 2vh; }
+  .home-inner { width: min(600px, 100%); display: flex; flex-direction: column; align-items: center; }
+
+  .word-row { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
+  .word-row img { width: 24px; height: 24px; border-radius: 7px; }
+  .greet { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
   .streak {
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11px; font-weight: 700; color: var(--tPrimary);
-    background: var(--tPrimarySoft); border-radius: var(--r-pill);
-    padding: 4px 10px;
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 700; color: var(--tPrimary);
+    font-variant-numeric: tabular-nums;
   }
 
-  /* 今日计划：一行字，不是卡片 */
-  .plan-line {
-    display: flex; align-items: center; gap: 10px;
-    font-size: 14px; color: var(--tInk2); margin-bottom: 36px;
-  }
-  .plan-line .bar { width: 64px; height: 4px; border-radius: var(--r-pill);
-    background: var(--tBorder); overflow: hidden; }
-  .plan-line .bar i { display: block; height: 100%; width: 50%;
-    background: var(--tPrimary); border-radius: var(--r-pill); }
-  .plan-line .go { color: var(--tPrimary); font-weight: 600; cursor: pointer; }
-  .plan-line .go:hover { text-decoration: underline; }
+  /* 她的一句话：动作缝在句子里 */
+  .neko-line { font-size: 13.5px; line-height: 2.05; text-align: center;
+    color: var(--tInk2); margin: 0 0 26px; }
+  .nl-main { color: var(--tPrimary); font-weight: 600; text-decoration: none;
+    border-bottom: 1px solid var(--tPrimarySoft); padding-bottom: 1px; }
+  .nl-main:hover { border-color: var(--tPrimary); }
+  .nl-sub { color: var(--tInk2); text-decoration: none; cursor: pointer; }
+  .nl-sub:hover { color: var(--tPrimary); }
+  .nl-sep { color: rgba(24,28,35,.15); margin: 0 8px; }
 
-  /* 输入胶囊：唯一主角 */
+  /* 今日焦点卡：唯一主角 */
+  .focus-card {
+    display: flex; align-items: center; gap: 14px;
+    width: 100%; margin-bottom: 10px;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 13px 16px; text-decoration: none; color: var(--tInk1);
+    transition: border-color .2s ease, box-shadow .2s ease;
+  }
+  .focus-card:hover { border-color: rgba(24,28,35,.16); box-shadow: var(--shadow-md); }
+  .fc-l { flex: 1; display: flex; flex-direction: column; gap: 2px; }
+  .fc-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--tPrimary); }
+  .fc-t { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+  .fc-s { font-size: 11.5px; color: var(--tInk3); }
+  .fc-go {
+    display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
+    height: 30px; padding: 0 14px; border-radius: 8px;
+    background: var(--tInk1); color: #fff; font-size: 12.5px; font-weight: 500;
+    transition: background .15s;
+  }
+  .focus-card:hover .fc-go { background: #2A303B; }
+
+  .today-quiet {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 11.5px; color: var(--tInk3); margin-bottom: 30px;
+    font-variant-numeric: tabular-nums;
+  }
+  .today-quiet svg { vertical-align: -2px; margin-right: 3px; }
+  .today-quiet .sep { color: rgba(24,28,35,.12); }
+  .today-quiet a { color: var(--tInk2); text-decoration: none; }
+  .today-quiet a:hover { color: var(--tPrimary); }
+
+  /* 输入胶囊 */
   .composer {
     width: 100%;
-    background: var(--surface-3); border: 1px solid var(--tBorder);
-    border-radius: var(--r-lg); box-shadow: var(--shadow-md);
-    padding: 14px 16px 10px;
-    transition: border-color .25s ease, box-shadow .25s ease;
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 11px 14px 8px;
+    transition: border-color .2s ease, box-shadow .2s ease;
   }
-  .composer:focus-within { border-color: var(--tPrimary); box-shadow: var(--shadow-lg); }
-  .ctx-chips { display: flex; gap: 8px; margin-bottom: 8px; }
-  .ctx-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    height: 26px; padding: 0 10px;
-    background: var(--tPageBg); border-radius: var(--r-sm);
-    font-size: 11px; color: var(--tInk2); cursor: pointer;
-  }
-  .ctx-chip .x { color: var(--tInk3); display: grid; place-items: center; }
-  .ctx-chip:hover .x { color: var(--tInk1); }
+  .composer:focus-within { border-color: rgba(224,107,151,.5); box-shadow: 0 0 0 3px rgba(224,107,151,.12); }
   .composer textarea {
     width: 100%; border: 0; outline: 0; resize: none;
     background: transparent; color: var(--tInk1);
-    font-family: inherit; font-size: 14px; line-height: 1.6; min-height: 40px;
+    font-family: inherit; font-size: 13px; line-height: 1.6; min-height: 38px;
   }
   .composer textarea::placeholder { color: var(--tInk3); }
-  .composer-bar { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
+  .composer-bar { display: flex; align-items: center; gap: 2px; margin-top: 4px; }
   .c-btn {
-    height: 32px; min-width: 32px; padding: 0 6px;
-    border: 0; border-radius: var(--r-sm); background: transparent;
-    color: var(--tInk3); cursor: pointer; font-size: 11px; font-weight: 600;
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    transition: all .18s;
+    height: 28px; min-width: 28px; padding: 0 5px;
+    border: 0; border-radius: 7px; background: transparent;
+    color: var(--tInk3); cursor: pointer; font-size: 10.5px; font-weight: 600;
+    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    transition: all .15s;
   }
-  .c-btn:hover { background: var(--tPageBg); color: var(--tInk1); }
+  .c-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
   .c-btn.on { color: var(--tPrimary); background: var(--tPrimarySoft); }
-  .model-pick { display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11px; color: var(--tInk2); font-weight: 600;
-    padding: 6px 10px; border-radius: var(--r-sm); cursor: pointer; }
-  .model-pick:hover { background: var(--tPageBg); }
+  .model-pick { display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; color: var(--tInk2); font-weight: 500;
+    padding: 5px 8px; border-radius: 7px; cursor: pointer; transition: background .15s; }
+  .model-pick:hover { background: rgba(24,28,35,.05); }
   .send-btn {
-    margin-left: auto; width: 34px; height: 34px; border: 0;
-    border-radius: 50%;
-    background: var(--tPrimary); color: #FFF9FB;
+    margin-left: auto; width: 28px; height: 28px; border: 0;
+    border-radius: 8px;
+    background: var(--tPrimary); color: #fff;
     display: grid; place-items: center; cursor: pointer;
-    transition: transform .15s ease, filter .2s ease;
+    transition: background .15s, transform .15s var(--ease-spring);
   }
-  .send-btn:hover { transform: scale(1.07); filter: brightness(1.05); }
+  .send-btn:hover { background: #D05A88; }
+  .send-btn:active { transform: scale(.92); }
 
-  /* 助手模式：任务列表（行，不是卡片） */
-  .task-list { width: 100%; margin-bottom: 26px; }
-  .task-label { font-size: 11px; color: var(--tInk3); letter-spacing: .08em;
-    padding: 0 4px 8px; }
-  .task-label:not(:first-child) { padding-top: 14px; }
-  .t-row {
-    display: flex; align-items: center; gap: 12px;
-    padding: 11px 4px; cursor: pointer;
-    border-bottom: 1px solid var(--tBorder);
-    transition: padding .18s ease;
+  /* 安静快捷入口：文字链接，不是按钮 */
+  .quick-links { display: flex; gap: 18px; margin-top: 12px; }
+  .quick-links a {
+    font-size: 11.5px; color: var(--tInk3); text-decoration: none; cursor: pointer;
+    transition: color .15s;
   }
-  .t-row:first-of-type { border-top: 1px solid var(--tBorder); }
-  .t-row:hover { padding-left: 10px; }
-  .t-row svg { width: 15px; height: 15px; color: var(--tPrimary); flex-shrink: 0; }
-  .t-row .spin { animation: rot 1.4s linear infinite; }
-  .t-row.done svg { color: var(--tSuccess); }
-  .t-row .n { font-size: 14px; font-weight: 600; white-space: nowrap; }
-  .t-row .m { font-size: 11px; color: var(--tInk3); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; }
-  .t-row .go { margin-left: auto; font-size: 11px; color: var(--tPrimary);
-    font-weight: 600; flex-shrink: 0; }
+  .quick-links a:hover { color: var(--tInk1); }
 
-  /* 助手模式：全屏覆盖，任务顶格 + 输入钉底部 */
+  /* ---------- 助手模式：任务列表 ---------- */
   .assist-home {
     position: absolute; inset: 0; z-index: 5;
     display: flex; flex-direction: column;
     background: var(--surface-0);
   }
-  .assist-scroll { flex: 1; overflow-y: auto; padding: 32px 0 16px; }
+  .assist-scroll { flex: 1; overflow-y: auto; padding: 28px 0 12px; }
   .assist-scroll::-webkit-scrollbar { width: 0; }
-  .assist-inner { width: min(640px, 100% - 96px); margin: 0 auto; }
-  .assist-title { font-size: 26px; font-weight: 700; letter-spacing: .01em;
-    display: flex; align-items: center; gap: 12px; margin-bottom: 26px; }
-  .assist-title img { width: 30px; height: 30px; border-radius: 8px; }
-  .assist-composer { flex-shrink: 0; padding: 8px 0 20px; }
-  .assist-composer .composer { width: min(640px, calc(100% - 96px)); margin: 0 auto; }
-  .perm-pick { display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11px; color: var(--tInk2); font-weight: 600;
-    padding: 6px 10px; border-radius: var(--r-sm); cursor: pointer; }
-  .perm-pick:hover { background: var(--tPageBg); }
+  .assist-inner { width: min(600px, 100% - 96px); margin: 0 auto; }
+  .assist-title { font-size: 21px; font-weight: 600; letter-spacing: -.02em;
+    display: flex; align-items: center; gap: 9px; margin-bottom: 20px; }
+  .assist-title img { width: 24px; height: 24px; border-radius: 7px; }
+  .assist-title .sub { font-size: 11.5px; color: var(--tInk3); font-weight: 400; margin-left: 4px; }
+  .task-list { width: 100%; margin-bottom: 20px; }
+  .task-label { font-size: 10px; font-weight: 600; color: var(--tInk3); letter-spacing: .09em;
+    padding: 0 2px 6px; }
+  .task-label:not(:first-child) { padding-top: 12px; }
+  .t-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 10px; margin: 0 -10px; cursor: pointer;
+    border-radius: 8px;
+    transition: background .15s;
+    text-decoration: none; color: inherit;
+  }
+  .t-row:hover { background: rgba(24,28,35,.035); }
+  .t-row svg { width: 14px; height: 14px; color: var(--tPrimary); flex-shrink: 0; }
+  .t-row .spin { animation: rot 1.4s linear infinite; }
+  .t-row.done svg { color: var(--tSuccess); }
+  .t-row .n { font-size: 13px; font-weight: 600; white-space: nowrap; }
+  .t-row .m { font-size: 10.5px; color: var(--tInk3); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; }
+  .t-row .go { margin-left: auto; font-size: 10.5px; color: var(--tPrimary);
+    font-weight: 600; flex-shrink: 0; }
+  .assist-composer { flex-shrink: 0; padding: 6px 0 16px; }
+  .assist-composer .composer { width: min(600px, calc(100% - 96px)); margin: 0 auto; }
+  .perm-pick { display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10.5px; color: var(--tInk2); font-weight: 500;
+    padding: 5px 8px; border-radius: 7px; cursor: pointer; transition: background .15s; }
+  .perm-pick:hover { background: rgba(24,28,35,.05); }
   .perm-pick svg:first-child { color: var(--tPrimary); }
 
-  /* 细节：选择色 / 下拉菜单 / Toast */
-  ::selection { background: var(--tPrimarySoft); }
-
-  /* 侧栏分组：可折叠 + 箭头 */
-  .group-label { display: flex; align-items: center; justify-content: space-between;
-    cursor: pointer; user-select: none; }
-  .group-label .chev { color: var(--tInk3); transition: transform .2s ease; }
-  .group-label.collapsed .chev { transform: rotate(-90deg); }
-
-  /* 账号计划徽章：深色药丸 */
-  .foot-user .plan { font-size: 10px; font-weight: 700; letter-spacing: .04em;
-    color: var(--tCardBg); background: var(--tInk1);
-    padding: 3px 8px; border-radius: var(--r-pill); }
-
-  /* 输入框下方的副栏（选择知识库 / 插件） */
-  .sub-bar { display: flex; align-items: center; gap: 4px; margin-top: 8px; padding: 0 6px; }
-  .sub-bar .sub-pick { display: inline-flex; align-items: center; gap: 6px;
-    font-size: 11px; color: var(--tInk3); font-weight: 500;
-    padding: 5px 10px; border-radius: var(--r-sm); cursor: pointer; }
-  .sub-bar .sub-pick:hover { background: var(--tPageBg); color: var(--tInk2); }
-
-  /* 标题旁的 Beta 徽章 */
-  .beta-chip { font-size: 11px; font-weight: 700; color: var(--tPrimary);
-    background: var(--tPrimarySoft); padding: 3px 10px; border-radius: var(--r-pill); }
-
-  /* 运行中状态点 */
-  .run-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--tPrimary);
-    flex-shrink: 0; margin-left: auto; animation: pulseDot 1.6s ease-in-out infinite; }
-  @keyframes pulseDot { 50% { opacity: .35; } }
-
-  .pick-menu {
-    position: fixed; z-index: 100; min-width: 148px;
-    background: var(--tCardBg); border: 1px solid var(--tBorder);
-    border-radius: var(--r-sm); box-shadow: var(--shadow-card);
-    padding: 4px; animation: pickIn .15s ease;
-  }
-  @keyframes pickIn { from { opacity: 0; transform: translateY(4px); } }
-  .pick-item { display: flex; align-items: center; justify-content: space-between;
-    height: 30px; padding: 0 10px; border-radius: 6px;
-    font-size: 11px; font-weight: 600; color: var(--tInk2); cursor: pointer; white-space: nowrap; }
-  .pick-item:hover { background: var(--tPageBg); color: var(--tInk1); }
-  .pick-item .ck { opacity: 0; color: var(--tPrimary); margin-left: 10px; }
-  .pick-item.on { color: var(--tInk1); }
-  .pick-item.on .ck { opacity: 1; }
-
-  /* 学习模式：她的话就是一句话，动作缝在句子里 */
-  .learn-inner { padding-top: 6vh; }
-  .learn-inner .word-row { margin-bottom: 30px; }
-  .neko-line { font-size: 15px; line-height: 2.2; text-align: center;
-    color: var(--tInk1); margin: 0 0 34px; }
-  .nl-main { color: var(--tPrimary); font-weight: 600; text-decoration: none;
-    border-bottom: 1.5px solid var(--tPrimarySoft); padding-bottom: 1px; }
-  .nl-main:hover { border-color: var(--tPrimary); }
-  .nl-sub { color: var(--tInk2); text-decoration: none; cursor: pointer; }
-  .nl-sub:hover { color: var(--tPrimary); }
-  .nl-sep { color: var(--tInk3); margin: 0 10px; }
-  .today-lines { background: var(--surface-2); border: 1px solid var(--tBorder);
-    border-radius: var(--r-md); box-shadow: var(--shadow-sm); overflow: hidden; }
-  .tl { display: flex; align-items: center; gap: 10px; padding: 11px 16px;
-    font-size: 14px; color: var(--tInk2); text-decoration: none;
-    border-bottom: 1px solid var(--tBorder); transition: background .18s ease, padding .18s ease; }
-  .tl:last-child { border-bottom: 0; }
-  .tl:hover { padding-left: 22px; color: var(--tInk1); background: #FAFBFD; }
-  .tl.done .tl-t { color: var(--tInk3); text-decoration: line-through; }
-  .tl.next .tl-t { font-weight: 600; color: var(--tInk1); }
-  .tl .tl-m { margin-left: auto; font-size: 11px; color: var(--tInk3); }
-
-  /* 快捷入口：小胶囊，不是卡片 */
-  .pills { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 22px; }
-  .pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    height: 34px; padding: 0 16px;
-    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
-    background: var(--tCardBg); color: var(--tInk2);
-    font-size: 14px; cursor: pointer;
-    transition: all .18s ease;
-  }
-  .pill:hover { border-color: var(--tPrimary); color: var(--tPrimary); transform: translateY(-1px); }
-  .pill svg { color: var(--tPrimary); }
-
-  /* Live2D 搭档：站在主区右下角 */
+  /* ---------- Live2D 搭档 ---------- */
   .buddy {
     position: absolute; right: 16px; bottom: 0;
-    width: 260px; height: 415px;
+    width: 230px; height: 380px;
     pointer-events: auto; cursor: pointer;
     z-index: 15;
   }
   .buddy canvas { width: 100%; height: 100%; display: block; }
 
-  /* 底部悬浮：今日待复习 */
-  .review-bar {
-    position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%);
-    display: flex; align-items: center; gap: 10px;
-    height: 42px; padding: 0 8px 0 18px;
-    background: var(--surface-3); border: 1px solid var(--tBorder);
-    border-radius: var(--r-pill); box-shadow: var(--shadow-md);
-    font-size: 14px; color: var(--tInk2); cursor: pointer;
-    transition: transform .15s ease;
-  }
-  .review-bar:hover { transform: translateX(-50%) translateY(-2px); }
-  .review-bar b { color: var(--tInk1); font-weight: 600; }
-  .review-bar .act {
-    height: 30px; padding: 0 14px; border-radius: var(--r-pill);
-    background: var(--tPrimarySoft); color: var(--tPrimary);
-    display: inline-flex; align-items: center; gap: 5px;
-    font-size: 11px; font-weight: 700;
-  }
-
-  /* ---------- 通知中心浮层 ---------- */
-  .notif-panel {
-    position: absolute; top: 40px; right: 12px; width: 320px; z-index: 80;
-    background: var(--surface-3); border: 1px solid var(--tBorder);
-    border-radius: var(--r-md); box-shadow: var(--shadow-lg);
-    padding: 8px; opacity: 0; transform: translateY(-6px); pointer-events: none;
-    transition: opacity .18s ease, transform .18s ease;
-  }
-  .notif-panel.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
-  .notif-head { display: flex; align-items: center; justify-content: space-between;
-    padding: 6px 10px 8px; font-size: 13px; font-weight: 700; }
-  .notif-head button { border: 0; background: transparent; color: var(--tInk3);
-    font-size: 11px; cursor: pointer; font-family: inherit; }
-  .notif-head button:hover { color: var(--tPrimary); }
-  .notif-item { display: flex; gap: 10px; padding: 10px; border-radius: var(--r-sm); cursor: pointer;
-    transition: background .15s; }
-  .notif-item:hover { background: var(--surface-0); }
-  .notif-item .ni { width: 30px; height: 30px; border-radius: var(--r-sm); flex-shrink: 0;
-    background: var(--tPrimarySoft); color: var(--tPrimary); display: grid; place-items: center; }
-  .notif-item .nt { font-size: 13px; font-weight: 600; line-height: 1.4; }
-  .notif-item .nd { font-size: 11px; color: var(--tInk3); margin-top: 2px; }
-  .notif-item .unread { width: 7px; height: 7px; border-radius: 50%; background: var(--tPrimary);
-    flex-shrink: 0; margin-top: 6px; margin-left: auto; }
-  .bell-wrap { position: relative; }
-  .bell-dot { position: absolute; top: 5px; right: 6px; width: 7px; height: 7px;
-    border-radius: 50%; background: var(--tPrimary); border: 1.5px solid var(--surface-0); }
-
-  /* ---------- ⌘K 全局搜索面板 ---------- */
+  /* ---------- ⌘P 面板 ---------- */
   .palette-mask { position: fixed; inset: 0; z-index: 200; background: rgba(24,28,35,.25);
     display: flex; justify-content: center; padding-top: 14vh;
     opacity: 0; pointer-events: none; transition: opacity .18s ease; }
   .palette-mask.show { opacity: 1; pointer-events: auto; }
-  .palette { width: 520px; height: fit-content; max-height: 60vh;
-    background: var(--surface-3); border: 1px solid var(--tBorder);
-    border-radius: var(--r-md); box-shadow: var(--shadow-lg);
+  .palette { width: 500px; height: fit-content; max-height: 60vh;
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 12px; box-shadow: var(--shadow-lg);
     overflow: hidden; display: flex; flex-direction: column;
     transform: scale(.97) translateY(-8px); transition: transform .18s var(--ease-out); }
   .palette-mask.show .palette { transform: scale(1) translateY(0); }
-  .palette-input { display: flex; align-items: center; gap: 10px; padding: 14px 16px;
-    border-bottom: 1px solid var(--tBorder); }
+  .palette-input { display: flex; align-items: center; gap: 9px; padding: 12px 14px;
+    border-bottom: 1px solid rgba(24,28,35,.06); }
   .palette-input svg { color: var(--tInk3); flex-shrink: 0; }
   .palette-input input { flex: 1; border: 0; outline: 0; background: transparent;
-    font-family: inherit; font-size: 15px; color: var(--tInk1); }
+    font-family: inherit; font-size: 14px; color: var(--tInk1); }
   .palette-input input::placeholder { color: var(--tInk3); }
-  .palette-list { overflow-y: auto; padding: 6px; }
-  .pal-group { font-size: 11px; font-weight: 600; color: var(--tInk3); padding: 8px 10px 4px; }
-  .pal-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px;
-    border-radius: var(--r-sm); font-size: 14px; color: var(--tInk1); cursor: pointer; }
+  .palette-list { overflow-y: auto; padding: 5px; }
+  .pal-group { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3); padding: 7px 9px 3px; }
+  .pal-item { display: flex; align-items: center; gap: 9px; padding: 7px 9px;
+    border-radius: 7px; font-size: 12.5px; color: var(--tInk1); cursor: pointer; }
   .pal-item svg { color: var(--tInk3); flex-shrink: 0; }
-  .pal-item .hint { margin-left: auto; font-size: 11px; color: var(--tInk3); }
-  .pal-item:hover, .pal-item.sel { background: var(--tPrimarySoft); }
-  .pal-item:hover svg, .pal-item.sel svg { color: var(--tPrimary); }
-  .palette-foot { padding: 8px 16px; border-top: 1px solid var(--tBorder);
-    font-size: 11px; color: var(--tInk3); display: flex; gap: 14px; }
+  .pal-item .hint { margin-left: auto; font-size: 10.5px; color: var(--tInk3); }
+  .pal-item:hover, .pal-item.sel { background: var(--surface-1); }
+  .pal-item:hover svg, .pal-item.sel svg { color: var(--tInk1); }
+  .palette-foot { padding: 7px 14px; border-top: 1px solid rgba(24,28,35,.06);
+    font-size: 10.5px; color: var(--tInk3); display: flex; gap: 14px; }
 
-  /* ---------- 新手引导浮层 ---------- */
+  /* ---------- 新手引导 ---------- */
   .welcome-mask { position: fixed; inset: 0; z-index: 300; background: rgba(24,28,35,.3);
     display: grid; place-items: center;
     opacity: 0; pointer-events: none; transition: opacity .25s ease; }
   .welcome-mask.show { opacity: 1; pointer-events: auto; }
-  .welcome { width: 400px; background: var(--surface-3); border-radius: var(--r-lg);
-    box-shadow: var(--shadow-lg); padding: 28px; text-align: center;
+  .welcome { width: 400px; background: var(--surface-3); border-radius: 14px;
+    box-shadow: var(--shadow-lg); padding: 26px; text-align: center;
     transform: scale(.94) translateY(10px); transition: transform .25s var(--ease-spring); }
   .welcome-mask.show .welcome { transform: scale(1) translateY(0); }
-  .welcome img { width: 64px; height: 64px; border-radius: 18px;
+  .welcome img { width: 56px; height: 56px; border-radius: 14px;
     box-shadow: 0 6px 18px rgba(224,107,151,.35); }
-  .welcome h2 { font-size: 19px; margin: 14px 0 6px; }
-  .welcome p { font-size: 13px; color: var(--tInk2); line-height: 1.8; }
-  .welcome .feats { text-align: left; margin: 16px 0 20px; display: grid; gap: 10px; }
-  .welcome .feat { display: flex; gap: 10px; align-items: flex-start; font-size: 13px; color: var(--tInk2); }
-  .welcome .feat .fi { width: 28px; height: 28px; border-radius: 8px; flex-shrink: 0;
+  .welcome h2 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; margin: 12px 0 5px; }
+  .welcome p { font-size: 12.5px; color: var(--tInk2); line-height: 1.75; }
+  .welcome .feats { text-align: left; margin: 14px 0 18px; display: grid; gap: 9px; }
+  .welcome .feat { display: flex; gap: 9px; align-items: flex-start; font-size: 12px; color: var(--tInk2); line-height: 1.55; }
+  .welcome .feat .fi { width: 24px; height: 24px; border-radius: 7px; flex-shrink: 0;
     background: var(--tPrimarySoft); color: var(--tPrimary); display: grid; place-items: center; }
-  .welcome .feat b { color: var(--tInk1); }
+  .welcome .feat b { color: var(--tInk1); font-weight: 600; }
+  .np-kbd {
+    display: inline-block; padding: 1px 6px;
+    border: 1px solid rgba(24,28,35,.1); border-bottom-width: 2px; border-radius: 5px;
+    background: #fff; color: var(--tInk3);
+    font-size: 10px; font-weight: 600; line-height: 1.5;
+  }
 </style>
 </head>
 <body>
 
 <div class="app-window">
 
-  <!-- ========== 侧边栏 ========== -->
+  <!-- ============ 侧栏 ============ -->
   <aside class="sidebar">
     <div class="traffic">
       <span class="r"></span><span class="y"></span><span class="g"></span>
-      <span class="side-toggle">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
+      <span class="side-toggle" data-tip="收起侧栏">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
       </span>
     </div>
 
     <div class="mode-tabs">
       <button class="on" id="tabLearn">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-        学习
-      </button>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        学习</button>
       <button id="tabAssist">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-        助手
-      </button>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+        助手</button>
     </div>
 
     <div class="side-actions">
-      <button class="btn-new">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      <button class="btn-new" id="btnNew">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
         新对话
-        <span class="kbd">⌘K</span>
+        <span class="kbd np-kbd">⌘K</span>
       </button>
-      <div class="side-search">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <div class="side-search" id="sideSearch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         搜索
+        <span class="kbd np-kbd" style="margin-left:auto">⌘P</span>
       </div>
     </div>
 
     <div class="side-scroll">
-      <div id="navLearn">
+      <div>
         <div class="group-label" data-collapse>学习
-          <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+          <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
-        <a class="nav-item" href="plan.html" style="text-decoration:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg>
+        <a class="nav-item" href="plan.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
           学习计划<span class="cnt">2/4</span>
         </a>
-        <a class="nav-item" href="review.html" style="text-decoration:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l2.5 2.5"/></svg>
-          错题本<span class="cnt hot">23</span>
+        <a class="nav-item" href="mistakes.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          错题本<span class="cnt hot" id="mistakeCnt">23</span>
         </a>
-        <a class="nav-item" href="lib.html" style="text-decoration:none">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        <a class="nav-item" href="lib.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
           知识库
         </a>
-      </div>
-      <div id="navAssist" style="display:none">
-        <div class="group-label" data-collapse>助手
-          <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-        </div>
-        <div class="nav-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-          任务<span class="cnt hot">2</span>
-        </div>
-        <div class="nav-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2.5M9 2h6"/></svg>
-          定时任务<span class="cnt">1</span>
-        </div>
-        <div class="nav-item">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="7" height="7" rx="2"/><rect x="13" y="4" width="7" height="7" rx="2"/><rect x="4" y="13" width="7" height="7" rx="2"/><rect x="13" y="13" width="7" height="7" rx="2"/></svg>
-          工具箱
-        </div>
+        <a class="nav-item" href="map.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6.7 6.4 9.8 9.7M17.4 7.4l-3.2 2.9M7.4 17.6l2.9-3.2"/></svg>
+          知识地图
+        </a>
+        <a class="nav-item" href="report.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+          她的周报
+        </a>
+        <a class="nav-item" href="memory.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+          她的记忆
+        </a>
       </div>
 
-      <div class="group-label" data-collapse>对话
-        <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+      <div>
+        <div class="group-label" data-collapse>互联
+          <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <a class="nav-item" href="drop.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect x="16" y="9" width="6" height="11" rx="1.5"/></svg>
+          设备互联
+        </a>
       </div>
-      <div class="conv active" onclick="location.href='learn-flow.html'">操作系统 · 进程与线程</div>
-      <div class="conv" onclick="location.href='assist-flow.html'">整理下载文件夹<span class="run-dot"></span></div>
-      <div class="conv" onclick="location.href='chat.html'">英语 · 定语从句错题 3 道</div>
-      <div class="conv" onclick="location.href='chat.html'">周报草稿 · 第三版</div>
-      <div class="conv" onclick="location.href='chat.html'">高数 · 极限专题复习</div>
-      <div class="conv" onclick="location.href='reading.html'">《小王子》共读 · 第 3 章</div>
-      <div class="conv" onclick="location.href='chat.html'">论文里的这段证明没看懂</div>
-      <div class="conv" onclick="location.href='reading.html'">论文摘要精读 · Attention</div>
+
+      <div>
+        <div class="group-label" data-collapse>对话
+          <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+        <div class="conv active" onclick="location.href='learn-flow.html'">操作系统 · 进程与线程</div>
+        <div class="conv" onclick="location.href='assist-flow.html'">整理下载文件夹<span class="run-dot"></span></div>
+        <div class="conv" onclick="location.href='chat.html'">英语 · 定语从句错题 3 道</div>
+        <div class="conv" onclick="location.href='chat.html'">周报草稿 · 第三版</div>
+        <div class="conv" onclick="location.href='chat.html'">高数 · 极限专题复习</div>
+        <div class="conv" onclick="location.href='reading.html'">《小王子》共读 · 第 3 章</div>
+        <div class="conv" onclick="location.href='chat.html'">论文里的这段证明没看懂</div>
+        <div class="conv" onclick="location.href='reading.html'">论文摘要精读 · Attention</div>
+      </div>
     </div>
 
     <div class="side-foot">
-      <div class="foot-user" id="accountBtn" title="账号">
+      <div class="foot-user" id="accountBtn">
         <span class="avatar">H</span>
         <span class="n">Hisakazu</span>
-        <span class="plan">Pro</span>
+        <span class="plan">PRO</span>
         <span class="foot-icons">
           <button title="设置" id="gearBtn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9c.2.63.83 1 1.51 1H21a2 2 0 1 1 0 4h-.09c-.68 0-1.31.4-1.51 1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </span>
       </div>
-
-      <!-- 账号菜单：点账号弹出 -->
       <div class="account-menu" id="accountMenu">
         <div class="menu-item" onclick="location.href='settings.html#sec-account'">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6.5 8-6.5s8 2.5 8 6.5"/></svg>
           个人资料
         </div>
         <div class="menu-item" onclick="location.href='settings.html#sec-usage'">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
           使用统计
         </div>
         <div class="menu-item" onclick="location.href='subscribe.html'">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
           管理订阅
-          <span class="np-badge" style="margin-left:auto;padding:2px 8px">Pro</span>
+          <span class="np-badge">Pro</span>
         </div>
         <div class="menu-divider"></div>
         <div class="menu-item danger">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/></svg>
           退出登录
         </div>
       </div>
-
     </div>
   </aside>
 
-  <!-- ========== 主区 ========== -->
+  <!-- ============ 主区 ============ -->
   <section class="main">
     <div class="titlebar">
       <span class="app-title">NekoPapa</span>
       <span class="sp"></span>
-      <div class="agent-pill" title="后台任务">
+      <div class="agent-pill" data-tip="后台任务" onclick="location.href='assist-flow.html'">
         <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-        整理错题本 · 23/40
+        整理错题本 · <span id="pillCnt">23</span>/40
       </div>
-      <a class="tb-btn" title="专注模式" href="focus.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
+      <a class="tb-btn" data-tip="专注模式" href="focus.html">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>
       </a>
       <span class="bell-wrap">
-        <button class="tb-btn" title="通知" id="bellBtn">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M10.3 21a2 2 0 0 0 3.4 0"/></svg>
+        <button class="tb-btn" data-tip="通知" id="bellBtn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M10.3 21a2 2 0 0 0 3.4 0"/></svg>
           <span class="bell-dot" id="bellDot"></span>
         </button>
         <div class="notif-panel" id="notifPanel">
           <div class="notif-head">通知 <button id="readAllBtn">全部已读</button></div>
           <div class="notif-item" onclick="location.href='review.html'">
-            <span class="ni"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+            <span class="ni"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
             <div><div class="nt">3 道错题到了最佳复习时间</div><div class="nd">她挑好了 · 5 分钟前</div></div>
             <span class="unread"></span>
           </div>
           <div class="notif-item" onclick="location.href='assist-flow.html'">
-            <span class="ni" style="background:#E3F3EA;color:var(--tSuccess)"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+            <span class="ni" style="background:#E3F3EA;color:var(--tSuccess)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>
             <div><div class="nt">任务完成：整理下载文件夹</div><div class="nd">43 个文件已归档 · 12 分钟前</div></div>
             <span class="unread"></span>
           </div>
           <div class="notif-item" onclick="location.href='settings.html#sec-usage'">
-            <span class="ni" style="background:#FBF0DC;color:var(--tWarning)"><svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg></span>
-            <div><div class="nt">连续学习 12 天啦</div><div class="nd">她说：今天收尾就能到 13 天 · 1 小时前</div></div>
+            <span class="ni" style="background:#FBF0DC;color:var(--tWarning)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg></span>
+            <div><div class="nt">连续学习 <span id="streakNum2">12</span> 天啦</div><div class="nd">她说：今天收尾就能到 13 天 · 1 小时前</div></div>
           </div>
         </div>
       </span>
     </div>
 
     <div class="stage">
-      <!-- ================= 学习模式：她先备好，一键开始（轻松化） ================= -->
+      <!-- ============ 学习模式 ============ -->
       <div class="assist-home" id="stageLearn">
-        <div class="assist-scroll">
-          <div class="assist-inner learn-inner">
+        <div class="assist-scroll home-scroll">
+          <div class="assist-inner home-inner">
 
             <div class="word-row" style="justify-content:center">
               <img src="assets/icon.png" alt="">
               <h1 class="greet" id="greet">早上好，Hisakazu</h1>
               <span class="streak">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg>
-                连续学习 12 天
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg>
+                连续 <span id="streakNum">12</span> 天
               </span>
             </div>
 
-            <!-- 她先开口：就一句话，动作缝在句子里 -->
             <p class="neko-line">
               昨天的「进程与线程」还剩最后一点，今天 25 分钟就能收尾。<br>
               <a class="nl-main" href="learn-flow.html">现在开始</a>
@@ -691,172 +605,111 @@
               <span class="nl-sub" data-fill="今天不想学操作系统了，我们换个别的">换个话题</span>
             </p>
 
-            <!-- 今日安排：纯文字行，不是卡片 -->
-            <div class="today-lines">
-              <a class="tl done" href="plan.html">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-                <span class="tl-t">英语单词 · List 7</span>
-                <span class="tl-m">已完成 · 20 分钟</span>
-              </a>
-              <a class="tl next" href="learn-flow.html">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tPrimary)" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-                <span class="tl-t">操作系统 · 进程与线程</span>
-                <span class="tl-m">下一项 · 25 分钟</span>
-              </a>
-              <a class="tl" href="review.html">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--tInk3)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/></svg>
-                <span class="tl-t">错题复习 5 道</span>
-                <span class="tl-m">10 分钟 · 到了最佳复习时机</span>
-              </a>
+            <a class="focus-card" href="learn-flow.html">
+              <div class="fc-l">
+                <span class="fc-tag">下一项 · 25 分钟</span>
+                <span class="fc-t">操作系统 · 进程与线程</span>
+                <span class="fc-s">上次学到「线程」，今天收尾</span>
+              </div>
+              <span class="fc-go">
+                开始
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+            </a>
+            <div class="today-quiet">
+              <span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> 英语单词 · List 7 已完成</span>
+              <span class="sep">·</span>
+              <a href="review.html">错题复习 5 道（到了最佳复习时机）</a>
             </div>
 
           </div>
         </div>
 
-        <!-- 输入退居二线：钉在底部 -->
         <div class="assist-composer">
           <div class="composer">
             <textarea placeholder="想学什么、想问什么，直接说…" rows="1"></textarea>
             <div class="composer-bar">
-              <button class="c-btn" title="附件">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <button class="c-btn" data-tip="附件">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
               </button>
-              <button class="c-btn on" title="Agent 模式">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-                Agent
-              </button>
-              <button class="c-btn" title="语音输入">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
+              <button class="c-btn" data-tip="语音输入">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
               </button>
               <span style="flex:1"></span>
-              <div class="model-pick">
+              <div class="model-pick" data-pick="model">
                 NekoCore Nano
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
-              <button class="send-btn" title="发送">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              <button class="send-btn" data-tip="发送">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
               </button>
             </div>
           </div>
-          <!-- 副栏：知识库 / 插件 -->
-          <div class="sub-bar" style="justify-content:center">
-            <div class="sub-pick" data-pick="kb">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-              选择知识库
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-            <div class="sub-pick" data-pick="plugin">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 7h-3V4a2 2 0 1 0-4 0v3H4a1 1 0 0 0-1 1v3h3a2 2 0 1 1 0 4H3v3a1 1 0 0 0 1 1h3v-3a2 2 0 1 1 4 0v3h3a1 1 0 0 0 1-1v-3h3a2 2 0 1 0 0-4h3V8a1 1 0 0 0-1-1z" stroke-linejoin="round"/></svg>
-              插件
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-            </div>
-          </div>
-          <!-- 快捷入口：小胶囊 -->
-          <div class="pills" style="margin-top:10px">
-            <button class="pill" data-fill="进程和线程到底有什么区别？用人话给我讲明白">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>
-              讲透知识点
-            </button>
-            <button class="pill" data-fill="从我最近学的内容里出 5 道题考我">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5"/><circle cx="12" cy="18" r=".6" fill="currentColor"/></svg>
-              出题考我
-            </button>
-            <button class="pill" data-fill="陪我过一遍托福核心 List 7，间隔重复那种">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 5h16M4 12h10M4 19h7"/></svg>
-              陪我背单词
-            </button>
-            <button class="pill" data-fill="把这份文档拆解成学习路径，再出一套测验">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
-              拆解文档
-            </button>
-            <button class="pill" data-fill="帮我把下载文件夹整理一下：按类型和日期归档，重复的文件找出来">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-              交给 Neko
-            </button>
+          <div class="quick-links" style="justify-content:center">
+            <a data-fill="进程和线程到底有什么区别？用人话给我讲明白">讲透知识点</a>
+            <a data-fill="从我最近学的内容里出 5 道题考我">出题考我</a>
+            <a data-fill="把这份文档拆解成学习路径，再出一套测验">拆解文档</a>
           </div>
         </div>
       </div>
 
-      <!-- ================= 助手模式：任务为主，输入钉底部（Codex 结构） ================= -->
+      <!-- ============ 助手模式 ============ -->
       <div class="assist-home" id="stageAssist" style="display:none">
         <div class="assist-scroll">
           <div class="assist-inner">
             <h1 class="assist-title">
               <img src="assets/icon.png" alt="">
-              交给我的活，都在盯着
-              <span class="beta-chip">Beta</span>
+              交给 Neko
+              <span class="sub">描述任务，她先给计划再动手</span>
             </h1>
-
-            <div class="task-label">正在运行 · 2</div>
-            <div class="t-row">
-              <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-              <span class="n">整理下载文件夹</span>
-              <span class="m">已运行 2:31 · 处理了 43 个文件</span>
-              <a class="go" href="assist-flow.html" style="text-decoration:none">查看 →</a>
-            </div>
-            <div class="t-row">
-              <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-              <span class="n">调研：AI 学习产品竞品</span>
-              <span class="m">已运行 8:07 · 浏览了 21 个页面</span>
-              <a class="go" href="assist-flow.html" style="text-decoration:none">查看 →</a>
-            </div>
-            <div class="task-label" style="padding-top:16px">已完成</div>
-            <div class="t-row done">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span class="n">生成周报 · 第三版</span>
-              <span class="m">10 分钟前</span>
-              <span class="go">打开 →</span>
-            </div>
-            <div class="t-row done">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-              <span class="n">修复侧边栏样式 bug</span>
-              <span class="m">昨天 22:14</span>
-              <span class="go">打开 →</span>
+            <div class="task-list">
+              <div class="task-label">正在运行</div>
+              <a class="t-row" href="assist-flow.html">
+                <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
+                <span class="n">整理下载文件夹</span>
+                <span class="m">按类型+日期归档 · 2:31</span>
+                <span class="go">查看 →</span>
+              </a>
+              <a class="t-row" href="assist-flow.html">
+                <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
+                <span class="n">调研：AI 学习产品竞品</span>
+                <span class="m">已收集 12 个来源 · 8:07</span>
+                <span class="go">查看 →</span>
+              </a>
+              <div class="task-label">已完成</div>
+              <a class="t-row done" href="assist-flow.html">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
+                <span class="n">生成周报 · 第三版</span>
+                <span class="m">昨天 21:40</span>
+                <span class="go">打开 →</span>
+              </a>
             </div>
           </div>
         </div>
-
-        <!-- 输入框钉在底部 -->
         <div class="assist-composer">
           <div class="composer">
-            <textarea placeholder="描述一个任务，比如：把这段代码的 bug 找出来修好…" rows="1"></textarea>
+            <textarea placeholder="描述一个任务，比如：把下载文件夹里重复的课件找出来…" rows="1"></textarea>
             <div class="composer-bar">
-              <button class="c-btn" title="附件">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              <button class="c-btn" data-tip="附件">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
               </button>
-              <button class="c-btn on" title="Agent 模式">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+              <button class="c-btn on" data-tip="Agent 模式">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 Agent
               </button>
-              <button class="c-btn" title="语音输入">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
-              </button>
               <span style="flex:1"></span>
-              <div class="perm-pick" title="Agent 权限">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+              <div class="perm-pick" data-pick="perm" data-tip="Agent 权限">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                 完全访问
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
-              <div class="model-pick">
+              <div class="model-pick" data-pick="model">
                 NekoCore Nano
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
               </div>
-              <button class="send-btn" title="发送">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+              <button class="send-btn" data-tip="发送">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
               </button>
-            </div>
-            <!-- 副栏：项目 / 插件 -->
-            <div class="sub-bar">
-              <div class="sub-pick" data-pick="project">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-                选择项目
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              <div class="sub-pick" data-pick="plugin2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M14 7h-3V4a2 2 0 1 0-4 0v3H4a1 1 0 0 0-1 1v3h3a2 2 0 1 1 0 4H3v3a1 1 0 0 0 1 1h3v-3a2 2 0 1 1 4 0v3h3a1 1 0 0 0 1-1v-3h3a2 2 0 1 0 0-4h3V8a1 1 0 0 0-1-1z" stroke-linejoin="round"/></svg>
-                插件
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
             </div>
           </div>
         </div>
@@ -868,11 +721,11 @@
   </section>
 </div>
 
-<!-- ⌘K 全局搜索面板 -->
+<!-- ⌘P 全局搜索面板 -->
 <div class="palette-mask" id="paletteMask">
   <div class="palette">
     <div class="palette-input">
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
       <input id="paletteInput" type="text" placeholder="搜索会话、功能、操作…">
       <span class="np-kbd">esc</span>
     </div>
@@ -888,114 +741,72 @@
     <h2>我是 Neko，你的同桌</h2>
     <p>不是工具，是陪你把学习这件事坚持下去的那个她。<br>三件事让你快速认识我：</p>
     <div class="feats">
-      <div class="feat"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span><div><b>每天打开就有方向</b><br>我会接上前天的进度，告诉你今天 25 分钟能学完什么</div></div>
-      <div class="feat"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg></span><div><b>错的我都记着</b><br>错题、没懂的知识点，我会按遗忘曲线挑最好的时机找你复习</div></div>
-      <div class="feat"><span class="fi"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8.5 15c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/></svg></span><div><b>我还能住在桌面上</b><br>设置里开启「桌宠形态」，写代码的时候我也在</div></div>
+      <div class="feat"><span class="fi"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span><div><b>每天打开就有方向</b><br>我会接上前天的进度，告诉你今天 25 分钟能学完什么</div></div>
+      <div class="feat"><span class="fi"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg></span><div><b>错的我都记着</b><br>错题、没懂的知识点，我会按遗忘曲线挑最好的时机找你复习</div></div>
+      <div class="feat"><span class="fi"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 10h.01M15.5 10h.01M8.5 15c1 1.2 2.2 1.8 3.5 1.8s2.5-.6 3.5-1.8"/></svg></span><div><b>我还能住在桌面上</b><br>设置里开启「桌宠形态」，写代码的时候我也在</div></div>
     </div>
-    <button class="np-btn primary" style="width:100%;height:40px" id="welcomeGo">开始今天的学习</button>
+    <button class="np-btn primary" style="width:100%;height:38px" id="welcomeGo">开始今天的学习</button>
   </div>
 </div>
-
 
 <script>
   const h = new Date().getHours();
   const g = h < 6 ? "夜深了" : h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : h < 23 ? "晚上好" : "夜深了";
   document.getElementById("greet").textContent = `${g}，Hisakazu`;
 
-  /* ---------- 学习 / 助手 模式切换 ---------- */
-  const tabL = document.getElementById("tabLearn"), tabA = document.getElementById("tabAssist");
-  function setMode(mode) {
-    const learn = mode === "learn";
-    tabL.classList.toggle("on", learn);
-    tabA.classList.toggle("on", !learn);
-    document.getElementById("navLearn").style.display  = learn ? "" : "none";
-    document.getElementById("navAssist").style.display = learn ? "none" : "";
-    document.getElementById("stageLearn").style.display  = learn ? "" : "none";
-    document.getElementById("stageAssist").style.display = learn ? "none" : "";
-  }
-  tabL.onclick = () => setMode("learn");
-  tabA.onclick = () => setMode("assist");
-  // ?mode=assist 直达（用于截图对比）
-  if (new URLSearchParams(location.search).get("mode") === "assist") setMode("assist");
+  /* ---------- 全局状态渲染 ---------- */
+  (function renderState() {
+    if (!window.NP) return;
+    const s = NP.get();
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('mistakeCnt', s.mistakesDue);
+    set('pillCnt', s.mistakesDue);
+    set('streakNum', s.streak);
+    set('streakNum2', s.streak);
+    NP.on(ns => { set('mistakeCnt', ns.mistakesDue); set('pillCnt', ns.mistakesDue); set('streakNum', ns.streak); set('streakNum2', ns.streak); });
+  })();
 
-  /* ---------- 账号菜单（点账号）；设置是独立页面（点齿轮） ---------- */
-  const accBtn = document.getElementById("accountBtn");
-  const gearBtn = document.getElementById("gearBtn");
-  const accMenu = document.getElementById("accountMenu");
-  accBtn.addEventListener("click", e => {
+  /* ---------- 学习 / 助手 模式切换 ---------- */
+  let curMode = "learn";
+  const tabLearn = document.getElementById("tabLearn");
+  const tabAssist = document.getElementById("tabAssist");
+  const stageLearn = document.getElementById("stageLearn");
+  const stageAssist = document.getElementById("stageAssist");
+  function setMode(m) {
+    curMode = m;
+    tabLearn.classList.toggle("on", m === "learn");
+    tabAssist.classList.toggle("on", m === "assist");
+    stageLearn.style.display = m === "learn" ? "" : "none";
+    stageAssist.style.display = m === "assist" ? "" : "none";
+  }
+  tabLearn.addEventListener("click", () => setMode("learn"));
+  tabAssist.addEventListener("click", () => setMode("assist"));
+
+  /* ---------- 账号菜单 ---------- */
+  const accountBtn = document.getElementById("accountBtn");
+  const accountMenu = document.getElementById("accountMenu");
+  accountBtn.addEventListener("click", e => {
     e.stopPropagation();
-    accMenu.classList.toggle("show");
-    accBtn.classList.toggle("open");
+    accountMenu.classList.toggle("show");
+    accountBtn.classList.toggle("open");
   });
   document.addEventListener("click", e => {
-    if (!accMenu.contains(e.target)) {
-      accMenu.classList.remove("show");
-      accBtn.classList.remove("open");
-    }
+    if (!accountMenu.contains(e.target)) { accountMenu.classList.remove("show"); accountBtn.classList.remove("open"); }
   });
-  gearBtn.addEventListener("click", e => {
+  document.getElementById("gearBtn").addEventListener("click", e => {
     e.stopPropagation();
     location.href = "settings.html";
   });
-  document.querySelectorAll(".sub-item").forEach(s => s.addEventListener("click", e => {
-    e.stopPropagation();
-    document.querySelectorAll(".sub-item").forEach(x => x.classList.remove("on"));
-    s.classList.add("on");
-  }));
+  document.getElementById("btnNew").addEventListener("click", () => location.href = "chat.html");
 
-  /* ---------- 细节打磨：全站控件都要有反应 ---------- */
-  let curMode = "learn";
-  const origSetMode = setMode;
-  setMode = m => { curMode = m; origSetMode(m); };
-
-  // 模型/权限选择器：真下拉
-  function bindPick(btn, items) {
-    if (!btn) return;
-    btn.addEventListener("click", e => {
-      e.stopPropagation();
-      document.querySelectorAll(".pick-menu").forEach(m => m.remove());
-      const menu = document.createElement("div");
-      menu.className = "pick-menu";
-      const label = btn.childNodes[0].textContent.trim();
-      items.forEach(it => {
-        const d = document.createElement("div");
-        d.className = "pick-item" + (it === label ? " on" : "");
-        d.innerHTML = `${it}<svg class="ck" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>`;
-        d.onclick = ev => {
-          ev.stopPropagation();
-          btn.childNodes[0].textContent = it + " ";
-          menu.remove();
-        };
-        menu.appendChild(d);
-      });
-      document.body.appendChild(menu);
-      const r = btn.getBoundingClientRect();
-      menu.style.left = Math.min(r.left, innerWidth - menu.offsetWidth - 12) + "px";
-      menu.style.top = (r.top - menu.offsetHeight - 8) + "px";
-      setTimeout(() => document.addEventListener("click", () => menu.remove(), { once: true }));
-    });
-  }
-  document.querySelectorAll(".model-pick").forEach(b =>
-    bindPick(b, ["NekoCore Nano", "NekoCore Pro", "NekoCore Lite"]));
-  document.querySelectorAll(".perm-pick").forEach(b =>
-    bindPick(b, ["完全访问", "先问我", "只读"]));
-
-  // Agent 开关：可切换
-  document.querySelectorAll(".c-btn.on, .c-btn:not(.on)").forEach(b => {
-    if (b.textContent.includes("Agent")) {
-      b.addEventListener("click", () => b.classList.toggle("on"));
-    }
-  });
-
-  // 快捷胶囊 + 她话里的「换个话题」：点击填入输入框并聚焦
-  document.querySelectorAll(".pill[data-fill], .nl-sub[data-fill]").forEach(p => p.addEventListener("click", () => {
+  /* ---------- 快捷填充 ---------- */
+  document.querySelectorAll("[data-fill]").forEach(b => b.addEventListener("click", () => {
     const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
-    ta.value = p.dataset.fill;
+    ta.value = b.dataset.fill;
     ta.focus();
     autoGrow(ta);
   }));
 
-  // 输入框自动增高
   function autoGrow(ta) {
     ta.style.height = "auto";
     ta.style.height = Math.min(ta.scrollHeight, 140) + "px";
@@ -1003,7 +814,6 @@
   document.querySelectorAll(".composer textarea").forEach(ta =>
     ta.addEventListener("input", () => autoGrow(ta)));
 
-  // 发送：有内容就进入对应流程页（学习会话 / 任务线程）
   document.querySelectorAll(".composer").forEach(c => {
     const ta = c.querySelector("textarea");
     const go = () => {
@@ -1014,7 +824,7 @@
     ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } });
   });
 
-  // 侧栏分组：可折叠
+  /* ---------- 侧栏分组折叠 ---------- */
   document.querySelectorAll(".group-label[data-collapse]").forEach(lb => {
     lb.addEventListener("click", () => {
       lb.classList.toggle("collapsed");
@@ -1027,27 +837,16 @@
     });
   });
 
-  // 副栏选择器
-  const pickMap = {
-    kb: ["全部知识库", "操作系统", "英语", "高数"],
-    plugin: ["代码执行", "网页浏览", "文档解析", "图表绘制"],
-    project: ["无项目", "NekoPapa", "NekoPapa-WEB"],
-    plugin2: ["代码执行", "网页浏览", "文档解析", "图表绘制"],
-  };
-  document.querySelectorAll(".sub-pick").forEach(b =>
-    bindPick(b, pickMap[b.dataset.pick] || []));
-
-  // ⌘K 聚焦输入框
+  /* ---------- ⌘K 聚焦输入框 ---------- */
   document.addEventListener("keydown", e => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !e.shiftKey) {
       e.preventDefault();
       const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
       ta.focus();
     }
   });
 
-
-  // ---------- 通知中心 ----------
+  /* ---------- 通知中心 ---------- */
   const bellBtn = document.getElementById("bellBtn");
   const notifPanel = document.getElementById("notifPanel");
   bellBtn.addEventListener("click", e => {
@@ -1055,15 +854,16 @@
     notifPanel.classList.toggle("show");
   });
   document.addEventListener("click", e => {
-    if (!notifPanel.contains(e.target)) notifPanel.classList.remove("show");
+    if (!notifPanel.contains(e.target) && e.target !== bellBtn) notifPanel.classList.remove("show");
   });
   document.getElementById("readAllBtn").addEventListener("click", () => {
     document.querySelectorAll(".notif-item .unread").forEach(d => d.remove());
-    document.getElementById("bellDot").remove();
+    const bd = document.getElementById("bellDot");
+    if (bd) bd.remove();
     notifPanel.classList.remove("show");
   });
 
-  // ---------- ⌘K / 搜索 面板 ----------
+  /* ---------- ⌘P 搜索面板 ---------- */
   const palData = [
     { g: "会话", items: [
       ["操作系统 · 进程与线程", "learn-flow.html", "学习中"],
@@ -1080,6 +880,8 @@
       ["刷题：定语从句 5 道", "quiz.html", "备考"],
       ["口语对练：自我介绍", "speaking.html", "第 2 课"],
       ["她的记忆", "memory.html", "128 条"],
+      ["知识地图", "map.html", "掌握度可视化"],
+      ["她的周报", "report.html", "第 32 周"],
     ]},
     { g: "操作", items: [
       ["新对话", "chat.html", "⌘K"],
@@ -1087,6 +889,8 @@
       ["使用统计", "settings.html#sec-usage", ""],
       ["订阅管理", "subscribe.html", "Pro"],
       ["设置", "settings.html", "⌘,"],
+      ["菜单栏下拉演示", "menubar.html", "桌面原生"],
+      ["截图提问演示", "shot-ask.html", "⌘⇧2"],
     ]},
   ];
   const palMask = document.getElementById("paletteMask");
@@ -1106,7 +910,7 @@
       hits.forEach(i => {
         const el = document.createElement("div");
         el.className = "pal-item";
-        el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg><span>${i[0]}</span><span class="hint">${i[2]}</span>`;
+        el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg><span>${i[0]}</span><span class="hint">${i[2]}</span>`;
         el.addEventListener("click", () => location.href = i[1]);
         palList.appendChild(el);
       });
@@ -1119,7 +923,6 @@
   function markSel() {
     const items = [...palList.querySelectorAll(".pal-item")];
     items.forEach((el, i) => el.classList.toggle("sel", i === palSel));
-    return items;
   }
   function openPalette() {
     renderPalette();
@@ -1130,30 +933,23 @@
     palMask.classList.remove("show");
     palInput.value = "";
   }
-  document.querySelector(".side-search").addEventListener("click", openPalette);
+  document.getElementById("sideSearch").addEventListener("click", openPalette);
   palMask.addEventListener("click", e => { if (e.target === palMask) closePalette(); });
   palInput.addEventListener("input", () => renderPalette(palInput.value.trim()));
   palInput.addEventListener("keydown", e => {
     const items = [...palList.querySelectorAll(".pal-item")];
     if (e.key === "ArrowDown") { e.preventDefault(); palSel = Math.min(palSel + 1, items.length - 1); markSel(); }
     if (e.key === "ArrowUp") { e.preventDefault(); palSel = Math.max(palSel - 1, 0); markSel(); }
-    if (e.key === "Enter" && items[palSel]) {
-      const q = palInput.value.trim();
-      if (q) {
-        // 有输入：作为新问题问她
-        location.href = "chat.html";
-      }
-    }
+    if (e.key === "Enter" && items[palSel]) { location.href = "chat.html"; }
   });
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") { closePalette(); notifPanel.classList.remove("show"); welcomeMask.classList.remove("show"); }
-    // ⌘⇧K 或 ⌘P 打开搜索面板（⌘K 保持聚焦输入框）
     if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "p" || (e.shiftKey && e.key.toLowerCase() === "k"))) {
       e.preventDefault(); openPalette();
     }
   });
 
-  // ---------- 新手引导 ----------
+  /* ---------- 新手引导 ---------- */
   const welcomeMask = document.getElementById("welcomeMask");
   if (location.hash === "#welcome" || !localStorage.getItem("np-onboarded")) {
     welcomeMask.classList.add("show");
@@ -1163,19 +959,18 @@
     welcomeMask.classList.remove("show");
   });
 
-  // 会话列表：hover 浮现「⋯」菜单按钮（桌面产品标配）
+  /* ---------- 会话 hover「⋯」 ---------- */
   document.querySelectorAll(".conv").forEach(cv => {
     const more = document.createElement("button");
     more.className = "more";
     more.title = "更多操作";
-    more.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
+    more.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
     more.addEventListener("click", e => { e.stopPropagation(); });
     cv.appendChild(more);
   });
 </script>
 
-
-<!-- ============ Live2D（需要通过本地 HTTP 打开，file:// 会被浏览器拦截） ============ -->
+<!-- Live2D -->
 <script src="vendor/live2dcubismcore.min.js"></script>
 <script src="vendor/pixi.min.js"></script>
 <script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
@@ -1193,8 +988,6 @@
       { autoInteract: false }
     );
     app.stage.addChild(model);
-
-    // 适配容器：等比缩放、贴底居中
     const fit = () => {
       const w = wrap.clientWidth, h = wrap.clientHeight;
       const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
@@ -1203,21 +996,14 @@
       model.y = h - model.height;
     };
     fit(); window.addEventListener("resize", fit);
-
-    // 呼吸感：周期性播放 Idle 动作（眨眼/物理由 SDK 持续驱动）
     const idle = () => model.motion("Idle");
     idle(); setInterval(idle, 16000);
-
-    // 点她一下 → Tap 动作
     wrap.addEventListener("click", () => model.motion("Tap"));
-
-    // 目光跟随鼠标
     window.addEventListener("pointermove", e => {
       const r = canvas.getBoundingClientRect();
       model.focus(e.clientX - r.left, e.clientY - r.top);
     });
   } catch (err) {
-    // file:// 直接打开或模型缺失时静默隐藏，不影响界面
     console.warn("Live2D 未加载：", err);
     wrap.style.display = "none";
   }

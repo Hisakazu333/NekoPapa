@@ -3,311 +3,479 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NekoPapa · 她的记忆</title>
+<title>NekoPapa · 她眼中的你</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
-  :root {
-    --tPageBg:#F5F7FA; --tCardBg:#FFFFFF; --tInk1:#181C23; --tInk2:#4E5763; --tInk3:#7A8492;
-    --tBorder:#E1E7EF; --tPrimary:#E06B97; --tPrimarySoft:#F8DDE7;
-    --tDanger:#E0646E; --tSuccess:#4FAF73;
-    --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
-    --shadow-card:0 2px 10px rgba(24,28,35,0.06);
-    --font:-apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  html, body { height:100%; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
-    font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
-    display:grid; place-items:center;
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background: #EDF0F4;
+    display: grid; place-items: center;
+    color: var(--tInk1);
   }
-  button { font-family:inherit; }
+  button { font-family: inherit; }
+
   .app-window {
-    width:min(1280px,92vw); height:min(830px,88vh);
-    background:var(--surface-0); border-radius:16px;
-    border:1px solid rgba(24,28,35,.08);
-    box-shadow:0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
-    display:flex; overflow:hidden;
+    width: min(1280px, 92vw); height: min(830px, 88vh);
+    background: var(--surface-0);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.09);
+    box-shadow: var(--shadow-window);
+    display: flex; overflow: hidden;
   }
-  .sidebar { width:248px; flex-shrink:0; background:var(--surface-1);
-    border-right:1px solid var(--tBorder); display:flex; flex-direction:column; }
-  .traffic { display:flex; gap:8px; padding:14px 16px 12px; }
-  .traffic span.dot { width:12px; height:12px; border-radius:50%; }
-  .traffic .r{background:#FF5F57} .traffic .y{background:#FEBC2E} .traffic .g{background:#28C840}
-  .back-link { display:flex; align-items:center; gap:8px; margin:0 16px 12px;
-    height:36px; padding:0 12px; border-radius:var(--r-sm);
-    color:var(--tInk2); font-size:14px; text-decoration:none; }
-  .back-link:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
-  .group-label { font-size:11px; color:var(--tInk3); padding:14px 12px 6px; }
-  .side-scroll { flex:1; overflow-y:auto; padding:4px 16px 12px; }
-  .conv { display:flex; align-items:center; height:32px; padding:0 12px;
-    border-radius:var(--r-sm); font-size:14px; color:var(--tInk2); text-decoration:none; }
-  .conv:hover { background:rgba(255,255,255,.65); color:var(--tInk1); }
-  .conv.active { background:var(--tPrimarySoft); color:var(--tPrimary); font-weight:600; }
 
-  .main { flex:1; display:flex; flex-direction:column; min-width:0; overflow:hidden;
-    background:var(--surface-0); }
-  .titlebar { height:46px; flex-shrink:0; display:flex; align-items:center; padding:0 18px; }
-  .titlebar .app-title { position:absolute; left:50%; transform:translateX(-50%);
-    font-size:14px; font-weight:600; color:var(--tInk2); }
-  .titlebar .sp { flex:1; }
-  .btn-main { height:32px; padding:0 16px; border:0; border-radius:var(--r-pill);
-    background:var(--tPrimary); color:#FFF9FB; font-size:11px; font-weight:700; cursor:pointer; }
+  /* ---------- 侧栏 ---------- */
+  .sidebar {
+    width: 216px; flex-shrink: 0;
+    background: var(--surface-1);
+    border-right: 1px solid rgba(24,28,35,.06);
+    display: flex; flex-direction: column;
+  }
+  .traffic { display: flex; gap: 8px; padding: 14px 16px 10px; }
+  .traffic span { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .back {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin: 2px 0 6px 14px; height: 28px; padding: 0 10px;
+    border: 0; border-radius: 8px; background: transparent;
+    color: var(--tInk2); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    text-decoration: none; width: fit-content; transition: background .15s;
+  }
+  .back:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .side-nav { padding: 0 12px; }
+  .nav-group { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3); padding: 12px 10px 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    height: 28px; padding: 0 10px; margin: 1px 0;
+    border-radius: 8px; font-size: 12.5px; color: var(--tInk2);
+    text-decoration: none; transition: background .15s;
+  }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; }
+  .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .nav-item.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .nav-item.active svg { color: var(--tPrimary); }
 
-  .scroll { flex:1; overflow-y:auto; }
-  .scroll::-webkit-scrollbar { width:0; }
-  .inner { width:min(760px, 100% - 80px); margin:0 auto; padding:20px 0 40px; }
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .titlebar { height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .titlebar .t { font-size: 12.5px; font-weight: 600; color: var(--tInk3); }
+  .scroll { flex: 1; overflow-y: auto; }
+  .inner { max-width: 720px; margin: 0 auto; padding: 6px 32px 70px; }
 
-  .page-head { display:flex; align-items:baseline; gap:14px; margin-bottom:18px; }
-  .page-title { font-size:26px; font-weight:700; }
-  .page-sub { font-size:14px; color:var(--tInk3); }
+  .page-head { display: flex; align-items: center; gap: 10px; padding: 4px 2px 16px; }
+  .page-head h1 { font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .page-head .sub { font-size: 11px; color: var(--tInk3); }
+  .page-head .acts { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .search {
+    display: flex; align-items: center; gap: 6px;
+    height: 28px; padding: 0 10px; width: 168px;
+    background: var(--surface-2); border: 1px solid var(--tBorder); border-radius: 8px;
+    color: var(--tInk3); transition: border-color .15s, box-shadow .15s;
+  }
+  .search:focus-within { border-color: rgba(224,107,151,.5); box-shadow: 0 0 0 3px rgba(224,107,151,.12); }
+  .search input { border: 0; outline: 0; background: none; font-family: inherit; font-size: 12px; color: var(--tInk1); width: 100%; }
+  .search input::placeholder { color: var(--tInk3); }
 
-  .tabs-row { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+  /* ---------- 她的话（Hero，浅色） ---------- */
+  .her {
+    display: flex; gap: 16px; align-items: flex-start;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 14px; box-shadow: var(--shadow-sm);
+    padding: 18px 20px; margin-bottom: 22px;
+    position: relative; overflow: hidden;
+  }
+  .her::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2.5px; background: var(--tPrimary); }
+  .her .av {
+    width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center; font-size: 14px; font-weight: 700;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft);
+  }
+  .her .who { font-size: 11px; color: var(--tInk3); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+  .her .who b { color: var(--tInk2); font-weight: 600; }
+  .her .quote { font-size: 13.5px; line-height: 1.75; color: var(--tInk1); max-width: 400px; }
+  .her .quote em { font-style: normal; color: var(--tPrimary); font-weight: 600; }
+  .her .goal { margin-left: auto; flex-shrink: 0; text-align: right; padding-left: 20px; border-left: 1px solid rgba(24,28,35,.06); }
+  .her .goal .g-t { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3); }
+  .her .goal .g-v { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  .her .goal .g-d { font-size: 10.5px; color: var(--tInk3); margin-top: 3px; font-variant-numeric: tabular-nums; }
+  .her .goal .g-bar { width: 120px; height: 4px; border-radius: 999px; background: var(--surface-1); margin-top: 8px; overflow: hidden; }
+  .her .goal .g-bar i { display: block; height: 100%; width: 72%; background: var(--tPrimary); border-radius: 999px; }
 
-  /* 记忆卡 */
-  .mem { display:flex; gap:14px; background:var(--tCardBg); border:1px solid var(--tBorder);
-    border-radius:var(--r-md); box-shadow:var(--shadow-card);
-    padding:15px 18px; margin-bottom:10px;
-    transition:transform .15s ease, opacity .28s ease; }
-  .mem:hover { transform:translateY(-1px); }
-  .mem.leaving { opacity:0; transform:translateX(40px); }
-  .mem .body { flex:1; min-width:0; }
-  .mem .row1 { display:flex; align-items:center; gap:8px; margin-bottom:6px; }
-  .mem .txt { font-size:14px; font-weight:600; line-height:1.6; }
-  .mem .txt-input { width:100%; border:1px solid var(--tPrimary); border-radius:8px;
-    padding:7px 10px; font-family:inherit; font-size:14px; color:var(--tInk1);
-    outline:none; box-shadow:var(--shadow-sm); background:var(--surface-3); }
-  .mem .meta { display:flex; align-items:center; gap:12px; margin-top:8px;
-    font-size:11px; color:var(--tInk3); }
-  .mem .meta .src { display:inline-flex; align-items:center; gap:5px; }
-  .mem .acts { display:flex; flex-direction:column; align-items:flex-end; gap:6px;
-    flex-shrink:0; }
-  .mem .icons { display:flex; gap:2px; }
-  .icon-btn { width:28px; height:28px; border:0; border-radius:8px; background:transparent;
-    color:var(--tInk3); cursor:pointer; display:grid; place-items:center;
-    transition:all var(--dur-fast); }
-  .icon-btn:hover { background:var(--surface-1); color:var(--tInk1); }
-  .confirm-btn { height:26px; padding:0 12px; border:0; border-radius:var(--r-pill);
-    background:var(--tDanger); color:#FFF9FB; font-size:11px; font-weight:700;
-    cursor:pointer; white-space:nowrap; animation:pop .2s var(--ease-spring); }
-  @keyframes pop { from { transform:scale(.85); opacity:.4; } }
+  /* ---------- 确认队列 ---------- */
+  .confirm-card {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 14px 16px; margin-bottom: 26px;
+  }
+  .confirm-h { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .confirm-h .t { font-size: 12.5px; font-weight: 600; }
+  .confirm-h .d { font-size: 10.5px; color: var(--tInk3); }
+  .crow { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-top: 1px solid rgba(24,28,35,.05); }
+  .crow:first-of-type { border-top: 0; }
+  .crow .q { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.6; }
+  .crow .q .src { display: block; font-size: 10px; color: var(--tInk3); margin-top: 2px; }
+  .crow .acts { display: inline-flex; gap: 6px; flex-shrink: 0; }
+  .crow .acts button { height: 24px; padding: 0 12px; border-radius: 8px; font-size: 11px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all .15s; }
+  .crow .acts .ok { border: 0; background: var(--tInk1); color: #fff; }
+  .crow .acts .ok:hover { background: #2A303B; }
+  .crow .acts .no { border: 1px solid rgba(24,28,35,.14); background: transparent; color: var(--tInk2); }
+  .crow .acts .no:hover { border-color: var(--tInk3); color: var(--tInk1); }
 
-  /* 底部隐私卡 */
-  .privacy { display:flex; align-items:center; gap:12px; margin-top:18px;
-    background:var(--tCardBg); border:1px solid var(--tBorder);
-    border-radius:var(--r-md); box-shadow:var(--shadow-sm); padding:14px 18px; }
-  .privacy .ic { width:34px; height:34px; border-radius:var(--r-sm); flex-shrink:0;
-    background:var(--tPrimarySoft); color:var(--tPrimary); display:grid; place-items:center; }
-  .privacy .t { font-size:13px; font-weight:600; }
-  .privacy .d { font-size:11px; color:var(--tInk3); margin-top:2px; }
-  .privacy a { color:var(--tPrimary); text-decoration:none; font-weight:600; }
-  .privacy a:hover { text-decoration:underline; }
+  /* ---------- 筛选 ---------- */
+  .filter-bar { display: flex; align-items: center; gap: 8px; padding: 0 2px 16px; }
+  .filter-bar .np-seg button .n { font-size: 10px; color: var(--tInk3); margin-left: 4px; font-variant-numeric: tabular-nums; }
+  .filter-bar .np-seg button.on .n { color: var(--tInk3); }
+
+  /* ---------- 分区 ---------- */
+  .sect { margin-bottom: 22px; }
+  .sect-h { display: flex; align-items: center; gap: 7px; padding: 0 2px 8px; }
+  .sect-h .ic { width: 20px; height: 20px; border-radius: 6px; background: var(--surface-1);
+    display: grid; place-items: center; color: var(--tInk2); flex-shrink: 0; }
+  .sect-h h2 { font-size: 12.5px; font-weight: 600; }
+  .sect-h .cnt { font-size: 10.5px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .sect-h .d { font-size: 10.5px; color: var(--tInk3); margin-left: auto; }
+  .sect-list {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 2px 16px;
+  }
+  .mrow {
+    display: flex; align-items: baseline; gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(24,28,35,.05);
+    transition: opacity .3s, transform .3s;
+  }
+  .mrow:last-child { border-bottom: 0; }
+  .mrow .txt { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.65; }
+  .mrow .txt b { font-weight: 600; }
+  .mrow .txt a { color: var(--tPrimary); text-decoration: none; font-weight: 500; }
+  .mrow .txt a:hover { text-decoration: underline; }
+  .mrow .txt .st { margin-left: 6px; }
+  .mrow .meta { flex-shrink: 0; font-size: 10px; color: var(--tInk3); display: flex; align-items: center; gap: 8px; font-variant-numeric: tabular-nums; }
+  .st { font-size: 9px; font-weight: 700; padding: 1px 7px; border-radius: 999px; white-space: nowrap; }
+  .st.new { background: var(--tPrimarySoft); color: var(--tPrimary); }
+  .st.updated { background: #E3F3EA; color: var(--tSuccess); }
+  .mrow.stale { opacity: .5; }
+  .mrow.stale .txt { text-decoration: line-through; text-decoration-color: rgba(24,28,35,.4); }
+  .mrow.core { background: rgba(224,107,151,.05); margin: 0 -16px; padding-left: 16px; padding-right: 16px; border-radius: 8px; }
+  .mrow.core .pin { font-size: 9px; font-weight: 700; letter-spacing: .07em; color: var(--tPrimary); margin-right: 6px; }
+  .mrow .ops { display: none; gap: 2px; }
+  .mrow:hover .ops { display: inline-flex; }
+  .mrow .ops button { border: 0; background: transparent; color: rgba(24,28,35,.35); cursor: pointer;
+    width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; }
+  .mrow .ops button:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
+  .mrow .ops button.del:hover { color: var(--tDanger); }
+
+  /* 已更正的旧记忆（折叠） */
+  .stale-toggle {
+    display: flex; align-items: center; gap: 6px; width: 100%;
+    padding: 9px 0; border: 0; background: none; cursor: pointer;
+    font-family: inherit; font-size: 11px; color: var(--tInk3);
+    border-top: 1px solid rgba(24,28,35,.05);
+  }
+  .stale-toggle:hover { color: var(--tInk2); }
+  .stale-toggle svg { transition: transform .2s var(--ease-out); }
+  .stale-toggle.open svg { transform: rotate(90deg); }
+
+  .foot-link { display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 4px 0; font-size: 10.5px; color: var(--tInk3); }
+  .foot-link a { color: var(--tPrimary); text-decoration: none; }
+  .foot-link a:hover { text-decoration: underline; }
+
+  .hidden { display: none !important; }
 </style>
 </head>
 <body>
+
 <div class="app-window">
   <aside class="sidebar">
-    <div class="traffic"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span></div>
-    <a class="back-link" href="index.html">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>
+    <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <a class="back" href="index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
       返回首页
     </a>
-    <div class="side-scroll">
-      <div class="group-label">学习</div>
-      <a class="conv" href="plan.html">学习计划</a>
-      <a class="conv" href="mistakes.html">错题本</a>
-      <a class="conv" href="lib.html">知识库</a>
-      <div class="conv active">她的记忆</div>
-    </div>
+    <nav class="side-nav">
+      <div class="nav-group">学习</div>
+      <a class="nav-item" href="plan.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        学习计划</a>
+      <a class="nav-item" href="mistakes.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        错题本</a>
+      <a class="nav-item" href="lib.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        知识库</a>
+      <a class="nav-item" href="map.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6.7 6.4 9.8 9.7M17.4 7.4l-3.2 2.9M7.4 17.6l2.9-3.2"/></svg>
+        知识地图</a>
+      <a class="nav-item" href="report.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        她的周报</a>
+      <a class="nav-item active" href="memory.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+        她的记忆</a>
+      <div class="nav-group">互联</div>
+      <a class="nav-item" href="drop.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect x="16" y="9" width="6" height="11" rx="1.5"/></svg>
+        设备互联</a>
+    </nav>
   </aside>
 
   <section class="main">
-    <div class="titlebar">
-      <span class="app-title">她的记忆</span>
-      <span class="sp"></span>
-      <button class="btn-main" id="addBtn">＋ 添加记忆</button>
+    <div class="titlebar"><span class="t">她的记忆</span></div>
+    <div class="scroll np-scroll">
+      <div class="inner">
+
+        <div class="page-head">
+          <h1>她眼中的你</h1>
+          <span class="sub" id="totalSub"></span>
+          <div class="acts">
+            <label class="search">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+              <input id="q" placeholder="搜索记忆…">
+            </label>
+            <button class="np-btn primary" id="addBtn" style="height:28px">告诉她一件事</button>
+          </div>
+        </div>
+
+        <!-- 她的话 -->
+        <div class="her">
+          <div class="av">N</div>
+          <div>
+            <div class="who"><b>Neko</b>同桌第 142 天 · 连续学习 12 天</div>
+            <div class="quote">「我记得你不爱被叫同学，记得<em>下周三的操作系统考试</em>，也记得 <em>21:30 之后</em>不能吵你。这些我都用上了——你只管学。」</div>
+          </div>
+          <div class="goal">
+            <div class="g-t">当前目标</div>
+            <div class="g-v">操作系统 · 期末</div>
+            <div class="g-d">8 天后 · 复习进度 72%</div>
+            <div class="g-bar"><i></i></div>
+          </div>
+        </div>
+
+        <!-- 她想跟你确认 -->
+        <div class="confirm-card" id="confirmCard">
+          <div class="confirm-h">
+            <span class="np-badge amber" id="confirmCnt"></span>
+            <span class="t">她想跟你确认</span>
+            <span class="d">她观察到的，不太确定，你一句话就能纠正她</span>
+          </div>
+          <div id="confirmList"></div>
+        </div>
+
+        <!-- 筛选 -->
+        <div class="filter-bar">
+          <div class="np-seg" id="filterSeg">
+            <button data-f="all" class="on">全部</button>
+            <button data-f="pref">学习偏好</button>
+            <button data-f="prog">进度</button>
+            <button data-f="life">生活</button>
+            <button data-f="pact">约定</button>
+          </div>
+        </div>
+
+        <!-- 分组 -->
+        <div class="sect" data-g="pref">
+          <div class="sect-h">
+            <span class="ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></span>
+            <h2>你学习时的样子</h2><span class="cnt" data-cnt="pref"></span>
+            <span class="d">你的偏好，她据此调整讲法</span>
+          </div>
+          <div class="sect-list" id="list-pref"></div>
+        </div>
+
+        <div class="sect" data-g="prog">
+          <div class="sect-h">
+            <span class="ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg></span>
+            <h2>你学到哪了</h2><span class="cnt" data-cnt="prog"></span>
+            <span class="d">进度与薄弱 · 点了直接过去</span>
+          </div>
+          <div class="sect-list" id="list-prog"></div>
+        </div>
+
+        <div class="sect" data-g="life">
+          <div class="sect-h">
+            <span class="ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg></span>
+            <h2>你的生活节奏</h2><span class="cnt" data-cnt="life"></span>
+            <span class="d">她按这个安排一切</span>
+          </div>
+          <div class="sect-list" id="list-life"></div>
+        </div>
+
+        <div class="sect" data-g="pact">
+          <div class="sect-h">
+            <span class="ic"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.5-4.6-9.7-9A5.5 5.5 0 0 1 12 6.6 5.5 5.5 0 0 1 21.7 12c-2.2 4.4-9.7 9-9.7 9z"/></svg></span>
+            <h2>你们的约定</h2><span class="cnt" data-cnt="pact"></span>
+            <span class="d">说好了的，都算数</span>
+          </div>
+          <div class="sect-list" id="list-pact"></div>
+        </div>
+
+        <div class="foot-link">
+          <span>记忆只存在本机 · 她记东西前会经过你的允许</span>
+          <a href="settings.html#sec-memory">管理她的记忆习惯 →</a>
+        </div>
+
+      </div>
     </div>
-
-    <div class="scroll"><div class="inner">
-      <div class="page-head">
-        <div class="page-title">她的记忆</div>
-        <div class="page-sub">共 128 条 · 她会用这些让陪伴更贴心</div>
-      </div>
-
-      <div class="tabs-row">
-        <div class="np-seg" id="segCat">
-          <button class="on" data-v="all">全部</button>
-          <button data-v="学习偏好">学习偏好</button>
-          <button data-v="进度状态">进度状态</button>
-          <button data-v="生活细节">生活细节</button>
-          <button data-v="重要约定">重要约定</button>
-        </div>
-      </div>
-
-      <div id="list"></div>
-
-      <div class="np-empty" id="emptyBox" style="display:none">
-        <div class="ic">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
-        </div>
-        <div class="t">这个分类下还没有记忆</div>
-        <div class="d">和她多聊聊，她会慢慢记住的</div>
-      </div>
-
-      <div class="privacy">
-        <div class="ic">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-3.6 8-10V5l-8-3-8 3v7c0 6.4 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-        </div>
-        <div>
-          <div class="t">记忆只存在本机</div>
-          <div class="d">设置里可以随时让她停止记东西 · <a href="settings.html#sec-memory">去设置 →</a></div>
-        </div>
-      </div>
-    </div></div>
   </section>
 </div>
 
 <script>
-  const editSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>';
-  const trashSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 6h18M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg>';
-  const chatIco = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
-  const bookIco = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/></svg>';
+const MEMS = [
+  { g: 'pref', t: '<b>先听类比，再听定义</b>——直接给定义他会走神', m: '学习记录 · 1 周前' },
+  { g: 'pref', t: '<b>晚上 10 点后效率最高</b>，别排早晨的任务', m: '对话 · 3 天前', st: 'updated',
+    old: '他早晨效率最高，任务都排上午', oldm: '对话 · 3 个月前' },
+  { g: 'pref', t: '一道题配<b>一道变式</b>刚好，三道会烦', m: '测验 · 2 周前' },
+  { g: 'prog', t: '操作系统 · 第 4 章「<a href="learn-flow.html">进程与线程</a>」，锁还没开始', m: '学习记录 · 昨天' },
+  { g: 'prog', t: '定语从句正确率 40% → 85%，<a href="quiz.html">the only 考点</a>仍要复查', m: '测验 · 2 天前' },
+  { g: 'prog', t: '对「<a href="map.html">递归</a>」一直不透彻，要多举生活中的例子', m: '答疑 · 1 周前' },
+  { g: 'life', t: '<b>下周三考操作系统</b>，这周开始紧张了', m: '对话 · 4 天前' },
+  { g: 'life', t: '周二加班到很晚，那天不要安排重任务', m: '对话 · 5 天前' },
+  { g: 'life', t: '每晚 <b>21:30</b> 是共读时间，别打扰', m: '约定 · 2 周前' },
+  { g: 'pact', t: '错题本不许私自清空，删之前必须问他', m: '约定 · 3 周前', core: true },
+  { g: 'pact', t: '他叫 Hisakazu，不喜欢被叫「同学」，叫名字就好', m: '约定 · 很早以前' },
+];
+const PENDING = [
+  { t: '好像更喜欢<b>图文并排</b>的学习方式？', m: '她从最近 3 次答疑观察到的' },
+  { t: '周日晚上好像总在<b>赶周报</b>，要不要把周报草稿提前到周六？', m: '她从使用习惯观察到的' },
+];
+const GROUP_TOTALS = { pref: 34, prog: 41, life: 38, pact: 15 }; // 合计 128
 
-  const catBadge = { "学习偏好":"", "进度状态":"amber", "生活细节":"green", "重要约定":"red" };
+let filter = 'all', query = '';
 
-  const items = [
-    { cat:"学习偏好", txt:"晚上 10 点后学习效率最高，适合安排难题", src:"chat", time:"8月22日 · 来自对话" },
-    { cat:"进度状态", txt:"对「递归」一直理解不透彻，需要多举例子、多画调用栈", src:"book", time:"8月25日 · 来自学习记录" },
-    { cat:"重要约定", txt:"下周三考操作系统，考前三天要每天过一遍错题", src:"chat", time:"8月27日 · 来自对话" },
-    { cat:"生活细节", txt:"不喜欢被叫「同学」，直接叫名字就好", src:"chat", time:"8月18日 · 来自对话" },
-    { cat:"学习偏好", txt:"背单词喜欢先听读音再看拼写，出声读记得更牢", src:"book", time:"8月20日 · 来自学习记录" },
-    { cat:"进度状态", txt:"高数极限部分已掌握，错题集中在复合函数求导", src:"book", time:"8月26日 · 来自学习记录" },
-    { cat:"生活细节", txt:"周一晚上有社团活动，那天别排学习任务", src:"chat", time:"8月23日 · 来自对话" },
-    { cat:"重要约定", txt:"每天睡前一起读 20 页《小王子》，读完要聊感想", src:"chat", time:"8月19日 · 来自对话" },
-    { cat:"学习偏好", txt:"讲新概念时先打比方再讲定义，接受度明显更高", src:"book", time:"8月24日 · 来自学习记录" },
-  ];
+function esc(s) { return s.replace(/</g, '&lt;'); }
 
-  let curCat = "all";
-  const list = document.getElementById("list");
-  const emptyBox = document.getElementById("emptyBox");
+function rowHTML(m) {
+  const cls = ['mrow', m.core ? 'core' : '', m.stale ? 'stale' : ''].join(' ');
+  const pin = m.core ? '<span class="pin">◆ 铁律</span>' : '';
+  const st = m.st === 'updated' ? '<span class="st updated">已更新</span>'
+           : m.st === 'new' ? '<span class="st new">新记住</span>' : '';
+  const ops = `
+    <span class="ops">
+      <button class="ed" title="编辑"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M17 3a2.8 2.8 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"/></svg></button>
+      <button class="del" title="删除"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4h8v2M6 6l1 14a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-14"/></svg></button>
+    </span>`;
+  return `<div class="${cls.trim()}">
+    <span class="txt">${pin}${m.t}${st}</span>
+    <span class="meta">${m.m}${ops}</span>
+  </div>`;
+}
 
-  function render() {
-    list.innerHTML = "";
-    const shown = items.filter(it => curCat === "all" || it.cat === curCat);
-    emptyBox.style.display = shown.length ? "none" : "flex";
-    shown.forEach(it => list.appendChild(buildRow(it)));
-  }
+function render() {
+  const total = Object.values(GROUP_TOTALS).reduce((a, b) => a + b, 0) + MEMS.filter(m => m.st === 'new').length;
+  document.getElementById('totalSub').textContent = `${total} 条记忆 · 她就是这么教你的`;
 
-  function buildRow(it) {
-    const el = document.createElement("div");
-    el.className = "mem";
-    el.innerHTML = `
-      <div class="body">
-        <div class="row1"><span class="np-badge ${catBadge[it.cat] ?? "gray"}">${it.cat}</span></div>
-        <div class="txt">${it.txt}</div>
-        <div class="meta">
-          <span class="src">${it.src === "chat" ? chatIco : bookIco}${it.time}</span>
-        </div>
-      </div>
-      <div class="acts">
-        <div class="icons">
-          <button class="icon-btn edit" data-tip="编辑">${editSvg}</button>
-          <button class="icon-btn del" data-tip="删除">${trashSvg}</button>
-        </div>
-      </div>`;
-    wireRow(el, it);
-    return el;
-  }
+  ['pref', 'prog', 'life', 'pact'].forEach(g => {
+    const el = document.getElementById('list-' + g);
+    let items = MEMS.filter(m => m.g === g);
+    if (filter !== 'all' && filter !== g) items = [];
+    if (query) items = items.filter(m => m.t.replace(/<[^>]+>/g, '').includes(query));
 
-  function wireRow(el, it) {
-    const txtEl = el.querySelector(".txt");
-    const editBtn = el.querySelector(".edit");
-    const delBtn = el.querySelector(".del");
+    let html = items.map(rowHTML).join('');
 
-    // 编辑：点击变输入框，blur / Enter 保存
-    editBtn.addEventListener("click", () => {
-      if (el.querySelector(".txt-input")) return;
-      const input = document.createElement("input");
-      input.className = "txt-input";
-      input.value = it.txt;
-      txtEl.replaceWith(input);
-      input.focus(); input.select();
-      const save = () => {
-        it.txt = input.value.trim() || it.txt;
-        txtEl.textContent = it.txt;
-        input.replaceWith(txtEl);
-      };
-      input.addEventListener("blur", save);
-      input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
-    });
+    // 已更正的旧记忆（折叠）
+    const stale = MEMS.filter(m => m.g === g && m.old && (!query || m.old.includes(query)));
+    if (stale.length && (filter === 'all' || filter === g)) {
+      html += `<button class="stale-toggle" onclick="toggleStale(this,'${g}')">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg>
+        ${stale.length} 条已被更正的旧记忆</button>
+      <div class="stale-box hidden" data-g="${g}">` +
+        stale.map(m => `<div class="mrow stale"><span class="txt">${m.old}</span><span class="meta">${m.oldm} · 已被更新</span></div>`).join('') +
+      `</div>`;
+    }
 
-    // 删除：先变「确认删除？」3 秒不点恢复
-    let timer = null;
-    const doDelete = () => {
-      clearTimeout(timer);
-      el.classList.add("leaving");
-      setTimeout(() => {
-        items.splice(items.indexOf(it), 1);
-        el.remove(); checkEmpty();
-      }, 280);
-    };
-    delBtn.addEventListener("click", () => {
-      if (delBtn.dataset.armed === "1") return;
-      delBtn.dataset.armed = "1";
-      const confirm = document.createElement("button");
-      confirm.className = "confirm-btn";
-      confirm.textContent = "确认删除？";
-      delBtn.replaceWith(confirm);
-      const restore = () => {
-        delBtn.dataset.armed = "";
-        confirm.replaceWith(delBtn);
-      };
-      confirm.addEventListener("click", doDelete, { once:true });
-      timer = setTimeout(restore, 3000);
-    });
-  }
-
-  function checkEmpty() {
-    emptyBox.style.display = list.children.length ? "none" : "flex";
-  }
-
-  document.getElementById("segCat").addEventListener("click", e => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    e.currentTarget.querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
-    curCat = b.dataset.v;
-    render();
+    el.innerHTML = html;
+    const sect = el.closest('.sect');
+    sect.classList.toggle('hidden', !items.length && !stale.length);
+    document.querySelector(`[data-cnt="${g}"]`).textContent = `显示 ${items.length} / ${GROUP_TOTALS[g]} 条`;
   });
 
-  // 顶部「添加记忆」：列表顶部插入编辑态新行
-  document.getElementById("addBtn").addEventListener("click", () => {
-    const it = { cat: curCat === "all" ? "生活细节" : curCat, txt: "", src: "chat",
-      time: "刚刚 · 手动添加" };
-    items.unshift(it);
-    const el = buildRow(it);
-    list.prepend(el);
-    emptyBox.style.display = "none";
-    el.scrollIntoView({ block:"nearest", behavior:"smooth" });
-    // 直接进入编辑态
-    const txtEl = el.querySelector(".txt");
-    const input = document.createElement("input");
-    input.className = "txt-input";
-    input.placeholder = "告诉她要记住什么，比如：周三下午没课";
-    txtEl.replaceWith(input);
-    input.focus();
-    const save = () => {
-      it.txt = input.value.trim() || "一条还没写完的记忆";
-      txtEl.textContent = it.txt;
-      input.replaceWith(txtEl);
-    };
-    input.addEventListener("blur", save);
-    input.addEventListener("keydown", e => { if (e.key === "Enter") input.blur(); });
-  });
+  // 确认队列
+  const cc = document.getElementById('confirmCard');
+  if (!PENDING.length) { cc.classList.add('hidden'); }
+  else {
+    cc.classList.remove('hidden');
+    document.getElementById('confirmCnt').textContent = `${PENDING.length} 条待确认`;
+    document.getElementById('confirmList').innerHTML = PENDING.map((p, i) => `
+      <div class="crow">
+        <span class="q">${p.t}<span class="src">${p.m}</span></span>
+        <span class="acts">
+          <button class="ok" onclick="confirmMem(${i}, this)">对，记住</button>
+          <button class="no" onclick="dismissMem(${i}, this)">不对</button>
+        </span>
+      </div>`).join('');
+  }
 
+  bindOps();
+}
+
+function toggleStale(btn, g) {
+  btn.classList.toggle('open');
+  btn.nextElementSibling.classList.toggle('hidden');
+}
+
+function confirmMem(i, btn) {
+  const p = PENDING.splice(i, 1)[0];
+  MEMS.unshift({ g: 'pref', t: p.t.replace('？', ''), m: '你确认的 · 刚刚', st: 'new' });
   render();
+}
+function dismissMem(i, btn) {
+  const row = btn.closest('.crow');
+  row.style.cssText = 'opacity:0;transform:translateX(20px);transition:all .3s';
+  setTimeout(() => { PENDING.splice(i, 1); render(); }, 280);
+}
+
+function bindOps() {
+  document.querySelectorAll('.mrow').forEach(row => {
+    const ed = row.querySelector('.ed'), del = row.querySelector('.del');
+    if (!ed) return;
+    const txt = row.querySelector('.txt');
+    ed.addEventListener('click', () => {
+      const old = txt.textContent;
+      const nt = prompt('编辑这条记忆', old);
+      if (nt && nt.trim()) txt.textContent = nt.trim();
+    });
+    del.addEventListener('click', () => {
+      if (row.dataset.confirm) {
+        row.style.cssText = 'opacity:0;transform:translateX(20px);transition:all .3s';
+        setTimeout(() => row.remove(), 300);
+        return;
+      }
+      row.dataset.confirm = '1';
+      row.dataset.old = txt.innerHTML;
+      txt.innerHTML = '<span style="color:var(--tDanger)">确认删除这条记忆？再点一次删除</span>';
+      setTimeout(() => {
+        if (row.dataset.confirm) { delete row.dataset.confirm; txt.innerHTML = row.dataset.old; }
+      }, 3000);
+    });
+  });
+}
+
+document.getElementById('filterSeg').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  document.querySelectorAll('#filterSeg button').forEach(x => x.classList.toggle('on', x === b));
+  filter = b.dataset.f;
+  render();
+});
+document.getElementById('q').addEventListener('input', e => { query = e.target.value.trim(); render(); });
+
+document.getElementById('addBtn').addEventListener('click', () => {
+  const t = prompt('告诉她一件要记住的事：');
+  if (!t || !t.trim()) return;
+  MEMS.unshift({ g: 'life', t: esc(t.trim()), m: '你刚告诉她的 · 刚刚', st: 'new' });
+  filter = 'all'; query = ''; document.getElementById('q').value = '';
+  document.querySelectorAll('#filterSeg button').forEach(x => x.classList.toggle('on', x.dataset.f === 'all'));
+  render();
+  document.getElementById('list-life').scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+
+render();
 </script>
+<script src="assets/np-her.js"></script>
 </body>
 </html>

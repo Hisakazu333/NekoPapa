@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 截图提问</title>
+<link rel="stylesheet" href="assets/proto.css">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font); overflow: hidden;
+    -webkit-font-smoothing: antialiased;
+    background: #E9EDF2;
+  }
+
+  /* ---------- 假的学习资料窗口 ---------- */
+  .doc-win {
+    position: fixed; left: 90px; top: 92px; width: 580px;
+    background: var(--surface-2);
+    border: 1px solid var(--tBorder); border-radius: var(--r-md);
+    box-shadow: var(--shadow-window);
+    overflow: hidden;
+  }
+  .doc-bar {
+    display: flex; align-items: center; gap: 8px;
+    height: 38px; padding: 0 14px;
+    background: var(--surface-1); border-bottom: 1px solid var(--tBorder);
+  }
+  .doc-bar .tl { width: 11px; height: 11px; border-radius: 50%; }
+  .doc-bar .tl:nth-child(1) { background: #F0695F; }
+  .doc-bar .tl:nth-child(2) { background: #F0BC4E; }
+  .doc-bar .tl:nth-child(3) { background: #62C554; }
+  .doc-bar .tt { margin-left: 8px; font-size: 12px; font-weight: 600; color: var(--tInk2); }
+  .doc-body { padding: 22px 26px 26px; }
+  .doc-h { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--tInk3); margin-bottom: 12px; }
+  .doc-prev { font-size: 13px; color: var(--tInk3); line-height: 1.8; margin-bottom: 16px;
+    padding-bottom: 14px; border-bottom: 1px dashed var(--tBorder); }
+  .q-box { padding: 14px 16px; border-radius: var(--r-sm); background: var(--surface-0); }
+  .q-text { font-size: 15px; line-height: 1.9; color: var(--tInk1); font-weight: 500; }
+  .q-text .blank { color: var(--tPrimary); font-weight: 700; letter-spacing: .1em; }
+  .q-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-top: 12px; }
+  .q-opts span { font-size: 13.5px; color: var(--tInk2); }
+  .q-opts b { color: var(--tInk1); margin-right: 4px; }
+
+  /* ---------- 框选模式 ---------- */
+  .dim {
+    position: fixed; inset: 0; z-index: 40;
+    background: rgba(16, 20, 28, .52);
+    cursor: crosshair;
+    opacity: 0; pointer-events: none;
+    transition: opacity .4s ease;
+  }
+  .dim.on { opacity: 1; pointer-events: auto; }
+  .dim .hint {
+    position: absolute; top: 26px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 8px;
+    background: rgba(24,28,35,.78); color: #fff;
+    border-radius: var(--r-pill); padding: 8px 18px;
+    font-size: 12.5px; font-weight: 500; letter-spacing: .02em;
+    backdrop-filter: blur(8px);
+  }
+  .dim .hint .np-kbd { background: rgba(255,255,255,.14); border-color: rgba(255,255,255,.25); color: #fff; }
+  .sel {
+    position: absolute; left: 0; top: 0; width: 0; height: 0;
+    border: 2px dashed var(--tPrimary); border-radius: 8px;
+    background: rgba(224,107,151,.10);
+    box-shadow: 0 0 0 4px rgba(224,107,151,.12), 0 0 24px rgba(224,107,151,.35);
+    opacity: 0;
+  }
+  .sel.run { opacity: 1; transition: left 1.2s var(--ease-out), top 1.2s var(--ease-out),
+    width 1.2s var(--ease-out), height 1.2s var(--ease-out); }
+  .sel .tag {
+    position: absolute; right: -2px; bottom: -30px;
+    background: var(--tPrimary); color: #FFF9FB;
+    font-size: 11px; font-weight: 600;
+    border-radius: var(--r-pill); padding: 3px 10px; white-space: nowrap;
+  }
+
+  /* ---------- 她的分析面板 ---------- */
+  .ask-panel {
+    position: fixed; top: 20px; right: 20px; width: 380px; z-index: 30;
+    background: var(--surface-2);
+    border: 1px solid var(--tBorder); border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 18px 18px 16px;
+    transform: translateX(calc(100% + 40px));
+    transition: transform .55s var(--ease-out);
+  }
+  .ask-panel.in { transform: translateX(0); }
+  .ap-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+  .ap-head img { width: 34px; height: 34px; border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--tPrimarySoft); }
+  .ap-head .who { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: var(--tPrimary); }
+  .ap-head .say { font-size: 15px; font-weight: 700; color: var(--tInk1); margin-top: 1px; }
+
+  .shot-prev {
+    background: var(--surface-1); border: 1px solid var(--tBorder);
+    border-radius: var(--r-sm); padding: 12px 14px; margin-bottom: 14px;
+    position: relative; overflow: hidden;
+  }
+  .shot-prev::before { content: ""; position: absolute; inset: 4px;
+    border: 1.5px dashed var(--tPrimary); border-radius: 6px; opacity: .5; pointer-events: none; }
+  .shot-prev .t { font-size: 12.5px; line-height: 1.7; color: var(--tInk1); font-weight: 500; }
+  .shot-prev .t .blank { color: var(--tPrimary); font-weight: 700; }
+  .shot-prev .o { display: flex; gap: 14px; margin-top: 6px; font-size: 11.5px; color: var(--tInk3); }
+
+  .ap-ana .lab { font-size: 11px; font-weight: 700; letter-spacing: .1em; color: var(--tInk3); margin-bottom: 8px; }
+  .ap-ana .ans { margin-bottom: 8px; }
+  .ap-ana p { font-size: 13.5px; line-height: 1.8; color: var(--tInk1); }
+  .ap-ana p b { color: var(--tPrimary); }
+  .ap-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 10px;
+    font-size: 12.5px; font-weight: 600; color: var(--tPrimary); text-decoration: none; }
+  .ap-more:hover { text-decoration: underline; }
+
+  .ap-acts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 16px; }
+  .ap-acts .np-btn { width: 100%; height: 36px; font-size: 12.5px; }
+  .ap-acts .np-btn.done {
+    background: #F0F9F4; border: 1px solid var(--tSuccess); color: var(--tSuccess);
+    pointer-events: none;
+  }
+  .ap-close { display: block; width: 100%; margin-top: 10px; padding: 6px 0;
+    border: 0; background: transparent; font-family: inherit;
+    font-size: 12px; color: var(--tInk3); cursor: pointer; border-radius: var(--r-sm);
+    transition: all var(--dur-fast); }
+  .ap-close:hover { background: var(--surface-1); color: var(--tInk1); }
+
+  /* ---------- 原型说明 / 重放 ---------- */
+  .proto-tag {
+    position: fixed; left: 20px; bottom: 16px;
+    font-size: 11px; color: var(--tInk3); letter-spacing: .06em;
+    background: rgba(255,255,255,.65); backdrop-filter: blur(10px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-pill);
+    padding: 6px 14px; z-index: 5;
+  }
+  .replay {
+    position: fixed; left: 20px; bottom: 52px; z-index: 5;
+    height: 30px; padding: 0 14px; font-size: 11.5px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+
+  /* ---------- 桌宠 ---------- */
+  .pet { position: fixed; right: 24px; bottom: 0; width: 210px; height: 336px;
+    cursor: pointer; z-index: 35; }
+  .pet canvas { width: 100%; height: 100%; display: block; }
+
+  .bubble {
+    position: fixed; right: 190px; bottom: 300px; width: 230px;
+    background: rgba(255,255,255,.85); backdrop-filter: blur(18px);
+    border: 1px solid var(--tBorder); border-radius: var(--r-lg) var(--r-lg) 4px var(--r-lg);
+    box-shadow: var(--shadow-md); padding: 12px 14px;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity .4s ease, transform .4s ease;
+    z-index: 36;
+  }
+  .bubble.show { opacity: 1; transform: translateY(0); }
+  .bubble .who { font-size: 11px; font-weight: 700; letter-spacing: .14em;
+    color: var(--tPrimary); margin-bottom: 4px; }
+  .bubble .line { font-size: 13px; line-height: 1.7; color: var(--tInk1); }
+</style>
+</head>
+<body>
+
+  <!-- 桌面上的学习资料窗口 -->
+  <div class="doc-win">
+    <div class="doc-bar">
+      <span class="tl"></span><span class="tl"></span><span class="tl"></span>
+      <span class="tt">Grammar Practice · Unit 5 定语从句</span>
+    </div>
+    <div class="doc-body">
+      <div class="doc-h">SECTION A · 单项选择</div>
+      <div class="doc-prev">1. The girl ______ is singing on the stage is my deskmate.　（已批改 ✓）</div>
+      <div class="q-box" id="qbox">
+        <p class="q-text">2. This is the only book <span class="blank">____</span> I bought last year.</p>
+        <div class="q-opts">
+          <span><b>A.</b> who</span><span><b>B.</b> which</span>
+          <span><b>C.</b> that</span><span><b>D.</b> whom</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 框选模式：暗罩 + 虚线选框 -->
+  <div class="dim" id="dim">
+    <div class="hint">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="7"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+      拖拽框选要问她 <span class="np-kbd">Esc 取消</span>
+    </div>
+    <div class="sel" id="sel"><span class="tag">问她这道题</span></div>
+  </div>
+
+  <!-- 她的分析面板 -->
+  <div class="ask-panel" id="panel">
+    <div class="ap-head">
+      <img src="assets/icon.png" alt="">
+      <div>
+        <div class="who">NEKO</div>
+        <div class="say">看到了，这道题</div>
+      </div>
+    </div>
+
+    <div class="shot-prev">
+      <p class="t">This is the only book <span class="blank">____</span> I bought last year.</p>
+      <div class="o"><span>A. who</span><span>B. which</span><span>C. that</span><span>D. whom</span></div>
+    </div>
+
+    <div class="ap-ana">
+      <div class="lab">她的分析</div>
+      <div class="ans"><span class="np-badge">答案 C · that</span></div>
+      <p>考点：先行词被 <b>the only</b> 修饰时，关系代词只能用 <b>that</b>，不能用 which。</p>
+      <a class="ap-more" href="chat.html">展开详细讲解 →</a>
+    </div>
+
+    <div class="ap-acts">
+      <button class="np-btn ghost" id="saveBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        收进错题本
+      </button>
+      <button class="np-btn ghost" id="planBtn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18M12 13v4M10 15h4"/></svg>
+        排进学习计划
+      </button>
+    </div>
+    <button class="ap-close" id="closeBtn">关闭</button>
+  </div>
+
+  <button class="np-btn ghost replay" id="replayBtn">
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg>
+    重新演示
+  </button>
+  <div class="proto-tag">截图提问原型 · ⌘⇧2 唤起 · 框选后她直接分析</div>
+
+  <!-- 桌宠 -->
+  <div class="pet" id="pet"><canvas id="live2d"></canvas></div>
+  <div class="bubble" id="bubble">
+    <div class="who">NEKO</div>
+    <div class="line" id="line">框选任何看不懂的地方，我来讲～</div>
+  </div>
+
+<script src="vendor/live2dcubismcore.min.js"></script>
+<script src="vendor/pixi.min.js"></script>
+<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
+<script>
+  const dim = document.getElementById("dim");
+  const sel = document.getElementById("sel");
+  const panel = document.getElementById("panel");
+  const saveBtn = document.getElementById("saveBtn");
+  const planBtn = document.getElementById("planBtn");
+  let timers = [];
+  let petModel = null;
+
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+
+  // ---------- 快捷操作的状态切换 ----------
+  const markDone = (btn, text) => {
+    btn.classList.add("done");
+    btn.textContent = text;
+  };
+  saveBtn.addEventListener("click", () => markDone(saveBtn, "✓ 已收进"));
+  planBtn.addEventListener("click", () => markDone(planBtn, "✓ 已加入"));
+  document.getElementById("closeBtn").addEventListener("click", () => panel.classList.remove("in"));
+
+  const resetBtns = () => {
+    saveBtn.classList.remove("done");
+    saveBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> 收进错题本`;
+    planBtn.classList.remove("done");
+    planBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 2v4M16 2v4M3 9h18M12 13v4M10 15h4"/></svg> 排进学习计划`;
+  };
+
+  // ---------- 演示流程 ----------
+  function runDemo() {
+    timers.forEach(clearTimeout); timers = [];
+    resetBtns();
+    panel.classList.remove("in");
+    dim.classList.remove("on");
+    sel.classList.remove("run");
+    sel.style.cssText = "";
+
+    // 1s 后进入框选模式
+    later(() => {
+      dim.classList.add("on");
+      const r = document.getElementById("qbox").getBoundingClientRect();
+      const pad = 10;
+      // 起点：题干左上角的一个小点
+      sel.style.left = (r.left - pad) + "px";
+      sel.style.top = (r.top - pad) + "px";
+      sel.style.width = "8px"; sel.style.height = "8px";
+      sel.classList.add("run");
+      // 下一帧扩大到整个题目区域（1.2s 框选动画）
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        sel.style.width = (r.width + pad * 2) + "px";
+        sel.style.height = (r.height + pad * 2) + "px";
+      }));
+    }, 1000);
+
+    // 框选完成：暗罩退出
+    later(() => dim.classList.remove("on"), 2550);
+    // 她的分析面板从右侧滑入
+    later(() => {
+      panel.classList.add("in");
+      if (petModel) petModel.motion("Tap");
+      say("这道是 the only 的经典考法，我讲重点～");
+    }, 2900);
+  }
+
+  document.getElementById("replayBtn").addEventListener("click", runDemo);
+  document.addEventListener("keydown", e => {
+    if (e.key === "Escape") dim.classList.remove("on");
+  });
+
+  function say(text) {
+    document.getElementById("line").textContent = text;
+    const b = document.getElementById("bubble");
+    b.classList.add("show");
+    clearTimeout(b._t); b._t = setTimeout(() => b.classList.remove("show"), 3000);
+  }
+
+  // ---------- Live2D 桌宠 ----------
+  const petLines = ["框选任何看不懂的地方，我来讲～", "截图提问超快的，⌘⇧2 记住哦。", "欸？想我啦？"];
+  let li = 0;
+  (async () => {
+    const wrap = document.getElementById("pet");
+    try {
+      const canvas = document.getElementById("live2d");
+      const app = new PIXI.Application({ view: canvas, transparent: true, autoStart: true,
+        resizeTo: wrap, resolution: window.devicePixelRatio || 1, autoDensity: true });
+      const model = await PIXI.live2d.Live2DModel.from(
+        "../../assets/live2d/hiyori/hiyori_pro_t11.model3.json", { autoInteract: false });
+      petModel = model;
+      app.stage.addChild(model);
+      const fit = () => {
+        const w = wrap.clientWidth, h = wrap.clientHeight;
+        const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
+        model.scale.set(s);
+        model.x = (w - model.width) / 2; model.y = h - model.height;
+      };
+      fit(); window.addEventListener("resize", fit);
+      const idle = () => model.motion("Idle");
+      idle(); setInterval(idle, 14000);
+      wrap.addEventListener("click", () => {
+        model.motion("Tap");
+        say(petLines[li++ % petLines.length]);
+      });
+      window.addEventListener("pointermove", e => {
+        const r = canvas.getBoundingClientRect();
+        model.focus(e.clientX - r.left, e.clientY - r.top);
+      });
+    } catch (err) {
+      console.warn("Live2D 未加载：", err);
+      wrap.style.display = "none";
+    }
+  })();
+
+  // 自动播放
+  runDemo();
+</script>
+</body>
+</html>

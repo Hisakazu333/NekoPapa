@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 专注模式</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
 <style>
   :root {
     --tPageBg:#F5F7FA; --tCardBg:#FFFFFF; --tInk1:#181C23; --tInk2:#4E5763; --tInk3:#7A8492;
@@ -17,10 +18,7 @@
   html, body { height:100%; }
   body {
     font-family:var(--font); overflow:hidden; -webkit-font-smoothing:antialiased;
-    background:
-      radial-gradient(900px 600px at 12% -10%, rgba(224,107,151,.14), transparent 60%),
-      radial-gradient(1000px 700px at 105% 110%, rgba(122,132,146,.16), transparent 60%),
-      linear-gradient(150deg, #FBF7F9 0%, #EFF2F8 55%, #F6F4F2 100%);
+    background: #EDF0F4;
     display:grid; place-items:center;
   }
   button { font-family:inherit; }
@@ -43,7 +41,7 @@
     position:relative; }
   .stage::before { content:""; position:absolute; left:50%; top:50%;
     width:560px; height:460px; transform:translate(-50%,-54%);
-    background:radial-gradient(closest-side, rgba(224,107,151,.14), rgba(224,107,151,.05) 55%, transparent 72%);
+    
     pointer-events:none; }
   .stage > * { position:relative; z-index:1; }
   .f-goal { font-size:14px; color:var(--tInk3); letter-spacing:.1em; margin-bottom:14px; }
@@ -54,7 +52,7 @@
     background:var(--surface-1); overflow:hidden; margin:26px 0 30px;
     box-shadow:inset 0 1px 2px rgba(24,28,35,.05); }
   .f-ring i { display:block; height:100%; width:35%;
-    background:linear-gradient(90deg, var(--tPrimarySoft), var(--tPrimary));
+    background:var(--tPrimary);
     border-radius:var(--r-pill); transition:width 1s linear; }
   .f-actions { display:flex; gap:12px; }
   .f-btn { height:40px; padding:0 24px; border-radius:var(--r-pill);
@@ -155,5 +153,6 @@
     } catch (err) { console.warn("Live2D 未加载：", err); wrap.style.display = "none"; document.getElementById("buddySay").style.display = "none"; }
   })();
 </script>
+<script src="assets/np-her.js"></script>
 </body>
 </html>

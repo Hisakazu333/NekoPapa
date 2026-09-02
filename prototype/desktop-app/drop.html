@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NekoPapa · 设备互联</title>
+<link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-state.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+    background: #EDF0F4;
+    display: grid; place-items: center;
+    color: var(--tInk1);
+  }
+  button { font-family: inherit; }
+
+  .app-window {
+    width: min(1280px, 92vw); height: min(830px, 88vh);
+    background: var(--surface-0);
+    border-radius: 16px; border: 1px solid rgba(24,28,35,.09);
+    box-shadow: var(--shadow-window);
+    display: flex; overflow: hidden;
+  }
+
+  /* ---------- 侧栏 ---------- */
+  .sidebar {
+    width: 216px; flex-shrink: 0;
+    background: var(--surface-1);
+    border-right: 1px solid rgba(24,28,35,.06);
+    display: flex; flex-direction: column;
+  }
+  .traffic { display: flex; gap: 8px; padding: 14px 16px 10px; }
+  .traffic span { width: 12px; height: 12px; border-radius: 50%; }
+  .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .back {
+    display: inline-flex; align-items: center; gap: 5px;
+    margin: 2px 0 6px 14px; height: 28px; padding: 0 10px;
+    border: 0; border-radius: 8px; background: transparent;
+    color: var(--tInk2); font-size: 12.5px; font-weight: 500; cursor: pointer;
+    text-decoration: none; width: fit-content; transition: background .15s;
+  }
+  .back:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .side-nav { padding: 0 12px; }
+  .nav-group { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3); padding: 12px 10px 4px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 8px;
+    height: 28px; padding: 0 10px; margin: 1px 0;
+    border-radius: 8px; font-size: 12.5px; color: var(--tInk2);
+    text-decoration: none; transition: background .15s;
+  }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; }
+  .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
+  .nav-item.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .nav-item.active svg { color: var(--tPrimary); }
+
+  /* ---------- 主区 ---------- */
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  .titlebar { height: 42px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+  .titlebar .t { font-size: 12.5px; font-weight: 600; color: var(--tInk3); }
+  .scroll { flex: 1; overflow-y: auto; }
+  .inner { max-width: 720px; margin: 0 auto; padding: 6px 32px 70px; }
+
+  .page-head { display: flex; align-items: center; gap: 10px; padding: 4px 2px 16px; }
+  .page-head h1 { font-size: 19px; font-weight: 600; letter-spacing: -.02em; }
+  .page-head .sub { font-size: 11px; color: var(--tInk3); }
+  .page-head .acts { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+  /* ---------- 她的提议 ---------- */
+  .her {
+    display: flex; gap: 14px; align-items: center;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 14px 16px; margin-bottom: 24px;
+    position: relative; overflow: hidden;
+  }
+  .her::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 2.5px; background: var(--tPrimary); }
+  .her .av {
+    width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0;
+    background: var(--tPrimarySoft); color: var(--tPrimary);
+    display: grid; place-items: center; font-size: 13px; font-weight: 700;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft);
+  }
+  .her .q { flex: 1; font-size: 12.5px; line-height: 1.65; color: var(--tInk1); }
+  .her .q em { font-style: normal; color: var(--tPrimary); font-weight: 600; }
+  .her .acts { display: inline-flex; gap: 6px; flex-shrink: 0; }
+
+  /* ---------- 分区 ---------- */
+  .sect { margin-bottom: 22px; }
+  .sect-h { display: flex; align-items: baseline; gap: 8px; padding: 0 2px 8px; }
+  .sect-h h2 { font-size: 12.5px; font-weight: 600; }
+  .sect-h .d { font-size: 10.5px; color: var(--tInk3); }
+  .sect-h .right { margin-left: auto; font-size: 10.5px; color: var(--tInk3); display: flex; align-items: center; gap: 6px; }
+  .card {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 2px 16px;
+  }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-bottom: 1px solid rgba(24,28,35,.05); }
+  .row:last-child { border-bottom: 0; }
+  .row .ic {
+    width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    background: var(--surface-1); color: var(--tInk2);
+    display: grid; place-items: center;
+  }
+  .row .bd { flex: 1; min-width: 0; }
+  .row .t { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; gap: 7px; }
+  .row .d { font-size: 10.5px; color: var(--tInk3); margin-top: 2px; font-variant-numeric: tabular-nums; }
+  .row .side { flex-shrink: 0; display: flex; align-items: center; gap: 8px; }
+
+  /* 设备状态点 */
+  .st-dot { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 600; }
+  .st-dot::before { content: ""; width: 6px; height: 6px; border-radius: 50%; }
+  .st-dot.on { color: var(--tSuccess); } .st-dot.on::before { background: var(--tSuccess); }
+  .st-dot.off { color: var(--tInk3); } .st-dot.off::before { background: rgba(24,28,35,.25); }
+
+  /* 传输进度 */
+  .prog { width: 130px; }
+  .prog .bar { height: 4px; border-radius: 999px; background: var(--surface-1); overflow: hidden; }
+  .prog .bar i { display: block; height: 100%; background: var(--tInk1); border-radius: 999px; transition: width .3s linear; }
+  .prog .pct { font-size: 10px; color: var(--tInk3); margin-top: 4px; font-variant-numeric: tabular-nums; }
+
+  /* 安全标签 */
+  .sec-tag { display: inline-flex; align-items: center; gap: 4px; font-size: 9.5px; font-weight: 600;
+    color: var(--tInk3); }
+  .sec-tag.enc { color: var(--tSuccess); }
+
+  .foot-note {
+    display: flex; gap: 8px; align-items: flex-start;
+    padding: 12px 14px; border-radius: 10px;
+    background: var(--surface-1); font-size: 10.5px; color: var(--tInk2); line-height: 1.7;
+  }
+  .foot-note svg { flex-shrink: 0; margin-top: 2px; color: var(--tInk3); }
+  .foot-link { display: flex; justify-content: flex-end; padding: 8px 4px 0; font-size: 10.5px; }
+  .foot-link a { color: var(--tPrimary); text-decoration: none; }
+  .foot-link a:hover { text-decoration: underline; }
+
+  /* toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%) translateY(10px);
+    background: var(--tInk1); color: #fff; font-size: 12px; font-weight: 500;
+    padding: 8px 16px; border-radius: 9px; box-shadow: var(--shadow-lg);
+    opacity: 0; pointer-events: none; transition: all .25s var(--ease-out); z-index: 100;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="app-window">
+  <aside class="sidebar">
+    <div class="traffic"><span class="r"></span><span class="y"></span><span class="g"></span></div>
+    <a class="back" href="index.html">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+      返回首页
+    </a>
+    <nav class="side-nav">
+      <div class="nav-group">学习</div>
+      <a class="nav-item" href="plan.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+        学习计划</a>
+      <a class="nav-item" href="mistakes.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+        错题本</a>
+      <a class="nav-item" href="lib.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+        知识库</a>
+      <a class="nav-item" href="map.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="6" cy="19" r="2"/><path d="M6.7 6.4 9.8 9.7M17.4 7.4l-3.2 2.9M7.4 17.6l2.9-3.2"/></svg>
+        知识地图</a>
+      <a class="nav-item" href="report.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+        她的周报</a>
+      <a class="nav-item" href="memory.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
+        她的记忆</a>
+      <div class="nav-group">互联</div>
+      <a class="nav-item active" href="drop.html">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect x="16" y="9" width="6" height="11" rx="1.5"/></svg>
+        设备互联</a>
+    </nav>
+  </aside>
+
+  <section class="main">
+    <div class="titlebar"><span class="t">设备互联</span></div>
+    <div class="scroll np-scroll">
+      <div class="inner">
+
+        <div class="page-head">
+          <h1>设备互联</h1>
+          <span class="sub">由 NekoDrop 提供 · 本地直连，不经过云端</span>
+          <div class="acts">
+            <button class="np-btn ghost" style="height:28px" onclick="toast('连接码 ND-8241-3367，10 分钟内有效')">用连接码添加</button>
+          </div>
+        </div>
+
+        <!-- 她的提议 -->
+        <div class="her" id="herOffer">
+          <div class="av">N</div>
+          <div class="q">你的<em>台式机就在旁边</em>。要不要我把这周整理好的「错题本 · 23 道」打包发过去？那边打开就能接着复习。</div>
+          <div class="acts">
+            <button class="np-btn primary" style="height:26px;font-size:11.5px" onclick="herSend(this)">好，发过去</button>
+            <button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="document.getElementById('herOffer').style.display='none'">不用了</button>
+          </div>
+        </div>
+
+        <!-- 附近设备 -->
+        <div class="sect">
+          <div class="sect-h">
+            <h2>附近设备</h2><span class="d">同一网络自动发现</span>
+            <span class="right"><span class="np-dot pink"></span>搜索中</span>
+          </div>
+          <div class="card">
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+              <div class="bd">
+                <div class="t">MacBook Pro <span class="np-badge gray">本机</span></div>
+                <div class="d">macOS 15 · NekoPapa 0.9.2</div>
+              </div>
+              <div class="side"><span class="st-dot on">在线</span></div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+              <div class="bd">
+                <div class="t">台式机 · Windows 11</div>
+                <div class="d">已配对 · 可信设备 · 自动接收已开启</div>
+              </div>
+              <div class="side">
+                <span class="st-dot on">在线</span>
+                <button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="toast('请选择要发送的资料包')">发送…</button>
+              </div>
+            </div>
+            <div class="row" id="ipadRow">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="5" y="2.5" width="14" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg></span>
+              <div class="bd">
+                <div class="t">iPad Air</div>
+                <div class="d">发现于 2 分钟前 · 未配对</div>
+              </div>
+              <div class="side">
+                <span class="st-dot off">未配对</span>
+                <button class="np-btn primary" style="height:26px;font-size:11.5px" id="pairBtn" onclick="pair(this)">配对</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 快捷发送 -->
+        <div class="sect">
+          <div class="sect-h">
+            <h2>把学习资料发到别的设备</h2><span class="d">她帮你打包好，对方确认后才写入</span>
+          </div>
+          <div class="card">
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
+              <div class="bd">
+                <div class="t">错题本资料包</div>
+                <div class="d">23 道待复习 · 含掌握度与复习计划 · 约 2.1 MB</div>
+              </div>
+              <div class="side"><button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="sendPkg(this,'错题本资料包')">发送</button></div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg></span>
+              <div class="bd">
+                <div class="t">操作系统 · 第 4 章.pdf</div>
+                <div class="d">知识库文档 · 含学习路径与测验 · 18.4 MB</div>
+              </div>
+              <div class="side"><button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="sendPkg(this,'操作系统·第4章')">发送</button></div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg></span>
+              <div class="bd">
+                <div class="t">她的形象与声音</div>
+                <div class="d">Live2D 模型 + 音色配置 · 迁过去她还是她 · 96 MB</div>
+              </div>
+              <div class="side"><button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="sendPkg(this,'形象与声音')">发送</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 收到的资料包 -->
+        <div class="sect">
+          <div class="sect-h">
+            <h2>收到的资料包</h2><span class="d">暂存区 · 你点头才会导入</span>
+          </div>
+          <div class="card">
+            <div class="row" id="recvRow">
+              <span class="ic" style="background:var(--tPrimarySoft);color:var(--tPrimary)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8l-9-5-9 5v8l9 5 9-5z"/><path d="M3.3 8.3L12 13l8.7-4.7M12 13v9"/></svg></span>
+              <div class="bd">
+                <div class="t">操作系统 · 第 5 章资料包 <span class="sec-tag enc"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>已认证加密 · 校验通过</span></div>
+                <div class="d">来自 台式机 · 10 分钟前 · 含 8 节学习路径、20 道测验</div>
+              </div>
+              <div class="side">
+                <button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="toast('资料包预览：8 节学习路径 · 20 道测验 · 1 份讲义')">预览</button>
+                <button class="np-btn primary" style="height:26px;font-size:11.5px" onclick="importPkg(this)">导入知识库</button>
+              </div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7"/></svg></span>
+              <div class="bd">
+                <div class="t">课堂录音 0902.m4a <span class="sec-tag">兼容明文 · 按普通文件保存</span></div>
+                <div class="d">来自 iPad Air · 昨天 · 已存到下载文件夹</div>
+              </div>
+              <div class="side"><button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="toast('已保存到 ~/Downloads')">查看</button></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 传输记录 -->
+        <div class="sect">
+          <div class="sect-h">
+            <h2>传输记录</h2><span class="d">可恢复 · 失败可续传</span>
+          </div>
+          <div class="card">
+            <div class="row" id="liveRow" style="display:none">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg></span>
+              <div class="bd">
+                <div class="t" id="liveName">错题本资料包</div>
+                <div class="d">发送到 台式机 · <span class="sec-tag enc">已认证加密</span></div>
+              </div>
+              <div class="side">
+                <div class="prog"><div class="bar"><i id="liveBar" style="width:8%"></i></div><div class="pct" id="livePct">8% · 3.2 MB/s</div></div>
+                <button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="cancelSend(this)">取消</button>
+              </div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></span>
+              <div class="bd">
+                <div class="t">周报素材.zip</div>
+                <div class="d">来自 台式机 · 昨天 21:40 · 43.6 MB · <span class="sec-tag enc">SHA-256 已校验</span></div>
+              </div>
+              <div class="side"><span class="st-dot on">已完成</span></div>
+            </div>
+            <div class="row">
+              <span class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg></span>
+              <div class="bd">
+                <div class="t">NekoLive2D-v3.zip</div>
+                <div class="d">发送到 台式机 · 周一 · 中断于 61% · 已加密</div>
+              </div>
+              <div class="side"><button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="toast('从 61% 继续发送')">续传</button></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="foot-note">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+          <span>所有传输都在本地网络内完成，不经过任何服务器。接收方确认后才会写入；可信设备的自动接收仅在已认证加密会话、且长期公钥匹配时生效。资料包带 SHA-256 完整性校验，损坏或被动过手脚的包进不了你的知识库。</span>
+        </div>
+        <div class="foot-link"><a href="#" onclick="toast('将跳转到 NekoDrop 的设备管理');return false">在 NekoDrop 中管理设备与授权 →</a></div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let toastTimer;
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function pair(btn) {
+  btn.textContent = '等待对方确认…';
+  btn.disabled = true;
+  btn.style.opacity = .6;
+  setTimeout(() => {
+    const row = document.getElementById('ipadRow');
+    row.querySelector('.st-dot').className = 'st-dot on';
+    row.querySelector('.st-dot').textContent = '在线';
+    row.querySelector('.bd .d').textContent = '已配对 · 可信设备';
+    btn.outerHTML = '<button class="np-btn ghost" style="height:26px;font-size:11.5px" onclick="toast(\'请选择要发送的资料包\')">发送…</button>';
+    toast('iPad Air 配对成功，已加入可信设备');
+  }, 1400);
+}
+
+let sendTimer;
+function startLive(name) {
+  const row = document.getElementById('liveRow');
+  row.style.display = 'flex';
+  document.getElementById('liveName').textContent = name;
+  const bar = document.getElementById('liveBar');
+  const pct = document.getElementById('livePct');
+  let p = 8;
+  clearInterval(sendTimer);
+  sendTimer = setInterval(() => {
+    p = Math.min(100, p + Math.random() * 9);
+    bar.style.width = p + '%';
+    pct.textContent = Math.floor(p) + '% · ' + (2.4 + Math.random() * 1.6).toFixed(1) + ' MB/s';
+    if (p >= 100) {
+      clearInterval(sendTimer);
+      pct.textContent = '校验中…';
+      setTimeout(() => {
+        row.querySelector('.st-dot, .prog')?.remove;
+        row.querySelector('.prog').outerHTML = '<span class="st-dot on">已完成 · 已校验</span>';
+        row.querySelector('.side button').remove();
+        toast(name + ' 已送达，对方确认后写入');
+      }, 700);
+    }
+  }, 350);
+}
+function sendPkg(btn, name) {
+  btn.disabled = true; btn.style.opacity = .5; btn.textContent = '发送中…';
+  setTimeout(() => { btn.disabled = false; btn.style.opacity = 1; btn.textContent = '发送'; }, 1200);
+  startLive(name);
+}
+function herSend(btn) {
+  document.getElementById('herOffer').style.display = 'none';
+  startLive('错题本资料包');
+  toast('她正在打包错题本，加密后发往台式机');
+}
+function cancelSend(btn) {
+  clearInterval(sendTimer);
+  const row = document.getElementById('liveRow');
+  row.querySelector('.prog').outerHTML = '<span class="st-dot off">已取消</span>';
+  btn.remove();
+}
+function importPkg(btn) {
+  btn.textContent = '导入中…'; btn.disabled = true; btn.style.opacity = .6;
+  setTimeout(() => {
+    const row = document.getElementById('recvRow');
+    row.querySelector('.side').innerHTML = '<span class="np-badge green">已导入知识库</span>';
+    toast('第 5 章已加入知识库，她开始拆解学习路径了');
+  }, 1200);
+}
+</script>
+<script src="assets/np-her.js"></script>
+</body>
+</html>
