@@ -17,7 +17,7 @@
 最终 viewport。运行时验收必须分别记录 OS 外框、Tauri inner size 和 WebView viewport，
 不能把原型页面的浏览器尺寸直接当成应用窗口尺寸。
 
-界面只使用 NekoPapa；NNA / NekoCore-Nano 不作为第二个产品标题。
+界面只使用 NekoPapa；外部 runtime 或仓库名称不作为第二个产品标题。
 
 ## 窗口分层
 
@@ -70,7 +70,7 @@ NekoPapa 同时使用四个坐标系统：
 | OS window | Tauri/操作系统 | 系统 DPI | React 窗口按钮 |
 | App shell | React shell | 不整体缩放 | 小屋 scene transform |
 | Page workspace | React feature | 响应式重排 | 原生标题栏、全局导航 |
-| Live2D canvas | Web/Native renderer | 模型与画布变换 | 账号、导航、页面状态 |
+| Live2D canvas | Web renderer | 模型与画布变换 | 账号、导航、页面状态 |
 
 CSS 应优先使用 grid、flex、container query、`minmax()` 和受约束的绝对定位。`transform` 只用于场景、角色或不参与文本布局的视觉层。
 
@@ -228,9 +228,9 @@ UI Pull Request 按以下层级记录证据：
 2. Component/state tests，当前仍需补齐测试框架
 3. Playwright viewport screenshots 和 DOM geometry assertions，当前仍需落地
 4. Tauri runtime screenshot/video，包含窗口尺寸、平台和 display scale
-5. Native Stage runtime evidence，若改动涉及独立桌面窗口
+5. 外部 Native Stage 集成证据，若改动涉及独立桌面窗口
 
-浏览器截图不能证明原生标题栏、sidecar 或 Native Stage。单张静态截图不能证明 resize、drag 或动画顺滑。
+浏览器截图不能证明原生标题栏、sidecar 或外部 Native Stage。单张静态截图不能证明 resize、drag 或动画顺滑。
 
 ## 当前实现与目标差距
 

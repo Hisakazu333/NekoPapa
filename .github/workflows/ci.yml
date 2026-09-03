@@ -35,6 +35,24 @@ jobs:
           HEAD_SHA: ${{ github.sha }}
         run: bash scripts/check-new-repository-junk.sh "$BASE_SHA" "$HEAD_SHA"
 
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      - name: Check documentation links
+        run: node scripts/check-documentation.mjs
+
   frontend:
     name: Frontend typecheck and build
     runs-on: ubuntu-24.04
@@ -94,8 +112,8 @@ jobs:
           host_triple="$(rustc +1.96.0 -vV | sed -n 's/^host: //p')"
           test -n "$host_triple"
           mkdir -p app/control-desktop/src-tauri/binaries
-          touch "app/control-desktop/src-tauri/binaries/openneko-live2d-stage-${host_triple}"
-          chmod +x "app/control-desktop/src-tauri/binaries/openneko-live2d-stage-${host_triple}"
+          touch "app/control-desktop/src-tauri/binaries/nekopapa-native-stage-${host_triple}"
+          chmod +x "app/control-desktop/src-tauri/binaries/nekopapa-native-stage-${host_triple}"
 
       - name: Check Rust formatting
         run: cargo +1.96.0 fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
@@ -105,40 +123,3 @@ jobs:
 
       - name: Run Rust tests
         run: cargo +1.96.0 test --manifest-path app/control-desktop/src-tauri/Cargo.toml
-
-  native-stage:
-    name: Native Stage (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - macos-14
-          - windows-2022
-    steps:
-      - name: Check out repository
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          persist-credentials: false
-
-      - name: Show build tool versions
-        run: |
-          cmake --version
-          ninja --version
-
-      - name: Configure Native Stage (macOS)
-        if: runner.os == 'macOS'
-        run: cmake -S . -B build/ci -G Ninja -DCMAKE_BUILD_TYPE=Release -DNNA_BUILD_LIVE2D_STAGE=ON -DNNA_ENABLE_LIVE2D=ON -DNNA_CORE_NANO_MODE=stub
-
-      - name: Configure Native Stage (Windows)
-        if: runner.os == 'Windows'
-        run: cmake -S . -B build/ci -G "Visual Studio 17 2022" -A x64 -DNNA_BUILD_LIVE2D_STAGE=ON -DNNA_ENABLE_LIVE2D=ON -DNNA_CORE_NANO_MODE=stub
-
-      - name: Build Native Stage (macOS)
-        if: runner.os == 'macOS'
-        run: cmake --build build/ci --target openneko_live2d_stage --parallel
-
-      - name: Build Native Stage (Windows)
-        if: runner.os == 'Windows'
-        run: cmake --build build/ci --config Release --target openneko_live2d_stage --parallel

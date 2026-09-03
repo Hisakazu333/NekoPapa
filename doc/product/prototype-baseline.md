@@ -1,6 +1,6 @@
 # 原型设计基线
 
-基线日期：2026-09-03
+基线日期：2026-09-04
 
 资产范围：`prototype/desktop-app/`（零构建纯静态 HTML+CSS+JS 设计原型）
 
@@ -10,7 +10,7 @@
 - 原型是零构建静态页面：不依赖打包器，直接用浏览器渲染。Live2D 模型通过相对路径 `../../assets/live2d/hiyori/` 加载，需要 HTTP 预览。
 - 设计 token 的唯一真相源是 [`prototype/desktop-app/assets/proto.css`](../../prototype/desktop-app/assets/proto.css)；设计规范与纪律见 [`prototype/desktop-app/DESIGN.md`](../../prototype/desktop-app/DESIGN.md)。所有原型页的新建/修改必须遵守这两个文件。
 - 原型可确认信息限于页面中直接可见的布局、组件、状态和文案。数据契约、持久化、权限模型、网络行为、性能指标与功能完成度均不能从原型确认。
-- 当前产品实现为 `app/control-desktop/`（Tauri 2 + React + Rust）与 `app/live2d-stage/`（C++ Native Stage）。实现状态只能由代码路径、自动化测试和运行时证据共同确认，原型页面本身不证明任何功能已实现。
+- 当前仓库实现为 `app/control-desktop/`（Tauri 2 + React + Rust）；Native Stage 与 NekoCore-Nano 由外部预构建产物接入，本仓库不保存其 C++ 源码。实现状态只能由代码路径、自动化测试、外部产物版本和运行时证据共同确认，原型页面本身不证明任何功能已实现。
 
 ## 预览方式
 

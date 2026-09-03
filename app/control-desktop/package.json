@@ -9,6 +9,7 @@
     "check": "tsc --noEmit",
     "preview": "vite preview --host 127.0.0.1 --port 1420",
     "stage:prepare": "node scripts/prepare-stage.mjs",
+    "stage:placeholder": "node scripts/prepare-stage.mjs --placeholder",
     "tauri": "tauri"
   },
   "dependencies": {

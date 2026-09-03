@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa · 设置</title>
 <link rel="stylesheet" href="assets/proto.css">
+<script src="assets/np-accent.js"></script>
 <script src="assets/np-state.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -28,11 +29,12 @@
     display: flex; overflow: hidden;
   }
 
-  /* ================= 左侧导航（L1 表面，深半级） ================= */
+  /* ================= 左侧导航（L1 表面，深半级） =================
+     与首页侧栏同规格：216px / 行高 28px / 字号 12.5px / 分组标签 10px·.09em */
   .side {
-    width: 244px; flex-shrink: 0;
+    width: 216px; flex-shrink: 0;
     background: var(--surface-1);
-    border-right: 1px solid var(--tBorder);
+    border-right: 1px solid rgba(24,28,35,.06);
     display: flex; flex-direction: column;
   }
   .traffic { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; }
@@ -40,35 +42,35 @@
   .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
   .back {
     display: inline-flex; align-items: center; gap: 6px;
-    margin-left: 8px; height: 28px; padding: 0 10px;
-    border: 0; border-radius: var(--r-sm); background: transparent;
-    color: var(--tInk2); font-size: 13px; font-weight: 600; cursor: pointer;
+    margin-left: 8px; height: 26px; padding: 0 9px;
+    border: 0; border-radius: 8px; background: transparent;
+    color: var(--tInk2); font-size: 12.5px; font-weight: 600; cursor: pointer;
     transition: background var(--dur-fast);
   }
   .back:hover { background: rgba(255,255,255,.7); color: var(--tInk1); }
 
   .side-search {
-    margin: 4px 14px 10px; position: relative;
+    margin: 4px 12px 10px; position: relative;
   }
   .side-search input {
-    width: 100%; height: 32px; padding: 0 10px 0 32px;
+    width: 100%; height: 30px; padding: 0 10px 0 30px;
     border: 1px solid transparent; border-radius: var(--r-sm);
     background: rgba(255,255,255,.65);
-    font-family: inherit; font-size: 13px; color: var(--tInk1); outline: none;
+    font-family: inherit; font-size: 12.5px; color: var(--tInk1); outline: none;
     transition: all var(--dur-fast);
   }
   .side-search input:focus { background: #fff; border-color: var(--tPrimary); box-shadow: 0 0 0 3px var(--tPrimarySoft); }
   .side-search input::placeholder { color: var(--tInk3); }
   .side-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--tInk3); pointer-events: none; }
 
-  .side-nav { flex: 1; overflow-y: auto; padding: 0 10px 16px; }
-  .nav-group { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--tInk3);
-    padding: 14px 10px 5px; }
+  .side-nav { flex: 1; overflow-y: auto; padding: 0 12px 16px; }
+  .nav-group { font-size: 10px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3);
+    padding: 14px 10px 4px; }
   .nav-item {
-    display: flex; align-items: center; gap: 9px;
-    height: 32px; padding: 0 10px; margin: 1px 0;
-    border-radius: var(--r-sm);
-    font-size: 13px; color: var(--tInk2); cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    height: 28px; padding: 0 10px;
+    border-radius: 8px;
+    font-size: 12.5px; color: var(--tInk2); cursor: pointer;
     text-decoration: none; user-select: none;
     transition: background var(--dur-fast), color var(--dur-fast);
   }
@@ -78,8 +80,8 @@
   .nav-item.active svg { color: var(--tPrimary); }
   .nav-item.hidden, .nav-group.hidden { display: none; }
 
-  .side-foot { padding: 10px 16px; border-top: 1px solid var(--tBorder);
-    font-size: 11px; color: var(--tInk3); display: flex; justify-content: space-between; }
+  .side-foot { padding: 8px 12px 10px; border-top: 1px solid rgba(24,28,35,.06);
+    font-size: 10.5px; color: var(--tInk3); display: flex; justify-content: space-between; }
 
   /* ================= 右侧内容（L0 基底 + L2 卡片） ================= */
   .content { flex: 1; overflow-y: auto; min-width: 0; scroll-behavior: smooth; }
@@ -114,6 +116,13 @@
   .row.navigable:hover .go { color: var(--tInk1); transform: translateX(2px); }
   .row .go { color: var(--tInk3); transition: all var(--dur-fast); }
   .row mark { background: var(--tPrimarySoft); color: var(--tPrimary); border-radius: 3px; padding: 0 1px; }
+
+  /* 强调色大色板 */
+  .swatches { display: flex; gap: 10px; }
+  .swatches .sw { width: 22px; height: 22px; border-radius: 50%; border: 0; cursor: pointer; padding: 0;
+    box-shadow: inset 0 0 0 1px rgba(24,28,35,.1); transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast); }
+  .swatches .sw:hover { transform: scale(1.12); }
+  .swatches .sw.on { box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--swc); }
 
   /* 快捷键行 */
   .kbd-row { display: flex; align-items: center; gap: 6px; }
@@ -508,9 +517,13 @@
         <div class="card">
           <div class="row">
             <div class="txt"><div class="t">外观主题</div><div class="d">深色模式下 Neko 会换上夜间装扮</div></div>
-            <div class="ctl"><div class="np-seg">
+            <div class="ctl"><div class="np-seg" id="themeSeg">
               <button>浅色</button><button>深色</button><button class="on">跟随系统</button>
             </div></div>
+          </div>
+          <div class="row">
+            <div class="txt"><div class="t">强调色</div><div class="d">全站只有这一个彩色：她、学习、当前选中的地方用它</div></div>
+            <div class="ctl"><div class="swatches" id="accentSw"></div></div>
           </div>
           <div class="row">
             <div class="txt"><div class="t">界面字号</div></div>
@@ -1051,6 +1064,37 @@ document.querySelectorAll('.np-seg').forEach(seg => {
     });
   });
 });
+
+/* ---------- 外观主题：与首页齿轮菜单的「外观」子菜单双向同步 ---------- */
+(function () {
+  const themeSeg = document.getElementById('themeSeg');
+  if (!themeSeg) return;
+  const KEYS = ['light', 'dark', 'system'];
+  const saved = localStorage.getItem('np-theme') || 'system';
+  themeSeg.querySelectorAll('button').forEach((b, i) => {
+    b.classList.toggle('on', KEYS[i] === saved);
+    b.addEventListener('click', () => localStorage.setItem('np-theme', KEYS[i]));
+  });
+})();
+
+/* ---------- 强调色大色板：与齿轮菜单同源（np-accent.js） ---------- */
+(function () {
+  const box = document.getElementById('accentSw');
+  if (!box || !window.NPA) return;
+  Object.entries(window.NPA.ACCENTS).forEach(([k, a]) => {
+    const d = document.createElement('button');
+    d.className = 'sw' + (k === window.NPA.get() ? ' on' : '');
+    d.style.background = a.c;
+    d.style.setProperty('--swc', a.c);
+    d.setAttribute('data-tip', a.name);
+    d.addEventListener('click', () => {
+      window.NPA.set(k);
+      box.querySelectorAll('.sw').forEach(x => x.classList.remove('on'));
+      d.classList.add('on');
+    });
+    box.appendChild(d);
+  });
+})();
 
 /* ---------- 滚动联动高亮（scroll-spy） ---------- */
 const content = document.getElementById('content');

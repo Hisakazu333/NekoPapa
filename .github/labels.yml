@@ -44,10 +44,7 @@ labels:
     description: Tauri commands, capabilities, windows, and lifecycle.
   - name: "area:native-stage"
     color: "006b75"
-    description: Independent native Live2D Stage process.
-  - name: "area:engine"
-    color: "0b7285"
-    description: NNA / NekoCore-Nano C++ native layer.
+    description: External Native Stage artifact, host integration, and lifecycle.
   - name: "area:protocol"
     color: "0366d6"
     description: Stage schemas, messages, and compatibility.

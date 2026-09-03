@@ -6,7 +6,7 @@
 
 满足任一条件：
 
-- 改变 React、Tauri、Native Stage、NekoCore-Nano 或 renderer 的状态所有权；
+- 改变 React、Tauri、外部 Native Stage、NekoCore-Nano 或 renderer 的状态所有权；
 - 新增/删除进程、稳定 ABI、网络边界或持久数据格式；
 - Stage protocol breaking change 或版本协商策略变化；
 - 引入新的桌面框架、渲染器、第三方 SDK、模型格式或包管理策略；
@@ -38,4 +38,4 @@ Accepted ADR 只允许修复链接、拼写或补充不改变决定的证据。�
 - 当前事实必须给出仓库路径、配置或运行证据。
 - 至少记录两个可行替代方案，包括维持现状。
 - 明确 rollout、rollback、兼容窗口和可观测信号。
-- 更新[运行时边界](../desktop-runtime-boundaries.md)、[迁移完成记录](../qt-to-tauri-migration.md)或[项目结构](../repository-layout.md)中的受影响部分。
+- 更新[运行时边界](../desktop-runtime-boundaries.md)、[项目结构](../repository-layout.md)和受影响的交付文档。

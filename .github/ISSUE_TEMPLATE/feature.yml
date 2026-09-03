@@ -33,8 +33,8 @@ body:
       options:
         - House UI and embedded Live2D
         - Tauri desktop host
-        - Native Live2D Stage
-        - NNA / NekoCore-Nano native layer
+        - External Native Stage integration
+        - NekoCore-Nano integration contract
         - Stage protocol
         - Build, packaging, or release
         - Documentation

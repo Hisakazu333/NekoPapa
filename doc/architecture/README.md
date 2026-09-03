@@ -1,51 +1,35 @@
-# NekoPapa 桌面架构治理
+# NekoPapa 架构索引
 
-状态：规范性文档。当前实现仍处于开发预览阶段。
+状态：现行边界，项目处于开发预览阶段。
 
-本目录只描述已经核对过的当前事实、已接受的目标边界和进入下一阶段必须满足的门禁。产品愿景、原型图和远期模块清单不能作为“已经实现”的证据。
+## 当前结论
+
+- 本仓库拥有 React UI、Tauri/Rust host、产品原型和 Stage 协议。
+- Native Stage 与 NekoCore-Nano 的 C++ 实现由外部仓库拥有并发布预构建产物。
+- 主窗口内的角色由 Pixi.js/Cubism Web 渲染；独立桌宠窗口由外部 sidecar 渲染。
+- 没有真实 sidecar 时，浏览器预览仍可用，但不能声称桌面 runtime 或安装包已验证。
+- Qt/QML、同仓 C++ Engine 和旧 Native Stage 源码只保留在 Git 历史中。
 
 ## 文档地图
 
-- [桌面运行时边界](desktop-runtime-boundaries.md)：当前依赖图、目标依赖图、模块所有权和禁止依赖。
-- [Qt 到 Tauri 迁移完成记录](qt-to-tauri-migration.md)：Qt/QML 客户端与旧构建脚本的删除记录及仍然有效的约束。
-- [构建与测试门禁](build-and-test-gates.md)：PR、跨平台构建、运行时和发布证据。
-- [Stage Protocol v1](../../protocol/stage/v1/README.md)：Tauri host 与 Native Stage 之间的 JSONL 草案。
-- [项目结构](repository-layout.md)：当前目录、目标目录和文件归属规则。
-- [架构决策记录](adr/README.md)：需要 ADR 的变更、状态流转和模板。
+- [桌面运行时边界](desktop-runtime-boundaries.md)：进程、状态和渲染所有权
+- [仓库结构](repository-layout.md)：当前目录及允许的依赖方向
+- [构建与测试门禁](build-and-test-gates.md)：CI、真实产物和发布证据
+- [ADR 索引](adr/README.md)：需要长期保留理由的架构决策
+- [ADR-0001](adr/0001-external-native-stage.md)：外部化 Native Stage 的决定
+- [Stage Protocol v1](../../protocol/stage/v1/README.md)：host 与 sidecar 的目标 JSONL 契约
 
-## 当前产品口径
+## 事实、目标和历史
 
-- `NekoPapa` 是产品、Tauri 桌面包和 GitHub 仓库名称。
-- `NNA` 是当前工程身份；公开 C++ 命名空间继续使用 `nna`。
-- `openneko` 是源码中的 legacy target/binary/namespace 标识，不是产品品牌。
-- `app/control-desktop/` 是当前桌面入口。
-- `app/live2d-stage/` 是独立 Native Stage sidecar。
-- `prototype/desktop-app/` 是产品 UI 设计基线（零构建静态原型）。
-- Qt/QML legacy 客户端已于 2026-09 删除，不是可发布回退版本；历史参考只通过 Git 历史查阅。
-- `protocol/stage/v1/` 是目标协议；当前 Rust/C++ 运行链仍使用未版本化 v0 消息。
-
-## 事实、目标和证据
-
-文档中的陈述必须标记为以下一种：
-
-| 类型 | 含义 |
-| --- | --- |
-| 当前事实 | 能从当前受控源码、配置或仓库状态直接证明 |
-| 目标决策 | 已接受但尚未完整实现的依赖方向或模块边界 |
-| 迁移计划 | 有入口、退出条件和回滚点的待执行工作 |
-| 愿景 | 研究或产品方向，不创建空目录，也不算完成度 |
-
-“代码存在”“Schema 可解析”“本机能编译”“真实模型运行”“安装包可发布”是不同证据等级。统一定义见[构建与测试门禁](build-and-test-gates.md)。
+| 类型 | 示例 | 能否证明当前可用 |
+| --- | --- | --- |
+| 当前实现 | Rust command、React bridge、lockfile | 可以，但只限其直接行为 |
+| 目标契约 | Protocol v1 schema | 不可以，必须有两端兼容测试 |
+| 产品原型 | `prototype/desktop-app/` | 不可以，只定义 UI 意图 |
+| 外部产物 | Native Stage release | 只有记录版本、hash 和运行结果后才可以 |
+| Git 历史 | 已删除 Qt/C++ 源码 | 不可以，不是当前入口 |
 
 ## 变更规则
 
-以下变更必须同步更新架构文档，并按[ADR 触发清单](adr/README.md)新增 ADR：
-
-- 改变桌面默认入口或进程拓扑；
-- 改变 C++ Core、渲染器、Tauri host 或 React 的状态所有权；
-- 新增或破坏 Stage 协议字段、版本或生命周期语义；
-- 引入新的平台运行时、第三方 SDK、模型许可或安装包资源；
-- 删除 legacy 组件或改变已接受的运行时边界；
-- 移动顶层目录或改变生成物、原型、发布资产边界。
-
-架构文档不能长期保存易失真的本机结论。涉及分支、远端、CI 或平台构建状态时，PR 必须附上当次命令、提交号和平台证据。
+改变进程边界、协议主版本、预构建二进制信任模型、持久状态 owner 或支持平台时，必须
+新增或替代 ADR。实现变更同时更新配置、CI、文档和发布门禁，不能只修改架构图。

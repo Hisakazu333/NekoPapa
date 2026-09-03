@@ -1,8 +1,8 @@
-# Nekonano-Aether (NNA) GitHub 协作指南
+# NekoPapa GitHub 协作指南
 
 状态：现行操作指南
 
-最后核对：2026-07-18
+最后核对：2026-09-04
 
 本指南说明如何在 NekoPapa 仓库提交 Issue、Pull Request 和审查意见。规则来源
 是 [项目治理](../../GOVERNANCE.md) 和 [贡献指南](../../CONTRIBUTING.md)；两者冲突时，
@@ -13,10 +13,9 @@
 - 当前平台：GitHub。
 - 默认分支：`main`。
 - 工作方式：短分支 -> Pull Request -> squash merge 到 `main`。
-- NNA 分支示例：`feat/nna-stage-handshake`、`fix/nna-home-resize`、
-  `docs/nna-runtime-boundaries`。
-- 仓库没有长期 `dev` 集成分支。旧文档中的 Gitee、`dev` 和 Qt/QML 验收流程
-  已废止。
+- 分支示例：`feat/stage-handshake`、`fix/home-resize`、
+  `docs/runtime-boundaries`。
+- 仓库没有长期 `dev` 集成分支。
 
 ## 2. 提交 Issue
 
@@ -37,7 +36,7 @@ Bug 是能够在指定版本和环境中复现的实际行为，不是功能愿�
 - 对应 `prototype/desktop-app/` 原型页面，没有则写“无对应原型”；
 - Tauri 桌面或浏览器预览；
 - 窗口宽高、系统显示缩放和 device pixel ratio；
-- 问题发生在主窗口、WebView 内 Live2D 还是独立 Native Stage；
+- 问题发生在主窗口、WebView 内 Live2D 还是外部 Native Stage 集成；
 - 缩放、拖动、窗口栏和输入行为的录屏，而不只是一张静态截图。
 
 不要在普通 Issue 中提交未脱敏 token、绝对用户路径或漏洞利用步骤。安全问题按
@@ -61,14 +60,14 @@ Feature Request 必须先说明用户问题，再说明方案：
 
 跨运行时、协议、依赖、迁移和目录所有权问题使用 Architecture / Tech Debt 表单。
 Issue 必须引用当前代码位置、说明继续不处理的成本，并给出目标边界、迁移步骤、
-回滚和验证。符合 [项目治理](../../GOVERNANCE.md#6-架构决策) 条件时必须同时准备
+回滚和验证。符合 [项目治理](../../GOVERNANCE.md#5-架构决策) 条件时必须同时准备
 ADR。
 
 ### Triage
 
 维护者会检查证据、去重、范围、优先级和 owner。`needs-triage` 不表示已经批准；
-`blocked` 必须写明解除条件。完整标签和 Ready/Done 定义见
-[Issue 治理](../ISSUES.md)。
+`blocked` 必须写明解除条件。标签真相源是
+[` .github/labels.yml`](../../.github/labels.yml)，实时状态只在 GitHub Issues 维护。
 
 ## 3. 提交 Pull Request
 
@@ -77,7 +76,7 @@ ADR。
 ```bash
 git switch main
 git pull --ff-only origin main
-git switch -c fix/nna-home-resize
+git switch -c fix/home-resize
 ```
 
 不要从过期分支复制大批文件，也不要为普通同步使用
@@ -111,7 +110,7 @@ git switch -c fix/nna-home-resize
 git add app/control-desktop/src/App.tsx app/control-desktop/src/styles/home.css
 git diff --cached
 git commit -m "fix(ui): keep home navigation centered while resizing"
-git push -u origin fix/nna-home-resize
+git push -u origin fix/home-resize
 ```
 
 不要无检查地 `git add .`。生成物、`.DS_Store`、sidecar、密钥和本机配置不能进入
@@ -129,7 +128,7 @@ PR 模板中的命令不能只打勾，必须写结果。示例：
 ```
 
 “build passed”不能替代运行时验证，“browser preview passed”不能替代 Tauri 或
-Native Stage 验证。
+外部 Native Stage 集成验证。
 
 ## 4. Code Review
 
@@ -159,5 +158,5 @@ CI 通过、blocking 意见解决、验收证据完整后使用 squash merge 到
 - 将遗留事项创建为独立 Issue；
 - 若改变 GitHub 设置、文档或原型状态，同步对应记录。
 
-禁止 force-push `main`。紧急修复也从 `hotfix/nna-*` 分支通过 PR 合入，安全事件
+禁止 force-push `main`。紧急修复也从 `hotfix/*` 分支通过 PR 合入，安全事件
 只缩短流程时间，不降低证据和回滚要求。

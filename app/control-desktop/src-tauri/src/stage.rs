@@ -121,7 +121,7 @@ pub fn start_stage(
     let model_argument = model_path.to_string_lossy().into_owned();
     let command = app
         .shell()
-        .sidecar("openneko-live2d-stage")
+        .sidecar("nekopapa-native-stage")
         .map_err(|error| format!("cannot resolve Native Stage sidecar: {error}"))?
         .args(["--model", model_argument.as_str()]);
     let (mut receiver, child) = command

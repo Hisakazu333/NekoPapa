@@ -1,23 +1,25 @@
 # NekoPapa Stage Protocol v1
 
-Status: draft contract. Implementation status: v0, not v1 compliant end to end.
+Status: draft contract. Implementation status: the host retains minimal legacy v0 behavior;
+end-to-end v1 compatibility is not implemented or verified.
 
 This directory defines the proposed JSON Lines (JSONL) contract between the
-Tauri desktop host and the independent native Live2D Stage process. The schema
-is a target interface. Its presence does not mean that either process already
-implements every rule in this document.
+Tauri desktop host and the externally built Native Stage process. The schema is
+a target interface. Its presence does not mean that the host or a supplied
+binary implements every rule in this document.
 
 ## Current v0 state
 
-At the time this contract was added, the native Stage accepts unversioned JSON
-objects with `command` or `cmd` fields and emits unversioned objects with an
-`event` field. The observed lifecycle commands are `show`, `hide`, `shutdown`,
-and `set_passthrough`. The Stage also has one-shot health output.
+The current Rust host starts a fixed sidecar with `--model <path>`, forwards
+non-empty stdout lines to the UI, and writes the unversioned
+`{"command":"shutdown"}` object when stopping. It does not perform a v1
+handshake or validate stdout against these schemas.
 
-The v0 stream has no required handshake, protocol version, message identifier,
-or stable error envelope. The Tauri and Stage implementations must therefore be
-treated as incompatible with v1 until an explicit adapter or v1 parser is
-implemented and tested.
+The former in-repository Stage also used unversioned `command`/`cmd` and
+`event` objects. Its `show`, `hide`, `shutdown`, `set_passthrough`, and health
+shapes remain migration references only; the implementation now belongs to an
+external native repository. Any supplied artifact must declare its actual
+compatibility instead of inheriting those historical claims.
 
 ## Scope
 
@@ -111,7 +113,7 @@ Malformed input that cannot be correlated receives `stage.error` without
 ## Security requirements
 
 - The Stage is a child process, not a localhost network service.
-- Tauri capabilities must allow only the packaged Stage sidecar.
+- Tauri capabilities must allow only the fixed packaged Stage sidecar.
 - The protocol never accepts shell commands or arbitrary executable paths.
 - v1 messages do not expose access tokens, account data, or absolute model
   paths.
@@ -124,7 +126,7 @@ Malformed input that cannot be correlated receives `stage.error` without
 - `event.schema.json`: Stage-to-host events.
 - `examples/*.jsonl`: illustrative valid v1 messages, not runtime proof.
 
-## v0 to v1 mapping
+## Legacy v0 to v1 mapping
 
 | Observed v0 shape | Proposed v1 type |
 | --- | --- |
@@ -137,4 +139,5 @@ Malformed input that cannot be correlated receives `stage.error` without
 | `{"event":"health",...}` | `stage.health` event |
 | `{"event":"stopped",...}` | `stage.stopped` event |
 
-The mapping is migration guidance only. It is not implemented by these files.
+The mapping is migration guidance only. It is not implemented by these files,
+and it does not prove that an external Native Stage supports either side.

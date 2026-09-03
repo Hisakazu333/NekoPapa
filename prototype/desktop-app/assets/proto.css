@@ -6,11 +6,11 @@
 
 :root {
   /* ---------- 颜色 Token ---------- */
-  --tPageBg:      #F5F7FA;
+  --tPageBg:      #F3F5F9;
   --tCardBg:      #FFFFFF;
   --tInk1:        #181C23;
   --tInk2:        #4E5763;
-  --tInk3:        #7A8492;
+  --tInk3:        #8D95A3;   /* 辅助文字退后一级，拉开 ink2/ink3 的明度差 */
   --tBorder:      rgba(24,28,35,.08);
   --tPrimary:     #E06B97;
   --tPrimarySoft: #F8DDE7;
@@ -24,14 +24,14 @@
      L2 浮起   卡片、列表项容器（白底 + 轻阴影）
      L3 悬浮   输入胶囊、弹层、当前态（中阴影 + 边框强调）
   ------------------------------------------ */
-  --surface-0: #F5F7FA;                 /* L0 页面基底 */
-  --surface-1: #EDF0F5;                 /* L1 侧栏/凹陷区 */
+  --surface-0: #F3F5F9;                 /* L0 页面基底（比原来深半级，让白卡浮起来） */
+  --surface-1: #E9EDF3;                 /* L1 侧栏/凹陷区（和 L0 拉开） */
   --surface-2: #FFFFFF;                 /* L2 卡片 */
   --surface-3: #FFFFFF;                 /* L3 悬浮 */
 
   /* ---------- 阴影阶梯 ---------- */
-  --shadow-sm:  0 1px 2px rgba(24,28,35,.04);
-  --shadow-md:  0 1px 3px rgba(24,28,35,.05), 0 8px 24px rgba(24,28,35,.07);
+  --shadow-sm:  0 1px 2px rgba(24,28,35,.05), 0 3px 10px rgba(24,28,35,.045);
+  --shadow-md:  0 1px 3px rgba(24,28,35,.06), 0 8px 24px rgba(24,28,35,.08);
   --shadow-lg:  0 4px 14px rgba(24,28,35,.07), 0 20px 56px rgba(24,28,35,.11);
   --shadow-window: 0 12px 32px rgba(24,28,35,.10), 0 48px 120px rgba(24,28,35,.16);
   --shadow-card: var(--shadow-sm);      /* 兼容旧页面引用 */
@@ -39,6 +39,9 @@
   /* ---------- 圆角 / 字级 / 字体 ---------- */
   --r-sm: 8px; --r-md: 10px; --r-lg: 14px; --r-xl: 18px; --r-pill: 999px;
   --font: -apple-system, BlinkMacSystemFont, "HarmonyOS Sans SC", "PingFang SC", sans-serif;
+  /* 展示字体：品牌字标/标题用，和产品性格绑定（正文仍用系统字体保证可读性） */
+  --font-display: "Avenir Next", "Futura", "PingFang SC", sans-serif;
+  --font-rounded: "Yuanti SC", "YouYuan", "PingFang SC", sans-serif;
 
   /* ---------- 动效 ---------- */
   --ease-out: cubic-bezier(.22,.9,.32,1);
@@ -55,8 +58,12 @@
 .np-scroll::-webkit-scrollbar-thumb { background: transparent; border-radius: 8px; }
 .np-scroll:hover::-webkit-scrollbar-thumb { background: rgba(24,28,35,.14); }
 
-/* 焦点可见性（键盘用户） */
-:focus-visible { outline: 2px solid var(--tPrimary); outline-offset: 2px; border-radius: 6px; }
+/* 焦点可见性：粉色焦点环只给输入类（DESIGN.md 颜色纪律），其余控件用中性环 */
+:focus-visible { outline: 2px solid rgba(24,28,35,.32); outline-offset: 2px; border-radius: 6px; }
+input:focus-visible, textarea:focus-visible, [contenteditable]:focus-visible {
+  outline-color: var(--tPrimary);
+  box-shadow: 0 0 0 3px rgba(224,107,151,.12);
+}
 
 /* ============================================================
    公共组件

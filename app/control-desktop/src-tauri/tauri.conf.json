@@ -43,7 +43,7 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ],
-    "externalBin": ["binaries/openneko-live2d-stage"],
+    "externalBin": ["binaries/nekopapa-native-stage"],
     "resources": {
       "../../../assets/live2d": "assets/live2d"
     }

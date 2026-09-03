@@ -27,7 +27,7 @@ const projectFiles = [
   { path: "app/control-desktop", type: "folder" },
   { path: "src/pages/AgentPage.tsx", type: "file" },
   { path: "src/bridge/stage.ts", type: "file" },
-  { path: "CMakeLists.txt", type: "file" },
+  { path: "protocol/stage/v1/message.schema.json", type: "file" },
 ] as const;
 
 const editorLines = [
@@ -43,7 +43,7 @@ const editorLines = [
 ];
 
 export function AgentPage() {
-  const [selectedPath, setSelectedPath] = useState("engine/include/nna/graphics/live2d/live2d_renderer.h");
+  const [selectedPath, setSelectedPath] = useState("app/control-desktop/src-tauri/src/stage.rs");
   const [panel, setPanel] = useState<AgentPanel>("assistant");
   const [prompt, setPrompt] = useState("");
   const [terminalOpen, setTerminalOpen] = useState(true);
@@ -134,7 +134,7 @@ export function AgentPage() {
             </div>
             {terminalOpen ? (
               <div className="terminal-output">
-                <div><span className="terminal-prompt">openneko</span> <span className="terminal-branch">main</span></div>
+                <div><span className="terminal-prompt">nekopapa</span> <span className="terminal-branch">main</span></div>
                 <div className="terminal-cursor-line"><span>$</span><span className="terminal-cursor" /></div>
               </div>
             ) : null}

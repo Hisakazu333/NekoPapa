@@ -1,155 +1,106 @@
 # NekoPapa 桌面运行时边界
 
-状态：当前事实与目标决策。发布成熟度：未达发布门禁。
+状态：当前事实与已接受决策。发布成熟度：未达发布门禁。
 
 ## 结论
 
-NekoPapa 保留四个明确边界：
+NekoPapa 保留四个清晰边界：
 
-1. React/WebView 负责主窗口展示、交互和短生命周期 UI 状态。
-2. Tauri/Rust host 负责应用、窗口、权限、资源寻址和 Native Stage 子进程生命周期。
-3. Native Stage 负责独立透明桌宠窗口、输入穿透和 Cubism Native 帧循环。
-4. NekoCore-Nano 最终负责可持久、可同步的同伴领域状态和高层行为意图。
+1. React/WebView 负责页面、交互和短生命周期 UI 状态。
+2. Tauri/Rust host 负责应用窗口、权限、资源寻址和 sidecar 生命周期。
+3. 外部 Native Stage 负责独立桌宠窗口、原生渲染和平台 C++ 依赖。
+4. 外部 NekoCore-Nano 最终负责可持久、可同步的领域状态；当前尚未接入本仓库运行链。
 
-渲染器可以保存 GPU、当前帧和插值等局部状态，但不能成为第二个同伴领域模型。WebView 和 Native Stage 是两个独立渲染面，不能用原生窗口覆盖 WebView 来伪装嵌入式画布。
+本仓库不保存 Native Stage、NekoCore 或 Cubism Native SDK 的源码。该决定见
+[ADR-0001](adr/0001-external-native-stage.md)。
 
-## 当前实现图
-
-下面是当前源码能证明的调用关系，不是目标完成声明：
-
-```text
-React App
-  |-- bridge/stage.ts --> Tauri commands
-  |                         |
-  |                         v
-  |                    StageSupervisor
-  |                         |
-  |                         v
-  |                    Native Stage sidecar
-  |                         |
-  |                         v
-  |                    Live2DRenderer --> Cubism Native / OpenGL
-  |
-  `-- Live2DCompanion --> Pixi.js / Cubism Web
-```
-
-当前限制：
-
-- `app/control-desktop/src/App.tsx` 同时承担页面选择、Stage 生命周期状态和页面编排。
-- `app/control-desktop/src/components/Live2DCompanion.tsx` 同时承担 SDK 加载、Pixi 生命周期、布局、输入和错误 UI。
-- `app/control-desktop/src-tauri/src/stage.rs` 同时承担资源寻址、进程监督、v0 流转发和 Tauri command。
-- `app/live2d-stage/src/stage_runtime.cpp` 同时承担 GLFW、输入、渲染循环、健康检查和 v0 协议解析。
-- `engine/CMakeLists.txt` 把 `engine_stub.cpp` 与 Live2D/Cubism 适配代码编进同一个 `openneko` target。
-- Native Stage 当前只调用 `nna::graphics::Live2DRenderer`，没有调用 `nna::core::NNAEngine`；领域状态统一尚未接通。
-- React 页面中的天气、身体状态、日程、对话、记忆、世界和 Agent 数据多数仍是原型状态。
-
-## 目标运行图
+## 当前调用关系
 
 ```text
-React feature UI -- user intent --> Tauri application service
-React feature UI <-- view state --- Tauri application service
-                                          |
-                                          | domain command through chosen Core port
-                                          v
-                                         NekoCore-Nano
-                                          |
-                                          | immutable snapshot / presentation intent
-                                          v
-                              Tauri service / presentation adapters
+Browser preview
+React UI ──> browser adapter ──> simulated Stage status
+    └──────> Pixi.js / Cubism Web canvas
 
-Tauri application service -- Stage lifecycle v1 --> Native Stage
-NekoCore-Nano -- future explicit render-intent contract -->
-            Web Live2D adapter / Native Stage renderer
+Tauri desktop
+React UI ── typed bridge ──> Tauri commands
+                                │
+                                v
+                         StageSupervisor
+                                │ fixed sidecar name + controlled args
+                                v
+                    external nekopapa-native-stage
 ```
 
-目标图表达依赖方向，不要求 Tauri 必须把 Core 链接进同一进程。Core 可以通过经过 ADR 选择的稳定 C ABI、进程协议或受控库边界接入，但 UI 和渲染器只能消费快照与高层意图。Stage Protocol v1 当前只负责生命周期；图中的 render-intent contract 是未来边界，必须另行 ADR 和版本化，不能塞入 v1 未声明字段。
+源码当前可以证明：
+
+- `src/bridge/stage.ts` 隔离浏览器模拟与 Tauri invoke；
+- `src-tauri/src/stage.rs` 监督固定 sidecar，转发 stdout 事件，并在停止时发送 legacy v0
+  shutdown 消息；
+- `scripts/prepare-stage.mjs` 只复制外部预构建产物，不编译 C++；
+- `src/components/Live2DCompanion.tsx` 管理主窗口内的 Web Live2D 渲染；
+- NekoCore、云同步、对话服务和持久记忆没有完整 runtime 接入。
 
 ## 所有权矩阵
 
-| 模块 | 拥有 | 不得拥有 |
+| Owner | 拥有 | 不拥有 |
 | --- | --- | --- |
-| React app shell | 页面编排、错误边界、全局短生命周期 UI 状态 | 领域规则、文件系统、子进程句柄 |
-| React feature | 单一业务视图、表单草稿、用户意图 | Tauri `invoke` 字符串散落、其他 feature 内部状态 |
-| Web Live2D adapter | Web SDK 加载、canvas、DPR/resize、Web hit test、渲染局部插值 | 账号、记忆、Agent、Native window 状态 |
-| Tauri application service | commands/events、资源路径、权限、窗口与子进程生命周期 | Live2D 每帧渲染、同伴生理或情感规则 |
-| Stage protocol adapter | 版本协商、消息校验、关联 ID、超时与错误映射 | UI 文案、shell 命令、任意资源路径 |
-| Native Stage | 透明顶层窗口、穿透、输入、帧循环、Native renderer | 主窗口 UI、账号、网络业务、持久领域状态 |
-| `nna::core` | 同伴状态、确定性规则、快照和高层意图 | Qt、Tauri、DOM、GLFW、Cubism、OpenGL |
-| `nna::graphics` | Cubism Native 模型与渲染适配 | 账号、同步、记忆和产品流程 |
+| React | 页面、表单、导航、局部 view state | 进程、文件权限、持久领域状态 |
+| Tauri/Rust | OS 窗口、资源解析、受控 command、sidecar 生命周期 | GPU 渲染算法、NekoCore 业务状态 |
+| 外部 Native Stage | 独立窗口、帧循环、模型渲染、输入穿透 | 主窗口 UI、账号、网络业务 |
+| 外部 NekoCore | 领域状态、规则、快照与高层意图 | DOM、Tauri 窗口、Stage 进程监督 |
+| Protocol | 可版本化消息格式与语义 | 任一端内部实现 |
 
-## 依赖规则
+## Sidecar 交付边界
 
-### React
+Tauri 只接受固定逻辑名 `nekopapa-native-stage`。本地开发通过
+`NEKOPAPA_NATIVE_STAGE_BINARY` 或 [`native-prebuilt/`](../../native-prebuilt/README.md)
+提供与 Rust target triple 匹配的可执行文件。
 
-- `app` 可以组合 `features`、`integrations`、`platform` 和 `shared`。
-- `features/<name>` 只能通过公开 port 使用 Tauri 或服务，不能直接导入另一个 feature 的内部文件。
-- Tauri command 名、原始 payload 和浏览器模拟只能存在于 `platform/tauri` 适配层。
-- Live2D SDK 类型和全局变量只能存在于 `integrations/live2d-web`。
-- 共享类型不能从 `App.tsx` 或具体组件反向导出；页面 ID、Stage 状态和 Live2D 状态应由各自的 model/contract 模块拥有。
-- 重型渲染依赖按 feature 激活时动态加载，隐藏页面必须停止不必要的渲染循环。
+sidecar 提供方必须交付：
 
-### Tauri/Rust
+- 平台与架构匹配的完整可执行文件，而不是其他平台的 `.so`；
+- 版本、不可变源码 revision、SHA-256、签名或公证状态；
+- 协议兼容版本、启动参数、退出码和动态依赖清单；
+- Cubism Native SDK 与其他第三方组件的许可和再分发说明。
 
-- `lib.rs` 只做应用装配；command handler 只做输入校验、调用服务和 DTO 映射。
-- Stage supervisor、协议 codec、资源解析和进程 driver 必须能分别测试。
-- 进程状态只能由一个状态机拥有；“进程已 spawn”不能自动等同于“Stage ready”。
-- stdout 只进入协议解析器，stderr 只进入日志通道；未经校验的 sidecar 文本不能成为 UI 状态。
-- 窗口状态模块保持独立，纯几何和校验逻辑不依赖真实窗口即可测试。
-
-### Native Stage/C++
-
-- `main.cpp` 只处理 CLI、装配和退出码。
-- GLFW window/input、协议解析、渲染器和运行循环通过窄接口组合。
-- v0 兼容逻辑固定在 `protocol/v0`，不得继续向核心运行循环扩散；v1 必须严格拒绝未知字段和未知版本。
-- `nna::core` 不包含 Cubism/OpenGL 头文件；`nna::graphics` 可以依赖 Core 的只读意图类型，Core 不反向依赖 graphics。
-- 平台实现放在平台适配层，公共逻辑不使用 `#ifdef` 承担产品状态分支。
-
-## 主窗口与桌宠窗口
-
-主窗口 Live2D 使用 WebGL canvas，原因是它必须遵守 DOM 的裁剪、圆角、层叠、滚动、透明度和输入规则。Native Stage 是独立顶层窗口，只负责桌面陪伴场景。
-
-禁止把 Native Stage 定位在 WebView 上方模拟嵌入，原因包括：
-
-- WebView 与原生窗口属于不同合成和输入层；
-- CSS clipping、transform、opacity 和 backdrop filter 不能约束原生窗口；
-- 窗口缩放、移动、DPI 和多屏会引入持续几何同步；
-- 自动截图、焦点和命中测试会看到不同窗口栈。
+本仓库中的零字节 placeholder 只解决 Tauri build script 的静态存在性检查，不能运行、
+不能打包、不能作为兼容证据。
 
 ## 状态与事件方向
 
 ```text
-用户输入 -> application command -> NekoCore-Nano
-NekoCore-Nano -> immutable snapshot / presentation intent -> UI 或 renderer
+User intent
+  -> React action
+  -> typed bridge
+  -> Tauri command
+  -> Stage protocol command
+  -> external Stage
+
+External Stage event
+  -> Tauri validation and normalization
+  -> typed UI event/state
 ```
 
-React 可以保存选中标签、输入草稿和面板展开状态；renderer 可以保存纹理、当前帧和插值；Tauri 可以保存子进程 PID 和协议会话。账号、记忆、关系、身体状态和 Agent 执行状态必须有唯一权威来源。
+当前实现尚未完成 Protocol v1 handshake、schema validation 和结构化状态归一化。Rust host
+仍会把非空 stdout 行直接转发给 UI，并以未版本化 JSON 写入 shutdown。这些是明确的
+legacy 兼容行为，不得描述为 v1 已落地。
 
-当前原型值必须在 adapter、contract 或页面状态说明中标记为 fixture、preview 或
-simulated，且不能写回真实存储。页面可以继续消费 mock adapter；接入真实服务时先定义
-port 与 DTO，再替换 adapter，不在 JSX 中直接增加 `fetch` 或散落 `invoke`。
+## 渲染面
 
-## 协议与安全边界
+主窗口角色必须留在 WebView canvas 中，因为它参与 DOM 裁剪、层叠、滚动和输入。外部
+Native Stage 是独立顶层窗口，不能覆盖在 WebView 上伪装成嵌入式画布。两个渲染面可以
+有不同实现，但最终应消费同一领域意图，避免状态互相矛盾。
 
-- Tauri 只启动安装包内允许的 Stage sidecar，不接受任意可执行路径。
-- 交互协议使用 stdin/stdout JSONL；不增加未认证 localhost 控制端口。
-- v1 首条消息必须握手，ready 前不得发送生命周期命令。
-- 协议不携带 shell 命令、账号 token、私有模型绝对路径或任意文件内容。
-- 子进程退出、EOF、畸形消息、超时和父进程退出必须有确定状态转换。
-- Tauri capability、CSP、sidecar 参数和资源 allowlist 必须进入安全门禁。
+## 安全约束
 
-## 资产、原型和第三方边界
+- UI 不提供任意可执行路径或 shell 参数；环境变量只由受控开发/打包环境读取。
+- sidecar stdout 只承载协议 JSONL，日志写 stderr；host 必须限制大小并处理畸形输入。
+- sidecar 崩溃、缺失或版本不兼容不能触发无限重启，也不能阻塞主窗口恢复。
+- 模型路径、token、账户数据和用户隐私不得未经协议审计跨进程传输。
+- 下载或更新外部产物前必须验证来源、hash、签名和许可。
 
-- `assets/` 只放运行时或安装包确实需要的资产；Vite 与 Tauri 使用显式 allowlist，不能复制整个仓库资产目录。
-- `prototype/desktop-app/` 是产品设计基线输入，不是运行时资源；页面清单与验收准入由[原型设计基线](../product/prototype-baseline.md)维护。
-- Web 与 Native 共用模型时，必须有一个资产 manifest 记录 ID、版本、哈希、用途、许可和打包目标。
-- `engine/third_party/` 是供应商边界。业务代码不得修改第三方源码；补丁、版本、来源和许可单独登记。
-- SDK Samples、无关平台二进制、生成缓存和 `.DS_Store` 不得进入发布包。
+## 非目标
 
-## 当前明确非目标
-
-- 不重建已删除的 Qt/QML 客户端或任何形式的第二条产品主线。
-- 不在目录尚未有实现时批量创建愿景模块空壳。
-- 不把 Native Stage 叠在 WebView 上。
-- 不通过 JSONL 传输逐帧画面、音频或大块模型文件。
-- 不把 Pixi/Cubism Web 与 Cubism Native 的像素完全一致作为要求；要求的是同一领域状态下行为不矛盾。
-- 不以单机编译成功替代跨平台运行、安装包、许可和回滚证据。
+- 不在本仓库恢复第二套 C++ Engine、Cubism Native SDK 或 Qt/QML 客户端。
+- 不通过共享 C++ 类 ABI 把 host 与 Native runtime 重新耦合。
+- 不把原型 fixture 描述成真实 NekoCore、云服务或持久化状态。

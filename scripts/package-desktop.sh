@@ -22,8 +22,6 @@ trap cleanup EXIT
 
 require_command npm
 require_command cargo
-require_command cmake
-require_command ninja
 require_command hdiutil
 require_command shasum
 

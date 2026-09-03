@@ -146,7 +146,7 @@ export function SettingsPage({ stageRunning }: SettingsPageProps) {
               </div>
               <SettingsGroup title="组件">
                 <SettingRow icon={<Monitor size={17} />} title="桌面主控台" control={<span className="setting-value">Tauri 2</span>} />
-                <SettingRow icon={<Cat size={17} />} title="桌宠 Stage" control={<span className="setting-value">Native Cubism</span>} />
+                <SettingRow icon={<Cat size={17} />} title="桌宠 Stage" control={<span className="setting-value">外部 Native Runtime</span>} />
                 <SettingRow icon={<ShieldCheck size={17} />} title="开源许可" control={<span className="setting-value">MIT</span>} />
               </SettingsGroup>
             </>

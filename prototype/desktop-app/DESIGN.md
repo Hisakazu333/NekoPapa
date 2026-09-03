@@ -25,7 +25,7 @@
 | 开关 on | --tInk1（macOS 原生感） |
 | 徽章 | 默认中性灰；粉色徽章仅用于"她的"信息 |
 | 边框 | rgba(24,28,35,.06~.08)，hover 加深到 .16 |
-| 文字 | ink1 #181C23 / ink2 #4E5763 / ink3 #7A8492 |
+| 文字 | ink1 #181C23 / ink2 #4E5763 / ink3 #8D95A3 |
 
 ## 圆角纪律
 
@@ -45,7 +45,7 @@
 ## 层级（Elevation）
 
 不用重阴影。层级 = 表面阶梯 + 发丝线：
-L0 基底 #F5F7FA → L1 侧栏 #EDF0F5 → L2 卡片白 + hairline → L3 弹层白 + shadow-lg。
+L0 基底 #F3F5F9 → L1 侧栏 #E9EDF3 → L2 卡片白 + hairline → L3 弹层白 + shadow-lg。
 阴影只用 proto.css 的 shadow-sm/md/lg（已调淡）。
 
 ## 密度（指针思维）

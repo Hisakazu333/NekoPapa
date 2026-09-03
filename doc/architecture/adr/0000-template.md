@@ -27,7 +27,7 @@
 | React | | | |
 | Tauri/Rust | | | |
 | Stage protocol | | | |
-| Native Stage | | | |
+| External Native Stage | | | |
 | NekoCore-Nano/graphics | | | |
 | Assets/third-party | | | |
 

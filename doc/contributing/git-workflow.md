@@ -1,10 +1,10 @@
-# Nekonano-Aether (NNA) Git 实战手册
+# NekoPapa Git 实战手册
 
 状态：现行操作指南
 
-最后核对：2026-07-18
+最后核对：2026-09-04
 
-NekoPapa 使用 GitHub、单一长期分支 `main` 和短期 NNA 工作分支。本文只给出可
+NekoPapa 使用 GitHub、单一长期分支 `main` 和短期工作分支。本文只给出可
 恢复、不会改写共享历史的日常流程。合并规则见 [项目治理](../../GOVERNANCE.md)。
 
 ## 1. 开始前确认仓库
@@ -29,19 +29,19 @@ NekoPapa 的 GitHub remote 是
 ```bash
 git switch main
 git pull --ff-only origin main
-git switch -c feat/nna-stage-handshake
+git switch -c feat/stage-handshake
 ```
 
 常用前缀：
 
 ```text
-feat/nna-*       新能力
-fix/nna-*        缺陷修复
-refactor/nna-*   不改变外部行为的重构
-docs/nna-*       文档和治理
-test/nna-*       测试
-chore/nna-*      构建、依赖和维护
-hotfix/nna-*     紧急修复
+feat/*       新能力
+fix/*        缺陷修复
+refactor/*   不改变外部行为的重构
+docs/*       文档和治理
+test/*       测试
+chore/*      构建、依赖和维护
+hotfix/*     紧急修复
 ```
 
 仓库不使用长期 `dev` 分支。旧文档中的 `feature/* -> dev -> main` 流程已废止。
@@ -52,7 +52,7 @@ hotfix/nna-*     紧急修复
 
 ```bash
 git fetch origin
-git worktree add ../Nekopapa-stage -b feat/nna-stage-handshake origin/main
+git worktree add ../Nekopapa-stage -b feat/stage-handshake origin/main
 ```
 
 完成并合并后，在确认 worktree 干净的前提下移除：
@@ -60,7 +60,7 @@ git worktree add ../Nekopapa-stage -b feat/nna-stage-handshake origin/main
 ```bash
 git worktree list
 git worktree remove ../Nekopapa-stage
-git branch -d feat/nna-stage-handshake
+git branch -d feat/stage-handshake
 ```
 
 不要复制整个仓库目录，也不要用 reset/checkout 清掉另一个任务的本地修改。
@@ -92,7 +92,7 @@ git diff --cached
 
 ```bash
 git commit -m "fix(ui): keep home navigation centered while resizing"
-git push -u origin fix/nna-home-resize
+git push -u origin fix/home-resize
 ```
 
 在 GitHub 创建目标为 `main` 的 PR。后续修改继续提交到同一分支；PR 会自动更新。
@@ -201,7 +201,7 @@ PR 中执行。
 ```bash
 git switch main
 git pull --ff-only origin main
-git branch -d fix/nna-home-resize
+git branch -d fix/home-resize
 git fetch --prune origin
 ```
 

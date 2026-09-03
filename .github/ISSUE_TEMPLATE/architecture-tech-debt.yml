@@ -26,8 +26,8 @@ body:
       options:
         - React UI and view state
         - Tauri commands, capabilities, and lifecycle
-        - Native Stage process and rendering
-        - NNA / NekoCore-Nano native layer
+        - External Native Stage integration
+        - NekoCore-Nano integration contract
         - Stage protocol and compatibility
         - Build, packaging, and release
         - Repository governance and documentation
