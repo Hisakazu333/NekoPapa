@@ -54,7 +54,9 @@
     font-size:14px; font-weight:600; color:var(--tInk2); }
   .titlebar .sp { flex:1; }
   .btn-main { height:32px; padding:0 16px; border:0; border-radius:var(--r-sm);
-    background:var(--tPrimary); color:#FFF9FB; font-size:12px; font-weight:600; cursor:pointer; }
+    background:var(--tInk1); color:#fff; font-size:12px; font-weight:600; cursor:pointer;
+    transition:background .15s; }
+  .btn-main:hover { background:#2A303B; }
 
   .scroll { flex:1; overflow-y:auto; }
   .scroll::-webkit-scrollbar { width:0; }

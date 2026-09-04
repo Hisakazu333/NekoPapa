@@ -72,7 +72,7 @@
   .run-pill .spin { width: 12px; height: 12px; color: var(--tPrimary);
     animation: rot 1.4s linear infinite; }
   @keyframes rot { to { transform: rotate(360deg); } }
-  .chip-btn { height: 28px; padding: 0 14px; border-radius: var(--r-pill);
+  .chip-btn { height: 28px; padding: 0 14px; border-radius: 8px;
     border: 1px solid var(--tBorder); background: var(--tCardBg);
     font-size: 11px; font-weight: 600; color: var(--tInk2); cursor: pointer; margin-left: 8px; }
   .chip-btn:hover { border-color: var(--tPrimary); color: var(--tPrimary); }
@@ -149,10 +149,11 @@
     background: rgba(255,255,255,.65); border-radius: var(--r-sm);
     padding: 10px 14px; margin-bottom: 12px; }
   .approval .a-btns { display: flex; gap: 10px; }
-  .btn-main { height: 34px; padding: 0 16px; border: 0; border-radius: var(--r-pill);
-    background: var(--tPrimary); color: #FFF9FB; font-size: 14px; font-weight: 600; cursor: pointer; }
-  .btn-main:hover { filter: brightness(1.06); }
-  .btn-ghost { height: 34px; padding: 0 16px; border-radius: var(--r-pill);
+  .btn-main { height: 34px; padding: 0 16px; border: 0; border-radius: 8px;
+    background: var(--tInk1); color: #fff; font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background .15s; }
+  .btn-main:hover { background: #2A303B; }
+  .btn-ghost { height: 34px; padding: 0 16px; border-radius: 8px;
     border: 1px solid var(--tBorder); background: var(--tCardBg);
     font-size: 14px; font-weight: 600; color: var(--tInk2); cursor: pointer; }
   .btn-ghost:hover { border-color: var(--tInk3); }

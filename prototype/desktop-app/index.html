@@ -18,6 +18,7 @@
     color: var(--tInk1);
   }
   button { font-family: inherit; }
+  [hidden] { display: none !important; }
   ::selection { background: var(--tPrimarySoft); }
 
   /* ================= 窗口 ================= */
@@ -520,14 +521,39 @@
     font-size: 10px; font-weight: 600; line-height: 1.5;
   }
 
+  /* ================= 初始主页（无任何数据） =================
+     参照初始页范式：一个垂直居中的整体——
+     她的身份（头像+问候，放大）→ 她的话 → 输入框 → 能力入口。
+     全部是 DOM；Live2D 始终在右下舞台，不参与布局。 */
+  .stage.is-empty:not(.mode-assist) #stageLearn { justify-content: center; }
+  .stage.is-empty:not(.mode-assist) #stageLearn .home-scroll {
+    flex: none; justify-content: center; padding: 0 48px;
+  }
+  .stage.is-empty:not(.mode-assist) #stageLearn .assist-composer {
+    flex: none; padding: 24px 0 0;
+  }
+  .stage.is-empty:not(.mode-assist) .scene,
+  .stage.is-empty:not(.mode-assist) .neko-line,
+  .stage.is-empty:not(.mode-assist) .neko-bubble { display: none; }
+  /* 她的身份：初始页的唯一主角，放大 */
+  .stage.is-empty:not(.mode-assist) .word-row { margin-bottom: 12px; }
+  .stage.is-empty:not(.mode-assist) .word-row img { width: 44px; height: 44px; }
+  .stage.is-empty:not(.mode-assist) .greet { font-size: 28px; letter-spacing: -.03em; }
+  /* 她的话：直接写在问候下方，不用气泡组件 */
+  .zero-line {
+    display: none; text-align: center;
+    font-size: 14px; line-height: 1.7; color: var(--tInk2);
+    margin: 0; min-height: 1.7em;
+  }
+  .stage.is-empty:not(.mode-assist) .zero-line { display: block; }
+  #zeroLineText.typing::after {
+    content: "▍"; color: var(--tPrimary); font-size: 12px;
+    animation: caretBlink 1s steps(2) infinite;
+  }
+
   /* ================= 空态（无数据时的诚实状态，安静、ink3） ================= */
   .side-empty { font-size: 11px; color: var(--tInk3); padding: 3px 10px 8px; }
   .notif-empty { padding: 20px 10px 18px; text-align: center; font-size: 11.5px; color: var(--tInk3); }
-  .focus-card.empty { cursor: default; }
-  .focus-card.empty:hover { border-color: rgba(24,28,35,.07); box-shadow: var(--shadow-sm); transform: none; }
-  .focus-card.empty .fc-ic { background: var(--surface-1); color: var(--tInk3); }
-  .focus-card.empty .fc-tag { color: var(--tInk3); }
-  .focus-card.empty .fc-t { color: var(--tInk2); font-weight: 500; }
   .task-empty { padding: 30px 0 12px; text-align: center; font-size: 11.5px; color: var(--tInk3); line-height: 1.8; }
 </style>
 </head>
@@ -704,6 +730,7 @@
               <span class="nl-sep">·</span>
               <span class="nl-sub" data-fill="今天换个话题，聊点别的">换个话题</span>
             </p>
+            <div class="zero-line" id="zeroLine"><span id="zeroLineText"></span></div>
 
             <div class="scene" id="scene"><!-- 焦点卡 / 空态由 NPD 渲染 --></div>
 
@@ -855,15 +882,6 @@
           </span>
           ${total ? `<span class="fc-prog" data-tip="今日计划 ${doneN}/${total}"><i style="width:${doneN / total * 100}%"></i></span>` : ""}
         </a>`;
-    } else {
-      html += `
-        <div class="focus-card empty">
-          <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
-          <div class="fc-l">
-            <span class="fc-tag">今天还没有安排</span>
-            <span class="fc-t">从第一句话开始，她会陪你定今天的计划</span>
-          </div>
-        </div>`;
     }
     const quiet = [];
     if (doneItems.length) quiet.push(`<span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> ${doneItems.map(t => t.title).join("、")} 已完成</span>`);
@@ -925,6 +943,14 @@
   function renderAll() {
     if (!window.NPD) return;
 
+    /* 初始主页判定：没有任何学习痕迹时，舞台进入居中组合态 */
+    const convs = NPD.getConversations();
+    const today = NPD.getTodayPlan().items;
+    const next = NPD.getNextUp();
+    const mistakes = NPD.getMistakes();
+    const isEmpty = !convs.length && !today.length && !next && !(mistakes && mistakes.due > 0);
+    document.querySelector(".stage").classList.toggle("is-empty", isEmpty);
+
     /* 用户（侧栏底部） */
     const user = NPD.getUser();
     if (user && user.name) {
@@ -941,13 +967,11 @@
     } else streakPill.hidden = true;
 
     /* 错题数徽章：无数据不显示 */
-    const mistakes = NPD.getMistakes();
     const mistakeCnt = document.getElementById("mistakeCnt");
     if (mistakes && mistakes.due > 0) { mistakeCnt.textContent = mistakes.due; mistakeCnt.hidden = false; }
     else mistakeCnt.hidden = true;
 
     /* 今日计划完成度（侧栏 cnt） */
-    const today = NPD.getTodayPlan().items;
     const planCnt = document.getElementById("planCnt");
     if (today.length) {
       planCnt.textContent = `${today.filter(t => t.done).length}/${today.length}`;
@@ -955,7 +979,6 @@
     } else planCnt.hidden = true;
 
     /* 会话列表 */
-    const convs = NPD.getConversations();
     const convList = document.getElementById("convList");
     convList.innerHTML = convs.length
       ? convs.map(c => `<div class="conv" data-href="${c.href || ''}">${c.title}${c.running ? '<span class="run-dot"></span>' : ''}<button class="more" title="更多操作"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>`).join("")
@@ -1011,6 +1034,7 @@
     tabAssist.classList.toggle("on", m === "assist");
     stageLearn.style.display = m === "learn" ? "" : "none";
     stageAssist.style.display = m === "assist" ? "" : "none";
+    document.querySelector(".stage").classList.toggle("mode-assist", m === "assist");
     const nb = document.getElementById("nekoBubble");
     if (nb) nb.style.display = m === "learn" ? "" : "none";
   }
@@ -1217,14 +1241,21 @@
     : ["我在呢。有问题随时说。"];
   const nbEl = document.getElementById("nekoBubble");
   const btEl = document.getElementById("bubbleText");
+  const zlEl = document.getElementById("zeroLineText");
   let bi = 0, typeTimer = null, holdTimer = null;
   function typeLine(s) {
     clearInterval(typeTimer);
     btEl.textContent = ""; btEl.classList.add("typing");
+    zlEl.textContent = ""; zlEl.classList.add("typing");
     let i = 0;
     typeTimer = setInterval(() => {
       btEl.textContent = s.slice(0, ++i);
-      if (i >= s.length) { clearInterval(typeTimer); btEl.classList.remove("typing"); scheduleNext(); }
+      zlEl.textContent = s.slice(0, i);
+      if (i >= s.length) {
+        clearInterval(typeTimer);
+        btEl.classList.remove("typing"); zlEl.classList.remove("typing");
+        scheduleNext();
+      }
     }, 45);
   }
   function scheduleNext() {

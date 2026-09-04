@@ -32,7 +32,7 @@
   }
   .titlebar { height:46px; flex-shrink:0; display:flex; align-items:center; padding:0 18px; }
   .quit { display:inline-flex; align-items:center; gap:6px; height:30px; padding:0 14px;
-    border:1px solid var(--tBorder); border-radius:var(--r-pill); background:var(--tCardBg);
+    border:1px solid var(--tBorder); border-radius:8px; background:var(--tCardBg);
     color:var(--tInk2); font-size:11px; font-weight:600; cursor:pointer; }
   .quit:hover { border-color:var(--tPrimary); color:var(--tPrimary); }
   .mute-note { margin-left:auto; font-size:11px; color:var(--tInk3);
@@ -56,9 +56,10 @@
     background:var(--tPrimary);
     border-radius:var(--r-pill); transition:width 1s linear; }
   .f-actions { display:flex; gap:12px; }
-  .f-btn { height:40px; padding:0 24px; border-radius:var(--r-pill);
+  .f-btn { height:40px; padding:0 24px; border-radius:8px;
     font-size:14px; font-weight:600; cursor:pointer; }
-  .f-btn.p { border:0; background:var(--tPrimary); color:#FFF9FB; }
+  .f-btn.p { border:0; background:var(--tInk1); color:#fff; transition:background .15s; }
+  .f-btn.p:hover { background:#2A303B; }
   .f-btn.g { border:1px solid var(--tBorder); background:var(--tCardBg); color:var(--tInk2); }
   .f-btn.g:hover { border-color:var(--tInk3); }
   .f-note { margin-top:22px; font-size:11px; color:var(--tInk3); }

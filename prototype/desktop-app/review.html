@@ -78,8 +78,8 @@
   }
   .card:hover { transform:translateY(-2px); }
   .card.gone { opacity:0; transform:translateX(40px) rotate(2deg); }
-  .card .tag { display:inline-block; font-size:11px; font-weight:700; color:var(--tPrimary);
-    background:var(--tPrimarySoft); padding:3px 10px; border-radius:var(--r-pill);
+  .card .tag { display:inline-block; font-size:11px; font-weight:700; color:var(--tInk2);
+    background:rgba(24,28,35,.06); padding:3px 10px; border-radius:var(--r-pill);
     width:fit-content; margin-bottom:14px; }
   .card .q { font-size:17px; font-weight:700; line-height:1.7; }
   .card .hint { font-size:11px; color:var(--tInk3); margin-top:auto; padding-top:20px; }
@@ -91,20 +91,22 @@
   @keyframes rise { from { opacity:0; transform:translateY(6px); } }
 
   .rate-row { display:flex; gap:12px; margin-top:22px; height:40px; }
-  .rate { height:40px; padding:0 22px; border-radius:var(--r-pill);
+  .rate { height:40px; padding:0 22px; border-radius:8px;
     font-size:14px; font-weight:600; cursor:pointer; border:1px solid var(--tBorder);
     background:var(--tCardBg); color:var(--tInk2); transition:all .18s; }
   .rate:hover { transform:translateY(-1px); }
   .rate.bad:hover { border-color:var(--tDanger); color:var(--tDanger); }
-  .rate.good { background:var(--tPrimary); border-color:var(--tPrimary); color:#FFF9FB; }
-  .rate.good:hover { filter:brightness(1.06); }
+  .rate.good { background:var(--tInk1); border-color:var(--tInk1); color:#fff; }
+  .rate.good:hover { background:#2A303B; border-color:#2A303B; }
 
   /* 完成态 */
   .done-box { display:none; text-align:center; animation:rise .5s ease both; }
   .done-box .big { font-size:26px; font-weight:700; margin-bottom:8px; }
   .done-box .sub { font-size:14px; color:var(--tInk2); margin-bottom:22px; }
-  .done-box .btn-main { height:40px; padding:0 24px; border:0; border-radius:var(--r-pill);
-    background:var(--tPrimary); color:#FFF9FB; font-size:14px; font-weight:600; cursor:pointer; }
+  .done-box .btn-main { height:40px; padding:0 24px; border:0; border-radius:8px;
+    background:var(--tInk1); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+    transition:background .15s; }
+  .done-box .btn-main:hover { background:#2A303B; }
 
   .buddy { position:absolute; right:10px; bottom:0; width:190px; height:300px;
     pointer-events:auto; cursor:pointer; z-index:15; }
