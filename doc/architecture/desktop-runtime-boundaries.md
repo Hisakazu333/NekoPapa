@@ -1,44 +1,42 @@
 # NekoPapa 桌面运行时边界
 
-状态：当前事实与已接受决策。发布成熟度：未达发布门禁。
+状态：边界决策现行；客户端实现处于按设计系统 2.0 的重写过渡期（见
+[ADR-0002](adr/0002-client-rewrite-external-live2d.md)）。发布成熟度：未达发布门禁。
 
 ## 结论
 
 NekoPapa 保留四个清晰边界：
 
-1. React/WebView 负责页面、交互和短生命周期 UI 状态。
+1. React/WebView 只负责页面、交互和短生命周期 UI 状态；主窗口不承载角色渲染。
 2. Tauri/Rust host 负责应用窗口、权限、资源寻址和 sidecar 生命周期。
-3. 外部 Native Stage 负责独立桌宠窗口、原生渲染和平台 C++ 依赖。
+3. 外部 Native Stage（NekoCore-Nano C++）负责全部角色渲染——独立桌宠窗口、
+   原生渲染、Live2D 模型与平台 C++ 依赖。
 4. 外部 NekoCore-Nano 最终负责可持久、可同步的领域状态；当前尚未接入本仓库运行链。
 
-本仓库不保存 Native Stage、NekoCore 或 Cubism Native SDK 的源码。该决定见
-[ADR-0001](adr/0001-external-native-stage.md)。
+本仓库不保存 Native Stage、NekoCore、Cubism Native SDK 或任何产品用角色渲染代码。
+外部化决定见 [ADR-0001](adr/0001-external-native-stage.md)；重写与渲染外置决定见
+[ADR-0002](adr/0002-client-rewrite-external-live2d.md)。
 
 ## 当前调用关系
 
-```text
-Browser preview
-React UI ──> browser adapter ──> simulated Stage status
-    └──────> Pixi.js / Cubism Web canvas
+旧实现（`app/control-desktop/`，含 `Live2DCompanion.tsx`、`stage.ts`、`stage.rs` 和
+内嵌 Web Live2D）已移除，下列为目标关系，随新骨架落地逐项生效：
 
-Tauri desktop
+```text
+Browser prototype preview
+prototype pages ──> static assets ──> simulated data + Web Live2D（仅设计预览）
+
+Tauri desktop（重写目标）
 React UI ── typed bridge ──> Tauri commands
                                 │
                                 v
                          StageSupervisor
                                 │ fixed sidecar name + controlled args
                                 v
-                    external nekopapa-native-stage
+                    external nekopapa-native-stage（含角色渲染窗口）
 ```
 
-源码当前可以证明：
-
-- `src/bridge/stage.ts` 隔离浏览器模拟与 Tauri invoke；
-- `src-tauri/src/stage.rs` 监督固定 sidecar，转发 stdout 事件，并在停止时发送 legacy v0
-  shutdown 消息；
-- `scripts/prepare-stage.mjs` 只复制外部预构建产物，不编译 C++；
-- `src/components/Live2DCompanion.tsx` 管理主窗口内的 Web Live2D 渲染；
-- NekoCore、云同步、对话服务和持久记忆没有完整 runtime 接入。
+在新骨架落地前，不存在可运行的桌面客户端；原型页是唯一的可视化入口。
 
 ## 所有权矩阵
 
@@ -81,15 +79,16 @@ External Stage event
   -> typed UI event/state
 ```
 
-当前实现尚未完成 Protocol v1 handshake、schema validation 和结构化状态归一化。Rust host
-仍会把非空 stdout 行直接转发给 UI，并以未版本化 JSON 写入 shutdown。这些是明确的
-legacy 兼容行为，不得描述为 v1 已落地。
+旧 host 的 legacy v0 行为已随旧实现移除。新骨架的 host 必须直接按 Protocol v1 实现
+handshake、schema validation 和结构化状态归一化；在两端兼容测试通过前，不得宣称
+v1 已落地。
 
 ## 渲染面
 
-主窗口角色必须留在 WebView canvas 中，因为它参与 DOM 裁剪、层叠、滚动和输入。外部
-Native Stage 是独立顶层窗口，不能覆盖在 WebView 上伪装成嵌入式画布。两个渲染面可以
-有不同实现，但最终应消费同一领域意图，避免状态互相矛盾。
+主窗口是纯控制 UI，不包含角色画布；角色渲染全部在外部 Native Stage 的原生窗口中
+完成（ADR-0002）。原生窗口不得覆盖在 WebView 上伪装成嵌入式画布。主窗口需要展示
+角色状态时，消费 Stage 事件渲染状态 UI，不复制渲染画面。原型页中的 Web Live2D 只
+用于设计预览，不是产品渲染路径。
 
 ## 安全约束
 
@@ -101,6 +100,7 @@ Native Stage 是独立顶层窗口，不能覆盖在 WebView 上伪装成嵌入�
 
 ## 非目标
 
-- 不在本仓库恢复第二套 C++ Engine、Cubism Native SDK 或 Qt/QML 客户端。
+- 不在本仓库恢复第二套 C++ Engine、Cubism Native SDK、Qt/QML 客户端或 WebView
+  内嵌角色渲染。
 - 不通过共享 C++ 类 ABI 把 host 与 Native runtime 重新耦合。
 - 不把原型 fixture 描述成真实 NekoCore、云服务或持久化状态。

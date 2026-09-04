@@ -1,6 +1,7 @@
 # NekoPapa 项目治理
 
-状态：现行规范  
+状态：现行规范
+
 最后核对：2026-09-04
 
 本文件定义 NekoPapa 仓库如何确认事实、作出决策和合并变更。开发命令见
@@ -31,15 +32,19 @@ Native Stage 外部化的决定见 [ADR-0001](doc/architecture/adr/0001-external
 ## 3. 分支与合并
 
 仓库采用短分支、Pull Request 合入 `main` 的 trunk-based 流程，不维护长期 `dev`。
-人工分支使用：
+分支名使用 `<类型>/<认领人>/<简短描述>` 格式，类型包括：
 
-- `feat/<topic>`
-- `fix/<topic>`
-- `refactor/<topic>`
-- `docs/<topic>`
-- `test/<topic>`
-- `chore/<topic>`
-- `hotfix/<topic>`
+- `feat`：新增功能
+- `fix`：修复问题
+- `refactor`：代码重构
+- `docs`：文档修改
+- `test`：测试相关
+- `perf`：性能优化
+- `chore`：配置、依赖、构建等工程事务
+
+紧急修复使用 `hotfix/<认领人>/<描述>`。分支名使用小写英文，描述用短横线 `-`
+分隔，不使用空格、中文或下划线；完整规则和示例见
+[Git 实战手册](doc/contributing/git-workflow.md)。
 
 每个 PR 解决一个可审查目标；CI、范围和证据完整后使用 squash merge。`main` 应禁止
 直接推送、force-push 和删除，并要求当前 workflow 中稳定的检查。线上规则发生变化时，

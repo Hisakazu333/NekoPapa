@@ -13,8 +13,8 @@
 - 当前平台：GitHub。
 - 默认分支：`main`。
 - 工作方式：短分支 -> Pull Request -> squash merge 到 `main`。
-- 分支示例：`feat/stage-handshake`、`fix/home-resize`、
-  `docs/runtime-boundaries`。
+- 分支名格式为 `<类型>/<认领人>/<简短描述>`，示例：`feat/sakana/onboarding-flow`、
+  `fix/sakana/home-resize`、`docs/sakana/runtime-boundaries`。
 - 仓库没有长期 `dev` 集成分支。
 
 ## 2. 提交 Issue
@@ -67,7 +67,7 @@ ADR。
 
 维护者会检查证据、去重、范围、优先级和 owner。`needs-triage` 不表示已经批准；
 `blocked` 必须写明解除条件。标签真相源是
-[` .github/labels.yml`](../../.github/labels.yml)，实时状态只在 GitHub Issues 维护。
+[`.github/labels.yml`](../../.github/labels.yml)，实时状态只在 GitHub Issues 维护。
 
 ## 3. 提交 Pull Request
 
@@ -76,7 +76,7 @@ ADR。
 ```bash
 git switch main
 git pull --ff-only origin main
-git switch -c fix/home-resize
+git switch -c fix/sakana/home-resize
 ```
 
 不要从过期分支复制大批文件，也不要为普通同步使用
@@ -107,10 +107,10 @@ git switch -c fix/home-resize
 提交信息使用清晰的 Conventional Commit：
 
 ```bash
-git add app/control-desktop/src/App.tsx app/control-desktop/src/styles/home.css
+git add path/to/changed-file
 git diff --cached
 git commit -m "fix(ui): keep home navigation centered while resizing"
-git push -u origin fix/home-resize
+git push -u origin fix/sakana/home-resize
 ```
 
 不要无检查地 `git add .`。生成物、`.DS_Store`、sidecar、密钥和本机配置不能进入
@@ -121,8 +121,8 @@ PR。
 PR 模板中的命令不能只打勾，必须写结果。示例：
 
 ```text
-- `npm --prefix app/control-desktop run check`: passed
-- `cargo test --manifest-path app/control-desktop/src-tauri/Cargo.toml`: 4 passed
+- `node scripts/check-documentation.mjs`: passed
+- `<适用前端/构建命令>`: passed（命令以当前骨架为准）
 - macOS 15 / 1440x900 / 2x: runtime checked
 - Windows: not verified, no Windows runner available
 ```

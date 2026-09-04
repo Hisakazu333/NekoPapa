@@ -4,21 +4,19 @@
 
 ## 当前结构
 
+旧桌面实现 `app/control-desktop/` 已按 [ADR-0002](adr/0002-client-rewrite-external-live2d.md)
+移除；新客户端骨架按 `prototype/desktop-app/` 设计系统 2.0 重写，落地时更新本节。
+
 ```text
 NekoPapa/
-├── app/
-│   └── control-desktop/
-│       ├── src/                    # React UI、页面、bridge、Web Live2D
-│       ├── scripts/                # 外部 sidecar 准备脚本
-│       └── src-tauri/              # Rust host、窗口与打包配置
 ├── assets/
-│   └── live2d/                     # WebView/开发模型资产
+│   └── live2d/                     # 原型设计预览用模型资产（非产品渲染路径）
 ├── native-prebuilt/
 │   └── README.md                   # 外部 sidecar 交付约定
 ├── protocol/
 │   └── stage/v1/                   # JSON Schema 和 fixtures
 ├── prototype/
-│   └── desktop-app/                # 零构建设计基线
+│   └── desktop-app/                # 零构建设计基线（设计系统 2.0 唯一真相源）
 ├── doc/
 │   ├── architecture/
 │   ├── contributing/
@@ -28,20 +26,21 @@ NekoPapa/
 └── .github/                        # CI、Issue/PR 模板和 CODEOWNERS
 ```
 
-本仓库没有 CMake 根工程、C++ Engine、Native Stage 实现或 Cubism Native SDK。历史路径
-不作为当前结构的一部分。
+本仓库没有 CMake 根工程、C++ Engine、Native Stage 实现、Cubism Native SDK 或产品用
+角色渲染代码。历史路径不作为当前结构的一部分。
 
 ## 目录责任
 
 | 路径 | Owner | 允许依赖 | 禁止内容 |
 | --- | --- | --- | --- |
-| `app/control-desktop/src/` | React UI | typed bridge、Web dependencies | shell 命令、任意本机路径 |
-| `app/control-desktop/src-tauri/` | Desktop host | Tauri、Rust、固定 sidecar | Native renderer 实现、业务 mock 真相源 |
 | `protocol/stage/v1/` | Contract | JSON Schema、fixtures | 任一端私有实现细节 |
 | `prototype/desktop-app/` | Product design | 静态 HTML/CSS/JS、runtime assets | 构建产物、功能完成声明 |
 | `native-prebuilt/` | Artifact contract | README、未来 manifest 示例 | 提交真实平台二进制 |
 | `assets/` | Runtime assets | 明确许可的模型和图像 | 未知来源资源、Native SDK 源码 |
 | `doc/` | Documentation | 当前路径、ADR、产品基线 | issue 状态快照、已完成迁移副本 |
+
+新客户端骨架落地时，在此表中登记其路径与 Owner，并同步 CODEOWNERS、CI 与
+`.gitignore`。
 
 ## 依赖方向
 
@@ -51,11 +50,7 @@ React view
   -> Tauri command
   -> process supervisor
   -> versioned Stage protocol
-  -> external Native Stage
-
-React view
-  -> Web Live2D adapter
-  -> browser/WebView canvas
+  -> external Native Stage（含角色渲染）
 ```
 
 禁止反向依赖：
@@ -71,12 +66,11 @@ React view
 以下内容不进入 Git：
 
 - `node_modules/`、`dist/`、`target/`、`build/`；
-- `app/control-desktop/src-tauri/binaries/*`；
 - `native-prebuilt/desktop/**`；
 - 安装包、签名材料、`.env*` 和 `.DS_Store`。
 
-`src-tauri/binaries/.gitkeep` 与 `native-prebuilt/README.md` 只保留目录约定。placeholder
-和真实 sidecar 均是本机/CI 生成物。
+`native-prebuilt/README.md` 保留目录约定。placeholder 和真实 sidecar 均是本机/CI
+生成物。
 
 ## 文档归属
 

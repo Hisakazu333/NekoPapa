@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>NekoPapa</title>
 <link rel="stylesheet" href="assets/proto.css">
-<script src="assets/np-state.js"></script>
+<script src="assets/np-data.js"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { height: 100%; }
@@ -336,7 +336,7 @@
   /* 本周计划进度细线（2/4） */
   .fc-prog { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 2px;
     border-radius: 2px; background: var(--surface-1); overflow: hidden; }
-  .fc-prog i { display: block; height: 100%; width: 50%; background: var(--tPrimary); border-radius: 2px; }
+  .fc-prog i { display: block; height: 100%; width: 0; background: var(--tPrimary); border-radius: 2px; }
 
   .today-quiet {
     display: flex; align-items: center; gap: 9px;
@@ -519,6 +519,16 @@
     background: #fff; color: var(--tInk3);
     font-size: 10px; font-weight: 600; line-height: 1.5;
   }
+
+  /* ================= 空态（无数据时的诚实状态，安静、ink3） ================= */
+  .side-empty { font-size: 11px; color: var(--tInk3); padding: 3px 10px 8px; }
+  .notif-empty { padding: 20px 10px 18px; text-align: center; font-size: 11.5px; color: var(--tInk3); }
+  .focus-card.empty { cursor: default; }
+  .focus-card.empty:hover { border-color: rgba(24,28,35,.07); box-shadow: var(--shadow-sm); transform: none; }
+  .focus-card.empty .fc-ic { background: var(--surface-1); color: var(--tInk3); }
+  .focus-card.empty .fc-tag { color: var(--tInk3); }
+  .focus-card.empty .fc-t { color: var(--tInk2); font-weight: 500; }
+  .task-empty { padding: 30px 0 12px; text-align: center; font-size: 11.5px; color: var(--tInk3); line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -563,11 +573,11 @@
         </div>
         <a class="nav-item" href="plan.html">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
-          学习计划<span class="cnt">2/4</span>
+          学习计划<span class="cnt" id="planCnt" hidden></span>
         </a>
         <a class="nav-item" href="mistakes.html">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
-          错题本<span class="cnt hot" id="mistakeCnt">23</span>
+          错题本<span class="cnt hot" id="mistakeCnt" hidden></span>
         </a>
         <a class="nav-item" href="lib.html">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
@@ -601,22 +611,15 @@
         <div class="group-label" data-collapse>对话
           <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
-        <div class="conv active" onclick="location.href='learn-flow.html'">操作系统 · 进程与线程</div>
-        <div class="conv" onclick="location.href='assist-flow.html'">整理下载文件夹<span class="run-dot"></span></div>
-        <div class="conv" onclick="location.href='chat.html'">英语 · 定语从句错题 3 道</div>
-        <div class="conv" onclick="location.href='chat.html'">周报草稿 · 第三版</div>
-        <div class="conv" onclick="location.href='chat.html'">高数 · 极限专题复习</div>
-        <div class="conv" onclick="location.href='reading.html'">《小王子》共读 · 第 3 章</div>
-        <div class="conv" onclick="location.href='chat.html'">论文里的这段证明没看懂</div>
-        <div class="conv" onclick="location.href='reading.html'">论文摘要精读 · Attention</div>
+        <div id="convList"><!-- 会话列表由 NPD 渲染 --></div>
       </div>
     </div>
 
     <div class="side-foot">
       <div class="foot-user" id="accountBtn">
-        <span class="avatar">H</span>
-        <span class="n">Hisakazu</span>
-        <span class="plan">PRO</span>
+        <span class="avatar" id="footAvatar">·</span>
+        <span class="n" id="footName">未登录</span>
+        <span class="plan" id="footPlan" hidden>PRO</span>
         <span class="foot-icons">
           <button title="设置" id="gearBtn">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
@@ -651,9 +654,9 @@
     <div class="titlebar">
       <span class="app-title">NekoPapa</span>
       <span class="sp"></span>
-      <div class="agent-pill" data-tip="后台任务" onclick="location.href='assist-flow.html'">
+      <div class="agent-pill" id="agentPill" data-tip="后台任务" onclick="location.href='assist-flow.html'" hidden>
         <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-        整理错题本 · <span id="pillCnt">23</span>/40
+        <span id="agentPillText"></span>
       </div>
       <a class="tb-btn hut" data-tip="她的小屋" href="hut.html">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
@@ -664,24 +667,11 @@
       <span class="bell-wrap">
         <button class="tb-btn" data-tip="通知" id="bellBtn">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8M10.3 21a2 2 0 0 0 3.4 0"/></svg>
-          <span class="bell-dot" id="bellDot"></span>
+          <span class="bell-dot" id="bellDot" hidden></span>
         </button>
         <div class="notif-panel" id="notifPanel">
           <div class="notif-head">通知 <button id="readAllBtn">全部已读</button></div>
-          <div class="notif-item" onclick="location.href='review.html'">
-            <span class="ni"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></span>
-            <div><div class="nt">3 道错题到了最佳复习时间</div><div class="nd">她挑好了 · 5 分钟前</div></div>
-            <span class="unread"></span>
-          </div>
-          <div class="notif-item" onclick="location.href='assist-flow.html'">
-            <span class="ni" style="background:#E3F3EA;color:var(--tSuccess)"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg></span>
-            <div><div class="nt">任务完成：整理下载文件夹</div><div class="nd">43 个文件已归档 · 12 分钟前</div></div>
-            <span class="unread"></span>
-          </div>
-          <div class="notif-item" onclick="location.href='settings.html#sec-usage'">
-            <span class="ni" style="background:#FBF0DC;color:var(--tWarning)"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg></span>
-            <div><div class="nt">连续学习 <span id="streakNum2">12</span> 天啦</div><div class="nd">她说：今天收尾就能到 13 天 · 1 小时前</div></div>
-          </div>
+          <div id="notifList"><!-- 通知由 NPD 渲染 --></div>
         </div>
       </span>
     </div>
@@ -692,67 +682,37 @@
         <div class="assist-scroll home-scroll">
           <div class="assist-inner home-inner">
 
-            <!-- 她的智能建议（参考 Codex：基于使用数据的建议，可采纳可忽略） -->
-            <div class="her-suggest" id="herSuggest">
+            <!-- 她的智能建议：仅当 NPD.getHerSuggestion() 有值时渲染 -->
+            <div class="her-suggest" id="herSuggest" hidden>
               <span class="hs-ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg></span>
-              <span class="hs-t">她注意到：你最近 3 天都在 <b>22 点后效率最高</b>——要不要把每日学习时段调到晚间？</span>
-              <button class="hs-yes" id="hsYes">调成晚间</button>
+              <span class="hs-t" id="hsText"></span>
+              <button class="hs-yes" id="hsYes"></button>
               <button class="hs-no" id="hsNo" title="忽略"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
             </div>
 
             <div class="word-row" style="justify-content:center">
               <img src="assets/icon.png" alt="">
-              <h1 class="greet" id="greet">早上好，Hisakazu</h1>
-              <span class="streak">
+              <h1 class="greet" id="greet"></h1>
+              <span class="streak" id="streakPill" hidden>
                 <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg>
-                连续 <span id="streakNum">12</span> 天
+                连续 <span id="streakNum"></span> 天
               </span>
             </div>
 
-            <p class="neko-line">
+            <p class="neko-line" id="nekoLine">
               <a class="nl-main" href="learn-flow.html">现在开始</a>
               <span class="nl-sep">·</span>
-              <a class="nl-sub" href="review.html">先复习 5 道错题</a>
-              <span class="nl-sep">·</span>
-              <span class="nl-sub" data-fill="今天不想学操作系统了，我们换个别的">换个话题</span>
+              <span class="nl-sub" data-fill="今天换个话题，聊点别的">换个话题</span>
             </p>
 
-            <div class="scene">
-            <a class="focus-card" href="learn-flow.html">
-              <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
-              <div class="fc-l">
-                <span class="fc-tag">下一项 · 25 分钟</span>
-                <span class="fc-t">操作系统 · 进程与线程</span>
-                <span class="fc-s">上次学到「线程」，今天收尾</span>
-              </div>
-              <span class="fc-go">
-                开始
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-              </span>
-              <span class="fc-prog" data-tip="本周计划 2/4"><i></i></span>
-            </a>
-            <div class="today-quiet">
-              <span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> 英语单词 · List 7 已完成</span>
-              <span class="sep">·</span>
-              <a href="review.html">错题复习 5 道（到了最佳复习时机）</a>
-            </div>
-            </div>
+            <div class="scene" id="scene"><!-- 焦点卡 / 空态由 NPD 渲染 --></div>
 
           </div>
         </div>
 
         <div class="assist-composer">
           <div class="composer">
-            <div class="reco-chips">
-              <button data-fill="接着昨天的进度，把「进程与线程」收尾">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
-                进程与线程 · 收尾
-              </button>
-              <button data-fill="把到期的 5 道错题带我复习一遍">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>
-                定语从句 · 复习 5 道
-              </button>
-            </div>
+            <div class="reco-chips" id="recoChips" hidden><!-- 有数据时由 NPD 渲染 --></div>
             <textarea placeholder="想学什么、想问什么，直接说…" rows="1"></textarea>
             <div class="composer-bar">
               <button class="c-btn" data-tip="附件">
@@ -794,28 +754,7 @@
               交给 Neko
               <span class="sub">描述任务，她先给计划再动手</span>
             </h1>
-            <div class="task-list">
-              <div class="task-label">正在运行</div>
-              <a class="t-row" href="assist-flow.html">
-                <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-                <span class="n">整理下载文件夹</span>
-                <span class="m">按类型+日期归档 · 2:31</span>
-                <span class="go">查看 →</span>
-              </a>
-              <a class="t-row" href="assist-flow.html">
-                <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-                <span class="n">调研：AI 学习产品竞品</span>
-                <span class="m">已收集 12 个来源 · 8:07</span>
-                <span class="go">查看 →</span>
-              </a>
-              <div class="task-label">已完成</div>
-              <a class="t-row done" href="assist-flow.html">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>
-                <span class="n">生成周报 · 第三版</span>
-                <span class="m">昨天 21:40</span>
-                <span class="go">打开 →</span>
-              </a>
-            </div>
+            <div class="task-list" id="taskList"><!-- 任务由 NPD 渲染 --></div>
           </div>
         </div>
         <div class="assist-composer">
@@ -887,21 +826,178 @@
 <script>
   const h = new Date().getHours();
   const g = h < 6 ? "夜深了" : h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : h < 23 ? "晚上好" : "夜深了";
-  document.getElementById("greet").textContent = `${g}，Hisakazu`;
+  const npUser = window.NPD && NPD.getUser();
+  document.getElementById("greet").textContent = npUser && npUser.name ? `${g}，${npUser.name}` : g;
   /* 时段氛围：深夜主区罩暖暗 */
   if (h >= 22 || h < 6) document.querySelector(".main").classList.add("night");
 
-  /* ---------- 全局状态渲染 ---------- */
-  (function renderState() {
-    if (!window.NP) return;
-    const s = NP.get();
-    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-    set('mistakeCnt', s.mistakesDue);
-    set('pillCnt', s.mistakesDue);
-    set('streakNum', s.streak);
-    set('streakNum2', s.streak);
-    NP.on(ns => { set('mistakeCnt', ns.mistakesDue); set('pillCnt', ns.mistakesDue); set('streakNum', ns.streak); set('streakNum2', ns.streak); });
-  })();
+  /* ================= 数据渲染：全部来自 NPD，无数据 = 诚实空态 ================= */
+  function renderScene() {
+    const scene = document.getElementById("scene");
+    const next = NPD.getNextUp();
+    const today = NPD.getTodayPlan().items;
+    const doneItems = today.filter(t => t.done);
+    const mistakes = NPD.getMistakes();
+    let html = "";
+    if (next) {
+      const total = today.length, doneN = doneItems.length;
+      html += `
+        <a class="focus-card" href="${next.href}">
+          <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
+          <div class="fc-l">
+            <span class="fc-tag">下一项${next.durationMin ? " · " + next.durationMin + " 分钟" : ""}</span>
+            <span class="fc-t">${next.title}</span>
+            ${next.subtitle ? `<span class="fc-s">${next.subtitle}</span>` : ""}
+          </div>
+          <span class="fc-go">
+            开始
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+          ${total ? `<span class="fc-prog" data-tip="今日计划 ${doneN}/${total}"><i style="width:${doneN / total * 100}%"></i></span>` : ""}
+        </a>`;
+    } else {
+      html += `
+        <div class="focus-card empty">
+          <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+          <div class="fc-l">
+            <span class="fc-tag">今天还没有安排</span>
+            <span class="fc-t">从第一句话开始，她会陪你定今天的计划</span>
+          </div>
+        </div>`;
+    }
+    const quiet = [];
+    if (doneItems.length) quiet.push(`<span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> ${doneItems.map(t => t.title).join("、")} 已完成</span>`);
+    if (mistakes && mistakes.due > 0) quiet.push(`<a href="review.html">错题复习 ${mistakes.due} 道（到了最佳复习时机）</a>`);
+    if (quiet.length) html += `<div class="today-quiet">${quiet.join('<span class="sep">·</span>')}</div>`;
+    scene.innerHTML = html;
+  }
+
+  function renderNekoLine() {
+    const mistakes = NPD.getMistakes();
+    let html = '<a class="nl-main" href="learn-flow.html">现在开始</a>';
+    if (mistakes && mistakes.due > 0)
+      html += `<span class="nl-sep">·</span><a class="nl-sub" href="review.html">先复习 ${mistakes.due} 道错题</a>`;
+    html += '<span class="nl-sep">·</span><span class="nl-sub" data-fill="今天换个话题，聊点别的">换个话题</span>';
+    document.getElementById("nekoLine").innerHTML = html;
+  }
+
+  function renderRecoChips() {
+    const box = document.getElementById("recoChips");
+    const chips = [];
+    const next = NPD.getNextUp();
+    const mistakes = NPD.getMistakes();
+    if (next) chips.push({ fill: `接着上次的进度，把「${next.title}」收尾`, label: `${next.title} · 继续` });
+    if (mistakes && mistakes.due > 0) chips.push({ fill: `把到期的 ${mistakes.due} 道错题带我复习一遍`, label: `错题 · 复习 ${mistakes.due} 道` });
+    const SPARK = '<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>';
+    box.innerHTML = chips.map(c => `<button data-fill="${c.fill}">${SPARK}${c.label}</button>`).join("");
+    box.hidden = !chips.length;
+  }
+
+  function renderTasks() {
+    const list = document.getElementById("taskList");
+    const tasks = NPD.getRunningTasks();
+    if (!tasks.length) {
+      list.innerHTML = '<div class="task-empty">还没有运行中的任务<br>描述一个任务，她先给计划再动手</div>';
+      return;
+    }
+    list.innerHTML = '<div class="task-label">正在运行</div>' + tasks.map(t => `
+      <a class="t-row" href="${t.href || 'assist-flow.html'}">
+        <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
+        <span class="n">${t.title}</span>
+        <span class="m">${t.meta || ''}</span>
+        <span class="go">查看 →</span>
+      </a>`).join("");
+  }
+
+  function renderSuggest() {
+    const bar = document.getElementById("herSuggest");
+    if (!bar) return;
+    const s = NPD.getHerSuggestion();
+    if (!s) { bar.remove(); return; }
+    document.getElementById("hsText").innerHTML = s.text;
+    document.getElementById("hsYes").textContent = s.actionText || "好";
+    bar.hidden = false;
+    const bye = () => { NPD.dismissSuggestion(); bar.classList.add("bye"); setTimeout(() => bar.remove(), 320); };
+    document.getElementById("hsYes").onclick = bye;
+    document.getElementById("hsNo").onclick = bye;
+  }
+
+  function renderAll() {
+    if (!window.NPD) return;
+
+    /* 用户（侧栏底部） */
+    const user = NPD.getUser();
+    if (user && user.name) {
+      document.getElementById("footName").textContent = user.name;
+      document.getElementById("footAvatar").textContent = user.name.slice(0, 1).toUpperCase();
+    }
+
+    /* 连续天数：无记录不显示 */
+    const streak = NPD.getStreak();
+    const streakPill = document.getElementById("streakPill");
+    if (streak != null) {
+      document.getElementById("streakNum").textContent = streak;
+      streakPill.hidden = false;
+    } else streakPill.hidden = true;
+
+    /* 错题数徽章：无数据不显示 */
+    const mistakes = NPD.getMistakes();
+    const mistakeCnt = document.getElementById("mistakeCnt");
+    if (mistakes && mistakes.due > 0) { mistakeCnt.textContent = mistakes.due; mistakeCnt.hidden = false; }
+    else mistakeCnt.hidden = true;
+
+    /* 今日计划完成度（侧栏 cnt） */
+    const today = NPD.getTodayPlan().items;
+    const planCnt = document.getElementById("planCnt");
+    if (today.length) {
+      planCnt.textContent = `${today.filter(t => t.done).length}/${today.length}`;
+      planCnt.hidden = false;
+    } else planCnt.hidden = true;
+
+    /* 会话列表 */
+    const convs = NPD.getConversations();
+    const convList = document.getElementById("convList");
+    convList.innerHTML = convs.length
+      ? convs.map(c => `<div class="conv" data-href="${c.href || ''}">${c.title}${c.running ? '<span class="run-dot"></span>' : ''}<button class="more" title="更多操作"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>`).join("")
+      : '<div class="side-empty">还没有对话</div>';
+    convList.querySelectorAll(".conv").forEach(el => {
+      el.addEventListener("click", () => { if (el.dataset.href) location.href = el.dataset.href; });
+      el.querySelector(".more").addEventListener("click", e => e.stopPropagation());
+    });
+
+    /* 通知 */
+    const notifs = NPD.getNotifications();
+    const notifList = document.getElementById("notifList");
+    notifList.innerHTML = notifs.length
+      ? notifs.map(n => `
+        <div class="notif-item" data-href="${n.href || ''}">
+          <span class="ni">${n.icon || ''}</span>
+          <div><div class="nt">${n.title}</div><div class="nd">${n.desc || ''}</div></div>
+          ${n.unread ? '<span class="unread"></span>' : ''}
+        </div>`).join("")
+      : '<div class="notif-empty">没有新通知</div>';
+    notifList.querySelectorAll(".notif-item").forEach(el =>
+      el.addEventListener("click", () => { if (el.dataset.href) location.href = el.dataset.href; }));
+    document.getElementById("bellDot").hidden = !notifs.some(n => n.unread);
+    document.getElementById("readAllBtn").style.display = notifs.length ? "" : "none";
+
+    /* 后台任务 pill（titlebar） */
+    const tasks = NPD.getRunningTasks();
+    const pill = document.getElementById("agentPill");
+    if (tasks.length) {
+      document.getElementById("agentPillText").textContent = tasks[0].title + (tasks[0].meta ? " · " + tasks[0].meta : "");
+      pill.hidden = false;
+    } else pill.hidden = true;
+
+    renderScene();
+    renderNekoLine();
+    renderRecoChips();
+    renderTasks();
+    renderSuggest();
+  }
+
+  NPD.onChange(renderAll);
+  renderAll();
 
   /* ---------- 学习 / 助手 模式切换 ---------- */
   let curMode = "learn";
@@ -938,13 +1034,15 @@
   });
   document.getElementById("btnNew").addEventListener("click", () => location.href = "chat.html");
 
-  /* ---------- 快捷填充 ---------- */
-  document.querySelectorAll("[data-fill]").forEach(b => b.addEventListener("click", () => {
+  /* ---------- 快捷填充（事件委托，动态渲染的 chips 也生效） ---------- */
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-fill]");
+    if (!b) return;
     const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
     ta.value = b.dataset.fill;
     ta.focus();
     autoGrow(ta);
-  }));
+  });
 
   function autoGrow(ta) {
     ta.style.height = "auto";
@@ -996,48 +1094,44 @@
     if (!notifPanel.contains(e.target) && e.target !== bellBtn) notifPanel.classList.remove("show");
   });
   document.getElementById("readAllBtn").addEventListener("click", () => {
-    document.querySelectorAll(".notif-item .unread").forEach(d => d.remove());
-    const bd = document.getElementById("bellDot");
-    if (bd) bd.remove();
+    if (window.NPD) NPD.markAllNotificationsRead();
     notifPanel.classList.remove("show");
   });
 
-  /* ---------- ⌘P 搜索面板 ---------- */
-  const palData = [
-    { g: "会话", items: [
-      ["操作系统 · 进程与线程", "learn-flow.html", "学习中"],
-      ["英语 · 定语从句", "chat.html", "答疑"],
-      ["整理下载文件夹", "assist-flow.html", "运行中"],
-      ["《小王子》共读 · 第 3 章", "reading.html", "共读"],
-      ["论文摘要精读 · Attention", "reading.html", "共读"],
-    ]},
-    { g: "学习", items: [
-      ["学习计划", "plan.html", "2/4 已完成"],
-      ["错题本", "mistakes.html", "23 道待复习"],
-      ["错题闪卡复习", "review.html", "今天到期"],
-      ["知识库", "lib.html", "4 份文档"],
-      ["刷题：定语从句 5 道", "quiz.html", "备考"],
-      ["口语对练：自我介绍", "speaking.html", "第 2 课"],
-      ["她的记忆", "memory.html", "128 条"],
-      ["知识地图", "map.html", "掌握度可视化"],
-      ["她的周报", "report.html", "第 32 周"],
-    ]},
-    { g: "操作", items: [
-      ["新对话", "chat.html", "⌘K"],
-      ["进入专注模式", "focus.html", "番茄钟"],
-      ["使用统计", "settings.html#sec-usage", ""],
-      ["订阅管理", "subscribe.html", "Pro"],
-      ["设置", "settings.html", "⌘,"],
-      ["菜单栏下拉演示", "menubar.html", "桌面原生"],
-      ["截图提问演示", "shot-ask.html", "⌘⇧2"],
-    ]},
-  ];
+  /* ---------- ⌘P 搜索面板：静态功能导航 + NPD 会话（无假计数） ---------- */
+  function buildPalData() {
+    const groups = [];
+    const convs = NPD.getConversations().map(c => [c.title, c.href || "chat.html", c.running ? "运行中" : ""]);
+    if (convs.length) groups.push({ g: "会话", items: convs });
+    groups.push(
+      { g: "学习", items: [
+        ["学习计划", "plan.html", ""],
+        ["错题本", "mistakes.html", ""],
+        ["错题闪卡复习", "review.html", ""],
+        ["知识库", "lib.html", ""],
+        ["知识地图", "map.html", ""],
+        ["她的记忆", "memory.html", ""],
+        ["她的周报", "report.html", ""],
+      ]},
+      { g: "操作", items: [
+        ["新对话", "chat.html", "⌘K"],
+        ["进入专注模式", "focus.html", "番茄钟"],
+        ["使用统计", "settings.html#sec-usage", ""],
+        ["订阅管理", "subscribe.html", ""],
+        ["设置", "settings.html", "⌘,"],
+        ["菜单栏下拉演示", "menubar.html", "桌面原生"],
+        ["截图提问演示", "shot-ask.html", "⌘⇧2"],
+      ]},
+    );
+    return groups;
+  }
   const palMask = document.getElementById("paletteMask");
   const palInput = document.getElementById("paletteInput");
   const palList = document.getElementById("paletteList");
   let palSel = 0;
 
   function renderPalette(q = "") {
+    const palData = buildPalData();
     palSel = 0;
     palList.innerHTML = "";
     palData.forEach(g => {
@@ -1049,7 +1143,7 @@
       hits.forEach(i => {
         const el = document.createElement("div");
         el.className = "pal-item";
-        el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg><span>${i[0]}</span><span class="hint">${i[2]}</span>`;
+        el.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg><span>${i[0]}</span>${i[2] ? `<span class="hint">${i[2]}</span>` : ""}`;
         el.addEventListener("click", () => location.href = i[1]);
         palList.appendChild(el);
       });
@@ -1079,7 +1173,7 @@
     const items = [...palList.querySelectorAll(".pal-item")];
     if (e.key === "ArrowDown") { e.preventDefault(); palSel = Math.min(palSel + 1, items.length - 1); markSel(); }
     if (e.key === "ArrowUp") { e.preventDefault(); palSel = Math.max(palSel - 1, 0); markSel(); }
-    if (e.key === "Enter" && items[palSel]) { location.href = "chat.html"; }
+    if (e.key === "Enter" && items[palSel]) { items[palSel].click(); }
   });
   document.addEventListener("keydown", e => {
     if (e.key === "Escape") { closePalette(); notifPanel.classList.remove("show"); welcomeMask.classList.remove("show"); }
@@ -1098,26 +1192,7 @@
     welcomeMask.classList.remove("show");
   });
 
-  /* ---------- 她的建议横幅 ---------- */
-  (function () {
-    const bar = document.getElementById("herSuggest");
-    if (!bar) return;
-    if (localStorage.getItem("np-suggest-done")) { bar.remove(); return; }
-    const bye = () => {
-      bar.classList.add("bye");
-      setTimeout(() => bar.remove(), 320);
-    };
-    document.getElementById("hsNo").addEventListener("click", () => {
-      localStorage.setItem("np-suggest-done", "1"); bye();
-    });
-    document.getElementById("hsYes").addEventListener("click", () => {
-      bar.querySelector(".hs-t").innerHTML = "调好了——今晚 <b>21:00</b> 她会提醒你开始学习。";
-      bar.querySelector(".hs-yes").remove();
-      bar.querySelector(".hs-no").remove();
-      localStorage.setItem("np-suggest-done", "1");
-      setTimeout(bye, 2200);
-    });
-  })();
+  /* ---------- 她的建议横幅：由 renderSuggest() 按 NPD 数据渲染 ---------- */
 
   /* ---------- 输入框 placeholder 轮播（空且不聚焦时） ---------- */
   (function () {
@@ -1136,13 +1211,10 @@
     }, 6000);
   })();
 
-  /* ---------- 她的气泡：打字机 + 定时换话 ---------- */
-  const BUBBLE_LINES = [
-    "昨天的「进程与线程」还剩最后一点，今天 25 分钟就能收尾。",
-    "5 道错题到了最佳复习时机，趁热打铁效果最好。",
-    "周报我写到第三版了，周日晚上给你看。",
-    "21:30 是共读时间，到时候别让我找不到你。",
-  ];
+  /* ---------- 她的气泡：打字机 + 定时换话（文案来自 NPD，无数据用中性问候） ---------- */
+  const BUBBLE_LINES = (window.NPD && NPD.getBubbleLines().length)
+    ? NPD.getBubbleLines()
+    : ["我在呢。有问题随时说。"];
   const nbEl = document.getElementById("nekoBubble");
   const btEl = document.getElementById("bubbleText");
   let bi = 0, typeTimer = null, holdTimer = null;
@@ -1171,15 +1243,6 @@
   });
   setTimeout(() => typeLine(BUBBLE_LINES[0]), 900);
 
-  /* ---------- 会话 hover「⋯」 ---------- */
-  document.querySelectorAll(".conv").forEach(cv => {
-    const more = document.createElement("button");
-    more.className = "more";
-    more.title = "更多操作";
-    more.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>';
-    more.addEventListener("click", e => { e.stopPropagation(); });
-    cv.appendChild(more);
-  });
 </script>
 
 <!-- Live2D -->

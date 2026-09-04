@@ -6,9 +6,11 @@
 
 - 本仓库拥有 React UI、Tauri/Rust host、产品原型和 Stage 协议。
 - Native Stage 与 NekoCore-Nano 的 C++ 实现由外部仓库拥有并发布预构建产物。
-- 主窗口内的角色由 Pixi.js/Cubism Web 渲染；独立桌宠窗口由外部 sidecar 渲染。
-- 没有真实 sidecar 时，浏览器预览仍可用，但不能声称桌面 runtime 或安装包已验证。
-- Qt/QML、同仓 C++ Engine 和旧 Native Stage 源码只保留在 Git 历史中。
+- 角色（Live2D）渲染全部由外部 NekoCore-Nano C++ runtime 承担；主窗口只承载控制
+  UI，内嵌 Web 角色渲染已随旧实现移除（ADR-0002）。
+- 客户端正按设计系统 2.0（`prototype/desktop-app/`）重写；新骨架落地前没有可运行
+  的桌面客户端。
+- Qt/QML、Flutter、同仓 C++ Engine 和旧 Native Stage 源码只保留在 Git 历史中。
 
 ## 文档地图
 
@@ -17,6 +19,7 @@
 - [构建与测试门禁](build-and-test-gates.md)：CI、真实产物和发布证据
 - [ADR 索引](adr/README.md)：需要长期保留理由的架构决策
 - [ADR-0001](adr/0001-external-native-stage.md)：外部化 Native Stage 的决定
+- [ADR-0002](adr/0002-client-rewrite-external-live2d.md)：客户端重写与角色渲染全部外置
 - [Stage Protocol v1](../../protocol/stage/v1/README.md)：host 与 sidecar 的目标 JSONL 契约
 
 ## 事实、目标和历史

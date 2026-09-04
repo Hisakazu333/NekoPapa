@@ -17,9 +17,9 @@ native-prebuilt/desktop/<target-triple>/nekopapa-native-stage[.exe]
 native-prebuilt/desktop/aarch64-apple-darwin/nekopapa-native-stage
 ```
 
-也可以设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，直接指向绝对路径。运行
-`npm --prefix app/control-desktop run stage:prepare` 后，脚本会把文件复制为 Tauri
-要求的 target-triple sidecar 名称。
+也可以设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，直接指向绝对路径。新骨架的准备脚本
+会把文件复制为 Tauri 要求的 target-triple sidecar 名称（脚本随客户端重写恢复，
+见 [ADR-0002](../doc/architecture/adr/0002-client-rewrite-external-live2d.md)）。
 
 ## 兼容要求
 
@@ -31,9 +31,9 @@ native-prebuilt/desktop/aarch64-apple-darwin/nekopapa-native-stage
 - 所含第三方 SDK、模型运行时和再分发许可；
 - 启动参数、退出码、`stdin`/`stdout`/`stderr` 约定。
 
-当前 Rust host 仍保留旧的最小生命周期行为：以 `--model <path>` 启动，并在停止时
-向 `stdin` 写入未版本化的 `{"command":"shutdown"}` JSONL。外部 Stage 在 host 完成
-Protocol v1 迁移前必须兼容这一行为。
+旧 host 的 legacy v0 行为（`--model <path>` 启动、未版本化 shutdown JSONL）已随旧
+实现移除。新 host 必须直接实现 Protocol v1；在 host 与 Stage 两端兼容测试通过前，
+提供方应以 `protocol/stage/v1/` 为目标契约，不得单方面宣称兼容已达成。
 
 ## 边界
 

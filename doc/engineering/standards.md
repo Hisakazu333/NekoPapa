@@ -6,9 +6,9 @@
 
 | 层 | 技术 | Owner |
 | --- | --- | --- |
-| UI | React 19 + TypeScript 6 + Vite 8 | 页面、交互和 Web Live2D |
+| UI | React 19 + TypeScript 6 + Vite 8 | 页面与交互；不含角色渲染 |
 | Desktop host | Tauri 2 + Rust 1.96+ | 窗口、权限、资源和 sidecar 生命周期 |
-| Native runtime | 外部预构建可执行文件 | 独立窗口与原生渲染 |
+| Native runtime | 外部预构建可执行文件 | 独立窗口、原生渲染与全部角色（Live2D）渲染 |
 | Protocol | JSON Schema + JSONL | host/runtime 稳定契约 |
 | Product baseline | 静态 HTML/CSS/JS | 设计意图与验收锚点 |
 
@@ -27,7 +27,8 @@
 
 - 开启并保持严格类型检查，不用 `any` 隐藏边界不清。
 - 页面组件消费 view state 并发出 intent；进程、文件和权限通过 bridge 进入 Tauri。
-- 网络、Tauri invoke、Web Live2D 和 fixture 数据各自集中在 adapter，不散落环境判断。
+- 网络、Tauri invoke 和 fixture 数据各自集中在 adapter，不散落环境判断；本仓库不
+  实现产品用角色渲染（ADR-0002）。
 - effect、observer、animation frame 和 WebGL 资源必须在卸载或依赖变化时清理。
 - 错误状态说明失败动作与恢复方式；preview/mock/simulated 必须可辨认。
 - 视觉实现遵循 `prototype/desktop-app/assets/proto.css` 和 `DESIGN.md`，但原型不替代

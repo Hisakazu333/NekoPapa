@@ -9,28 +9,32 @@
 除拼写或坏链接等极小修正外，先创建或认领 Issue。界面工作必须引用
 `prototype/desktop-app/` 中的具体页面，或明确说明没有对应原型。
 
-从最新 `main` 创建短分支：
+从最新 `main` 创建短分支，分支名格式为 `<类型>/<认领人>/<简短描述>`：
 
 ```bash
 git switch main
 git pull --ff-only origin main
-git switch -c feat/short-topic
+git switch -c feat/sakana/onboarding-flow
 ```
 
-可用前缀为 `feat`、`fix`、`refactor`、`docs`、`test`、`chore` 和 `hotfix`。仓库不使用
-长期 `dev` 分支。
+可用类型为 `feat`、`fix`、`refactor`、`docs`、`test`、`perf` 和 `chore`，紧急修复用
+`hotfix`。命名使用小写英文，描述用短横线 `-` 分隔，完整规则见
+[Git 实战手册](doc/contributing/git-workflow.md)。仓库不使用长期 `dev` 分支。
 
 ## 环境
 
-浏览器和前端开发需要 Node.js 24 与 npm。Tauri 开发还需要 Rust 1.96+ 和对应平台的
-Tauri 2 系统依赖。本仓库不需要 CMake 或 C++ 编译器。
+重写过渡期（[ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md)）：
+旧客户端实现已移除，当前可运行入口只有设计原型，前端/Rust 工具链命令随新骨架恢复。
+完整说明见[开发环境](doc/contributing/development-environment.md)。
 
 ```bash
-npm --prefix app/control-desktop ci
+prototype/desktop-app/serve.sh
 ```
 
-真实 Tauri 运行需要外部 Native Stage。设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，或按
+真实桌面运行需要 Rust 1.96+、对应平台 Tauri 2 系统依赖，以及外部 Native Stage：
+设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，或按
 [`native-prebuilt/`](native-prebuilt/README.md) 的约定放置与目标 triple 匹配的文件。
+角色（Live2D）渲染由外部 NekoCore-Nano C++ 代码承担，本仓库不编译 C++。
 
 ## 按范围验证
 
@@ -43,35 +47,11 @@ node scripts/check-documentation.mjs
 文档必须区分当前事实、目标契约和产品原型。不要把外部仓库、未提供的二进制或草案
 schema 描述成已经集成。
 
-### 前端
+### 前端与 Rust host（待重建）
 
-```bash
-npm --prefix app/control-desktop run check
-npm --prefix app/control-desktop run build
-```
-
-界面变更还应记录适用 viewport、显示缩放和前后截图。浏览器证据不能证明 Tauri、
-sidecar 或系统窗口行为。
-
-### Rust host
-
-Tauri build script 会检查 target-triple sidecar 是否存在。只有静态检查时可以创建明确的
-零字节 placeholder：
-
-```bash
-npm --prefix app/control-desktop run stage:placeholder
-cargo fmt --manifest-path app/control-desktop/src-tauri/Cargo.toml -- --check
-cargo clippy --manifest-path app/control-desktop/src-tauri/Cargo.toml --all-targets -- -D warnings
-cargo test --manifest-path app/control-desktop/src-tauri/Cargo.toml
-```
-
-placeholder 不是运行、兼容或打包证据。验证真实桌面流程时必须提供正式 sidecar：
-
-```bash
-export NEKOPAPA_NATIVE_STAGE_BINARY=/absolute/path/to/nekopapa-native-stage
-npm --prefix app/control-desktop run stage:prepare
-npm --prefix app/control-desktop run tauri -- dev
-```
+前端类型检查/构建与 Rust fmt/clippy/test 命令随新骨架恢复，要求见
+[构建与测试门禁](doc/architecture/build-and-test-gates.md)。界面变更仍应记录适用
+viewport、显示缩放和前后截图；浏览器证据不能证明 Tauri、sidecar 或系统窗口行为。
 
 ### 协议与外部 runtime
 

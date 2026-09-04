@@ -18,8 +18,8 @@ git remote -v
 git status --short --branch
 ```
 
-NekoPapa 的 GitHub remote 是
-`https://github.com/Hisakazu333/NekoPapa.git`。不要根据文件夹名称猜仓库，也不要
+NekoPapa 的标准 GitHub 仓库地址是
+`https://github.com/Hisakazu333/NekoPapa.git`；本地 remote 可以使用 HTTPS 或 SSH。不要根据文件夹名称猜仓库，也不要
 在有未提交改动的 checkout 上切换到无关任务。
 
 ## 2. 日常分支流程
@@ -29,19 +29,39 @@ NekoPapa 的 GitHub remote 是
 ```bash
 git switch main
 git pull --ff-only origin main
-git switch -c feat/stage-handshake
+git switch -c feat/sakana/stage-handshake
 ```
 
-常用前缀：
+分支名使用 `<类型>/<认领人>/<简短描述>` 格式。常用类型：
 
 ```text
-feat/*       新能力
-fix/*        缺陷修复
-refactor/*   不改变外部行为的重构
-docs/*       文档和治理
-test/*       测试
-chore/*      构建、依赖和维护
-hotfix/*     紧急修复
+feat       新增功能
+fix        修复问题
+refactor   代码重构
+chore      配置、依赖、构建等工程事务
+docs       文档修改
+test       测试相关
+perf       性能优化
+```
+
+`hotfix/<认领人>/<描述>` 仅用于紧急修复，仍通过 PR 合入 `main`。
+
+命名要求：
+
+- 使用小写英文；
+- 描述使用短横线 `-` 分隔；
+- 不使用空格、中文或下划线；
+- 描述应简短并能说明任务内容。
+
+示例：
+
+```text
+feat/sakana/onboarding-flow
+fix/sakana/login-token-refresh
+refactor/sakana/guide-page
+chore/sakana/deveco-610-config
+docs/sakana/auth-flow-spec
+test/sakana/onboarding-state
 ```
 
 仓库不使用长期 `dev` 分支。旧文档中的 `feature/* -> dev -> main` 流程已废止。
@@ -52,7 +72,7 @@ hotfix/*     紧急修复
 
 ```bash
 git fetch origin
-git worktree add ../Nekopapa-stage -b feat/stage-handshake origin/main
+git worktree add ../Nekopapa-stage -b feat/sakana/stage-handshake origin/main
 ```
 
 完成并合并后，在确认 worktree 干净的前提下移除：
@@ -60,7 +80,7 @@ git worktree add ../Nekopapa-stage -b feat/stage-handshake origin/main
 ```bash
 git worktree list
 git worktree remove ../Nekopapa-stage
-git branch -d feat/stage-handshake
+git branch -d feat/sakana/stage-handshake
 ```
 
 不要复制整个仓库目录，也不要用 reset/checkout 清掉另一个任务的本地修改。
@@ -78,8 +98,7 @@ git diff --check
 按路径暂存，随后再次核对 staged diff：
 
 ```bash
-git add app/control-desktop/src/App.tsx
-git add app/control-desktop/src/styles/home.css
+git add path/to/changed-file
 git diff --cached
 ```
 
@@ -92,7 +111,7 @@ git diff --cached
 
 ```bash
 git commit -m "fix(ui): keep home navigation centered while resizing"
-git push -u origin fix/home-resize
+git push -u origin fix/sakana/home-resize
 ```
 
 在 GitHub 创建目标为 `main` 的 PR。后续修改继续提交到同一分支；PR 会自动更新。
@@ -201,7 +220,7 @@ PR 中执行。
 ```bash
 git switch main
 git pull --ff-only origin main
-git branch -d fix/home-resize
+git branch -d fix/sakana/home-resize
 git fetch --prune origin
 ```
 
