@@ -30,85 +30,155 @@
     display: flex; overflow: hidden;
   }
 
-  /* ================= 侧栏（216px · 中性 · 发丝线） ================= */
+  /* ================= 侧栏（252px · 中性 · 发丝线） ================= */
   .sidebar {
-    width: 216px; flex-shrink: 0;
+    width: 252px; flex-shrink: 0;
     background: var(--surface-1);
     border-right: 1px solid rgba(24,28,35,.06);
     display: flex; flex-direction: column;
   }
-  .traffic { display: flex; align-items: center; gap: 8px; padding: 14px 16px 10px; }
+  .traffic { display: flex; align-items: center; gap: 8px; padding: 16px 18px 12px; }
   .traffic span { width: 12px; height: 12px; border-radius: 50%; }
   .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
+  .traffic .r, .traffic .y, .traffic .g { position: relative; cursor: pointer; }
+  /* macOS 细节：hover 红绿灯显示 × – + 字形 */
+  .traffic .r::after, .traffic .y::after, .traffic .g::after {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-size: 9px; font-weight: 700; line-height: 1;
+    color: rgba(0,0,0,.45); opacity: 0; transition: opacity .12s;
+  }
+  .traffic .r::after { content: "\00D7"; }
+  .traffic .y::after { content: "\2013"; }
+  .traffic .g::after { content: "+"; }
+  .traffic:hover .r::after, .traffic:hover .y::after, .traffic:hover .g::after { opacity: 1; }
   .traffic .side-toggle { margin-left: 8px; color: var(--tInk3); display: grid; place-items: center; cursor: pointer; }
+  .traffic .side-toggle:hover { color: var(--tInk1); }
+  /* 收起侧栏：整块隐去，标题栏左侧出展开钮（显隐由 JS hidden 控制） */
+  .sidebar.collapsed { display: none; }
 
   .mode-tabs {
-    margin: 0 12px 10px; padding: 2px;
-    background: rgba(24,28,35,.055); border-radius: 8px;
+    margin: 0 14px 12px; padding: 3px;
+    background: rgba(24,28,35,.055); border-radius: 9px;
     display: flex;
   }
   .mode-tabs button {
-    flex: 1; height: 26px; border: 0; border-radius: 6px;
+    flex: 1; height: 32px; border: 0; border-radius: 7px;
     background: transparent; color: var(--tInk2);
-    font-size: 12px; font-weight: 500; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
     transition: all .15s;
   }
-  .mode-tabs button.on { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .mode-tabs button svg { width: 14px; height: 14px; }
+  .mode-tabs button.on {
+    background: #fff; color: var(--tInk1); font-weight: 600;
+    box-shadow: 0 1px 2.5px rgba(24,28,35,.12), 0 0 0 .5px rgba(24,28,35,.03);
+  }
 
-  .side-actions { padding: 0 12px 2px; display: grid; gap: 2px; }
+  .side-actions { padding: 0 14px 2px; display: grid; gap: 3px; }
   .btn-new {
-    display: flex; align-items: center; gap: 7px;
-    height: 30px; padding: 0 10px;
-    border: 1px solid rgba(24,28,35,.08); border-radius: 8px;
+    display: flex; align-items: center; gap: 8px;
+    height: 37px; padding: 0 12px;
+    border: 1px solid rgba(24,28,35,.08); border-radius: 9px;
     background: #fff; color: var(--tInk1);
-    font-size: 12.5px; font-weight: 500; cursor: pointer;
-    box-shadow: var(--shadow-sm);
+    font-size: 13.5px; font-weight: 500; cursor: pointer;
     transition: all .15s;
   }
+  .btn-new svg { width: 16px; height: 16px; }
   .btn-new:hover { border-color: rgba(24,28,35,.18); }
   .btn-new .kbd { margin-left: auto; }
+  .sidebar .np-kbd { font-size: 10.5px; padding: 2px 7px; }
   .side-search {
-    display: flex; align-items: center; gap: 7px;
-    height: 28px; padding: 0 10px; border-radius: 8px;
-    color: var(--tInk3); font-size: 12.5px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    height: 33px; padding: 0 12px; border-radius: 9px;
+    color: var(--tInk3); font-size: 13.5px; cursor: pointer;
     transition: all .15s;
   }
+  .side-search svg { width: 16px; height: 16px; }
   .side-search:hover { background: rgba(255,255,255,.65); color: var(--tInk2); }
+  .btn-new .kbd, .side-search .kbd { transition: all .15s; }
+  .side-search:hover .kbd { color: var(--tInk2); border-color: rgba(24,28,35,.18); }
 
-  .side-scroll { flex: 1; overflow-y: auto; padding: 2px 12px 12px; }
+  .side-scroll { flex: 1; overflow-y: auto; padding: 4px 14px 14px; }
   .side-scroll::-webkit-scrollbar { width: 0; }
   .group-label {
     display: flex; align-items: center; justify-content: space-between;
-    font-size: 10px; font-weight: 600; letter-spacing: .09em;
-    color: var(--tInk3); padding: 14px 10px 4px;
+    font-size: 10.5px; font-weight: 600; letter-spacing: .09em;
+    color: var(--tInk3); padding: 16px 12px 6px;
     cursor: pointer; user-select: none;
   }
-  .group-label .chev { color: var(--tInk3); transition: transform .2s ease; }
+  .group-label:hover { color: var(--tInk2); }
+  .group-label .chev { color: var(--tInk3); transition: transform .2s ease; width: 11px; height: 11px; }
+  .group-label:hover .chev { color: var(--tInk2); }
   .group-label.collapsed .chev { transform: rotate(-90deg); }
+  /* 分组标签右侧工具位：快捷新建等，hover 标签时浮现 */
+  .group-label .g-tools { display: inline-flex; align-items: center; gap: 2px; }
+  .g-add {
+    width: 20px; height: 20px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--tInk3); cursor: pointer;
+    display: grid; place-items: center; opacity: 0; transition: all .15s;
+  }
+  .g-add svg { width: 12px; height: 12px; }
+  .group-label:hover .g-add { opacity: 1; }
+  .g-add:hover { background: rgba(24,28,35,.08); color: var(--tInk1); }
 
   .nav-item {
-    display: flex; align-items: center; gap: 8px;
-    height: 28px; padding: 0 10px; border-radius: 8px;
-    font-size: 12.5px; color: var(--tInk2); cursor: pointer;
+    display: flex; align-items: center; gap: 9px;
+    height: 34px; padding: 0 12px; border-radius: 9px;
+    font-size: 13.5px; color: var(--tInk2); cursor: pointer;
     text-decoration: none;
     transition: background .15s;
   }
   .nav-item:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
-  .nav-item svg { color: var(--tInk3); flex-shrink: 0; }
-  .nav-item .cnt { margin-left: auto; font-size: 10px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .nav-item svg { color: var(--tInk3); flex-shrink: 0; width: 18px; height: 18px; }
+  .nav-item .cnt { margin-left: auto; font-size: 10.5px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
   .nav-item .cnt.hot { color: var(--tPrimary); font-weight: 700; }
+
+  /* ---------- 侧栏图标微动效：hover 一次性小动作，安静但有生命 ---------- */
+  .btn-new svg, .g-add svg, #gearBtn svg { transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
+  .btn-new:hover svg, .g-add:hover svg { transform: rotate(180deg); }
+  .side-search:hover svg { animation: icWiggle .6s ease-out; }
+  @keyframes icWiggle { 25% { transform: rotate(20deg) translateX(1px); } 60% { transform: rotate(-14deg); } }
+  .nav-item:hover .ic-ring { animation: icBob .55s cubic-bezier(.34,1.5,.64,1); }
+  @keyframes icBob { 45% { transform: translateY(2.6px); } }
+  .nav-item .ic-hand { transform-box: view-box; transform-origin: 12px 12px; }
+  .nav-item:hover .ic-hand { animation: icSpin .9s cubic-bezier(.3,1.3,.4,1); }
+  @keyframes icSpin { to { transform: rotate(720deg); } }
+  .nav-item[href="lib.html"]:hover svg { animation: icTilt .55s cubic-bezier(.34,1.5,.64,1); }
+  @keyframes icTilt { 45% { transform: rotate(-13deg) translateY(-1.5px); } }
+  .nav-item[href="map.html"] svg circle { transform-box: fill-box; transform-origin: center; }
+  .nav-item[href="map.html"]:hover svg circle { animation: icPulse .8s cubic-bezier(.34,1.56,.64,1); }
+  .nav-item[href="map.html"]:hover svg circle:nth-of-type(2) { animation-delay: .08s; }
+  .nav-item[href="map.html"]:hover svg circle:nth-of-type(3) { animation-delay: .16s; }
+  .nav-item[href="map.html"]:hover svg circle:nth-of-type(4) { animation-delay: .24s; }
+  @keyframes icPulse { 45% { transform: scale(1.75); } }
+  .nav-item .ic-line { transform-box: fill-box; transform-origin: left center; }
+  .nav-item:hover .ic-line { animation: icWrite .6s cubic-bezier(.22,1,.36,1); }
+  .nav-item:hover .ic-line.l2 { animation-delay: .15s; }
+  @keyframes icWrite { from { transform: scaleX(0); } }
+  /* 她的记忆：唯一常动，轻轻的呼吸闪烁（鲜艳的她） */
+  .nav-item[href="memory.html"] svg { transform-box: fill-box; transform-origin: center;
+    animation: icTwinkle 3s ease-in-out infinite; }
+  @keyframes icTwinkle { 50% { transform: scale(1.22) rotate(11deg); opacity: .65; } }
+  .nav-item .ic-dev { transform-box: fill-box; transform-origin: center; }
+  .nav-item:hover .ic-dev { animation: icPair 1s ease-out; }
+  @keyframes icPair { 30%, 70% { opacity: .25; transform: translateX(-2px); } }
+  #gearBtn:hover svg { transform: rotate(120deg); }
+  #bellBtn svg { transform-box: view-box; transform-origin: 12px 3px; }
+  #bellBtn:hover svg { animation: icSwing .7s ease-out; }
+  @keyframes icSwing { 20% { transform: rotate(22deg); } 45% { transform: rotate(-16deg); } 70% { transform: rotate(8deg); } }
+  .mode-tabs button svg { transition: transform .2s cubic-bezier(.34,1.4,.64,1); }
+  .mode-tabs button:hover svg { transform: scale(1.25); }
 
   .conv {
     position: relative;
     display: flex; align-items: center;
-    height: 28px; padding: 0 10px; border-radius: 8px;
-    font-size: 12.5px; color: var(--tInk2); cursor: pointer;
+    height: 33px; padding: 0 12px; border-radius: 9px;
+    font-size: 13.5px; color: var(--tInk2); cursor: pointer;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: background .15s;
   }
   .conv:hover { background: rgba(255,255,255,.65); color: var(--tInk1); }
-  .conv.active { background: #fff; color: var(--tInk1); font-weight: 600; box-shadow: var(--shadow-sm); }
+  .conv.active { background: #fff; color: var(--tInk1); font-weight: 600; }
   .conv.active::before { content: ""; position: absolute; left: 0; top: 7px; bottom: 7px;
     width: 2.5px; border-radius: 2px; background: var(--tPrimary); }
   .conv .more { margin-left: auto; width: 20px; height: 20px; border: 0; border-radius: 6px;
@@ -120,26 +190,35 @@
     flex-shrink: 0; margin-left: auto; animation: pulseDot 1.6s ease-in-out infinite; }
   @keyframes pulseDot { 50% { opacity: .35; } }
 
+  /* 侧栏右缘拖拽调宽：5px 热区 + hover 指示线 */
+  .sidebar { position: relative; }
+  .side-drag { position: absolute; top: 0; right: -2px; width: 5px; height: 100%;
+    cursor: col-resize; z-index: 30; }
+  .side-drag::after { content: ""; position: absolute; left: 2px; top: 0; bottom: 0;
+    width: 1px; background: transparent; transition: background .15s; }
+  .side-drag:hover::after, .side-drag.on::after { background: rgba(24,28,35,.28); }
+
   /* ---------- 底部账号 ---------- */
-  .side-foot { border-top: 1px solid rgba(24,28,35,.06); padding: 8px 12px 10px; position: relative; }
-  .foot-user { display: flex; align-items: center; gap: 9px; padding: 5px 8px;
-    border-radius: 8px; cursor: pointer; user-select: none; transition: background .15s; }
+  .side-foot { border-top: 1px solid rgba(24,28,35,.06); padding: 10px 14px 12px; position: relative; }
+  .foot-user { display: flex; align-items: center; gap: 10px; padding: 6px 9px;
+    border-radius: 9px; cursor: pointer; user-select: none; transition: background .15s; }
   .foot-user:hover, .foot-user.open { background: rgba(255,255,255,.65); }
-  .avatar { width: 24px; height: 24px; border-radius: 50%;
+  .avatar { width: 28px; height: 28px; border-radius: 50%;
     background: var(--tInk1); color: #fff;
-    display: grid; place-items: center; font-size: 10px; font-weight: 700; flex-shrink: 0; }
-  .foot-user .n { font-size: 12.5px; font-weight: 500; }
-  .foot-user .plan { font-size: 10px; font-weight: 600; letter-spacing: .03em;
+    display: grid; place-items: center; font-size: 11px; font-weight: 700; flex-shrink: 0; }
+  .foot-user .n { font-size: 13.5px; font-weight: 500; }
+  .foot-user .plan { font-size: 10.5px; font-weight: 600; letter-spacing: .03em;
     color: var(--tInk3); border: 1px solid rgba(24,28,35,.1);
-    padding: 1px 6px; border-radius: 5px; }
+    padding: 1px 7px; border-radius: 5px; }
   .foot-icons { margin-left: auto; display: flex; gap: 2px; }
-  .foot-icons button { width: 26px; height: 26px; border: 0; border-radius: 6px;
+  .foot-icons button { width: 30px; height: 30px; border: 0; border-radius: 7px;
     background: transparent; color: var(--tInk3); cursor: pointer;
     display: grid; place-items: center; transition: all .15s; }
+  .foot-icons button svg { width: 16px; height: 16px; }
   .foot-icons button:hover { background: #fff; color: var(--tInk1); }
 
   .account-menu {
-    position: absolute; left: 12px; bottom: 52px; width: 196px;
+    position: absolute; left: 14px; bottom: 58px; width: 212px;
     background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
     border-radius: 10px; box-shadow: var(--shadow-lg);
     padding: 4px; z-index: 60;
@@ -149,8 +228,8 @@
   .account-menu.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
   .menu-item {
     display: flex; align-items: center; gap: 9px;
-    height: 30px; padding: 0 9px; border-radius: 7px;
-    font-size: 12.5px; color: var(--tInk1); cursor: pointer;
+    height: 32px; padding: 0 10px; border-radius: 7px;
+    font-size: 13px; color: var(--tInk1); cursor: pointer;
     position: relative; white-space: nowrap;
     transition: background .15s;
   }
@@ -184,6 +263,7 @@
     background: transparent; color: var(--tInk3); cursor: pointer;
     display: grid; place-items: center; margin-left: 3px; transition: all .15s; text-decoration: none; }
   .tb-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
+  .tb-btn.side-expand { margin-left: 0; margin-right: 4px; }
   /* 时段氛围：夜深了，主区罩一层极淡的暖暗 */
   .main.night .assist-home {
     background:
@@ -235,8 +315,8 @@
     width: 100%; margin-bottom: 18px;
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
     border-left: 2.5px solid var(--tPrimary);
-    border-radius: 10px; box-shadow: var(--shadow-sm);
-    padding: 9px 12px 9px 14px;
+    border-radius: 10px;
+    padding: 10px 12px 10px 14px;
     font-size: 12px; color: var(--tInk1); line-height: 1.55;
     transition: opacity .3s ease, transform .3s ease;
   }
@@ -315,9 +395,9 @@
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
     border-radius: 14px; box-shadow: var(--shadow-sm);
     padding: 18px 20px 26px; text-decoration: none; color: var(--tInk1);
-    transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease;
+    transition: border-color .2s ease;
   }
-  .focus-card:hover { border-color: rgba(24,28,35,.16); box-shadow: var(--shadow-md); transform: translateY(-1px); }
+  .focus-card:hover { border-color: rgba(24,28,35,.16); }
   .fc-ic { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
     background: var(--tPrimarySoft); color: var(--tPrimary);
     display: grid; place-items: center; }
@@ -349,53 +429,71 @@
   .today-quiet a { color: var(--tInk2); text-decoration: none; }
   .today-quiet a:hover { color: var(--tPrimary); }
 
-  /* 输入胶囊 */
+  /* ================= 输入区（重新设计） =================
+     安静的白盒：静态发丝线 + 淡阴影，hover 边框加深，聚焦时一圈她的粉光晕；
+     发送键状态感知：空 = 中性禁用，有字 = 她的粉（她的动作） */
   .composer {
     width: 100%;
-    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.09);
     border-radius: 16px; box-shadow: var(--shadow-md);
-    padding: 12px 16px 10px;
+    padding: 9px 10px 8px;
     transition: border-color .2s ease, box-shadow .2s ease;
   }
+  .composer:hover { border-color: rgba(24,28,35,.16); }
+  .composer:focus-within {
+    border-color: rgba(224,107,151,.5);
+    box-shadow: 0 0 0 3px rgba(224,107,151,.12), var(--shadow-md);
+  }
   /* 她推荐的（框内 chips，点击填入） */
-  .reco-chips { display: flex; gap: 6px; margin-bottom: 8px; }
+  .reco-chips { display: flex; gap: 6px; margin: 0 2px 8px; }
   .reco-chips button {
-    display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px;
-    border: 0; border-radius: 6px; background: var(--surface-1); color: var(--tInk2);
-    font-family: inherit; font-size: 10.5px; font-weight: 500; cursor: pointer; transition: all .15s;
+    display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px;
+    border: 0; border-radius: 7px; background: var(--surface-1); color: var(--tInk2);
+    font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; transition: all .15s;
   }
   .reco-chips button:hover { background: #E3E8F0; color: var(--tInk1); }
   .reco-chips button svg { color: var(--tPrimary); }
-  .composer:focus-within { border-color: rgba(224,107,151,.5); box-shadow: 0 0 0 3px rgba(224,107,151,.12); }
   .composer textarea {
     width: 100%; border: 0; outline: 0; resize: none;
     background: transparent; color: var(--tInk1);
-    font-family: inherit; font-size: 13px; line-height: 1.6; min-height: 38px;
+    font-family: inherit; font-size: 14px; line-height: 1.65; min-height: 42px;
+    padding: 5px 6px 2px;
   }
   .composer textarea::placeholder { color: var(--tInk3); }
-  .composer-bar { display: flex; align-items: center; gap: 2px; margin-top: 4px; }
+  /* 焦点环由 .composer 容器统一承担，textarea 自身不再画内框 */
+  .composer textarea:focus-visible { outline: 0; box-shadow: none; }
+  .composer-bar { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
   .c-btn {
-    height: 28px; min-width: 28px; padding: 0 5px;
-    border: 0; border-radius: 7px; background: transparent;
-    color: var(--tInk3); cursor: pointer; font-size: 10.5px; font-weight: 600;
+    height: 30px; min-width: 30px; padding: 0 7px;
+    border: 0; border-radius: 8px; background: transparent;
+    color: var(--tInk3); cursor: pointer; font-size: 11px; font-weight: 600;
     display: inline-flex; align-items: center; justify-content: center; gap: 5px;
     transition: all .15s;
   }
-  .c-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
+  .c-btn:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
   .c-btn.on { color: var(--tPrimary); background: var(--tPrimarySoft); }
-  .model-pick { display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10.5px; color: var(--tInk2); font-weight: 500;
-    padding: 5px 8px; border-radius: 7px; cursor: pointer; transition: background .15s; }
-  .model-pick:hover { background: rgba(24,28,35,.05); }
-  .send-btn {
-    margin-left: auto; width: 28px; height: 28px; border: 0;
-    border-radius: 8px;
-    background: var(--tPrimary); color: #fff;
-    display: grid; place-items: center; cursor: pointer;
-    transition: background .15s, transform .15s var(--ease-spring);
+  /* 快捷键提示：聚焦时浮现 */
+  .composer-hint {
+    flex: 1; text-align: right; white-space: nowrap; padding-right: 2px;
+    font-size: 10px; color: var(--tInk3); letter-spacing: .02em;
+    opacity: 0; transition: opacity .2s ease; pointer-events: none;
   }
-  .send-btn:hover { background: #D05A88; }
-  .send-btn:active { transform: scale(.92); }
+  .composer:focus-within .composer-hint { opacity: .85; }
+  .model-pick { display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; color: var(--tInk2); font-weight: 500;
+    padding: 6px 9px; border-radius: 8px; cursor: pointer; transition: background .15s; }
+  .model-pick:hover { background: rgba(24,28,35,.06); }
+  /* 发送键：默认中性禁用态，输入后才亮成她的粉 */
+  .send-btn {
+    width: 30px; height: 30px; border: 0;
+    border-radius: 8px;
+    background: var(--surface-1); color: var(--tInk3);
+    display: grid; place-items: center; cursor: default;
+    transition: background .18s, color .18s, transform .15s var(--ease-spring);
+  }
+  .send-btn.ready { background: var(--tPrimary); color: #fff; cursor: pointer; }
+  .send-btn.ready:hover { background: #D05A88; }
+  .send-btn.ready:active { transform: scale(.92); }
 
   /* 快捷入口：带图标的小按钮 */
   .quick-links { display: flex; gap: 8px; margin-top: 12px; }
@@ -422,9 +520,32 @@
   .assist-scroll::-webkit-scrollbar { width: 0; }
   .assist-inner { width: min(600px, 100% - 96px); margin: 0 auto; }
   .assist-title { font-size: 21px; font-weight: 600; letter-spacing: -.02em;
-    display: flex; align-items: center; gap: 9px; margin-bottom: 20px; }
-  .assist-title img { width: 24px; height: 24px; border-radius: 7px; }
+    display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
+  .assist-title img { width: 28px; height: 28px; border-radius: 8px;
+    box-shadow: 0 0 0 1.5px rgba(224,107,151,.4); }
   .assist-title .sub { font-size: 11.5px; color: var(--tInk3); font-weight: 400; margin-left: 4px; }
+
+  /* 助手主页构成：运行任务（有数据才有） + 能力网格（常设入口） */
+  #stageAssist.no-tasks .assist-scroll { display: grid; place-items: center; padding: 0; }
+  #stageAssist.no-tasks .assist-inner { margin: 0; }
+  .cap-block { width: 100%; }
+  .cap-label { font-size: 10.5px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3);
+    padding: 0 2px 8px; }
+  .cap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .cap-card {
+    display: grid; grid-template-columns: auto 1fr; column-gap: 11px; row-gap: 2px;
+    align-items: center; text-align: left;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; padding: 13px 14px; cursor: pointer;
+    font-family: inherit; transition: border-color .15s, box-shadow .15s;
+  }
+  .cap-card:hover { border-color: rgba(24,28,35,.18); box-shadow: var(--shadow-sm); }
+  .cap-ic { grid-row: span 2; width: 32px; height: 32px; border-radius: 9px;
+    background: var(--surface-1); color: var(--tInk2); display: grid; place-items: center; }
+  .cap-ic svg { transition: transform .2s cubic-bezier(.34,1.4,.64,1); }
+  .cap-card:hover .cap-ic svg { transform: scale(1.15); }
+  .cap-t { font-size: 13px; font-weight: 600; color: var(--tInk1); }
+  .cap-d { font-size: 11px; color: var(--tInk3); line-height: 1.5; }
   .task-list { width: 100%; margin-bottom: 20px; }
   .task-label { font-size: 10px; font-weight: 600; color: var(--tInk3); letter-spacing: .09em;
     padding: 0 2px 6px; }
@@ -502,11 +623,14 @@
     opacity: 0; pointer-events: none; transition: opacity .25s ease; }
   .welcome-mask.show { opacity: 1; pointer-events: auto; }
   .welcome { width: 400px; background: var(--surface-3); border-radius: 14px;
-    box-shadow: var(--shadow-lg); padding: 26px; text-align: center;
+    box-shadow: var(--shadow-lg); padding: 26px; text-align: center; position: relative;
     transform: scale(.94) translateY(10px); transition: transform .25s var(--ease-spring); }
+  .w-close { position: absolute; top: 10px; right: 10px; width: 26px; height: 26px;
+    border: 0; border-radius: 7px; background: transparent; color: var(--tInk3);
+    cursor: pointer; display: grid; place-items: center; transition: all .15s; }
+  .w-close:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
   .welcome-mask.show .welcome { transform: scale(1) translateY(0); }
-  .welcome img { width: 56px; height: 56px; border-radius: 14px;
-    box-shadow: 0 6px 18px rgba(224,107,151,.35); }
+  .welcome img { width: 56px; height: 56px; border-radius: 14px; }
   .welcome h2 { font-size: 17px; font-weight: 600; letter-spacing: -.01em; margin: 12px 0 5px; }
   .welcome p { font-size: 12.5px; color: var(--tInk2); line-height: 1.75; }
   .welcome .feats { text-align: left; margin: 14px 0 18px; display: grid; gap: 9px; }
@@ -552,7 +676,7 @@
   }
 
   /* ================= 空态（无数据时的诚实状态，安静、ink3） ================= */
-  .side-empty { font-size: 11px; color: var(--tInk3); padding: 3px 10px 8px; }
+  .side-empty { font-size: 11.5px; color: var(--tInk3); padding: 4px 12px 10px; }
   .notif-empty { padding: 20px 10px 18px; text-align: center; font-size: 11.5px; color: var(--tInk3); }
   .task-empty { padding: 30px 0 12px; text-align: center; font-size: 11.5px; color: var(--tInk3); line-height: 1.8; }
 </style>
@@ -565,7 +689,7 @@
   <aside class="sidebar">
     <div class="traffic">
       <span class="r"></span><span class="y"></span><span class="g"></span>
-      <span class="side-toggle" data-tip="收起侧栏">
+      <span class="side-toggle" data-tip="收起侧栏 ⌘B">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
       </span>
     </div>
@@ -594,15 +718,15 @@
 
     <div class="side-scroll">
       <div>
-        <div class="group-label" data-collapse>学习
+        <div class="group-label" data-collapse data-grp="learn">学习
           <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
         <a class="nav-item" href="plan.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path class="ic-ring" d="M8 3v4M16 3v4M3 10h18"/></svg>
           学习计划<span class="cnt" id="planCnt" hidden></span>
         </a>
         <a class="nav-item" href="mistakes.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path class="ic-hand" d="M12 7v5l3 3"/></svg>
           错题本<span class="cnt hot" id="mistakeCnt" hidden></span>
         </a>
         <a class="nav-item" href="lib.html">
@@ -614,7 +738,7 @@
           知识地图
         </a>
         <a class="nav-item" href="report.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h5"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path class="ic-line" d="M8 9h8"/><path class="ic-line l2" d="M8 13h5"/></svg>
           她的周报
         </a>
         <a class="nav-item" href="memory.html">
@@ -624,18 +748,23 @@
       </div>
 
       <div>
-        <div class="group-label" data-collapse>互联
+        <div class="group-label" data-collapse data-grp="link">互联
           <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
         <a class="nav-item" href="drop.html">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect x="16" y="9" width="6" height="11" rx="1.5"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect class="ic-dev" x="16" y="9" width="6" height="11" rx="1.5"/></svg>
           设备互联
         </a>
       </div>
 
       <div>
-        <div class="group-label" data-collapse>对话
-          <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+        <div class="group-label" data-collapse data-grp="conv">对话
+          <span class="g-tools">
+            <button class="g-add" id="convAdd" title="新对话">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+            <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
+          </span>
         </div>
         <div id="convList"><!-- 会话列表由 NPD 渲染 --></div>
       </div>
@@ -673,11 +802,15 @@
         </div>
       </div>
     </div>
+    <span class="side-drag" id="sideDrag" title="拖动调整侧栏宽度"></span>
   </aside>
 
   <!-- ============ 主区 ============ -->
   <section class="main">
     <div class="titlebar">
+      <button class="tb-btn side-expand" data-tip="展开侧栏 ⌘B" id="sideExpand" hidden>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
+      </button>
       <span class="app-title">NekoPapa</span>
       <span class="sp"></span>
       <div class="agent-pill" id="agentPill" data-tip="后台任务" onclick="location.href='assist-flow.html'" hidden>
@@ -748,7 +881,7 @@
               <button class="c-btn" data-tip="语音输入">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
               </button>
-              <span style="flex:1"></span>
+              <span class="composer-hint">⏎ 发送 · ⇧⏎ 换行</span>
               <div class="model-pick" data-pick="model">
                 NekoCore Nano
                 <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
@@ -779,9 +912,34 @@
             <h1 class="assist-title">
               <img src="assets/icon.png" alt="">
               交给 Neko
-              <span class="sub">描述任务，她先给计划再动手</span>
+              <span class="sub">描述任务，她先给计划，你点头才动手</span>
             </h1>
-            <div class="task-list" id="taskList"><!-- 任务由 NPD 渲染 --></div>
+            <div class="task-list" id="taskList" hidden><!-- 任务由 NPD 渲染，无数据时整块隐藏 --></div>
+            <div class="cap-block">
+              <div class="cap-label" id="capLabel">她能帮你做这些</div>
+              <div class="cap-grid">
+                <button class="cap-card" data-fill="整理一下下载文件夹：找出重复文件，按类型归档">
+                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+                  <span class="cap-t">整理文件</span>
+                  <span class="cap-d">清理下载夹、找出重复、按类型归档</span>
+                </button>
+                <button class="cap-card" data-fill="帮我调研「间隔重复记忆法」的最佳实践，整理成一页报告">
+                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
+                  <span class="cap-t">深度调研</span>
+                  <span class="cap-d">给一个话题，她查资料写成报告</span>
+                </button>
+                <button class="cap-card" data-fill="把这份文档总结成 5 个要点，再翻译成英文">
+                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M9 13h6M9 17h4"/></svg></span>
+                  <span class="cap-t">处理文档</span>
+                  <span class="cap-d">总结、翻译、格式转换，拖进来就行</span>
+                </button>
+                <button class="cap-card" data-fill="每周五 17:00 提醒我整理这一周的错题">
+                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
+                  <span class="cap-t">定时与提醒</span>
+                  <span class="cap-d">到点提醒你，或定期检查某件事</span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
         <div class="assist-composer">
@@ -795,7 +953,7 @@
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 Agent
               </button>
-              <span style="flex:1"></span>
+              <span class="composer-hint">⏎ 发送 · ⇧⏎ 换行</span>
               <div class="perm-pick" data-pick="perm" data-tip="Agent 权限">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
                 完全访问
@@ -838,6 +996,9 @@
 <!-- 新手引导 -->
 <div class="welcome-mask" id="welcomeMask">
   <div class="welcome">
+    <button class="w-close" id="welcomeClose" title="跳过引导">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
     <img src="assets/icon.png" alt="Neko">
     <h2>我是 Neko，你的同桌</h2>
     <p>不是工具，是陪你把学习这件事坚持下去的那个她。<br>三件事让你快速认识我：</p>
@@ -914,10 +1075,12 @@
   function renderTasks() {
     const list = document.getElementById("taskList");
     const tasks = NPD.getRunningTasks();
-    if (!tasks.length) {
-      list.innerHTML = '<div class="task-empty">还没有运行中的任务<br>描述一个任务，她先给计划再动手</div>';
-      return;
-    }
+    const stage = document.getElementById("stageAssist");
+    /* 无任务：任务区整块隐藏，头部 + 能力网格垂直居中成为主角 */
+    stage.classList.toggle("no-tasks", !tasks.length);
+    document.getElementById("capLabel").textContent = tasks.length ? "或者，再来一个" : "她能帮你做这些";
+    if (!tasks.length) { list.hidden = true; list.innerHTML = ""; return; }
+    list.hidden = false;
     list.innerHTML = '<div class="task-label">正在运行</div>' + tasks.map(t => `
       <a class="t-row" href="${t.href || 'assist-flow.html'}">
         <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
@@ -1065,7 +1228,7 @@
     const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
     ta.value = b.dataset.fill;
     ta.focus();
-    autoGrow(ta);
+    ta.dispatchEvent(new Event("input"));
   });
 
   function autoGrow(ta) {
@@ -1077,26 +1240,93 @@
 
   document.querySelectorAll(".composer").forEach(c => {
     const ta = c.querySelector("textarea");
+    const send = c.querySelector(".send-btn");
+    /* 发送键状态感知：空 = 中性禁用，有字 = 她的粉 */
+    const syncSend = () => send.classList.toggle("ready", !!ta.value.trim());
+    ta.addEventListener("input", syncSend);
+    syncSend();
     const go = () => {
       if (!ta.value.trim()) { ta.focus(); return; }
       location.href = curMode === "learn" ? "learn-flow.html" : "assist-flow.html";
     };
-    c.querySelector(".send-btn").addEventListener("click", go);
+    send.addEventListener("click", go);
     ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } });
   });
 
-  /* ---------- 侧栏分组折叠 ---------- */
+  /* ---------- 侧栏分组折叠（记忆状态） ---------- */
   document.querySelectorAll(".group-label[data-collapse]").forEach(lb => {
-    lb.addEventListener("click", () => {
-      lb.classList.toggle("collapsed");
-      const hide = lb.classList.contains("collapsed");
+    const key = "np-grp-collapsed-" + (lb.dataset.grp || lb.textContent.trim());
+    const set = hide => {
+      lb.classList.toggle("collapsed", hide);
       let el = lb.nextElementSibling;
       while (el && !el.classList.contains("group-label")) {
         el.style.display = hide ? "none" : "";
         el = el.nextElementSibling;
       }
+    };
+    lb.addEventListener("click", () => {
+      const hide = !lb.classList.contains("collapsed");
+      set(hide);
+      localStorage.setItem(key, hide ? "1" : "");
     });
+    if (localStorage.getItem(key) === "1") set(true);
   });
+
+  /* 对话组：hover 浮现的快捷新建 */
+  document.getElementById("convAdd").addEventListener("click", e => {
+    e.stopPropagation();
+    location.href = "chat.html";
+  });
+
+  /* ---------- 侧栏收起 / 展开 ---------- */
+  (function () {
+    const sidebar = document.querySelector(".sidebar");
+    const expandBtn = document.getElementById("sideExpand");
+    const apply = collapsed => {
+      sidebar.classList.toggle("collapsed", collapsed);
+      expandBtn.hidden = !collapsed;
+      localStorage.setItem("np-side-collapsed", collapsed ? "1" : "");
+    };
+    document.querySelector(".side-toggle").addEventListener("click", () => apply(true));
+    expandBtn.addEventListener("click", () => apply(false));
+    if (localStorage.getItem("np-side-collapsed") === "1") apply(true);
+    /* ⌘B 收起/展开侧栏（macOS 习惯） */
+    document.addEventListener("keydown", e => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "b") {
+        e.preventDefault();
+        apply(!sidebar.classList.contains("collapsed"));
+      }
+    });
+  })();
+
+  /* ---------- 侧栏拖拽调宽 ---------- */
+  (function () {
+    const sidebar = document.querySelector(".sidebar");
+    const drag = document.getElementById("sideDrag");
+    const MIN_W = 200, MAX_W = 400;
+    const saved = parseInt(localStorage.getItem("np-side-w"), 10);
+    if (saved) sidebar.style.width = Math.min(MAX_W, Math.max(MIN_W, saved)) + "px";
+    drag.addEventListener("mousedown", e => {
+      e.preventDefault();
+      drag.classList.add("on");
+      document.body.style.cursor = "col-resize";
+      document.body.style.userSelect = "none";
+      const startX = e.clientX, startW = sidebar.offsetWidth;
+      const move = ev => {
+        sidebar.style.width = Math.min(MAX_W, Math.max(MIN_W, startW + ev.clientX - startX)) + "px";
+      };
+      const up = () => {
+        document.removeEventListener("mousemove", move);
+        document.removeEventListener("mouseup", up);
+        drag.classList.remove("on");
+        document.body.style.cursor = "";
+        document.body.style.userSelect = "";
+        localStorage.setItem("np-side-w", sidebar.offsetWidth);
+      };
+      document.addEventListener("mousemove", move);
+      document.addEventListener("mouseup", up);
+    });
+  })();
 
   /* ---------- ⌘K 聚焦输入框 ---------- */
   document.addEventListener("keydown", e => {
@@ -1200,7 +1430,7 @@
     if (e.key === "Enter" && items[palSel]) { items[palSel].click(); }
   });
   document.addEventListener("keydown", e => {
-    if (e.key === "Escape") { closePalette(); notifPanel.classList.remove("show"); welcomeMask.classList.remove("show"); }
+    if (e.key === "Escape") { closePalette(); notifPanel.classList.remove("show"); dismissWelcome(); }
     if ((e.metaKey || e.ctrlKey) && (e.key.toLowerCase() === "p" || (e.shiftKey && e.key.toLowerCase() === "k"))) {
       e.preventDefault(); openPalette();
     }
@@ -1211,10 +1441,15 @@
   if (location.hash === "#welcome" || !localStorage.getItem("np-onboarded")) {
     welcomeMask.classList.add("show");
   }
-  document.getElementById("welcomeGo").addEventListener("click", () => {
+  const dismissWelcome = () => {
     localStorage.setItem("np-onboarded", "1");
     welcomeMask.classList.remove("show");
-  });
+    if (location.hash === "#welcome") history.replaceState(null, "", location.pathname);
+  };
+  document.getElementById("welcomeGo").addEventListener("click", dismissWelcome);
+  document.getElementById("welcomeClose").addEventListener("click", dismissWelcome);
+  /* 点遮罩空白处也可关闭 */
+  welcomeMask.addEventListener("click", e => { if (e.target === welcomeMask) dismissWelcome(); });
 
   /* ---------- 她的建议横幅：由 renderSuggest() 按 NPD 数据渲染 ---------- */
 

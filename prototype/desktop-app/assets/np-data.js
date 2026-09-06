@@ -42,6 +42,7 @@
       d.setDate(monday.getDate() + i);
       return {
         name,
+        month: d.getMonth() + 1,
         date: d.getDate(),
         isToday: d.toDateString() === now.toDateString(),
         blocks: []
