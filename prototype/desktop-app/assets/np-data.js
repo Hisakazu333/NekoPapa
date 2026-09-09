@@ -50,6 +50,40 @@
     });
   }
 
+  /* ---------- 演示种子：?demo=1 时填充（仅 memory 源，设计预览用） ----------
+     默认仍是诚实空态；接真后端后整段随 memory 实现一起替换。 */
+  if (SOURCE === 'memory' && typeof location !== 'undefined' &&
+      /[?&]demo=1\b/.test(location.search)) {
+    mem.user = { name: 'sora' };
+    mem.streak = 7;
+    mem.mistakes = { due: 5, resolved: 12 };
+    mem.conversations = [
+      { id: 'c1', title: '「〜ことにする」的用法', href: 'chat.html', running: false },
+      { id: 'c2', title: '词汇 · 食物篇', href: 'chat.html', running: false },
+      { id: 'c3', title: '听力 · 车站对话精听', href: 'chat.html', running: true }
+    ];
+    mem.todayItems = [
+      { id: 't1', title: '词汇', meta: '18 个新词', durationMin: 8, done: true, href: 'learn-flow.html' },
+      { id: 't2', title: '语法', meta: '〜ようになる', durationMin: 12, done: false, href: 'learn-flow.html' },
+      { id: 't3', title: '听力', meta: '日常会话', durationMin: 10, done: false, href: 'learn-flow.html' }
+    ];
+    /* 过去的几天点亮足迹条，今天留空由学习行为点亮 */
+    const demoLoad = [2, 1, 3, 1, 2, 0, 0];
+    mem.weekDays = buildEmptyWeek().map((d, i) => ({
+      ...d,
+      blocks: Array.from({ length: demoLoad[i] }, (_, j) => ({ id: d.name + '-' + j }))
+    }));
+    mem.notifications = [
+      { id: 'n1', kind: 'review', title: '5 道错题到了最佳复习时机', desc: '现在复习，记得最牢', unread: true, href: 'review.html', icon: '' }
+    ];
+    mem.suggestion = { text: '昨天的<b>听力</b>比前天顺了不少。今天先把到期的 <b>5 道错题</b>收掉，再学新语法？', actionText: '好，就这样' };
+    mem.bubbleLines = [
+      '我在呢。今天也从 25 分钟开始吧。',
+      '错题我都记着，到了最佳时机会提醒你。',
+      '累了就说一声，换个轻松的话题也行。'
+    ];
+  }
+
   /* ---------- 订阅 ---------- */
   const listeners = [];
   function emit() { listeners.forEach(fn => fn(NPD)); }

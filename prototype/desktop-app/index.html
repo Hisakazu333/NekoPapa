@@ -37,7 +37,7 @@
     border-right: 1px solid rgba(24,28,35,.06);
     display: flex; flex-direction: column;
   }
-  .traffic { display: flex; align-items: center; gap: 8px; padding: 16px 18px 12px; }
+  .traffic { display: flex; align-items: center; gap: 8px; padding: 16px 18px 10px; }
   .traffic span { width: 12px; height: 12px; border-radius: 50%; }
   .traffic .r { background: #FF5F57; } .traffic .y { background: #FEBC2E; } .traffic .g { background: #28C840; }
   .traffic .r, .traffic .y, .traffic .g { position: relative; cursor: pointer; }
@@ -56,23 +56,10 @@
   /* 收起侧栏：整块隐去，标题栏左侧出展开钮（显隐由 JS hidden 控制） */
   .sidebar.collapsed { display: none; }
 
-  .mode-tabs {
-    margin: 0 14px 12px; padding: 3px;
-    background: rgba(24,28,35,.055); border-radius: 9px;
-    display: flex;
-  }
-  .mode-tabs button {
-    flex: 1; height: 32px; border: 0; border-radius: 7px;
-    background: transparent; color: var(--tInk2);
-    font-size: 13px; font-weight: 500; cursor: pointer;
-    display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-    transition: all .15s;
-  }
-  .mode-tabs button svg { width: 14px; height: 14px; }
-  .mode-tabs button.on {
-    background: #fff; color: var(--tInk1); font-weight: 600;
-    box-shadow: 0 1px 2.5px rgba(24,28,35,.12), 0 0 0 .5px rgba(24,28,35,.03);
-  }
+  /* 品牌行：猫标 + 名字，安静放在红绿灯下 */
+  .brand { display: flex; align-items: center; gap: 9px; padding: 2px 18px 12px; }
+  .brand img { width: 24px; height: 24px; border-radius: 7px; }
+  .brand .n { font-size: 14px; font-weight: 600; letter-spacing: -.01em; }
 
   .side-actions { padding: 0 14px 2px; display: grid; gap: 3px; }
   .btn-new {
@@ -122,6 +109,7 @@
   .g-add:hover { background: rgba(24,28,35,.08); color: var(--tInk1); }
 
   .nav-item {
+    position: relative;
     display: flex; align-items: center; gap: 9px;
     height: 34px; padding: 0 12px; border-radius: 9px;
     font-size: 13.5px; color: var(--tInk2); cursor: pointer;
@@ -132,6 +120,11 @@
   .nav-item svg { color: var(--tInk3); flex-shrink: 0; width: 18px; height: 18px; }
   .nav-item .cnt { margin-left: auto; font-size: 10.5px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
   .nav-item .cnt.hot { color: var(--tPrimary); font-weight: 700; }
+  /* 当前页：白底 + 她的 2.5px 粉指示条（粉色纪律：当前选中） */
+  .nav-item.active { background: #fff; color: var(--tInk1); font-weight: 600; }
+  .nav-item.active::before { content: ""; position: absolute; left: 0; top: 8px; bottom: 8px;
+    width: 2.5px; border-radius: 2px; background: var(--tPrimary); }
+  .nav-item.active svg { color: var(--tInk1); }
 
   /* ---------- 侧栏图标微动效：hover 一次性小动作，安静但有生命 ---------- */
   .btn-new svg, .g-add svg, #gearBtn svg { transition: transform .3s cubic-bezier(.34,1.4,.64,1); }
@@ -166,8 +159,6 @@
   #bellBtn svg { transform-box: view-box; transform-origin: 12px 3px; }
   #bellBtn:hover svg { animation: icSwing .7s ease-out; }
   @keyframes icSwing { 20% { transform: rotate(22deg); } 45% { transform: rotate(-16deg); } 70% { transform: rotate(8deg); } }
-  .mode-tabs button svg { transition: transform .2s cubic-bezier(.34,1.4,.64,1); }
-  .mode-tabs button:hover svg { transform: scale(1.25); }
 
   .conv {
     position: relative;
@@ -197,6 +188,23 @@
   .side-drag::after { content: ""; position: absolute; left: 2px; top: 0; bottom: 0;
     width: 1px; background: transparent; transition: background .15s; }
   .side-drag:hover::after, .side-drag.on::after { background: rgba(24,28,35,.28); }
+
+  /* ---------- 侧栏 streak 卡：她的陪伴计数，粉色专属位 ---------- */
+  .streak-card {
+    margin: 4px 14px 10px;
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; padding: 10px 12px 11px;
+  }
+  .sc-row { display: flex; align-items: center; gap: 6px; }
+  .sc-row svg { color: var(--tPrimary); }
+  .sc-row .n { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sc-bars { display: flex; align-items: flex-end; gap: 4px; height: 30px; margin-top: 9px; }
+  .sc-bars .d { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; justify-content: flex-end; }
+  .sc-bars .d i { width: 100%; max-width: 16px; min-height: 3px; border-radius: 2.5px; background: var(--surface-1); }
+  .sc-bars .d.on i { background: var(--tPrimary); opacity: .5; }
+  .sc-bars .d.today i { background: var(--tPrimary); opacity: 1; }
+  .sc-bars .d span { font-size: 8.5px; color: var(--tInk3); }
+  .sc-empty { font-size: 10.5px; color: var(--tInk3); margin-top: 7px; line-height: 1.5; }
 
   /* ---------- 底部账号 ---------- */
   .side-foot { border-top: 1px solid rgba(24,28,35,.06); padding: 10px 14px 12px; position: relative; }
@@ -242,10 +250,20 @@
 
   /* ================= 主区 ================= */
   .main { flex: 1; display: flex; flex-direction: column; min-width: 0; background: var(--surface-0); position: relative; }
-  .titlebar { height: 42px; flex-shrink: 0; display: flex; align-items: center; padding: 0 14px; }
-  .titlebar .app-title { position: absolute; left: 50%; transform: translateX(-50%);
-    font-size: 12.5px; font-weight: 600; color: var(--tInk3); letter-spacing: .02em; }
+  .titlebar { height: 46px; flex-shrink: 0; display: flex; align-items: center; padding: 0 14px; position: relative; }
   .titlebar .sp { flex: 1; }
+  /* 居中搜索框：点开即 ⌘P 面板 */
+  .tb-search {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 7px;
+    width: min(320px, 36%); height: 28px; padding: 0 10px;
+    background: #fff; border: 1px solid rgba(24,28,35,.08); border-radius: 8px;
+    color: var(--tInk3); font-size: 12px; cursor: pointer;
+    transition: border-color .15s;
+  }
+  .tb-search:hover { border-color: rgba(24,28,35,.18); }
+  .tb-search svg { flex-shrink: 0; }
+  .tb-search .np-kbd { margin-left: auto; }
   .agent-pill {
     display: inline-flex; align-items: center; gap: 6px;
     height: 24px; padding: 0 10px;
@@ -264,13 +282,6 @@
     display: grid; place-items: center; margin-left: 3px; transition: all .15s; text-decoration: none; }
   .tb-btn:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
   .tb-btn.side-expand { margin-left: 0; margin-right: 4px; }
-  /* 时段氛围：夜深了，主区罩一层极淡的暖暗 */
-  .main.night .assist-home {
-    background:
-      radial-gradient(640px 420px at 62% 62%, rgba(224,107,151,.045), transparent 72%),
-      var(--surface-0);
-  }
-
   /* 她的小屋：桌宠专用入口（她的东西，hover 给一点粉） */
   .tb-btn.hut:hover { background: var(--tPrimarySoft); color: var(--tPrimary); }
 
@@ -301,18 +312,20 @@
   .notif-item .nd { font-size: 10.5px; color: var(--tInk3); margin-top: 2px; }
   .notif-item .unread { width: 6px; height: 6px; border-radius: 50%; background: var(--tPrimary);
     flex-shrink: 0; margin-top: 6px; margin-left: auto; }
+</style>
+<style>
+  /* ================= 仪表盘布局：中央内容 + 右她面板 ================= */
+  .dash { flex: 1; display: flex; min-height: 0; }
+  .dash-center { flex: 1; overflow-y: auto; min-width: 0; }
+  .dash-center::-webkit-scrollbar { width: 0; }
+  .dc-inner {
+    max-width: 660px; margin: 0 auto; padding: 24px 32px 40px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
 
-  /* ================= 舞台 ================= */
-  .stage { flex: 1; display: flex; flex-direction: column; position: relative; min-height: 0; }
-  .home-scroll { flex: 1; overflow-y: auto; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; padding: 0 48px 2vh; }
-  .home-inner { width: min(600px, 100%); display: flex; flex-direction: column; align-items: center; }
-  .scene { width: 100%; display: flex; flex-direction: column; align-items: center; }
-
-  /* 她的建议横幅（Codex 式智能建议，可采纳可忽略，她的事用粉色左边线） */
+  /* 她的建议横幅（有数据才渲染，她的事用粉色左边线） */
   .her-suggest {
     display: flex; align-items: center; gap: 10px;
-    width: 100%; margin-bottom: 18px;
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
     border-left: 2.5px solid var(--tPrimary);
     border-radius: 10px;
@@ -337,257 +350,231 @@
   }
   .her-suggest .hs-no:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
 
-  .word-row { display: flex; align-items: center; gap: 9px; margin-bottom: 6px; }
-  .word-row img { width: 28px; height: 28px; border-radius: 50%;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft); }
-  /* 问候里的她：和小屋/记忆页同款粉环 N 头像，画风统一 */
-  .word-av { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
-    background: var(--tPrimarySoft); color: var(--tPrimary);
-    display: grid; place-items: center; font-size: 12px; font-weight: 700;
-    box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px var(--tPrimarySoft); }
-  .greet { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
-  .streak {
-    display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10px; font-weight: 700; color: var(--tPrimary);
-    font-variant-numeric: tabular-nums;
-  }
+  /* ---------- 问候行：左问候，右她的一句话 ---------- */
+  .greet-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+  .greet-row h1 { font-size: 21px; font-weight: 600; letter-spacing: -.02em; }
+  .greet-date { font-size: 11.5px; color: var(--tInk3); margin-top: 5px; font-variant-numeric: tabular-nums; }
+  .her-quote { text-align: right; line-height: 1.6; flex-shrink: 0; }
+  .her-quote .q { font-size: 12.5px; color: var(--tInk2); }
+  .her-quote .q em { font-style: normal; color: var(--tPrimary); font-weight: 600; }
+  .her-quote small { display: block; font-size: 10px; color: var(--tInk3); margin-top: 2px; }
 
-  /* 她的一句话：动作缝在句子里 */
-  /* 她的话做成气泡，在她身边 */
-  .neko-bubble {
-    position: absolute; right: 214px; bottom: 200px; width: 236px; z-index: 30;
-    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
-    border-radius: 14px; box-shadow: var(--shadow-md);
-    padding: 11px 14px;
-    font-size: 13.5px; line-height: 1.7; color: var(--tInk1);
-    pointer-events: none;  /* 气泡不挡点她的区域 */
-    transition: opacity .25s ease;
-    animation: bubbleIn .55s var(--ease-spring) .35s both;
-  }
-  #bubbleText.typing::after {
-    content: "▍"; color: var(--tPrimary); font-size: 12px;
-    animation: caretBlink 1s steps(2) infinite;
-  }
-  @keyframes caretBlink { 50% { opacity: 0; } }
-  @keyframes bubbleIn { from { opacity: 0; transform: translateY(10px) scale(.96); } }
-  .neko-bubble::after {
-    content: ""; position: absolute; right: -6.5px; bottom: 24px;
-    width: 12px; height: 12px; transform: rotate(45deg);
-    background: var(--surface-3);
-    border-top: 1px solid rgba(24,28,35,.08); border-right: 1px solid rgba(24,28,35,.08);
-  }
-  @media (max-width: 980px) { .neko-bubble { display: none; } }
-
-  .neko-line { font-size: 13.5px; line-height: 2.05; text-align: center;
-    color: var(--tInk2); margin: 0 0 26px; }
-  .nl-main { color: var(--tPrimary); font-weight: 600; text-decoration: none;
-    border-bottom: 1px solid var(--tPrimarySoft); padding-bottom: 1px; }
-  .nl-main:hover { border-color: var(--tPrimary); }
-  .nl-sub { color: var(--tInk2); text-decoration: none; cursor: pointer; }
-  .nl-sub:hover { color: var(--tPrimary); }
-  .nl-sep { color: rgba(24,28,35,.15); margin: 0 8px; }
-
-  /* 今日焦点卡：唯一主角 */
-  .focus-card {
+  /* ---------- 继续学习卡：今日主角 ---------- */
+  .cc-card {
     display: flex; align-items: center; gap: 16px;
-    position: relative;
-    width: 100%; margin-bottom: 10px;
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
     border-radius: 14px; box-shadow: var(--shadow-sm);
-    padding: 18px 20px 26px; text-decoration: none; color: var(--tInk1);
+    padding: 16px 18px; text-decoration: none; color: var(--tInk1);
     transition: border-color .2s ease;
   }
-  .focus-card:hover { border-color: rgba(24,28,35,.16); }
-  .fc-ic { width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
-    background: var(--tPrimarySoft); color: var(--tPrimary);
-    display: grid; place-items: center; }
-  .fc-t { font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; }
-  .fc-l { flex: 1; display: flex; flex-direction: column; gap: 2px; }
-  .fc-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--tPrimary); }
-  .fc-s { font-size: 11.5px; color: var(--tInk3); }
-  .fc-go {
+  .cc-card:hover { border-color: rgba(24,28,35,.16); }
+  .cc-l { flex: 1; min-width: 0; }
+  .cc-tag { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--tPrimary); }
+  .cc-t { display: block; font-size: 15.5px; font-weight: 600; letter-spacing: -.01em; margin-top: 3px; }
+  .cc-s { display: block; font-size: 11.5px; color: var(--tInk3); margin-top: 2px; }
+  .cc-prog { display: flex; align-items: center; gap: 8px; margin-top: 11px; }
+  .cc-prog .bar { width: 200px; height: 3px; border-radius: 2px; background: var(--surface-1); overflow: hidden; }
+  .cc-prog .bar i { display: block; height: 100%; background: var(--tPrimary); border-radius: 2px; }
+  .cc-prog .n { font-size: 10px; color: var(--tInk3); font-variant-numeric: tabular-nums; }
+  .cc-go {
     display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0;
     height: 34px; padding: 0 18px; border-radius: 8px;
     background: var(--tInk1); color: #fff; font-size: 13px; font-weight: 500;
     transition: background .15s;
   }
-  .focus-card:hover .fc-go { background: #2A303B; }
-  .fc-go svg { transition: transform .18s var(--ease-out); }
-  .focus-card:hover .fc-go svg { transform: translateX(2.5px); }
-  /* 本周计划进度细线（2/4） */
-  .fc-prog { position: absolute; left: 16px; right: 16px; bottom: 8px; height: 2px;
-    border-radius: 2px; background: var(--surface-1); overflow: hidden; }
-  .fc-prog i { display: block; height: 100%; width: 0; background: var(--tPrimary); border-radius: 2px; }
-
-  .today-quiet {
-    display: flex; align-items: center; gap: 9px;
-    font-size: 11.5px; color: var(--tInk3); margin-bottom: 30px;
-    font-variant-numeric: tabular-nums;
+  .cc-card:hover .cc-go { background: #2A303B; }
+  .cc-go svg { transition: transform .18s var(--ease-out); }
+  .cc-card:hover .cc-go svg { transform: translateX(2.5px); }
+  /* 空态：诚实、安静 */
+  .cc-card.empty { justify-content: space-between; cursor: default; }
+  .cc-card.empty:hover { border-color: rgba(24,28,35,.07); }
+  .cc-empty-t { font-size: 13px; color: var(--tInk2); }
+  .cc-empty-s { font-size: 11px; color: var(--tInk3); margin-top: 2px; }
+  .cc-plan {
+    display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+    height: 30px; padding: 0 14px; border-radius: 8px;
+    background: #fff; border: 1px solid rgba(24,28,35,.08);
+    font-size: 12px; color: var(--tInk1); text-decoration: none;
+    transition: border-color .15s;
   }
-  .today-quiet svg { vertical-align: -2px; margin-right: 3px; }
-  .today-quiet .sep { color: rgba(24,28,35,.12); }
-  .today-quiet a { color: var(--tInk2); text-decoration: none; }
-  .today-quiet a:hover { color: var(--tPrimary); }
+  .cc-plan:hover { border-color: rgba(24,28,35,.2); }
 
-  /* ================= 输入区（重新设计） =================
-     安静的白盒：静态发丝线 + 淡阴影，hover 边框加深，聚焦时一圈她的粉光晕；
-     发送键状态感知：空 = 中性禁用，有字 = 她的粉（她的动作） */
-  .composer {
-    width: 100%;
+  /* ---------- 分区头 ---------- */
+  .sec-head { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+  .sec-head h2 { font-size: 14.5px; font-weight: 600; letter-spacing: -.01em; }
+  .sec-head a { font-size: 11px; color: var(--tInk3); text-decoration: none; transition: color .15s; }
+  .sec-head a:hover { color: var(--tInk1); }
+
+  /* ---------- 今日学习列表 ---------- */
+  .td-card {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm); padding: 4px;
+  }
+  .td-row {
+    display: flex; align-items: center; gap: 11px;
+    padding: 8px 10px; border-radius: 9px; cursor: pointer;
+    transition: background .15s;
+  }
+  .td-row:hover { background: rgba(24,28,35,.035); }
+  .td-ic { width: 30px; height: 30px; border-radius: 8px; flex-shrink: 0;
+    background: var(--surface-1); color: var(--tInk2); display: grid; place-items: center; }
+  .td-l { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .td-l b { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .td-l i { font-style: normal; font-size: 10.5px; color: var(--tInk3);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .td-min { font-size: 10.5px; color: var(--tInk3); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+  /* 完成勾选：圆点中性描边，完成 = 成功绿（不是粉，粉留给她） */
+  .td-check {
+    width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0;
+    border: 1.5px solid rgba(24,28,35,.18); background: transparent;
+    cursor: pointer; display: grid; place-items: center; color: #fff;
+    transition: all .15s;
+  }
+  .td-check:hover { border-color: rgba(24,28,35,.4); }
+  .td-check.done { background: var(--tSuccess); border-color: var(--tSuccess); }
+  .td-empty { padding: 18px 12px; text-align: center; font-size: 11.5px; color: var(--tInk3); line-height: 1.7; }
+  .td-empty a { color: var(--tInk2); text-decoration: none; }
+  .td-empty a:hover { color: var(--tPrimary); }
+
+  /* ---------- 底部双卡：学习足迹 + 最近 ---------- */
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .d-card {
+    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
+    border-radius: 12px; box-shadow: var(--shadow-sm); padding: 12px 14px 13px;
+  }
+  .d-card h3 { font-size: 12.5px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
+  .d-card h3 a { font-size: 10.5px; font-weight: 400; color: var(--tInk3); text-decoration: none; }
+  .d-card h3 a:hover { color: var(--tInk1); }
+  /* 周足迹条：学过的日子是淡粉，今天是全粉（学习本身的颜色） */
+  .week-bars { display: flex; align-items: flex-end; gap: 6px; height: 52px; margin-top: 10px; }
+  .week-bars .d { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; justify-content: flex-end; }
+  .week-bars .d i { width: 100%; max-width: 20px; min-height: 3px; border-radius: 3px; background: var(--surface-1); }
+  .week-bars .d.on i { background: var(--tPrimary); opacity: .5; }
+  .week-bars .d.today i { background: var(--tPrimary); opacity: 1; }
+  .week-bars .d span { font-size: 9px; color: var(--tInk3); }
+  .week-hint { font-size: 10px; color: var(--tInk3); margin-top: 8px; }
+
+  .re-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 8px; margin: 2px -8px 0; border-radius: 7px;
+    font-size: 12px; color: var(--tInk2); cursor: pointer;
+    transition: background .15s;
+  }
+  .re-row:hover { background: rgba(24,28,35,.035); color: var(--tInk1); }
+  .re-row .t { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .re-row .run-dot { margin-left: 0; }
+  .re-row svg { color: var(--tInk3); flex-shrink: 0; }
+  .re-empty { padding: 14px 0 6px; text-align: center; font-size: 11px; color: var(--tInk3); }
+
+  /* ================= 她面板（右栏 · 264px） ================= */
+  .her-panel {
+    width: 264px; flex-shrink: 0;
+    border-left: 1px solid rgba(24,28,35,.06);
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 14px 14px 12px; overflow-y: auto;
+  }
+  .her-panel::-webkit-scrollbar { width: 0; }
+  .her-head { display: flex; align-items: center; gap: 7px; }
+  .her-head .n { font-size: 13.5px; font-weight: 600; }
+  /* 运行点 = 粉色纪律「运行中状态」 */
+  .her-head .run-dot { margin-left: 0; }
+  .her-head .st { font-size: 10px; color: var(--tInk3); }
+  .her-head .more { margin-left: auto; width: 24px; height: 24px; border: 0; border-radius: 6px;
+    background: transparent; color: var(--tInk3); cursor: pointer;
+    display: grid; place-items: center; transition: all .15s; }
+  .her-head .more:hover { background: rgba(24,28,35,.05); color: var(--tInk1); }
+
+  .her-art {
+    border-radius: 14px; overflow: hidden;
+    border: 1px solid rgba(24,28,35,.08); box-shadow: var(--shadow-sm);
+  }
+  .her-art img { display: block; width: 100%; }
+
+  /* 她的话：面板内静态气泡（打字机），光标是她的粉 */
+  .her-bubble {
+    background: var(--surface-3); border: 1px solid rgba(24,28,35,.08);
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 9px 12px; min-height: 54px;
+    font-size: 12.5px; line-height: 1.65; color: var(--tInk1);
+    transition: opacity .25s ease;
+  }
+  #bubbleText.typing::after {
+    content: "▍"; color: var(--tPrimary); font-size: 11px;
+    animation: caretBlink 1s steps(2) infinite;
+  }
+  @keyframes caretBlink { 50% { opacity: 0; } }
+
+  /* 她的输入条：聚焦一圈粉光晕；发送键空 = 中性，有字 = 她的粉 */
+  .her-composer {
     background: var(--surface-3); border: 1px solid rgba(24,28,35,.09);
-    border-radius: 16px; box-shadow: var(--shadow-md);
-    padding: 9px 10px 8px;
+    border-radius: 12px; box-shadow: var(--shadow-sm);
+    padding: 6px 8px 6px;
     transition: border-color .2s ease, box-shadow .2s ease;
   }
-  .composer:hover { border-color: rgba(24,28,35,.16); }
-  .composer:focus-within {
+  .her-composer:hover { border-color: rgba(24,28,35,.16); }
+  .her-composer:focus-within {
     border-color: rgba(224,107,151,.5);
-    box-shadow: 0 0 0 3px rgba(224,107,151,.12), var(--shadow-md);
+    box-shadow: 0 0 0 3px rgba(224,107,151,.12), var(--shadow-sm);
   }
-  /* 她推荐的（框内 chips，点击填入） */
-  .reco-chips { display: flex; gap: 6px; margin: 0 2px 8px; }
+  /* 她推荐的 chips：有数据时浮在输入框上方 */
+  .reco-chips { display: flex; flex-wrap: wrap; gap: 5px; margin: 0 1px 6px; }
   .reco-chips button {
-    display: inline-flex; align-items: center; gap: 5px; height: 24px; padding: 0 10px;
-    border: 0; border-radius: 7px; background: var(--surface-1); color: var(--tInk2);
-    font-family: inherit; font-size: 11px; font-weight: 500; cursor: pointer; transition: all .15s;
+    display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 9px;
+    border: 0; border-radius: 6px; background: var(--surface-1); color: var(--tInk2);
+    font-family: inherit; font-size: 10.5px; font-weight: 500; cursor: pointer; transition: all .15s;
   }
   .reco-chips button:hover { background: #E3E8F0; color: var(--tInk1); }
   .reco-chips button svg { color: var(--tPrimary); }
-  .composer textarea {
+  .her-composer textarea {
     width: 100%; border: 0; outline: 0; resize: none;
     background: transparent; color: var(--tInk1);
-    font-family: inherit; font-size: 14px; line-height: 1.65; min-height: 42px;
-    padding: 5px 6px 2px;
+    font-family: inherit; font-size: 12.5px; line-height: 1.55;
+    padding: 3px 4px; max-height: 90px; display: block;
   }
-  .composer textarea::placeholder { color: var(--tInk3); }
-  /* 焦点环由 .composer 容器统一承担，textarea 自身不再画内框 */
-  .composer textarea:focus-visible { outline: 0; box-shadow: none; }
-  .composer-bar { display: flex; align-items: center; gap: 4px; margin-top: 6px; }
-  .c-btn {
-    height: 30px; min-width: 30px; padding: 0 7px;
-    border: 0; border-radius: 8px; background: transparent;
-    color: var(--tInk3); cursor: pointer; font-size: 11px; font-weight: 600;
-    display: inline-flex; align-items: center; justify-content: center; gap: 5px;
-    transition: all .15s;
-  }
-  .c-btn:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
-  .c-btn.on { color: var(--tPrimary); background: var(--tPrimarySoft); }
-  /* 快捷键提示：聚焦时浮现 */
-  .composer-hint {
-    flex: 1; text-align: right; white-space: nowrap; padding-right: 2px;
-    font-size: 10px; color: var(--tInk3); letter-spacing: .02em;
-    opacity: 0; transition: opacity .2s ease; pointer-events: none;
-  }
-  .composer:focus-within .composer-hint { opacity: .85; }
-  .model-pick { display: inline-flex; align-items: center; gap: 4px;
-    font-size: 11px; color: var(--tInk2); font-weight: 500;
-    padding: 6px 9px; border-radius: 8px; cursor: pointer; transition: background .15s; }
-  .model-pick:hover { background: rgba(24,28,35,.06); }
-  /* 发送键：默认中性禁用态，输入后才亮成她的粉 */
+  .her-composer textarea::placeholder { color: var(--tInk3); }
+  .her-composer .row { display: flex; align-items: center; gap: 4px; margin-top: 3px; }
+  .hc-btn { width: 26px; height: 26px; border: 0; border-radius: 7px; background: transparent;
+    color: var(--tInk3); cursor: pointer; display: grid; place-items: center; transition: all .15s; }
+  .hc-btn:hover { background: rgba(24,28,35,.06); color: var(--tInk1); }
+  .hc-hint { flex: 1; text-align: right; font-size: 9.5px; color: var(--tInk3);
+    letter-spacing: .02em; opacity: 0; transition: opacity .2s ease; pointer-events: none; }
+  .her-composer:focus-within .hc-hint { opacity: .85; }
   .send-btn {
-    width: 30px; height: 30px; border: 0;
-    border-radius: 8px;
+    width: 26px; height: 26px; border: 0; border-radius: 7px;
     background: var(--surface-1); color: var(--tInk3);
-    display: grid; place-items: center; cursor: default;
+    display: grid; place-items: center; cursor: default; flex-shrink: 0;
     transition: background .18s, color .18s, transform .15s var(--ease-spring);
   }
   .send-btn.ready { background: var(--tPrimary); color: #fff; cursor: pointer; }
   .send-btn.ready:hover { background: #D05A88; }
   .send-btn.ready:active { transform: scale(.92); }
 
-  /* 快捷入口：带图标的小按钮 */
-  .quick-links { display: flex; gap: 8px; margin-top: 12px; }
-  .quick-links a {
-    display: inline-flex; align-items: center; gap: 5px;
-    height: 26px; padding: 0 11px; border-radius: 8px;
+  /* 快捷动作三格：中性，hover 边框加深 */
+  .her-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; }
+  .ha {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 9px 4px 7px;
     background: var(--surface-2); border: 1px solid rgba(24,28,35,.08);
-    font-size: 11px; color: var(--tInk2); text-decoration: none; cursor: pointer;
-    transition: all .15s;
+    border-radius: 10px;
+    font-size: 10.5px; color: var(--tInk2); text-decoration: none;
+    transition: border-color .15s, color .15s;
   }
-  .quick-links a svg { color: var(--tInk3); }
-  .quick-links a:hover { border-color: rgba(24,28,35,.2); color: var(--tInk1); }
+  .ha svg { color: var(--tInk3); transition: color .15s; }
+  .ha:hover { border-color: rgba(24,28,35,.2); color: var(--tInk1); }
+  .ha:hover svg { color: var(--tInk1); }
 
-  /* ---------- 助手模式：任务列表 ---------- */
-  .assist-home {
-    position: absolute; inset: 0; z-index: 5;
-    display: flex; flex-direction: column;
-    /* 中心聚光：极淡的粉，视觉重心往她和内容中间收 */
-    background:
-      radial-gradient(720px 480px at 62% 64%, rgba(224,107,151,.05), transparent 72%),
-      var(--surface-0);
-  }
-  .assist-scroll { flex: 1; overflow-y: auto; padding: 28px 0 12px; }
-  .assist-scroll::-webkit-scrollbar { width: 0; }
-  .assist-inner { width: min(600px, 100% - 96px); margin: 0 auto; }
-  .assist-title { font-size: 21px; font-weight: 600; letter-spacing: -.02em;
-    display: flex; align-items: center; gap: 10px; margin-bottom: 20px; }
-  .assist-title img { width: 28px; height: 28px; border-radius: 8px;
-    box-shadow: 0 0 0 1.5px rgba(224,107,151,.4); }
-  .assist-title .sub { font-size: 11.5px; color: var(--tInk3); font-weight: 400; margin-left: 4px; }
-
-  /* 助手主页构成：运行任务（有数据才有） + 能力网格（常设入口） */
-  #stageAssist.no-tasks .assist-scroll { display: grid; place-items: center; padding: 0; }
-  #stageAssist.no-tasks .assist-inner { margin: 0; }
-  .cap-block { width: 100%; }
-  .cap-label { font-size: 10.5px; font-weight: 600; letter-spacing: .09em; color: var(--tInk3);
-    padding: 0 2px 8px; }
-  .cap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .cap-card {
-    display: grid; grid-template-columns: auto 1fr; column-gap: 11px; row-gap: 2px;
-    align-items: center; text-align: left;
-    background: var(--surface-2); border: 1px solid rgba(24,28,35,.07);
-    border-radius: 12px; padding: 13px 14px; cursor: pointer;
-    font-family: inherit; transition: border-color .15s, box-shadow .15s;
-  }
-  .cap-card:hover { border-color: rgba(24,28,35,.18); box-shadow: var(--shadow-sm); }
-  .cap-ic { grid-row: span 2; width: 32px; height: 32px; border-radius: 9px;
-    background: var(--surface-1); color: var(--tInk2); display: grid; place-items: center; }
-  .cap-ic svg { transition: transform .2s cubic-bezier(.34,1.4,.64,1); }
-  .cap-card:hover .cap-ic svg { transform: scale(1.15); }
-  .cap-t { font-size: 13px; font-weight: 600; color: var(--tInk1); }
-  .cap-d { font-size: 11px; color: var(--tInk3); line-height: 1.5; }
-  .task-list { width: 100%; margin-bottom: 20px; }
-  .task-label { font-size: 10px; font-weight: 600; color: var(--tInk3); letter-spacing: .09em;
-    padding: 0 2px 6px; }
-  .task-label:not(:first-child) { padding-top: 12px; }
-  .t-row {
-    display: flex; align-items: center; gap: 10px;
-    padding: 9px 10px; margin: 0 -10px; cursor: pointer;
-    border-radius: 8px;
-    transition: background .15s;
-    text-decoration: none; color: inherit;
-  }
-  .t-row:hover { background: rgba(24,28,35,.035); }
-  .t-row svg { width: 14px; height: 14px; color: var(--tPrimary); flex-shrink: 0; }
-  .t-row .spin { animation: rot 1.4s linear infinite; }
-  .t-row.done svg { color: var(--tSuccess); }
-  .t-row .n { font-size: 13px; font-weight: 600; white-space: nowrap; }
-  .t-row .m { font-size: 10.5px; color: var(--tInk3); white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; }
-  .t-row .go { margin-left: auto; font-size: 10.5px; color: var(--tPrimary);
-    font-weight: 600; flex-shrink: 0; }
-  .assist-composer { flex-shrink: 0; padding: 6px 0 16px; }
-  .assist-composer .composer { width: min(600px, calc(100% - 96px)); margin: 0 auto; }
-  .perm-pick { display: inline-flex; align-items: center; gap: 4px;
-    font-size: 10.5px; color: var(--tInk2); font-weight: 500;
-    padding: 5px 8px; border-radius: 7px; cursor: pointer; transition: background .15s; }
-  .perm-pick:hover { background: rgba(24,28,35,.05); }
-  .perm-pick svg:first-child { color: var(--tPrimary); }
-
-  /* ---------- Live2D 搭档 ---------- */
-  .buddy {
-    position: absolute; right: 16px; bottom: 0;
-    width: 264px; height: 430px;
-    pointer-events: auto; cursor: pointer;
-    z-index: 15;
-  }
-  /* 她脚下的落点：极淡的椭圆地影，让她站在窗口里 */
-  .buddy::after {
-    content: ""; position: absolute; left: 18%; right: 18%; bottom: -2px; height: 16px;
-    background: radial-gradient(50% 100% at 50% 50%, rgba(24,28,35,.12), transparent 72%);
-    border-radius: 50%; pointer-events: none;
-  }
-  .buddy canvas { width: 100%; height: 100%; display: block; }
+  /* 羁绊行：面板底部，数据未接入 = 静态预览 */
+  .her-bond { margin-top: auto; border-top: 1px solid rgba(24,28,35,.06); padding-top: 10px; display: grid; gap: 7px; }
+  .bond-row { display: flex; align-items: center; gap: 7px; font-size: 10.5px; color: var(--tInk3); }
+  .bond-row b { color: var(--tInk1); font-size: 11.5px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .bond-bar { flex: 1; height: 3px; border-radius: 2px; background: var(--surface-1); overflow: hidden; }
+  .bond-bar i { display: block; height: 100%; width: 35%; background: var(--tPrimary); border-radius: 2px; }
+  .bond-cells { display: flex; gap: 12px; }
+  .bond-cells .bc { flex: 1; }
+  .bond-cells .bc .l { font-size: 9.5px; color: var(--tInk3); }
+  .bond-cells .bc .v { font-size: 11.5px; font-weight: 600; color: var(--tInk1); font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .preview-tag { font-size: 9px; color: var(--tInk3); border: 1px solid rgba(24,28,35,.1);
+    border-radius: 4px; padding: 0 4px; margin-left: auto; }
 
   /* ---------- ⌘P 面板 ---------- */
   .palette-mask { position: fixed; inset: 0; z-index: 200; background: rgba(24,28,35,.25);
@@ -645,40 +632,9 @@
     font-size: 10px; font-weight: 600; line-height: 1.5;
   }
 
-  /* ================= 初始主页（无任何数据） =================
-     参照初始页范式：一个垂直居中的整体——
-     她的身份（头像+问候，放大）→ 她的话 → 输入框 → 能力入口。
-     全部是 DOM；Live2D 始终在右下舞台，不参与布局。 */
-  .stage.is-empty:not(.mode-assist) #stageLearn { justify-content: center; }
-  .stage.is-empty:not(.mode-assist) #stageLearn .home-scroll {
-    flex: none; justify-content: center; padding: 0 48px;
-  }
-  .stage.is-empty:not(.mode-assist) #stageLearn .assist-composer {
-    flex: none; padding: 24px 0 0;
-  }
-  .stage.is-empty:not(.mode-assist) .scene,
-  .stage.is-empty:not(.mode-assist) .neko-line,
-  .stage.is-empty:not(.mode-assist) .neko-bubble { display: none; }
-  /* 她的身份：初始页的唯一主角，放大 */
-  .stage.is-empty:not(.mode-assist) .word-row { margin-bottom: 12px; }
-  .stage.is-empty:not(.mode-assist) .word-row img { width: 44px; height: 44px; }
-  .stage.is-empty:not(.mode-assist) .greet { font-size: 28px; letter-spacing: -.03em; }
-  /* 她的话：直接写在问候下方，不用气泡组件 */
-  .zero-line {
-    display: none; text-align: center;
-    font-size: 14px; line-height: 1.7; color: var(--tInk2);
-    margin: 0; min-height: 1.7em;
-  }
-  .stage.is-empty:not(.mode-assist) .zero-line { display: block; }
-  #zeroLineText.typing::after {
-    content: "▍"; color: var(--tPrimary); font-size: 12px;
-    animation: caretBlink 1s steps(2) infinite;
-  }
-
   /* ================= 空态（无数据时的诚实状态，安静、ink3） ================= */
   .side-empty { font-size: 11.5px; color: var(--tInk3); padding: 4px 12px 10px; }
   .notif-empty { padding: 20px 10px 18px; text-align: center; font-size: 11.5px; color: var(--tInk3); }
-  .task-empty { padding: 30px 0 12px; text-align: center; font-size: 11.5px; color: var(--tInk3); line-height: 1.8; }
 </style>
 </head>
 <body>
@@ -694,13 +650,9 @@
       </span>
     </div>
 
-    <div class="mode-tabs">
-      <button class="on" id="tabLearn">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
-        学习</button>
-      <button id="tabAssist">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-        助手</button>
+    <div class="brand">
+      <img src="assets/icon.png" alt="NekoPapa">
+      <span class="n">NekoPapa</span>
     </div>
 
     <div class="side-actions">
@@ -718,6 +670,10 @@
 
     <div class="side-scroll">
       <div>
+        <a class="nav-item active" href="index.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+          首页
+        </a>
         <div class="group-label" data-collapse data-grp="learn">学习
           <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
@@ -751,6 +707,10 @@
         <div class="group-label" data-collapse data-grp="link">互联
           <svg class="chev" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
         </div>
+        <a class="nav-item" href="assist-flow.html">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+          交给 Neko
+        </a>
         <a class="nav-item" href="drop.html">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="13" height="9" rx="1.5"/><path d="M6 17h5"/><rect class="ic-dev" x="16" y="9" width="6" height="11" rx="1.5"/></svg>
           设备互联
@@ -770,6 +730,16 @@
       </div>
     </div>
 
+    <!-- 连续学习卡：她的陪伴计数 -->
+    <div class="streak-card" id="streakCard">
+      <div class="sc-row">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg>
+        <span class="n" id="streakText">连续 0 天</span>
+      </div>
+      <div class="sc-bars" id="streakBars"><!-- 周格由 NPD 渲染 --></div>
+      <div class="sc-empty" id="streakEmpty" hidden>还没有连续记录，今天开始第一天。</div>
+    </div>
+
     <div class="side-foot">
       <div class="foot-user" id="accountBtn">
         <span class="avatar" id="footAvatar">·</span>
@@ -777,7 +747,7 @@
         <span class="plan" id="footPlan" hidden>PRO</span>
         <span class="foot-icons">
           <button title="设置" id="gearBtn">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.01a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.01a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.01a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1 1.65 1.65 0 0 0 1.51-1H3a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
           </button>
         </span>
       </div>
@@ -811,7 +781,11 @@
       <button class="tb-btn side-expand" data-tip="展开侧栏 ⌘B" id="sideExpand" hidden>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9.5 4v16"/></svg>
       </button>
-      <span class="app-title">NekoPapa</span>
+      <div class="tb-search" id="tbSearch">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        搜索课程、笔记，或直接问她…
+        <span class="np-kbd">⌘P</span>
+      </div>
       <span class="sp"></span>
       <div class="agent-pill" id="agentPill" data-tip="后台任务" onclick="location.href='assist-flow.html'" hidden>
         <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
@@ -835,147 +809,117 @@
       </span>
     </div>
 
-    <div class="stage">
-      <!-- ============ 学习模式 ============ -->
-      <div class="assist-home" id="stageLearn">
-        <div class="assist-scroll home-scroll">
-          <div class="assist-inner home-inner">
+    <div class="dash">
+      <!-- ============ 中央学习 dashboard ============ -->
+      <div class="dash-center">
+        <div class="dc-inner">
 
-            <!-- 她的智能建议：仅当 NPD.getHerSuggestion() 有值时渲染 -->
-            <div class="her-suggest" id="herSuggest" hidden>
-              <span class="hs-ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg></span>
-              <span class="hs-t" id="hsText"></span>
-              <button class="hs-yes" id="hsYes"></button>
-              <button class="hs-no" id="hsNo" title="忽略"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
-            </div>
-
-            <div class="word-row" style="justify-content:center">
-              <img src="assets/icon.png" alt="">
-              <h1 class="greet" id="greet"></h1>
-              <span class="streak" id="streakPill" hidden>
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a7 7 0 0 1-7-7c0-2 .8-3.6 1.7-5C8 12 9 13.5 10.5 14c-1-2.5-.5-5 1.5-8 1 4 6 5.5 6 10a7 7 0 0 1-7 7z"/></svg>
-                连续 <span id="streakNum"></span> 天
-              </span>
-            </div>
-
-            <p class="neko-line" id="nekoLine">
-              <a class="nl-main" href="learn-flow.html">现在开始</a>
-              <span class="nl-sep">·</span>
-              <span class="nl-sub" data-fill="今天换个话题，聊点别的">换个话题</span>
-            </p>
-            <div class="zero-line" id="zeroLine"><span id="zeroLineText"></span></div>
-
-            <div class="scene" id="scene"><!-- 焦点卡 / 空态由 NPD 渲染 --></div>
-
+          <!-- 她的智能建议：仅当 NPD.getHerSuggestion() 有值时渲染 -->
+          <div class="her-suggest" id="herSuggest" hidden>
+            <span class="hs-ic"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg></span>
+            <span class="hs-t" id="hsText"></span>
+            <button class="hs-yes" id="hsYes"></button>
+            <button class="hs-no" id="hsNo" title="忽略"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></button>
           </div>
-        </div>
 
-        <div class="assist-composer">
-          <div class="composer">
-            <div class="reco-chips" id="recoChips" hidden><!-- 有数据时由 NPD 渲染 --></div>
-            <textarea placeholder="想学什么、想问什么，直接说…" rows="1"></textarea>
-            <div class="composer-bar">
-              <button class="c-btn" data-tip="附件">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-              <button class="c-btn" data-tip="语音输入">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
-              </button>
-              <span class="composer-hint">⏎ 发送 · ⇧⏎ 换行</span>
-              <div class="model-pick" data-pick="model">
-                NekoCore Nano
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              <button class="send-btn" data-tip="发送">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-              </button>
+          <div class="greet-row">
+            <div>
+              <h1 id="greet"></h1>
+              <div class="greet-date" id="greetDate"></div>
+            </div>
+            <div class="her-quote">
+              <span class="q">「<em>継続</em>は、きっと力になる。」</span>
+              <small>每天进步一点点</small>
             </div>
           </div>
-          <div class="quick-links" style="justify-content:center">
-            <a data-fill="进程和线程到底有什么区别？用人话给我讲明白">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.7 1 1.5 1 2.5h6c0-1 .2-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>
-              讲透知识点</a>
-            <a data-fill="从我最近学的内容里出 5 道题考我">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.5 9.5a2.5 2.5 0 1 1 3.4 2.3c-.8.3-.9 1-.9 1.7M12 16.5h.01"/></svg>
-              出题考我</a>
-            <a data-fill="把这份文档拆解成学习路径，再出一套测验">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M8 13h8M8 17h5"/></svg>
-              拆解文档</a>
+
+          <!-- 继续学习卡：由 NPD 渲染 -->
+          <div id="continueCard"></div>
+
+          <div class="sec-head">
+            <h2>今日学习</h2>
+            <a href="plan.html">查看全部 →</a>
           </div>
+          <div class="td-card" id="todayCard">
+            <div id="todayList"><!-- 今日计划由 NPD 渲染 --></div>
+          </div>
+
+          <div class="dash-grid">
+            <div class="d-card">
+              <h3>学习足迹 <a href="report.html">周报 →</a></h3>
+              <div class="week-bars" id="journeyBars"><!-- 周足迹由 NPD 渲染 --></div>
+              <div class="week-hint" id="journeyHint"></div>
+            </div>
+            <div class="d-card">
+              <h3>最近 <a href="chat.html">全部 →</a></h3>
+              <div id="recentList"><!-- 最近会话由 NPD 渲染 --></div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <!-- ============ 助手模式 ============ -->
-      <div class="assist-home" id="stageAssist" style="display:none">
-        <div class="assist-scroll">
-          <div class="assist-inner">
-            <h1 class="assist-title">
-              <img src="assets/icon.png" alt="">
-              交给 Neko
-              <span class="sub">描述任务，她先给计划，你点头才动手</span>
-            </h1>
-            <div class="task-list" id="taskList" hidden><!-- 任务由 NPD 渲染，无数据时整块隐藏 --></div>
-            <div class="cap-block">
-              <div class="cap-label" id="capLabel">她能帮你做这些</div>
-              <div class="cap-grid">
-                <button class="cap-card" data-fill="整理一下下载文件夹：找出重复文件，按类型归档">
-                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
-                  <span class="cap-t">整理文件</span>
-                  <span class="cap-d">清理下载夹、找出重复、按类型归档</span>
-                </button>
-                <button class="cap-card" data-fill="帮我调研「间隔重复记忆法」的最佳实践，整理成一页报告">
-                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span>
-                  <span class="cap-t">深度调研</span>
-                  <span class="cap-d">给一个话题，她查资料写成报告</span>
-                </button>
-                <button class="cap-card" data-fill="把这份文档总结成 5 个要点，再翻译成英文">
-                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M9 13h6M9 17h4"/></svg></span>
-                  <span class="cap-t">处理文档</span>
-                  <span class="cap-d">总结、翻译、格式转换，拖进来就行</span>
-                </button>
-                <button class="cap-card" data-fill="每周五 17:00 提醒我整理这一周的错题">
-                  <span class="cap-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span>
-                  <span class="cap-t">定时与提醒</span>
-                  <span class="cap-d">到点提醒你，或定期检查某件事</span>
-                </button>
-              </div>
-            </div>
+      <!-- ============ 她面板 ============ -->
+      <aside class="her-panel">
+        <div class="her-head">
+          <span class="n">Neko</span>
+          <span class="run-dot" title="在线"></span>
+          <span class="st">在线</span>
+          <button class="more" title="更多" onclick="location.href='pet.html'">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>
+          </button>
+        </div>
+
+        <div class="her-art">
+          <img src="assets/hero-neko.png" alt="Neko">
+        </div>
+
+        <div class="her-bubble" id="nekoBubble"><span id="bubbleText"></span></div>
+
+        <div class="her-composer" id="herComposer">
+          <div class="reco-chips" id="recoChips" hidden><!-- 有数据时由 NPD 渲染 --></div>
+          <textarea id="herTa" placeholder="问她点什么…" rows="1"></textarea>
+          <div class="row">
+            <button class="hc-btn" data-tip="语音输入">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="9" y="2.5" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18.5V21"/></svg>
+            </button>
+            <button class="hc-btn" data-tip="图片">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-4.5-4.5L9 18"/></svg>
+            </button>
+            <span class="hc-hint">⏎ 发送</span>
+            <button class="send-btn" id="herSend" data-tip="发送">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+            </button>
           </div>
         </div>
-        <div class="assist-composer">
-          <div class="composer">
-            <textarea placeholder="描述一个任务，比如：把下载文件夹里重复的课件找出来…" rows="1"></textarea>
-            <div class="composer-bar">
-              <button class="c-btn" data-tip="附件">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-              </button>
-              <button class="c-btn on" data-tip="Agent 模式">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-                Agent
-              </button>
-              <span class="composer-hint">⏎ 发送 · ⇧⏎ 换行</span>
-              <div class="perm-pick" data-pick="perm" data-tip="Agent 权限">
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="10" width="16" height="11" rx="3"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
-                完全访问
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              <div class="model-pick" data-pick="model">
-                NekoCore Nano
-                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="m6 9 6 6 6-6"/></svg>
-              </div>
-              <button class="send-btn" data-tip="发送">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-              </button>
-            </div>
+
+        <div class="her-actions">
+          <a class="ha" href="learn-flow.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+            去练习
+          </a>
+          <a class="ha" href="review.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+            复习
+          </a>
+          <a class="ha" href="chat.html">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.4c-1.5 0-3-.4-4.2-1L3 20l1.1-5.3A8.4 8.4 0 1 1 21 11.5z"/></svg>
+            聊天
+          </a>
+        </div>
+
+        <div class="her-bond">
+          <div class="bond-row">
+            羁绊 <b>Lv. 1</b>
+            <span class="bond-bar"><i></i></span>
+            <span class="preview-tag" title="羁绊/EXP/心情数据尚未接入，当前为静态预览">预览</span>
+          </div>
+          <div class="bond-cells">
+            <div class="bc"><div class="l">今日</div><div class="v">+0 EXP</div></div>
+            <div class="bc"><div class="l">心情</div><div class="v">平静</div></div>
           </div>
         </div>
-      </div>
-
-      <!-- 她的话：气泡在她身边 -->
-      <div class="neko-bubble" id="nekoBubble"><span id="bubbleText"></span></div>
-
-      <!-- Live2D 搭档 -->
-      <div class="buddy" id="buddy" title="点我一下"><canvas id="live2d"></canvas></div>
+      </aside>
     </div>
   </section>
 </div>
@@ -1012,54 +956,114 @@
 </div>
 
 <script>
-  const h = new Date().getHours();
+  /* ---------- 时段问候 + 日期 ---------- */
+  const now = new Date();
+  const h = now.getHours();
   const g = h < 6 ? "夜深了" : h < 11 ? "早上好" : h < 14 ? "中午好" : h < 18 ? "下午好" : h < 23 ? "晚上好" : "夜深了";
   const npUser = window.NPD && NPD.getUser();
   document.getElementById("greet").textContent = npUser && npUser.name ? `${g}，${npUser.name}` : g;
-  /* 时段氛围：深夜主区罩暖暗 */
-  if (h >= 22 || h < 6) document.querySelector(".main").classList.add("night");
+  const WEEK = ["日", "一", "二", "三", "四", "五", "六"];
+  document.getElementById("greetDate").textContent =
+    `${now.getMonth() + 1}月${now.getDate()}日 · 周${WEEK[now.getDay()]}`;
 
   /* ================= 数据渲染：全部来自 NPD，无数据 = 诚实空态 ================= */
-  function renderScene() {
-    const scene = document.getElementById("scene");
+
+  /* 今日项图标：按标题关键词给中性图标（图标不占用粉色） */
+  function todayIcon(title) {
+    const t = title || "";
+    if (/词|单词|词汇/.test(t)) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>';
+    if (/听|听力/.test(t)) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><path d="M3 14h3a1 1 0 0 1 1 1v4a1 1 0 0 1-1 1H5a2 2 0 0 1-2-2v-4zM21 14h-3a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1h1a2 2 0 0 0 2-2v-4z"/></svg>';
+    if (/语法|句型/.test(t)) return '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><path d="M13 2v7h7M9 13h6M9 17h4"/></svg>';
+    return '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3l1.9 5.4L19.5 10l-5.6 1.6L12 17l-1.9-5.4L4.5 10l5.6-1.6z"/></svg>';
+  }
+
+  /* 继续学习卡：下一项未完成计划 + 今日完成度 */
+  function renderContinue() {
+    const box = document.getElementById("continueCard");
     const next = NPD.getNextUp();
     const today = NPD.getTodayPlan().items;
-    const doneItems = today.filter(t => t.done);
-    const mistakes = NPD.getMistakes();
-    let html = "";
-    if (next) {
-      const total = today.length, doneN = doneItems.length;
-      html += `
-        <a class="focus-card" href="${next.href}">
-          <span class="fc-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="5" width="14" height="14" rx="2"/><path d="M9 2v3M15 2v3M9 19v3M15 19v3M2 9h3M2 15h3M19 9h3M19 15h3"/></svg></span>
-          <div class="fc-l">
-            <span class="fc-tag">下一项${next.durationMin ? " · " + next.durationMin + " 分钟" : ""}</span>
-            <span class="fc-t">${next.title}</span>
-            ${next.subtitle ? `<span class="fc-s">${next.subtitle}</span>` : ""}
+    const total = today.length, doneN = today.filter(t => t.done).length;
+    if (!next) {
+      box.innerHTML = `
+        <div class="cc-card empty">
+          <div>
+            <div class="cc-empty-t">今天还没有安排学习</div>
+            <div class="cc-empty-s">和她定一个小计划，25 分钟也算数</div>
           </div>
-          <span class="fc-go">
-            开始
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </span>
-          ${total ? `<span class="fc-prog" data-tip="今日计划 ${doneN}/${total}"><i style="width:${doneN / total * 100}%"></i></span>` : ""}
-        </a>`;
+          <a class="cc-plan" href="plan.html">去安排
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>`;
+      return;
     }
-    const quiet = [];
-    if (doneItems.length) quiet.push(`<span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--tSuccess)" stroke-width="2.6" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg> ${doneItems.map(t => t.title).join("、")} 已完成</span>`);
-    if (mistakes && mistakes.due > 0) quiet.push(`<a href="review.html">错题复习 ${mistakes.due} 道（到了最佳复习时机）</a>`);
-    if (quiet.length) html += `<div class="today-quiet">${quiet.join('<span class="sep">·</span>')}</div>`;
-    scene.innerHTML = html;
+    box.innerHTML = `
+      <a class="cc-card" href="${next.href}">
+        <div class="cc-l">
+          <span class="cc-tag">继续学习${next.durationMin ? " · 约 " + next.durationMin + " 分钟" : ""}</span>
+          <span class="cc-t">${next.title}</span>
+          ${next.subtitle ? `<span class="cc-s">${next.subtitle}</span>` : ""}
+          ${total ? `<div class="cc-prog"><span class="bar"><i style="width:${doneN / total * 100}%"></i></span><span class="n">今日 ${doneN}/${total}</span></div>` : ""}
+        </div>
+        <span class="cc-go">
+          继续
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </span>
+      </a>`;
   }
 
-  function renderNekoLine() {
-    const mistakes = NPD.getMistakes();
-    let html = '<a class="nl-main" href="learn-flow.html">现在开始</a>';
-    if (mistakes && mistakes.due > 0)
-      html += `<span class="nl-sep">·</span><a class="nl-sub" href="review.html">先复习 ${mistakes.due} 道错题</a>`;
-    html += '<span class="nl-sep">·</span><span class="nl-sub" data-fill="今天换个话题，聊点别的">换个话题</span>';
-    document.getElementById("nekoLine").innerHTML = html;
+  /* 今日学习列表 */
+  function renderToday() {
+    const list = document.getElementById("todayList");
+    const items = NPD.getTodayPlan().items;
+    if (!items.length) {
+      list.innerHTML = '<div class="td-empty">今天还没有学习计划，<a href="plan.html">去计划页安排</a>，或直接告诉她想学什么。</div>';
+      return;
+    }
+    list.innerHTML = items.map(t => `
+      <div class="td-row" data-href="${t.href || 'learn-flow.html'}">
+        <span class="td-ic">${todayIcon(t.title)}</span>
+        <span class="td-l"><b>${t.title}</b>${t.meta ? `<i>${t.meta}</i>` : ""}</span>
+        ${t.durationMin ? `<span class="td-min">${t.durationMin} 分钟</span>` : ""}
+        <button class="td-check${t.done ? " done" : ""}" data-id="${t.id}" title="${t.done ? "已完成" : "标记完成"}">
+          ${t.done ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M20 6 9 17l-5-5"/></svg>' : ""}
+        </button>
+      </div>`).join("");
   }
 
+  /* 学习足迹：本周 7 格，学过的日子点亮 */
+  function renderJourney() {
+    const bars = document.getElementById("journeyBars");
+    const hint = document.getElementById("journeyHint");
+    const days = NPD.getWeekPlan().days;
+    const learned = days.filter(d => d.blocks.length).length;
+    bars.innerHTML = days.map(d => {
+      const lvl = Math.min(d.blocks.length, 4);
+      const cls = d.isToday && lvl ? "today" : (lvl ? "on" : "");
+      const ht = lvl ? 20 + lvl * 20 : 0;  /* 3px 基底 + 按块数长高 */
+      return `<div class="d ${cls}" title="${d.name} ${d.month}/${d.date}"><i style="${lvl ? `height:${ht}%` : ""}"></i><span>${d.name.slice(1)}</span></div>`;
+    }).join("");
+    hint.textContent = learned
+      ? `这一周有 ${learned} 天学过，继续保持。`
+      : "这一周还没有记录，今天学一点就点亮。";
+  }
+
+  /* 最近会话 */
+  function renderRecent() {
+    const box = document.getElementById("recentList");
+    const convs = NPD.getConversations().slice(0, 4);
+    if (!convs.length) {
+      box.innerHTML = '<div class="re-empty">还没有对话记录</div>';
+      return;
+    }
+    box.innerHTML = convs.map(c => `
+      <div class="re-row" data-href="${c.href || 'chat.html'}">
+        ${c.running ? '<span class="run-dot"></span>' : ""}
+        <span class="t">${c.title}</span>
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m9 18 6-6-6-6"/></svg>
+      </div>`).join("");
+  }
+
+  /* 她推荐的 chips（她的输入条上方） */
   function renderRecoChips() {
     const box = document.getElementById("recoChips");
     const chips = [];
@@ -1072,24 +1076,22 @@
     box.hidden = !chips.length;
   }
 
-  function renderTasks() {
-    const list = document.getElementById("taskList");
-    const tasks = NPD.getRunningTasks();
-    const stage = document.getElementById("stageAssist");
-    /* 无任务：任务区整块隐藏，头部 + 能力网格垂直居中成为主角 */
-    stage.classList.toggle("no-tasks", !tasks.length);
-    document.getElementById("capLabel").textContent = tasks.length ? "或者，再来一个" : "她能帮你做这些";
-    if (!tasks.length) { list.hidden = true; list.innerHTML = ""; return; }
-    list.hidden = false;
-    list.innerHTML = '<div class="task-label">正在运行</div>' + tasks.map(t => `
-      <a class="t-row" href="${t.href || 'assist-flow.html'}">
-        <svg class="spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.2-8.56"/></svg>
-        <span class="n">${t.title}</span>
-        <span class="m">${t.meta || ''}</span>
-        <span class="go">查看 →</span>
-      </a>`).join("");
+  /* 侧栏 streak 卡 */
+  function renderStreak() {
+    const streak = NPD.getStreak();
+    const days = NPD.getWeekPlan().days;
+    document.getElementById("streakText").innerHTML =
+      streak != null ? `连续 <b>${streak}</b> 天` : "连续记录";
+    document.getElementById("streakBars").innerHTML = days.map(d => {
+      const lvl = Math.min(d.blocks.length, 4);
+      const cls = d.isToday && lvl ? "today" : (lvl ? "on" : "");
+      const ht = lvl ? 24 + lvl * 19 : 0;
+      return `<div class="d ${cls}"><i style="${lvl ? `height:${ht}%` : ""}"></i><span>${d.name.slice(1)}</span></div>`;
+    }).join("");
+    document.getElementById("streakEmpty").hidden = streak != null;
   }
 
+  /* 她的建议横幅 */
   function renderSuggest() {
     const bar = document.getElementById("herSuggest");
     if (!bar) return;
@@ -1106,14 +1108,6 @@
   function renderAll() {
     if (!window.NPD) return;
 
-    /* 初始主页判定：没有任何学习痕迹时，舞台进入居中组合态 */
-    const convs = NPD.getConversations();
-    const today = NPD.getTodayPlan().items;
-    const next = NPD.getNextUp();
-    const mistakes = NPD.getMistakes();
-    const isEmpty = !convs.length && !today.length && !next && !(mistakes && mistakes.due > 0);
-    document.querySelector(".stage").classList.toggle("is-empty", isEmpty);
-
     /* 用户（侧栏底部） */
     const user = NPD.getUser();
     if (user && user.name) {
@@ -1121,20 +1115,14 @@
       document.getElementById("footAvatar").textContent = user.name.slice(0, 1).toUpperCase();
     }
 
-    /* 连续天数：无记录不显示 */
-    const streak = NPD.getStreak();
-    const streakPill = document.getElementById("streakPill");
-    if (streak != null) {
-      document.getElementById("streakNum").textContent = streak;
-      streakPill.hidden = false;
-    } else streakPill.hidden = true;
-
     /* 错题数徽章：无数据不显示 */
+    const mistakes = NPD.getMistakes();
     const mistakeCnt = document.getElementById("mistakeCnt");
     if (mistakes && mistakes.due > 0) { mistakeCnt.textContent = mistakes.due; mistakeCnt.hidden = false; }
     else mistakeCnt.hidden = true;
 
     /* 今日计划完成度（侧栏 cnt） */
+    const today = NPD.getTodayPlan().items;
     const planCnt = document.getElementById("planCnt");
     if (today.length) {
       planCnt.textContent = `${today.filter(t => t.done).length}/${today.length}`;
@@ -1142,6 +1130,7 @@
     } else planCnt.hidden = true;
 
     /* 会话列表 */
+    const convs = NPD.getConversations();
     const convList = document.getElementById("convList");
     convList.innerHTML = convs.length
       ? convs.map(c => `<div class="conv" data-href="${c.href || ''}">${c.title}${c.running ? '<span class="run-dot"></span>' : ''}<button class="more" title="更多操作"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button></div>`).join("")
@@ -1175,34 +1164,29 @@
       pill.hidden = false;
     } else pill.hidden = true;
 
-    renderScene();
-    renderNekoLine();
+    renderContinue();
+    renderToday();
+    renderJourney();
+    renderRecent();
     renderRecoChips();
-    renderTasks();
+    renderStreak();
     renderSuggest();
   }
 
   NPD.onChange(renderAll);
   renderAll();
 
-  /* ---------- 学习 / 助手 模式切换 ---------- */
-  let curMode = "learn";
-  const tabLearn = document.getElementById("tabLearn");
-  const tabAssist = document.getElementById("tabAssist");
-  const stageLearn = document.getElementById("stageLearn");
-  const stageAssist = document.getElementById("stageAssist");
-  function setMode(m) {
-    curMode = m;
-    tabLearn.classList.toggle("on", m === "learn");
-    tabAssist.classList.toggle("on", m === "assist");
-    stageLearn.style.display = m === "learn" ? "" : "none";
-    stageAssist.style.display = m === "assist" ? "" : "none";
-    document.querySelector(".stage").classList.toggle("mode-assist", m === "assist");
-    const nb = document.getElementById("nekoBubble");
-    if (nb) nb.style.display = m === "learn" ? "" : "none";
-  }
-  tabLearn.addEventListener("click", () => setMode("learn"));
-  tabAssist.addEventListener("click", () => setMode("assist"));
+  /* ---------- 今日列表：行点击跳转，勾选切换完成 ---------- */
+  document.getElementById("todayList").addEventListener("click", e => {
+    const check = e.target.closest(".td-check");
+    if (check) { NPD.toggleTodayItem(check.dataset.id); return; }
+    const row = e.target.closest(".td-row");
+    if (row && row.dataset.href) location.href = row.dataset.href;
+  });
+  document.getElementById("recentList").addEventListener("click", e => {
+    const row = e.target.closest(".re-row");
+    if (row && row.dataset.href) location.href = row.dataset.href;
+  });
 
   /* ---------- 账号菜单 ---------- */
   const accountBtn = document.getElementById("accountBtn");
@@ -1221,36 +1205,34 @@
   });
   document.getElementById("btnNew").addEventListener("click", () => location.href = "chat.html");
 
+  /* ---------- 她的输入条 ---------- */
+  const herTa = document.getElementById("herTa");
+  const herSend = document.getElementById("herSend");
+
+  function autoGrow(ta) {
+    ta.style.height = "auto";
+    ta.style.height = Math.min(ta.scrollHeight, 90) + "px";
+  }
+  herTa.addEventListener("input", () => autoGrow(herTa));
+
+  /* 发送键状态感知：空 = 中性禁用，有字 = 她的粉 */
+  const syncSend = () => herSend.classList.toggle("ready", !!herTa.value.trim());
+  herTa.addEventListener("input", syncSend);
+  syncSend();
+  const goSend = () => {
+    if (!herTa.value.trim()) { herTa.focus(); return; }
+    location.href = "learn-flow.html";
+  };
+  herSend.addEventListener("click", goSend);
+  herTa.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); goSend(); } });
+
   /* ---------- 快捷填充（事件委托，动态渲染的 chips 也生效） ---------- */
   document.addEventListener("click", e => {
     const b = e.target.closest("[data-fill]");
     if (!b) return;
-    const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
-    ta.value = b.dataset.fill;
-    ta.focus();
-    ta.dispatchEvent(new Event("input"));
-  });
-
-  function autoGrow(ta) {
-    ta.style.height = "auto";
-    ta.style.height = Math.min(ta.scrollHeight, 140) + "px";
-  }
-  document.querySelectorAll(".composer textarea").forEach(ta =>
-    ta.addEventListener("input", () => autoGrow(ta)));
-
-  document.querySelectorAll(".composer").forEach(c => {
-    const ta = c.querySelector("textarea");
-    const send = c.querySelector(".send-btn");
-    /* 发送键状态感知：空 = 中性禁用，有字 = 她的粉 */
-    const syncSend = () => send.classList.toggle("ready", !!ta.value.trim());
-    ta.addEventListener("input", syncSend);
-    syncSend();
-    const go = () => {
-      if (!ta.value.trim()) { ta.focus(); return; }
-      location.href = curMode === "learn" ? "learn-flow.html" : "assist-flow.html";
-    };
-    send.addEventListener("click", go);
-    ta.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); go(); } });
+    herTa.value = b.dataset.fill;
+    herTa.focus();
+    herTa.dispatchEvent(new Event("input"));
   });
 
   /* ---------- 侧栏分组折叠（记忆状态） ---------- */
@@ -1328,12 +1310,11 @@
     });
   })();
 
-  /* ---------- ⌘K 聚焦输入框 ---------- */
+  /* ---------- ⌘K 聚焦她的输入条 ---------- */
   document.addEventListener("keydown", e => {
     if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k" && !e.shiftKey) {
       e.preventDefault();
-      const ta = document.querySelector(curMode === "learn" ? "#stageLearn textarea" : "#stageAssist textarea");
-      ta.focus();
+      herTa.focus();
     }
   });
 
@@ -1369,6 +1350,7 @@
       ]},
       { g: "操作", items: [
         ["新对话", "chat.html", "⌘K"],
+        ["交给 Neko（助手）", "assist-flow.html", ""],
         ["进入专注模式", "focus.html", "番茄钟"],
         ["使用统计", "settings.html#sec-usage", ""],
         ["订阅管理", "subscribe.html", ""],
@@ -1421,6 +1403,7 @@
     palInput.value = "";
   }
   document.getElementById("sideSearch").addEventListener("click", openPalette);
+  document.getElementById("tbSearch").addEventListener("click", openPalette);
   palMask.addEventListener("click", e => { if (e.target === palMask) closePalette(); });
   palInput.addEventListener("input", () => renderPalette(palInput.value.trim()));
   palInput.addEventListener("keydown", e => {
@@ -1451,21 +1434,17 @@
   /* 点遮罩空白处也可关闭 */
   welcomeMask.addEventListener("click", e => { if (e.target === welcomeMask) dismissWelcome(); });
 
-  /* ---------- 她的建议横幅：由 renderSuggest() 按 NPD 数据渲染 ---------- */
-
   /* ---------- 输入框 placeholder 轮播（空且不聚焦时） ---------- */
   (function () {
     const PH = [
-      "想学什么、想问什么，直接说…",
+      "问她点什么…",
       "比如：定语从句什么时候只能用 that？",
       "小技巧：输入 / 可以快速出题、拆解、复习",
     ];
     let pi = 0;
     setInterval(() => {
-      document.querySelectorAll(".composer textarea").forEach(ta => {
-        if (ta.value || document.activeElement === ta) return;
-        ta.placeholder = PH[pi];
-      });
+      if (herTa.value || document.activeElement === herTa) return;
+      herTa.placeholder = PH[pi];
       pi = (pi + 1) % PH.length;
     }, 6000);
   })();
@@ -1476,19 +1455,16 @@
     : ["我在呢。有问题随时说。"];
   const nbEl = document.getElementById("nekoBubble");
   const btEl = document.getElementById("bubbleText");
-  const zlEl = document.getElementById("zeroLineText");
   let bi = 0, typeTimer = null, holdTimer = null;
   function typeLine(s) {
     clearInterval(typeTimer);
     btEl.textContent = ""; btEl.classList.add("typing");
-    zlEl.textContent = ""; zlEl.classList.add("typing");
     let i = 0;
     typeTimer = setInterval(() => {
       btEl.textContent = s.slice(0, ++i);
-      zlEl.textContent = s.slice(0, i);
       if (i >= s.length) {
         clearInterval(typeTimer);
-        btEl.classList.remove("typing"); zlEl.classList.remove("typing");
+        btEl.classList.remove("typing");
         scheduleNext();
       }
     }, 45);
@@ -1502,53 +1478,10 @@
     nbEl.style.opacity = 0;
     setTimeout(() => { nbEl.style.opacity = 1; typeLine(BUBBLE_LINES[bi]); }, 300);
   }
-  ["nekoBubble", "buddy"].forEach(id => {
-    const el = document.getElementById(id);
-    el.addEventListener("mouseenter", () => clearTimeout(holdTimer));
-    el.addEventListener("mouseleave", scheduleNext);
-  });
+  nbEl.addEventListener("mouseenter", () => clearTimeout(holdTimer));
+  nbEl.addEventListener("mouseleave", scheduleNext);
   setTimeout(() => typeLine(BUBBLE_LINES[0]), 900);
 
-</script>
-
-<!-- Live2D -->
-<script src="vendor/live2dcubismcore.min.js"></script>
-<script src="vendor/pixi.min.js"></script>
-<script src="vendor/pixi-live2d-display-cubism4.min.js"></script>
-<script>
-(async () => {
-  const wrap = document.getElementById("buddy");
-  try {
-    const canvas = document.getElementById("live2d");
-    const app = new PIXI.Application({
-      view: canvas, transparent: true, autoStart: true, resizeTo: wrap,
-      resolution: window.devicePixelRatio || 1, autoDensity: true,
-    });
-    const model = await PIXI.live2d.Live2DModel.from(
-      "../../assets/live2d/hiyori/hiyori_pro_t11.model3.json",
-      { autoInteract: false }
-    );
-    app.stage.addChild(model);
-    const fit = () => {
-      const w = wrap.clientWidth, h = wrap.clientHeight;
-      const s = Math.min(w / model.internalModel.width, h / model.internalModel.height);
-      model.scale.set(s);
-      model.x = (w - model.width) / 2;
-      model.y = h - model.height;
-    };
-    fit(); window.addEventListener("resize", fit);
-    const idle = () => model.motion("Idle");
-    idle(); setInterval(idle, 16000);
-    wrap.addEventListener("click", () => model.motion("Tap"));
-    window.addEventListener("pointermove", e => {
-      const r = canvas.getBoundingClientRect();
-      model.focus(e.clientX - r.left, e.clientY - r.top);
-    });
-  } catch (err) {
-    console.warn("Live2D 未加载：", err);
-    wrap.style.display = "none";
-  }
-})();
 </script>
 </body>
 </html>
