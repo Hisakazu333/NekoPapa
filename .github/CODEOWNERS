@@ -7,6 +7,7 @@
 /native-prebuilt/ @Hisakazu333
 
 # Product and runtime boundaries.
+/app/control-desktop/ @Hisakazu333
 /app/control-desktop/src/ @Hisakazu333
 /app/control-desktop/src-tauri/ @Hisakazu333
 /protocol/ @Hisakazu333

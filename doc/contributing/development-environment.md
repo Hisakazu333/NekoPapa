@@ -1,17 +1,18 @@
 # NekoPapa 开发环境
 
-状态：重写过渡期。旧桌面实现（含前端与 Rust host）已按
-[ADR-0002](../architecture/adr/0002-client-rewrite-external-live2d.md) 移除；当前唯一
-可运行入口是静态原型，前端/Rust 工具链命令将随新骨架恢复。本仓库不包含或构建
+状态：新桌面客户端骨架（`app/control-desktop/`）已按
+[ADR-0002](../architecture/adr/0002-client-rewrite-external-live2d.md) 落地，前端与
+Rust host 工具链命令恢复，见下文与
+[构建与测试门禁](../architecture/build-and-test-gates.md)。本仓库不包含或构建
 C++ runtime，角色渲染由外部 NekoCore-Nano C++ 代码承担。
 
 ## 工具链
 
 | 工具 | 基线 | 用途 |
 | --- | --- | --- |
-| Node.js | 24 | 仓库脚本（新骨架落地后包含 Vite 与 TypeScript） |
-| Rust | 1.96+ | Tauri host（待重建） |
-| Tauri 系统依赖 | 2.x 对应平台要求 | WebView 与桌面打包（待重建） |
+| Node.js | 24 | 仓库脚本、Vite 与 TypeScript |
+| Rust | 1.96+ | Tauri host（`app/control-desktop/src-tauri/`） |
+| Tauri 系统依赖 | 2.x 对应平台要求 | WebView 与桌面打包 |
 | Native Stage | 与 target triple 匹配的外部产物 | 独立桌宠窗口与角色渲染 |
 
 CMake、Ninja、C++ 编译器和 Cubism Native SDK 属于外部 runtime 仓库，不是 NekoPapa
@@ -22,10 +23,11 @@ CMake、Ninja、C++ 编译器和 Cubism Native SDK 属于外部 runtime 仓库�
 ```bash
 git clone https://github.com/Hisakazu333/NekoPapa.git
 cd NekoPapa
+npm --prefix app/control-desktop ci
 ```
 
-依赖锁文件安装（`package-lock.json`、`Cargo.lock`）随新骨架恢复；不提交
-`node_modules/`、`target/` 或本机配置。
+依赖按锁文件安装（`app/control-desktop/package-lock.json`、`src-tauri/Cargo.lock`）；
+不提交 `node_modules/`、`target/` 或本机配置。
 
 ## 设计原型预览
 
@@ -36,7 +38,12 @@ prototype/desktop-app/serve.sh
 入口为 `http://127.0.0.1:8123/prototype/desktop-app/`。原型是零构建静态页面，用于
 设计预览与验收锚点；其中的 Web Live2D 不代表产品渲染架构。
 
-## Tauri 桌面开发（待重建）
+## Tauri 桌面开发
+
+```bash
+npm --prefix app/control-desktop run dev          # 浏览器预览（Vite，:1420）
+npm --prefix app/control-desktop run tauri -- dev  # 真实桌面窗口
+```
 
 桌面运行始终需要对应平台的
 [Tauri prerequisites](https://v2.tauri.app/start/prerequisites/)，以及与 `rustc -vV`
@@ -45,7 +52,10 @@ prototype/desktop-app/serve.sh
 - 方式一：`export NEKOPAPA_NATIVE_STAGE_BINARY=/absolute/path/to/nekopapa-native-stage`；
 - 方式二：放入 `native-prebuilt/desktop/<target-triple>/nekopapa-native-stage[.exe]`。
 
-详细交付要求见 [`native-prebuilt/README.md`](../../native-prebuilt/README.md)。新 host
+随后执行 `npm --prefix app/control-desktop run stage:prepare` 把产物装配为 Tauri
+要求的 target-triple sidecar 名称。仅做静态检查（fmt/clippy/test）时可改用
+`stage:placeholder` 创建零字节占位。详细交付要求见
+[`native-prebuilt/README.md`](../../native-prebuilt/README.md)。新 host
 必须直接实现 Protocol v1；在两端兼容测试通过前，不得宣称 v1 已落地。
 
 ## 静态检查
@@ -54,8 +64,8 @@ prototype/desktop-app/serve.sh
 node scripts/check-documentation.mjs
 ```
 
-前端类型检查/构建与 Rust fmt/clippy/test 命令随新骨架恢复，并以
-[构建与测试门禁](../architecture/build-and-test-gates.md) 为准。
+前端类型检查/构建与 Rust fmt/clippy/test 命令以
+[构建与测试门禁](../architecture/build-and-test-gates.md) 的「本地基线」一节为准。
 
 ## 桌面打包（待重建）
 

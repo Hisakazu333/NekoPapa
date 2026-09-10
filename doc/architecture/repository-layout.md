@@ -4,11 +4,18 @@
 
 ## 当前结构
 
-旧桌面实现 `app/control-desktop/` 已按 [ADR-0002](adr/0002-client-rewrite-external-live2d.md)
-移除；新客户端骨架按 `prototype/desktop-app/` 设计系统 2.0 重写，落地时更新本节。
+新桌面客户端骨架 `app/control-desktop/` 已按
+[ADR-0002](adr/0002-client-rewrite-external-live2d.md) 落地：Tauri 2 + React +
+TypeScript，首页对照 `prototype/desktop-app/` 设计系统 2.0 实现，其余页面经路由
+落在共用占位页上逐页重写。
 
 ```text
 NekoPapa/
+├── app/
+│   └── control-desktop/            # Tauri 2 + React 桌面客户端（新骨架）
+│       ├── src/                    # React 页面、设计系统样式、数据层
+│       ├── src-tauri/              # Rust host（窗口与 sidecar 装配）
+│       └── scripts/                # sidecar placeholder/prepare 脚本
 ├── assets/
 │   └── live2d/                     # 原型设计预览用模型资产（非产品渲染路径）
 ├── native-prebuilt/
@@ -33,14 +40,13 @@ NekoPapa/
 
 | 路径 | Owner | 允许依赖 | 禁止内容 |
 | --- | --- | --- | --- |
+| `app/control-desktop/src/` | Desktop client | React、Vite、TypeScript、设计系统 token | UI 组件库、直接进程/文件系统访问 |
+| `app/control-desktop/src-tauri/` | Desktop client | Tauri 2、tauri-build | sidecar 进程管理以外的平台逻辑堆积 |
 | `protocol/stage/v1/` | Contract | JSON Schema、fixtures | 任一端私有实现细节 |
 | `prototype/desktop-app/` | Product design | 静态 HTML/CSS/JS、runtime assets | 构建产物、功能完成声明 |
 | `native-prebuilt/` | Artifact contract | README、未来 manifest 示例 | 提交真实平台二进制 |
 | `assets/` | Runtime assets | 明确许可的模型和图像 | 未知来源资源、Native SDK 源码 |
 | `doc/` | Documentation | 当前路径、ADR、产品基线 | issue 状态快照、已完成迁移副本 |
-
-新客户端骨架落地时，在此表中登记其路径与 Owner，并同步 CODEOWNERS、CI 与
-`.gitignore`。
 
 ## 依赖方向
 

@@ -20,8 +20,10 @@ C++ 代码承担，本仓库不再复制其源码或 Cubism Native SDK。桌面�
 接入原生运行时。
 
 > [!IMPORTANT]
-> 项目处于重写过渡期：旧桌面实现已移除，新客户端按 `prototype/desktop-app/` 的
-> 设计系统 2.0 用 Tauri 2 + React 重建（[ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md)）。
+> 项目处于重写过渡期：新客户端骨架（`app/control-desktop/`）已按
+> `prototype/desktop-app/` 的设计系统 2.0 用 Tauri 2 + React 落地
+> （[ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md)），
+> 首页可用，其余页面逐页重写中。
 > 本仓库不附带 Native Stage 二进制；真实桌面运行始终需要外部预构建产物。
 
 <p align="center">
@@ -32,20 +34,20 @@ C++ 代码承担，本仓库不再复制其源码或 Cubism Native SDK。桌面�
 
 | 模块 | 已确认状态 | 边界 |
 | --- | --- | --- |
-| 桌面客户端 | 重写中 | 旧实现已移除；按 `prototype/desktop-app/` 设计系统 2.0 用 Tauri 2 + React 重建 |
+| 桌面客户端 | 骨架已落地 | `app/control-desktop/`：Tauri 2 + React 首页；其余页面为「重写中」占位 |
 | 角色（Live2D）渲染 | 外部实现 | 全部由 NekoCore-Nano C++ 代码承担；原型中的 Web Live2D 仅用于设计预览 |
-| Tauri host | 待重建 | 目标：启动、查询和停止固定 Native Stage sidecar |
+| Tauri host | 最小骨架 | 仅创建主窗口；sidecar 进程管理（启动/监督/协议）尚未实现 |
 | Native Stage | 外部依赖 | 本仓库没有实现或二进制；需按平台提供预构建可执行文件 |
 | NekoCore | 待接入 | 本仓库没有核心源码，界面中的相关数据仍是占位或预览状态 |
 | Stage Protocol v1 | 草案 | schema 与示例在仓库内；通过两端兼容测试前不得宣称 v1 已落地 |
 | 对话、记忆、世界、Agent | 界面原型 | 尚无完整服务、权限和持久化闭环 |
 
-引用旧实现的 CI job 将随新骨架同步重建。CI 不验证外部 Native Stage 的源码、GPU
+CI 不验证外部 Native Stage 的源码、GPU
 运行或最终安装包。
 
 ## 快速开始
 
-当前唯一可运行入口是设计原型（零构建静态页面，Live2D 预览需要 HTTP）：
+### 设计原型（零构建静态页面，Live2D 预览需要 HTTP）
 
 ```bash
 prototype/desktop-app/serve.sh
@@ -54,13 +56,19 @@ prototype/desktop-app/serve.sh
 打开 `http://127.0.0.1:8123/prototype/desktop-app/`。原型页用于设计预览与验收锚点，
 其中的 Web Live2D 不代表产品渲染架构。
 
-### Tauri 桌面应用（重写中）
+### 桌面客户端（`app/control-desktop/`）
 
-新客户端按 [ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md)
-重建，骨架落地后此处更新运行说明。桌面运行始终需要 Rust 1.96+、对应平台的
+```bash
+npm --prefix app/control-desktop ci
+npm --prefix app/control-desktop run dev           # 浏览器预览首页（:1420）
+npm --prefix app/control-desktop run tauri -- dev   # 真实桌面窗口
+```
+
+桌面运行始终需要 Rust 1.96+、对应平台的
 [Tauri 2 依赖](https://v2.tauri.app/start/prerequisites/)，以及与 Rust target triple
 匹配的 Native Stage：设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，或按
-[`native-prebuilt/`](native-prebuilt/README.md) 的目录约定放置产物。单个
+[`native-prebuilt/`](native-prebuilt/README.md) 的目录约定放置产物后运行
+`npm --prefix app/control-desktop run stage:prepare`。单个
 Android/HarmonyOS `.so` 不能替代 macOS 或 Windows 桌面 sidecar。
 
 ## 运行时边界
@@ -84,14 +92,14 @@ React UI ── typed bridge ──> Tauri / Rust host ── process + JSONL �
 
 | 路径 | 责任 |
 | --- | --- |
+| `app/control-desktop/` | Tauri 2 + React 桌面客户端（新骨架，首页已按设计系统 2.0 实现） |
 | `prototype/desktop-app/` | 零构建产品 UI 设计基线（设计系统 2.0 唯一真相源） |
 | `protocol/stage/v1/` | Native Stage JSONL v1 草案与 fixtures |
 | `native-prebuilt/` | 外部桌面 sidecar 的本地交付约定，不提交实际二进制 |
 | `assets/` | 原型设计预览所需运行时资产 |
 | `doc/` | 产品、架构、开发和治理文档 |
 
-桌面客户端源码路径在新骨架落地时登记，见
-[仓库结构](doc/architecture/repository-layout.md)。
+目录责任详见 [仓库结构](doc/architecture/repository-layout.md)。
 
 ## 参与开发
 

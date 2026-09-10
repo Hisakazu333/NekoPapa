@@ -17,9 +17,10 @@ native-prebuilt/desktop/<target-triple>/nekopapa-native-stage[.exe]
 native-prebuilt/desktop/aarch64-apple-darwin/nekopapa-native-stage
 ```
 
-也可以设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，直接指向绝对路径。新骨架的准备脚本
-会把文件复制为 Tauri 要求的 target-triple sidecar 名称（脚本随客户端重写恢复，
-见 [ADR-0002](../doc/architecture/adr/0002-client-rewrite-external-live2d.md)）。
+也可以设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，直接指向绝对路径。客户端的准备脚本
+（`app/control-desktop/scripts/stage.mjs`，`npm run stage:prepare`）会把文件复制为
+Tauri 要求的 target-triple sidecar 名称（见
+[ADR-0002](../doc/architecture/adr/0002-client-rewrite-external-live2d.md)）。
 
 ## 兼容要求
 

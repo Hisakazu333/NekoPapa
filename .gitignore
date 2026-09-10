@@ -12,6 +12,7 @@ node_modules/
 .vite/
 app/control-desktop/src-tauri/binaries/*
 !app/control-desktop/src-tauri/binaries/.gitkeep
+app/control-desktop/src-tauri/gen/
 native-prebuilt/desktop/**
 
 # Local configuration and signing material
