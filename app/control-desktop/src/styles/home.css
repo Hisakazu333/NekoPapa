@@ -316,7 +316,8 @@ button { font-family: inherit; }
 .dash-center { flex: 1; overflow-y: auto; min-width: 0; }
 .dash-center::-webkit-scrollbar { width: 0; }
 .dc-inner {
-  max-width: 660px; margin: 0 auto; padding: 24px 32px 40px;
+  /* 原型上限 660px（窗口 ≤1280 时无感）；宽窗口下放宽到 960px 居中 */
+  max-width: 960px; margin: 0 auto; padding: 24px 32px 40px;
   display: flex; flex-direction: column; gap: 16px;
 }
 
