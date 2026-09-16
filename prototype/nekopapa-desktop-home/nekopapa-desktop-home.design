@@ -1,0 +1,657 @@
+{
+  "data": [
+    {
+      "id": "page-home",
+      "title": "NekoPapa 桌面端首页",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789545842000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-12771274",
+          "measuredAt": 1789554726399
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-home-calm",
+      "title": "小屋 · 留白版",
+      "type": "page",
+      "version": 2,
+      "createdAt": 1789546900000,
+      "canvasData": {
+        "x": 0,
+        "y": 373,
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-bb672507",
+          "measuredAt": 1789554726399
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home-calm.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          },
+          {
+            "domId": "nc-cta-continue",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "继续学习"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-chat",
+      "title": "和她说话",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789548500000,
+      "canvasData": {
+        "x": 480,
+        "y": 373,
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-eb1e2c40",
+          "measuredAt": 1789554726399
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/chat.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-study",
+      "title": "学习",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789548500000,
+      "canvasData": {
+        "x": 960,
+        "y": 373,
+        "group": 1,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-07b5bc0f",
+          "measuredAt": 1789554726399
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/study.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-review",
+      "title": "复习",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789548500000,
+      "canvasData": {
+        "x": 1440,
+        "y": 373,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/review.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-memory",
+      "title": "她记得的",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789548500000,
+      "canvasData": {
+        "x": 1920,
+        "y": 373,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memory.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-settings",
+      "title": "设置",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789548500000,
+      "canvasData": {
+        "x": 2400,
+        "y": 373,
+        "group": 1
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/settings.html",
+        "interactions": [
+          {
+            "domId": "nc-nav-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "去小屋"
+          },
+          {
+            "domId": "nc-nav-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "去学习"
+          },
+          {
+            "domId": "nc-nav-review",
+            "targetPageId": "page-review",
+            "hideEdge": true,
+            "transitionLabel": "去复习"
+          },
+          {
+            "domId": "nc-rail-home",
+            "targetPageId": "page-home-calm",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "nc-rail-chat",
+            "targetPageId": "page-chat",
+            "hideEdge": true,
+            "transitionLabel": "对话"
+          },
+          {
+            "domId": "nc-rail-study",
+            "targetPageId": "page-study",
+            "hideEdge": true,
+            "transitionLabel": "学习"
+          },
+          {
+            "domId": "nc-rail-heart",
+            "targetPageId": "page-memory",
+            "hideEdge": true,
+            "transitionLabel": "记忆"
+          },
+          {
+            "domId": "nc-avatar",
+            "targetPageId": "page-settings",
+            "hideEdge": true,
+            "transitionLabel": "设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-hut",
+      "title": "她的小屋 · 陪伴主屏",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789553400000,
+      "canvasData": {
+        "x": 0,
+        "y": 746,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/hut.html",
+        "interactions": [
+          {
+            "domId": "hud-nav-hut",
+            "targetPageId": "page-hut",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "hud-nav-path",
+            "targetPageId": "page-path",
+            "hideEdge": true,
+            "transitionLabel": "路径"
+          },
+          {
+            "domId": "hud-nav-cards",
+            "targetPageId": "page-cards",
+            "hideEdge": true,
+            "transitionLabel": "卡堆"
+          },
+          {
+            "domId": "hud-nav-her",
+            "targetPageId": "page-her",
+            "hideEdge": true,
+            "transitionLabel": "羁绊"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-path",
+      "title": "学习 · 路径",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789553400000,
+      "canvasData": {
+        "x": 480,
+        "y": 746,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/path.html",
+        "interactions": [
+          {
+            "domId": "hud-nav-hut",
+            "targetPageId": "page-hut",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "hud-nav-path",
+            "targetPageId": "page-path",
+            "hideEdge": true,
+            "transitionLabel": "路径"
+          },
+          {
+            "domId": "hud-nav-cards",
+            "targetPageId": "page-cards",
+            "hideEdge": true,
+            "transitionLabel": "卡堆"
+          },
+          {
+            "domId": "hud-nav-her",
+            "targetPageId": "page-her",
+            "hideEdge": true,
+            "transitionLabel": "羁绊"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-cards",
+      "title": "复习 · 限时刷",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789553400000,
+      "canvasData": {
+        "x": 960,
+        "y": 746,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/cards.html",
+        "interactions": [
+          {
+            "domId": "hud-nav-hut",
+            "targetPageId": "page-hut",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "hud-nav-path",
+            "targetPageId": "page-path",
+            "hideEdge": true,
+            "transitionLabel": "路径"
+          },
+          {
+            "domId": "hud-nav-cards",
+            "targetPageId": "page-cards",
+            "hideEdge": true,
+            "transitionLabel": "卡堆"
+          },
+          {
+            "domId": "hud-nav-her",
+            "targetPageId": "page-her",
+            "hideEdge": true,
+            "transitionLabel": "羁绊"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-her",
+      "title": "羁绊 · 她的成长",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789553400000,
+      "canvasData": {
+        "x": 1440,
+        "y": 746,
+        "group": 2
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/her.html",
+        "interactions": [
+          {
+            "domId": "hud-nav-hut",
+            "targetPageId": "page-hut",
+            "hideEdge": true,
+            "transitionLabel": "小屋"
+          },
+          {
+            "domId": "hud-nav-path",
+            "targetPageId": "page-path",
+            "hideEdge": true,
+            "transitionLabel": "路径"
+          },
+          {
+            "domId": "hud-nav-cards",
+            "targetPageId": "page-cards",
+            "hideEdge": true,
+            "transitionLabel": "卡堆"
+          },
+          {
+            "domId": "hud-nav-her",
+            "targetPageId": "page-her",
+            "hideEdge": true,
+            "transitionLabel": "羁绊"
+          }
+        ]
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "她 · Live2D 主视觉",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1789545842000,
+      "canvasData": {
+        "x": 0,
+        "y": 1119,
+        "naturalSize": {
+          "width": 360,
+          "height": 505
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/hero-neko.png"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "NekoPapa 应用图标",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1789545842000,
+      "canvasData": {
+        "x": 480,
+        "y": 1119,
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/app-icon.png"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "NekoPapa 桌面端首页",
+    "designLibrary": {
+      "name": "苹果",
+      "id": "dl_builtin_apple",
+      "version": 0,
+      "scope": "built-in-global",
+      "path": "/Users/hisakazu/.trae-cn/design_libraries/Apple",
+      "versionSource": "metadata.json"
+    }
+  }
+}
