@@ -54,13 +54,73 @@
       }
     },
     {
+      "id": "page-learning-deep",
+      "title": "学习过程 · 深度探究",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789747200000,
+      "canvasData": {
+        "x": 960,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-2ddd8fa1",
+          "measuredAt": 1789709396289
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/learning-deep.html",
+        "interactions": [
+          {
+            "domId": "back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-learning-content",
+      "title": "学习过程 · 内容驱动",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789761600000,
+      "canvasData": {
+        "x": 1440,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-6217d894",
+          "measuredAt": 1789711242545
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/learning-content.html",
+        "interactions": [
+          {
+            "domId": "lc-back-home",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "返回"
+          }
+        ]
+      }
+    },
+    {
       "id": "page-plan",
       "title": "学习计划 · 她的课表",
       "type": "page",
       "version": 1,
       "createdAt": 1789660800000,
       "canvasData": {
-        "x": 960,
+        "x": 1920,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -83,7 +143,7 @@
       "version": 1,
       "createdAt": 1789660800000,
       "canvasData": {
-        "x": 1440,
+        "x": 2400,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -106,7 +166,7 @@
       "version": 1,
       "createdAt": 1789660800000,
       "canvasData": {
-        "x": 1920,
+        "x": 2880,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -129,7 +189,7 @@
       "version": 1,
       "createdAt": 1789660800000,
       "canvasData": {
-        "x": 2400,
+        "x": 3360,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -152,7 +212,7 @@
       "version": 1,
       "createdAt": 1789689600000,
       "canvasData": {
-        "x": 2880,
+        "x": 3840,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -176,7 +236,7 @@
       "version": 1,
       "createdAt": 1789704000000,
       "canvasData": {
-        "x": 3360,
+        "x": 4320,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -199,7 +259,7 @@
       "version": 1,
       "createdAt": 1789718400000,
       "canvasData": {
-        "x": 3840,
+        "x": 4800,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -230,7 +290,7 @@
       "version": 1,
       "createdAt": 1789718400000,
       "canvasData": {
-        "x": 4320,
+        "x": 5280,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -260,7 +320,7 @@
       "version": 1,
       "createdAt": 1789704000000,
       "canvasData": {
-        "x": 4800,
+        "x": 5760,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -283,7 +343,7 @@
       "version": 1,
       "createdAt": 1789704000000,
       "canvasData": {
-        "x": 5280,
+        "x": 6240,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {
@@ -306,7 +366,7 @@
       "version": 1,
       "createdAt": 1789732800000,
       "canvasData": {
-        "x": 5760,
+        "x": 6720,
         "y": 0,
         "group": 0,
         "layoutSnapshot": {

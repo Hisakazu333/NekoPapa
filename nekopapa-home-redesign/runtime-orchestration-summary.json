@@ -15,8 +15,8 @@
     "sourceProjectLaneHeritage": "library_bound",
     "intentProfile": {
       "caseFamily": "library_bound",
-      "task": "redesign-hut-immersive-full-window",
-      "productContext": "NekoPapa 桌面端。本轮：小屋页重做——整窗接管的视觉小说式沉浸夜谈（无应用侧栏/无浅色顶栏），大立绘+月窗氛围+VN对白面板+编号选项。旧 hut.html 保留对比"
+      "task": "add-content-first-learning-page",
+      "productContext": "NekoPapa 桌面端。用户反馈对话式学习太烧 token：改为内容驱动活教材——单列阅读流、本地判题、模型调用仅3个口子且账本可见"
     },
     "selectedIntentWorkflowRead": true,
     "contextRequirementsLoaded": [
@@ -245,6 +245,17 @@
         "repairPlanHints": [],
         "errorSignatures": [],
         "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "367f2d1606a286d1ecf081aff380d2b943908b6b248b2faf0ce7f1ae2cd71435",
+        "checkedAt": "2026-09-18T05:28:15.504Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
       }
     ],
     "cssPreflightEvidence": {
@@ -253,7 +264,7 @@
     },
     "dispatchPreflightManifest": [
       {
-        "recorded_at": "2026-09-17T15:54:36.980Z",
+        "recorded_at": "2026-09-18T05:49:18.699Z",
         "generatedBy": "build-page-dispatch-manifest.mjs",
         "packetType": "LibraryBoundPagePacket",
         "laneContract": {
@@ -265,17 +276,17 @@
         "taskLinePresent": true,
         "outputPathPresent": true,
         "sharedTemplate": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
-        "nodeId": "page-hut-v2",
-        "htmlSrc": "pages/hut-v2.html",
+        "nodeId": "page-learning-content",
+        "htmlSrc": "pages/learning-content.html",
         "supplementaryReads": [
           {
             "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-            "reason": "full-window stage dispatch kernel",
+            "reason": "page dispatch kernel",
             "ownerLane": "library_bound"
           }
         ],
         "allowedWritePaths": [
-          "pages/hut-v2.html",
+          "pages/learning-content.html",
           "assets/"
         ],
         "forbiddenWriteRoots": [
@@ -293,7 +304,7 @@
           "helperScriptsAllowed": false,
           "designFileWriteAllowed": false,
           "allowedWritePaths": [
-            "pages/hut-v2.html",
+            "pages/learning-content.html",
             "assets/"
           ]
         },
@@ -315,15 +326,15 @@
           "pathInjection": "absolute",
           "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
           "commandTemplates": {
-            "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-hut-v2' --html-src='pages/hut-v2.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+            "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-learning-content' --html-src='pages/learning-content.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
           }
         },
         "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
-        "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html",
+        "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html",
         "brandPrefix": "minimal",
         "aestheticsMode": "library-bound",
         "toolDisciplineBlockPresent": true,
-        "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html' --title='小屋 · 夜谈（沉浸版）' --lang='zh-CN' --prefix='minimal'",
+        "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html' --title='学习过程 · 内容驱动' --lang='zh-CN' --prefix='minimal'",
         "headFillMode": "skeleton-first",
         "viewportMode": "app-shell",
         "completionSchemaExpected": "full",
@@ -333,7 +344,7 @@
         "deterministicCommands": null,
         "sourceAuthorityLock": null,
         "preDispatchFileHashes": {
-          "nekopapa-home-redesign.design": "50dbfa7d470baee84149b1d1feb6df1f2ab00db2f10231cbf263ab2eec0cf50e"
+          "nekopapa-home-redesign.design": "fada7f2151418e7b8e0881b4448de0155117491f1644f8ddff86f75f17e8bf77"
         },
         "contextPreflight": {
           "workflowPath": "intent-workflows/intent-page-library-bound/INTENT_WORKFLOW.md",
@@ -459,6 +470,30 @@
         "recordedAt": "2026-09-17T15:54:36.980Z",
         "nodeId": "page-hut-v2",
         "htmlSrc": "pages/hut-v2.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "page dispatch declared kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-18T05:16:49.793Z",
+        "nodeId": "page-learning-deep",
+        "htmlSrc": "pages/learning-deep.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "page dispatch kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-18T05:49:18.699Z",
+        "nodeId": "page-learning-content",
+        "htmlSrc": "pages/learning-content.html"
       }
     ],
     "mainAgentPostDispatchMutations": [
@@ -495,6 +530,20 @@
         "reason": "register-hut-exit-interaction-to-page-home",
         "owner": "main-agent",
         "recordedAt": "2026-09-17T16:01:59.687Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-back-home-interaction-and-learning-deep-node",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-18T05:28:15.418Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-lc-back-home-interaction-and-node",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-18T06:00:05.517Z",
         "source": "record-dispatch-completion.mjs"
       }
     ],
@@ -673,24 +722,24 @@
     ],
     "expectedDispatches": [
       {
-        "nodeId": "page-hut-v2",
-        "pageId": "page-hut-v2",
-        "targetPageId": "page-hut-v2",
-        "htmlSrc": "pages/hut-v2.html",
+        "nodeId": "page-learning-content",
+        "pageId": "page-learning-content",
+        "targetPageId": "page-learning-content",
+        "htmlSrc": "pages/learning-content.html",
         "packetType": "LibraryBoundPagePacket",
         "status": "completed",
         "changedFiles": [
-          "pages/hut-v2.html"
+          "pages/learning-content.html"
         ],
         "toolCallLedger": {
           "source": "main-agent-runtime-trace",
-          "traceDigest": "main-agent-runtime-trace-hut-v2-r6",
+          "traceDigest": "main-agent-runtime-trace-learning-content-r8",
           "todoWriteCalls": 0,
           "previewCalls": 0,
           "validationScriptCalls": 0,
           "helperScriptWrites": 0
         },
-        "recordedAt": "2026-09-17T16:01:59.687Z",
+        "recordedAt": "2026-09-18T06:00:05.517Z",
         "source": "record-dispatch-completion.mjs"
       }
     ]
@@ -852,18 +901,24 @@
   },
   "pages": [
     {
-      "nodeId": "page-hut-v2",
-      "htmlSrc": "pages/hut-v2.html",
-      "title": "小屋 · 夜谈（沉浸版）",
+      "nodeId": "page-learning-content",
+      "htmlSrc": "pages/learning-content.html",
+      "title": "学习过程 · 内容驱动",
       "deviceType": "desktop",
       "viewportMode": "app-shell",
-      "pageType": "task-driven",
+      "pageType": "information-dense",
       "tokenFidelity": "strict",
       "derivationType": "comparison-from-source",
-      "sourcePageId": "page-hut",
-      "sourceHtmlSrc": "pages/hut.html",
-      "supersedesPageId": "page-hut",
+      "sourcePageId": "page-learning-deep",
+      "sourceHtmlSrc": "pages/learning-deep.html",
+      "inheritedFragment": "partials/app-shell-sidebar.html",
       "componentPlan": [
+        {
+          "slug": "sidebar",
+          "contractKind": "legacy-json",
+          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-sidebar.html",
+          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/sidebar.json"
+        },
         {
           "slug": "button",
           "contractKind": "legacy-json",
@@ -875,26 +930,31 @@
           "contractKind": "legacy-json",
           "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-card.html",
           "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/card.json"
+        },
+        {
+          "slug": "navigation",
+          "contractKind": "legacy-json",
+          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-navigation.html",
+          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/navigation.json"
         }
       ],
       "uiKitPath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/ui_kits/dashboard/index.html",
       "supplementaryReads": [
         {
           "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-          "reason": "full-window stage dispatch kernel",
+          "reason": "page dispatch kernel",
           "ownerLane": "library_bound"
         }
       ],
       "allowedWritePaths": [
-        "pages/hut-v2.html"
+        "pages/learning-content.html"
       ],
       "qualityRisks": [
-        "NO app sidebar / NO light topbar — deliberate deviation for immersion (precedent: settings-window page)",
-        "exactly one data-scroll-region=primary on a overflow-y-auto wrapper",
-        "her-avatar displayed <=505px natural height to avoid blur",
-        "domId hut-exit required for wiring",
-        "dark stage uses --brand-* primitives only; no hex/rgb; single cool-gray hue",
-        "choice labels single-line CJK"
+        "exactly one data-scroll-region=primary",
+        "domId lc-back-home on return control",
+        "success/destructive only real states",
+        "mono tabular cost ledger",
+        "no chat rail - single reading column"
       ]
     }
   ]

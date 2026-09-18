@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-09-17T15:54:36.984Z",
+  "generated_at": "2026-09-18T05:49:18.702Z",
   "source": "build-page-dispatch-manifest.mjs",
   "mode": "library-bound",
   "summary_path": "runtime-orchestration-summary.json",
@@ -14,7 +14,7 @@
   },
   "dispatchPreflightManifest": [
     {
-      "recorded_at": "2026-09-17T15:54:36.980Z",
+      "recorded_at": "2026-09-18T05:49:18.699Z",
       "generatedBy": "build-page-dispatch-manifest.mjs",
       "packetType": "LibraryBoundPagePacket",
       "laneContract": {
@@ -26,17 +26,17 @@
       "taskLinePresent": true,
       "outputPathPresent": true,
       "sharedTemplate": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
-      "nodeId": "page-hut-v2",
-      "htmlSrc": "pages/hut-v2.html",
+      "nodeId": "page-learning-content",
+      "htmlSrc": "pages/learning-content.html",
       "supplementaryReads": [
         {
           "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-          "reason": "full-window stage dispatch kernel",
+          "reason": "page dispatch kernel",
           "ownerLane": "library_bound"
         }
       ],
       "allowedWritePaths": [
-        "pages/hut-v2.html",
+        "pages/learning-content.html",
         "assets/"
       ],
       "forbiddenWriteRoots": [
@@ -54,7 +54,7 @@
         "helperScriptsAllowed": false,
         "designFileWriteAllowed": false,
         "allowedWritePaths": [
-          "pages/hut-v2.html",
+          "pages/learning-content.html",
           "assets/"
         ]
       },
@@ -76,15 +76,15 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-hut-v2' --html-src='pages/hut-v2.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-learning-content' --html-src='pages/learning-content.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
       "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
-      "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html",
+      "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html",
       "brandPrefix": "minimal",
       "aestheticsMode": "library-bound",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html' --title='小屋 · 夜谈（沉浸版）' --lang='zh-CN' --prefix='minimal'",
+      "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html' --title='学习过程 · 内容驱动' --lang='zh-CN' --prefix='minimal'",
       "headFillMode": "skeleton-first",
       "viewportMode": "app-shell",
       "completionSchemaExpected": "full",
@@ -94,7 +94,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "nekopapa-home-redesign.design": "50dbfa7d470baee84149b1d1feb6df1f2ab00db2f10231cbf263ab2eec0cf50e"
+        "nekopapa-home-redesign.design": "fada7f2151418e7b8e0881b4448de0155117491f1644f8ddff86f75f17e8bf77"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-page-library-bound/INTENT_WORKFLOW.md",
@@ -127,6 +127,6 @@
     }
   ],
   "deterministicCommandsByPage": {
-    "pages/hut-v2.html": {}
+    "pages/learning-content.html": {}
   }
 }
