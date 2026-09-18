@@ -1,0 +1,383 @@
+{
+  "data": [
+    {
+      "id": "page-home",
+      "title": "首页 · 任务台",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789603200000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-4a061e30",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home.html",
+        "interactions": [
+          {
+            "domId": "home-gear-settings",
+            "targetPageId": "page-settings-window",
+            "hideEdge": true,
+            "transitionLabel": "打开设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-learning-session",
+      "title": "学习过程 · 苏格拉底引导",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789632000000,
+      "canvasData": {
+        "x": 480,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-83a66a2e",
+          "measuredAt": 1789653172889
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/learning-session.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-plan",
+      "title": "学习计划 · 她的课表",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789660800000,
+      "canvasData": {
+        "x": 960,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-96d75a5b",
+          "measuredAt": 1789656231921
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/plan.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-mistakes",
+      "title": "错题本 · 复习队列",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789660800000,
+      "canvasData": {
+        "x": 1440,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-8c2c88f3",
+          "measuredAt": 1789656231921
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/mistakes.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-knowledge",
+      "title": "知识库 · 资料与索引",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789660800000,
+      "canvasData": {
+        "x": 1920,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-2827d913",
+          "measuredAt": 1789656231921
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/knowledge.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-memory",
+      "title": "她的记忆 · 可审计",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789660800000,
+      "canvasData": {
+        "x": 2400,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-2455c518",
+          "measuredAt": 1789657263548
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memory.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-memory-v2",
+      "title": "她的记忆 · 时间线（重构版）",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789689600000,
+      "canvasData": {
+        "x": 2880,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-bf574bd1",
+          "measuredAt": 1789657263548
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/memory-v2.html",
+        "interactions": [],
+        "supersedesPageId": "page-memory"
+      }
+    },
+    {
+      "id": "page-settings",
+      "title": "设置 · 控制平面",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789704000000,
+      "canvasData": {
+        "x": 3360,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-1a434b5a",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/settings.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-settings-window",
+      "title": "设置 · 独立窗口",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789718400000,
+      "canvasData": {
+        "x": 3840,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-879ad13b",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/settings-window.html",
+        "interactions": [
+          {
+            "domId": "settings-close",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "关闭返回"
+          }
+        ],
+        "supersedesPageId": "page-settings"
+      }
+    },
+    {
+      "id": "page-home-logged-in",
+      "title": "首页 · 登录态（账号菜单）",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789718400000,
+      "canvasData": {
+        "x": 4320,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-94a162fe",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/home-logged-in.html",
+        "interactions": [
+          {
+            "domId": "menu-settings",
+            "targetPageId": "page-settings-window",
+            "hideEdge": true,
+            "transitionLabel": "账号菜单 · 设置"
+          }
+        ]
+      }
+    },
+    {
+      "id": "page-account",
+      "title": "账号 · 登录与本地模式",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789704000000,
+      "canvasData": {
+        "x": 4800,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-d1a16e50",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/account.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-hut",
+      "title": "小屋 · 夜谈",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789704000000,
+      "canvasData": {
+        "x": 5280,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-0d3073e9",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/hut.html",
+        "interactions": []
+      }
+    },
+    {
+      "id": "page-hut-v2",
+      "title": "小屋 · 夜谈（沉浸版）",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789732800000,
+      "canvasData": {
+        "x": 5760,
+        "y": 0,
+        "group": 0,
+        "layoutSnapshot": {
+          "version": 1,
+          "contentHeight": 900,
+          "viewportWidth": 1440,
+          "sourceHash": "fnv1a-c22b4af8",
+          "measuredAt": 1789661010451
+        }
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/hut-v2.html",
+        "interactions": [
+          {
+            "domId": "hut-exit",
+            "targetPageId": "page-home",
+            "hideEdge": true,
+            "transitionLabel": "离开小屋"
+          }
+        ],
+        "supersedesPageId": "page-hut"
+      }
+    },
+    {
+      "id": "image-001",
+      "title": "应用图标",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1789603200000,
+      "canvasData": {
+        "x": 0,
+        "y": 373,
+        "naturalSize": {
+          "width": 1024,
+          "height": 1024
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/app-icon.png"
+      }
+    },
+    {
+      "id": "image-002",
+      "title": "她的头像",
+      "type": "image",
+      "version": 1,
+      "createdAt": 1789603200000,
+      "canvasData": {
+        "x": 480,
+        "y": 373,
+        "naturalSize": {
+          "width": 360,
+          "height": 505
+        }
+      },
+      "devMetadata": {
+        "imageSrc": "assets/her-avatar.png"
+      }
+    }
+  ],
+  "config": {
+    "autoLayout": true,
+    "deviceType": "desktop",
+    "projectName": "NekoPapa 首页重设计",
+    "designLibrary": {
+      "name": "极简",
+      "id": "dl_builtin_minimalist",
+      "version": 0,
+      "scope": "built-in-global",
+      "path": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist",
+      "versionSource": "metadata.json"
+    }
+  }
+}

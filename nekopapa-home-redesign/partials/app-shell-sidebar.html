@@ -1,0 +1,93 @@
+<!--
+  SHARED CHROME FRAGMENT — NekoPapa 桌面 app-shell（与 pages/home.html 逐字一致）
+  规则：
+  1. 本块整体复制到新页面的 <main> 位置，除以下两处外不得改动任何字节：
+     a) 顶栏面包屑 <nav aria-label="当前位置"> 内的文字 = 当前页面名
+     b) 侧栏激活态：恰好一个导航条目携带 aria-current="page" + class 中
+        bg-[var(--minimal-sidebar-accent)]、font-semibold、h-8；
+        从「首页」条目移到本模块对应条目（学习计划/错题本/知识库/她的记忆），
+        原「首页」条目改用与其他未激活条目完全相同的非激活写法（h-[30px]、无 bg、font-normal）。
+  2. 页面自有内容只放在 CONTENT-MOUNT 注释处（滚动区内部）。
+  3. 全页 data-scroll-region="primary" 只允许出现一次（已在下方滚动区 div 声明）。
+-->
+<main id="app-shell" data-viewport-mode="app-shell" class="fixed inset-0 flex h-full w-full overflow-hidden text-[13px] font-normal text-[var(--minimal-foreground)] antialiased" style="position:fixed;inset:0;height:100%;display:flex;flex-direction:row;overflow:hidden;font-family:var(--font-sans)">
+  <!-- ═══ 侧栏 Sidebar ═══ -->
+  <aside id="sidebar" class="flex h-full w-[248px] shrink-0 flex-col overflow-y-auto border-r border-[color:var(--minimal-sidebar-border,var(--minimal-border))] bg-[var(--minimal-sidebar)] p-4 text-[var(--minimal-sidebar-foreground)]" style="width:248px;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto">
+    <!-- 品牌行 -->
+    <div class="mb-4 flex h-8 items-center gap-2">
+      <img src="../assets/app-icon.png" alt="NekoPapa" class="size-[18px] shrink-0 rounded-[var(--radius-sm)] object-cover">
+      <span class="min-w-0 truncate text-[13px] font-semibold tracking-[-0.01em]">NekoPapa</span>
+      <button type="button" aria-label="收起侧栏" class="ml-auto flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--icon-500)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] hover:text-[var(--minimal-sidebar-accent-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <span data-icon class="size-3.5" style="-webkit-mask-image:url('../assets/icons/dl_builtin_minimalist/grip.svg');mask-image:url('../assets/icons/dl_builtin_minimalist/grip.svg')"></span>
+      </button>
+    </div>
+    <!-- 动作区：新对话 / 搜索 -->
+    <div class="mb-5 flex flex-col gap-1.5">
+      <button type="button" class="flex h-8 w-full items-center justify-center gap-1.5 rounded-[var(--radius-sm)] bg-[var(--minimal-primary)] px-3 text-xs font-semibold text-[var(--minimal-primary-foreground)] transition-[filter] duration-150 hover:brightness-[1.25] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <span class="whitespace-nowrap">新对话</span>
+        <kbd class="flex h-4 shrink-0 items-center justify-center rounded-[4px] border border-[color:var(--minimal-border)] bg-[var(--minimal-background)] px-1 text-[10px] leading-none [font-family:var(--font-mono)] text-[var(--minimal-muted-foreground)]">⌘K</kbd>
+      </button>
+      <button type="button" class="flex h-8 w-full items-center gap-2 rounded-[var(--radius-sm)] px-2.5 text-xs text-[var(--minimal-muted-foreground)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] hover:text-[var(--minimal-sidebar-accent-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <i data-lucide="search" class="size-3.5 shrink-0"></i>
+        <span class="whitespace-nowrap">搜索</span>
+        <kbd class="ml-auto flex h-4 shrink-0 items-center justify-center rounded-[4px] border border-[color:var(--minimal-border)] bg-[var(--minimal-background)] px-1 text-[10px] leading-none [font-family:var(--font-mono)] text-[var(--minimal-muted-foreground)]">⌘P</kbd>
+      </button>
+    </div>
+    <!-- 导航：首页（当前） -->
+    <nav aria-label="主导航" class="flex flex-col gap-0.5">
+      <button type="button" aria-current="page" class="flex h-8 w-full items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--minimal-sidebar-accent)] px-2.5 text-left text-[12.5px] font-semibold text-[var(--minimal-sidebar-accent-foreground)] transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <span data-icon class="size-3.5 shrink-0" style="-webkit-mask-image:url('../assets/icons/dl_builtin_minimalist/house.svg');mask-image:url('../assets/icons/dl_builtin_minimalist/house.svg')"></span>
+        <span class="truncate">首页</span>
+      </button>
+      <!-- 分组：学习 -->
+      <div class="px-2.5 pb-1 pt-5 text-[10px] font-semibold tracking-[0.08em] text-[var(--minimal-muted-foreground)]">学习</div>
+      <button type="button" class="flex h-[30px] w-full items-center gap-2 rounded-[var(--radius-sm)] px-2.5 text-left text-[12.5px] text-[var(--minimal-sidebar-foreground)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <i data-lucide="calendar-check" class="size-3.5 shrink-0 text-[var(--icon-500)]"></i>
+        <span class="truncate">学习计划</span>
+      </button>
+      <button type="button" class="flex h-[30px] w-full items-center gap-2 rounded-[var(--radius-sm)] px-2.5 text-left text-[12.5px] text-[var(--minimal-sidebar-foreground)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <i data-lucide="circle-arrow-right" class="size-3.5 shrink-0 text-[var(--icon-500)]"></i>
+        <span class="truncate">错题本</span>
+      </button>
+      <button type="button" class="flex h-[30px] w-full items-center gap-2 rounded-[var(--radius-sm)] px-2.5 text-left text-[12.5px] text-[var(--minimal-sidebar-foreground)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <span data-icon class="size-3.5 shrink-0 text-[var(--icon-500)]" style="-webkit-mask-image:url('../assets/icons/dl_builtin_minimalist/box.svg');mask-image:url('../assets/icons/dl_builtin_minimalist/box.svg')"></span>
+        <span class="truncate">知识库</span>
+      </button>
+      <button type="button" class="flex h-[30px] w-full items-center gap-2 rounded-[var(--radius-sm)] px-2.5 text-left text-[12.5px] text-[var(--minimal-sidebar-foreground)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <span data-icon class="size-3.5 shrink-0 text-[var(--icon-500)]" style="-webkit-mask-image:url('../assets/icons/dl_builtin_minimalist/heart.svg');mask-image:url('../assets/icons/dl_builtin_minimalist/heart.svg')"></span>
+        <span class="truncate">她的记忆</span>
+      </button>
+      <!-- 分组：会话（首次使用 · 空状态） -->
+      <div class="px-2.5 pb-1 pt-5 text-[10px] font-semibold tracking-[0.08em] text-[var(--minimal-muted-foreground)]">会话</div>
+      <div class="pb-1 pl-8 pr-2.5">
+        <p class="text-[12.5px] leading-[1.5] text-[var(--minimal-muted-foreground)]">还没有对话</p>
+        <p class="mt-0.5 text-[11px] leading-[1.5] text-[var(--minimal-muted-foreground)]">问过的问题会自动留在这里</p>
+      </div>
+    </nav>
+    <!-- 底部：账号 -->
+    <div class="mt-auto flex items-center gap-2 border-t border-[color:var(--minimal-sidebar-border,var(--minimal-border))] pt-3">
+      <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-[var(--minimal-muted)] text-[10px] font-semibold text-[var(--minimal-foreground)]">未</span>
+      <span class="min-w-0 flex-1 truncate text-xs text-[var(--minimal-muted-foreground)]">未登录</span>
+      <button type="button" aria-label="设置" class="flex size-6 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--icon-500)] transition-colors duration-150 hover:bg-[var(--minimal-sidebar-accent)] hover:text-[var(--minimal-sidebar-accent-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+        <i data-lucide="settings" class="size-3.5"></i>
+      </button>
+    </div>
+  </aside>
+  <!-- ═══ 主区 ═══ -->
+  <div id="main-area" class="flex h-full min-w-0 flex-1 flex-col bg-[var(--minimal-background)]" style="display:flex;flex-direction:column;flex:1;min-width:0">
+    <!-- 顶栏 -->
+    <header class="flex h-11 shrink-0 items-center justify-between gap-3 border-b border-[color:var(--minimal-border)] px-4">
+      <nav aria-label="当前位置" class="text-[12.5px] font-medium text-[var(--minimal-muted-foreground)]"><span>页面名</span></nav>
+      <div class="flex shrink-0 items-center gap-2.5">
+        <span class="text-[11px] tabular-nums text-[var(--minimal-muted-foreground)] [font-family:var(--font-mono)]">周三 · 9月17日</span>
+        <button type="button" aria-label="通知" class="flex size-7 shrink-0 items-center justify-center rounded-[var(--radius-sm)] text-[var(--icon-500)] transition-colors duration-150 hover:bg-[var(--minimal-muted)] hover:text-[var(--minimal-foreground)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--minimal-ring)]">
+          <i data-lucide="bell" class="size-4"></i>
+        </button>
+      </div>
+    </header>
+    <!-- 内容滚动区（全页唯一 primary 滚动标记） -->
+    <div data-scroll-region="primary" class="min-h-0 flex-1 overflow-y-auto" style="flex:1;min-height:0;overflow-y:auto">
+      <!-- CONTENT-MOUNT: 页面自有内容从这里开始（外层自行决定单列 max-w 或双栏 fill 结构；本 div 内不得再放 overflow-y-auto 的第二个主滚动列——双栏页面如错题本，右栏详情使用 overflow-y-auto 是允许的，但不得携带 data-scroll-region 属性） -->
+    </div>
+  </div>
+</main>

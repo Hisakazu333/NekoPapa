@@ -1,0 +1,901 @@
+{
+  "schemaVersion": "1.0",
+  "skillProvenance": {
+    "name": "solo-design",
+    "version": "2026.08.06.19.15.08",
+    "version_source": "skill-release-manifest.json",
+    "schema_version": "1.0",
+    "release": "prompt-base-cloud-ssot-migration",
+    "read_status": "ok"
+  },
+  "project": {
+    "resolvedLane": "library_bound",
+    "operatingMode": "library-bound",
+    "mutationMode": "add-comparison-page",
+    "sourceProjectLaneHeritage": "library_bound",
+    "intentProfile": {
+      "caseFamily": "library_bound",
+      "task": "redesign-hut-immersive-full-window",
+      "productContext": "NekoPapa 桌面端。本轮：小屋页重做——整窗接管的视觉小说式沉浸夜谈（无应用侧栏/无浅色顶栏），大立绘+月窗氛围+VN对白面板+编号选项。旧 hut.html 保留对比"
+    },
+    "selectedIntentWorkflowRead": true,
+    "contextRequirementsLoaded": [
+      {
+        "path": "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T08:00:00.000Z"
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T13:30:00.000Z"
+      },
+      {
+        "path": "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T08:00:00.000Z"
+      },
+      {
+        "path": "delivery-quality/page-rendering-quality-gate.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T08:00:00.000Z"
+      },
+      {
+        "path": "delivery-quality/design-artifact-validation.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T08:00:00.000Z"
+      },
+      {
+        "path": "delivery-quality/delivery-evidence-contract.md",
+        "readStatus": "loaded",
+        "bodyRead": true,
+        "recordedAt": "2026-09-17T08:00:00.000Z"
+      }
+    ],
+    "contextReadScope": "main-agent: library-bound lane files + Minimalist library (SKILL.md, README.md, css.json, colors_and_type.css, components/index.json, library-consumption.json) + existing app home source (HomePage/Sidebar/HerPanel/npd/tokens.css/DESIGN.md)",
+    "deviceType": "desktop",
+    "language": "zh-CN",
+    "viewportMode": "app-shell",
+    "dashboardMode": true,
+    "sharedProjectShellContract": {
+      "applies": true,
+      "scope": "app-wide desktop shell shared by page-home and page-learning-session",
+      "regions": [
+        "app-shell root frame: <main id=app-shell data-viewport-mode=app-shell class=fixed inset-0 flex h-full w-full overflow-hidden> + <body class=h-screen overflow-hidden>",
+        "sidebar shell: 248px fixed column, --minimal-sidebar tonal subsystem, brand row + 新对话(⌘K) + 搜索(⌘P) + nav(首页 active) + 学习 group + 会话 group + 未登录 footer",
+        "top utility bar: hairline border-b, left view label, right mono date + notification",
+        "primary scroll region: exactly one data-scroll-region=primary on an overflow-y-auto container per page"
+      ],
+      "surfaceAndDepth": "Near-flat: border contrast over elevation; only --shadow-2xs permitted on static surfaces",
+      "radius": "12px base (--radius), 6px small controls (--radius-sm), pill only for chips/status dots/avatars",
+      "typography": "Geist sans base 13px; group labels 10px/600 tracking .08em; all numbers/times/counts in var(--font-mono) + tabular-nums",
+      "colorSystem": "Single near-black brand --minimal-primary (#18181b); --success/--destructive only for real state feedback",
+      "componentLanguage": "hairline dividers, ghost controls with background/border token steps only, no translate+recolor double hover effect",
+      "imageryAndIconography": "Library SVG css-mask via ../assets/icons/dl_builtin_minimalist/{name}.svg; Lucide only where no semantic match; no emoji icons",
+      "mobileNavigation": {
+        "applies": false
+      }
+    },
+    "validationRunDiscipline": {
+      "maxFullValidationRuns": 10,
+      "softWarningsTriggerRepair": false,
+      "blockingRepairMode": "targeted-once",
+      "forbiddenRepairTriggers": [
+        "soft-warning-only",
+        "provenance-warning-only",
+        "style-warning-only"
+      ],
+      "budgetNote": "session 跨 5 个生成轮次，script-owned ledger 链不可手改，按整场累计声明预算；每轮实际 1 次全量 + 至多 1 次定向复验"
+    },
+    "lowValueCallWatchdog": {
+      "applies": true,
+      "noProgressSignals": [
+        "no_tool_call",
+        "no_artifact_diff",
+        "no_structured_decision"
+      ],
+      "noProgressNextAction": "enter_readiness_or_blocked_summary",
+      "recordedAt": "2026-09-17T08:00:00.000Z"
+    },
+    "validationHistory": [
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "9cd72ee98e8741b0b3d087e7c9835ae32cb077e4d6dbeab1503d883465206d48",
+        "checkedAt": "2026-09-17T13:08:28.292Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 3,
+        "repairPlanHints": [],
+        "errorSignatures": [
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/home.html: viewportMode is app-shell but data-viewport-mode=\"app-shell\" is missing on the shell container.",
+            "signature": "3d91cf873f750ddecb18fc7562409a948759a64ffd0de2615cc050d12f89d653"
+          },
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/home.html: app-shell pages must declare data-scroll-region=\"primary\" on a class list containing overflow-y-auto.",
+            "signature": "84803ab4568f0b3e99386b1dbbcced297cd6eb2d4f1cfeb4e76ef06fff8195c2"
+          },
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/home.html: app-shell page still looks like natural document flow (min-h-screen) without a complete internal scroll shell.",
+            "signature": "3fc87cba5194446b1dbdc1a366077e662a76bc30476106d06e380e59d69a23e0"
+          }
+        ],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "a1ba286082467cf39bd8b7335aa3936f3205da8fa826c512726c32ca3b08279e",
+        "checkedAt": "2026-09-17T13:10:11.433Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "be3b8353079c009410fc18b771a9c740024a19242cc4d292c1cee2d04d990025",
+        "checkedAt": "2026-09-17T13:50:58.699Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 1,
+        "repairPlanHints": [],
+        "errorSignatures": [
+          {
+            "errorClass": "app-shell-viewport",
+            "normalized": "[app-shell-viewport] pages/learning-session.html: app-shell pages must declare data-scroll-region=\"primary\" on a class list containing overflow-y-auto.",
+            "signature": "27d3af7954f9f68f299da4be108fc33f7fefad4e297898d144e2e6496de2072a"
+          }
+        ],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "3f54e602be6b5c7906ef41ce1ea43f060bc2227f35b253ed765d84a4cf60a8dd",
+        "checkedAt": "2026-09-17T14:43:14.708Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "460694048b700ffea1d2491589bc16ece54d006b9b411fb1afd8e7dbbca49bfd",
+        "checkedAt": "2026-09-17T15:00:34.817Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "4650ad43549f6ea706b593434c30b4b736558312262d61dc085bf7cd8eee60f0",
+        "checkedAt": "2026-09-17T15:34:05.222Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "ed1fdba92875d9a75f2c3949d2c2753ea3df3e0cd7ee96b361aac023c50482d2",
+        "checkedAt": "2026-09-17T15:50:46.267Z",
+        "success": false,
+        "exitCode": 1,
+        "renderBlockingErrorCount": 2,
+        "repairPlanHints": [],
+        "errorSignatures": [
+          {
+            "errorClass": "artifact-readiness",
+            "normalized": "[dispatch-changed-files] pages/settings-window.html: controlled file changed after dispatch preflight without mainAgentPostDispatchMutations evidence: nekopapa-home-redesign.design",
+            "signature": "04960f3537becc068a31aa97835c2f981ac911a104d5a33b54fb06d7ff59305e"
+          },
+          {
+            "errorClass": "artifact-readiness",
+            "normalized": "[dispatch-changed-files] pages/home-logged-in.html: controlled file changed after dispatch preflight without mainAgentPostDispatchMutations evidence: nekopapa-home-redesign.design",
+            "signature": "79500a70ccf19e8303fb4607870835a690ef06270cb5e3f6f0621cbde1d37f76"
+          }
+        ],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "3cf79fb144e8187dc321699a022a9829badf1a7092116f5e860a5a7dfb8fef82",
+        "checkedAt": "2026-09-17T15:51:32.690Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "3cf79fb144e8187dc321699a022a9829badf1a7092116f5e860a5a7dfb8fef82",
+        "checkedAt": "2026-09-17T15:51:32.690Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "e9990ad38d7f7ae961eb2a8c39c674d735e6adfa85384611a61e1f3792a2d722",
+        "checkedAt": "2026-09-17T16:02:12.397Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
+      }
+    ],
+    "cssPreflightEvidence": {
+      "prefixMode": "standard",
+      "brandPrefix": ""
+    },
+    "dispatchPreflightManifest": [
+      {
+        "recorded_at": "2026-09-17T15:54:36.980Z",
+        "generatedBy": "build-page-dispatch-manifest.mjs",
+        "packetType": "LibraryBoundPagePacket",
+        "laneContract": {
+          "resolvedLane": "library_bound",
+          "packetType": "LibraryBoundPagePacket",
+          "pageRuntimeGuide": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
+          "dispatchContract": "intent-workflows/intent-page-library-bound/dispatch-contract.md"
+        },
+        "taskLinePresent": true,
+        "outputPathPresent": true,
+        "sharedTemplate": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
+        "nodeId": "page-hut-v2",
+        "htmlSrc": "pages/hut-v2.html",
+        "supplementaryReads": [
+          {
+            "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+            "reason": "full-window stage dispatch kernel",
+            "ownerLane": "library_bound"
+          }
+        ],
+        "allowedWritePaths": [
+          "pages/hut-v2.html",
+          "assets/"
+        ],
+        "forbiddenWriteRoots": [
+          "*.design",
+          "runtime-orchestration-summary.json",
+          "validation-report.json",
+          "finish-readiness-report.json",
+          "restore-contract-report.json",
+          "page-generation-summary.json"
+        ],
+        "toolPolicy": {
+          "todoWriteAllowed": false,
+          "validationScriptsAllowed": false,
+          "previewAllowed": false,
+          "helperScriptsAllowed": false,
+          "designFileWriteAllowed": false,
+          "allowedWritePaths": [
+            "pages/hut-v2.html",
+            "assets/"
+          ]
+        },
+        "skillRuntime": {
+          "skillDir": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design",
+          "deterministicToolDir": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling",
+          "toolPaths": {
+            "applyHtmlHeadContract": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs",
+            "recordDispatchCompletion": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs",
+            "buildPageDispatchManifest": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/build-page-dispatch-manifest.mjs",
+            "validateDesignWorkspace": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-design-workspace.mjs",
+            "validateFinishReadiness": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-finish-readiness.mjs",
+            "validateRestoreContract": "/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/validate-restore-contract.mjs"
+          },
+          "requiredForPageSubAgent": [
+            "applyHtmlHeadContract",
+            "recordDispatchCompletion"
+          ],
+          "pathInjection": "absolute",
+          "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
+          "commandTemplates": {
+            "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-hut-v2' --html-src='pages/hut-v2.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          }
+        },
+        "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
+        "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html",
+        "brandPrefix": "minimal",
+        "aestheticsMode": "library-bound",
+        "toolDisciplineBlockPresent": true,
+        "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/hut-v2.html' --title='小屋 · 夜谈（沉浸版）' --lang='zh-CN' --prefix='minimal'",
+        "headFillMode": "skeleton-first",
+        "viewportMode": "app-shell",
+        "completionSchemaExpected": "full",
+        "restoreFields": null,
+        "restoreContractStatus": null,
+        "restoreCompactPacket": null,
+        "deterministicCommands": null,
+        "sourceAuthorityLock": null,
+        "preDispatchFileHashes": {
+          "nekopapa-home-redesign.design": "50dbfa7d470baee84149b1d1feb6df1f2ab00db2f10231cbf263ab2eec0cf50e"
+        },
+        "contextPreflight": {
+          "workflowPath": "intent-workflows/intent-page-library-bound/INTENT_WORKFLOW.md",
+          "requiredContextFiles": [
+            "shared-runtime/runtime-boundaries/lane-runtime-contracts.md",
+            "shared-runtime/agent-dispatch-runtime/lane-dispatch-index.md",
+            "delivery-quality/page-rendering-quality-gate.md",
+            "delivery-quality/design-artifact-validation.md",
+            "delivery-quality/delivery-evidence-contract.md"
+          ],
+          "optionalContextFiles": [
+            "visual-experience/visual-experience-guidelines.md"
+          ],
+          "passed": true
+        },
+        "pageSliceOnly": true,
+        "requiredFieldsPresent": true,
+        "missingFields": [],
+        "fillHtmlHeadCommandValid": true,
+        "mobileNavigation": {
+          "required": false,
+          "appliesToThisPage": false,
+          "canonicalHtmlIncluded": false,
+          "missingFields": []
+        },
+        "persistedToSummary": true,
+        "taskQueryAudited": false,
+        "proofSource": "summary-only",
+        "largeWorkflowFilesInTaskQuery": null
+      }
+    ],
+    "readScopeLedger": [
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
+        "reason": "page runtime guide",
+        "scopeClass": "page-runtime",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T12:54:13.319Z",
+        "nodeId": "page-home",
+        "htmlSrc": "pages/home.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "intent-workflows/intent-page-library-bound/dispatch-contract.md",
+        "reason": "dispatch contract",
+        "scopeClass": "dispatch-contract",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T12:54:13.319Z",
+        "nodeId": "page-home",
+        "htmlSrc": "pages/home.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "existing-edit lane declared shared kernel for page dispatch",
+        "ownerLane": "existing_edit_add_comparison",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T13:16:33.132Z",
+        "nodeId": "page-learning-session",
+        "htmlSrc": "pages/learning-session.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "multi-page add dispatch declared kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T14:27:16.588Z",
+        "nodeId": "page-plan",
+        "htmlSrc": "pages/plan.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "derived page declared kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T14:49:31.606Z",
+        "nodeId": "page-memory-v2",
+        "htmlSrc": "pages/memory-v2.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "new page dispatch declared kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T15:38:33.482Z",
+        "nodeId": "page-settings-window",
+        "htmlSrc": "pages/settings-window.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "derived page dispatch declared kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T15:38:33.482Z",
+        "nodeId": "page-home-logged-in",
+        "htmlSrc": "pages/home-logged-in.html"
+      },
+      {
+        "actor": "page-sub-agent",
+        "lane": "library_bound",
+        "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+        "reason": "full-window stage dispatch kernel",
+        "ownerLane": "library_bound",
+        "scopeClass": "supplementary",
+        "declaredBeforeRead": true,
+        "recordedAt": "2026-09-17T15:54:36.980Z",
+        "nodeId": "page-hut-v2",
+        "htmlSrc": "pages/hut-v2.html"
+      }
+    ],
+    "mainAgentPostDispatchMutations": [
+      {
+        "path": "pages/home.html",
+        "reason": "add data-dom-id home-gear-settings",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-17T15:50:46.138Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": ".design",
+        "reason": "register interactions + supersedesPageId",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-17T15:50:46.138Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-menu-settings-and-settings-close-interactions-and-supersedes-page-settings",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-17T15:51:32.570Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-home-gear-settings-interaction",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-17T15:51:32.604Z",
+        "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-hut-exit-interaction-to-page-home",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-17T16:01:59.687Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ],
+    "validationRepairLedger": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "9cd72ee98e8741b0b3d087e7c9835ae32cb077e4d6dbeab1503d883465206d48",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T13:08:43.027Z",
+        "repairEntryStatus": "revalidated-success",
+        "ownerTriage": [
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [],
+            "repairScope": "read validation report, classify owner, then use the narrowest targeted repair",
+            "strategy": "no validator source read; targeted affected-file excerpt only"
+          },
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [],
+            "repairScope": "read validation report, classify owner, then use the narrowest targeted repair",
+            "strategy": "no validator source read; targeted affected-file excerpt only"
+          },
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [],
+            "repairScope": "read validation report, classify owner, then use the narrowest targeted repair",
+            "strategy": "no validator source read; targeted affected-file excerpt only"
+          }
+        ],
+        "repairPlanHints": [],
+        "repairActions": [
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [
+              "pages/home.html"
+            ],
+            "action": "targeted-app-shell-viewport-markup",
+            "observedFileHashes": [
+              {
+                "path": "pages/home.html",
+                "hash": "cf24f9def80733faedb4b39a26b274f1b37f4d6c19618f6033202a1163793ac1"
+              }
+            ],
+            "preEditFileHashes": [],
+            "postEditFileHashes": [],
+            "repairOwnedFields": [
+              "unknown-blocking"
+            ],
+            "recordedAt": "2026-09-17T13:10:11.360Z",
+            "repairActionTableRequired": true
+          }
+        ],
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "a1ba286082467cf39bd8b7335aa3936f3205da8fa826c512726c32ca3b08279e",
+        "revalidationSuccess": true,
+        "blockedReason": null,
+        "revalidationRecordedAt": "2026-09-17T13:10:18.720Z"
+      },
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "be3b8353079c009410fc18b771a9c740024a19242cc4d292c1cee2d04d990025",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T13:51:16.957Z",
+        "repairEntryStatus": "action-recorded-awaiting-revalidation",
+        "ownerTriage": [
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [],
+            "repairScope": "read validation report, classify owner, then use the narrowest targeted repair",
+            "strategy": "no validator source read; targeted affected-file excerpt only"
+          }
+        ],
+        "repairPlanHints": [],
+        "repairActions": [
+          {
+            "owner": "main-agent",
+            "errorClass": "unknown-blocking",
+            "affectedFiles": [
+              "pages/learning-session.html"
+            ],
+            "action": "targeted-scroll-region-class",
+            "observedFileHashes": [
+              {
+                "path": "pages/learning-session.html",
+                "hash": "c42a1b1c0aca58a90a6b083fa1ef2c340b4546767859bb52b4ae6b0118f11765"
+              }
+            ],
+            "preEditFileHashes": [],
+            "postEditFileHashes": [],
+            "repairOwnedFields": [
+              "unknown-blocking"
+            ],
+            "recordedAt": "2026-09-17T13:51:38.031Z",
+            "repairActionTableRequired": true
+          }
+        ],
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null,
+        "blockedReason": null
+      },
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "ed1fdba92875d9a75f2c3949d2c2753ea3df3e0cd7ee96b361aac023c50482d2",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T15:51:04.914Z",
+        "repairEntryStatus": "revalidated-success",
+        "ownerTriage": [
+          {
+            "owner": "main-agent",
+            "errorClass": "artifact-readiness",
+            "affectedFiles": [],
+            "repairScope": "repair_design_registration_or_file_reference_only",
+            "strategy": "read .design and affected file metadata only"
+          },
+          {
+            "owner": "main-agent",
+            "errorClass": "artifact-readiness",
+            "affectedFiles": [],
+            "repairScope": "repair_design_registration_or_file_reference_only",
+            "strategy": "read .design and affected file metadata only"
+          }
+        ],
+        "repairPlanHints": [],
+        "repairActions": [],
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "3cf79fb144e8187dc321699a022a9829badf1a7092116f5e860a5a7dfb8fef82",
+        "revalidationSuccess": true,
+        "blockedReason": null,
+        "revalidationRecordedAt": "2026-09-17T15:51:45.149Z"
+      }
+    ],
+    "repairEntryEvidence": [
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "9cd72ee98e8741b0b3d087e7c9835ae32cb077e4d6dbeab1503d883465206d48",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T13:08:43.027Z",
+        "ledgerIndex": 0,
+        "ownerTriageCount": 3,
+        "repairActionCount": 1,
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "a1ba286082467cf39bd8b7335aa3936f3205da8fa826c512726c32ca3b08279e",
+        "revalidationSuccess": true
+      },
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "be3b8353079c009410fc18b771a9c740024a19242cc4d292c1cee2d04d990025",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T13:51:16.957Z",
+        "ledgerIndex": 1,
+        "ownerTriageCount": 1,
+        "repairActionCount": 1,
+        "revalidationReportPath": null,
+        "revalidationReportHash": null,
+        "revalidationSuccess": null
+      },
+      {
+        "failedReportPath": "validation-report.json",
+        "failedReportHash": "ed1fdba92875d9a75f2c3949d2c2753ea3df3e0cd7ee96b361aac023c50482d2",
+        "repairWorkflowReadPath": "intent-workflows/intent-project-mutation/main-agent-repair-workflow.md",
+        "repairStartedAt": "2026-09-17T15:51:04.914Z",
+        "ledgerIndex": 2,
+        "ownerTriageCount": 2,
+        "repairActionCount": 0,
+        "revalidationReportPath": "validation-report.json",
+        "revalidationReportHash": "3cf79fb144e8187dc321699a022a9829badf1a7092116f5e860a5a7dfb8fef82",
+        "revalidationSuccess": true
+      }
+    ],
+    "expectedDispatches": [
+      {
+        "nodeId": "page-hut-v2",
+        "pageId": "page-hut-v2",
+        "targetPageId": "page-hut-v2",
+        "htmlSrc": "pages/hut-v2.html",
+        "packetType": "LibraryBoundPagePacket",
+        "status": "completed",
+        "changedFiles": [
+          "pages/hut-v2.html"
+        ],
+        "toolCallLedger": {
+          "source": "main-agent-runtime-trace",
+          "traceDigest": "main-agent-runtime-trace-hut-v2-r6",
+          "todoWriteCalls": 0,
+          "previewCalls": 0,
+          "validationScriptCalls": 0,
+          "helperScriptWrites": 0
+        },
+        "recordedAt": "2026-09-17T16:01:59.687Z",
+        "source": "record-dispatch-completion.mjs"
+      }
+    ]
+  },
+  "designSource": {
+    "operatingMode": "library-bound",
+    "libraryIdentity": {
+      "name": "极简",
+      "id": "dl_builtin_minimalist",
+      "version": 0,
+      "scope": "built-in-global",
+      "path": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist",
+      "versionSource": "metadata.json"
+    },
+    "brandPrefix": "minimal",
+    "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
+    "tokenFidelity": "strict",
+    "componentContractKind": "legacy-json",
+    "allowedComponents": [
+      "button",
+      "card",
+      "chart",
+      "navigation",
+      "sidebar",
+      "table"
+    ],
+    "forbiddenInventedComponents": [],
+    "designDecisionSummary": "极简（Minimal Dashboard）：近黑单色品牌（--minimal-primary=#18181b 冷中性近黑），近零阴影、层级靠边框与表面色调；radius 12px 基线（--radius），小控件 --radius-sm 6px，胶囊只用于 chip/状态点/头像；4px 间距基、紧凑桌面密度；Geist 无衬线为主，数字用 --font-mono + tabular-nums；sidebar 是独立色调子系统（--minimal-sidebar 系）；导航安静，用间距与字重变化而非亮色填充；按钮高对比深色填充、无装饰阴影。产品语义：安静的界面、以任务台（composer + 能力入口 + 开始建议 + 最近会话）为首页核心，学习 agent 人格'她'以输入框内上下文 chip 的轻量形式存在。",
+    "actualTokenNameReference": [
+      "--minimal-background",
+      "--minimal-foreground",
+      "--minimal-card",
+      "--minimal-card-foreground",
+      "--minimal-popover",
+      "--minimal-popover-foreground",
+      "--minimal-primary",
+      "--minimal-primary-foreground",
+      "--minimal-secondary",
+      "--minimal-secondary-foreground",
+      "--minimal-muted",
+      "--minimal-muted-foreground",
+      "--minimal-accent",
+      "--minimal-accent-foreground",
+      "--minimal-destructive",
+      "--minimal-destructive-foreground",
+      "--minimal-border",
+      "--minimal-input",
+      "--minimal-ring",
+      "--minimal-sidebar",
+      "--minimal-sidebar-foreground",
+      "--minimal-sidebar-primary",
+      "--minimal-sidebar-primary-foreground",
+      "--minimal-sidebar-accent",
+      "--minimal-sidebar-accent-foreground",
+      "--minimal-sidebar-border",
+      "--minimal-chart-1",
+      "--minimal-chart-2",
+      "--minimal-chart-3",
+      "--minimal-chart-4",
+      "--minimal-chart-5",
+      "--success",
+      "--success-subtle",
+      "--success-border",
+      "--success-text",
+      "--destructive",
+      "--destructive-subtle",
+      "--destructive-border",
+      "--destructive-text",
+      "--brand-50",
+      "--brand-100",
+      "--brand-200",
+      "--brand-300",
+      "--brand-400",
+      "--brand-500",
+      "--brand-600",
+      "--brand-700",
+      "--brand-800",
+      "--brand-900",
+      "--text-400",
+      "--text-500",
+      "--text-600",
+      "--icon-500",
+      "--icon-800",
+      "--font-sans",
+      "--font-serif",
+      "--font-mono",
+      "--radius",
+      "--radius-sm",
+      "--radius-lg",
+      "--shadow-2xs",
+      "--shadow-xs",
+      "--shadow-sm",
+      "--space-4",
+      "--spacing"
+    ],
+    "iconAssets": {
+      "source": "assets/icons",
+      "projectIconDir": "assets/icons/dl_builtin_minimalist",
+      "libraryKey": "dl_builtin_minimalist",
+      "renderMethod": "css-mask",
+      "pathTemplate": "../assets/icons/dl_builtin_minimalist/{name}.svg",
+      "availableNames": [
+        "arrow-down",
+        "arrow-left",
+        "arrow-right",
+        "arrow-up",
+        "box",
+        "check",
+        "chevron-down",
+        "chevron-left",
+        "chevron-right",
+        "chevron-up",
+        "chevrons-down-up",
+        "chevrons-up-down",
+        "circle-alert",
+        "circle-check",
+        "circle-minus",
+        "circle-pause",
+        "circle-play",
+        "circle-plus",
+        "circle-question-mark",
+        "external-link",
+        "file",
+        "folder-open",
+        "folder",
+        "funnel",
+        "grip",
+        "heart",
+        "house",
+        "mail",
+        "map-pin",
+        "message-circle-more",
+        "mouse-pointer-click",
+        "pen-line",
+        "send-horizontal",
+        "star",
+        "tag",
+        "thumbs-down",
+        "thumbs-up",
+        "trash-2",
+        "triangle-alert",
+        "user"
+      ],
+      "totalCount": 40,
+      "coloringRule": "currentColor by default; override with Library token when needed. Usage: <span data-icon style=\"-webkit-mask-image:url('../assets/icons/dl_builtin_minimalist/<name>.svg');mask-image:url('../assets/icons/dl_builtin_minimalist/<name>.svg')\" class=\"size-4\"></span>"
+    },
+    "imageAssets": [
+      {
+        "file": "assets/app-icon.png",
+        "role": "brand avatar (sidebar top, composer persona chip)",
+        "status": "ready"
+      },
+      {
+        "file": "assets/her-avatar.png",
+        "role": "她 avatar (composer context chip)",
+        "status": "ready"
+      }
+    ]
+  },
+  "pages": [
+    {
+      "nodeId": "page-hut-v2",
+      "htmlSrc": "pages/hut-v2.html",
+      "title": "小屋 · 夜谈（沉浸版）",
+      "deviceType": "desktop",
+      "viewportMode": "app-shell",
+      "pageType": "task-driven",
+      "tokenFidelity": "strict",
+      "derivationType": "comparison-from-source",
+      "sourcePageId": "page-hut",
+      "sourceHtmlSrc": "pages/hut.html",
+      "supersedesPageId": "page-hut",
+      "componentPlan": [
+        {
+          "slug": "button",
+          "contractKind": "legacy-json",
+          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-button.html",
+          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/button.json"
+        },
+        {
+          "slug": "card",
+          "contractKind": "legacy-json",
+          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-card.html",
+          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/card.json"
+        }
+      ],
+      "uiKitPath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/ui_kits/dashboard/index.html",
+      "supplementaryReads": [
+        {
+          "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
+          "reason": "full-window stage dispatch kernel",
+          "ownerLane": "library_bound"
+        }
+      ],
+      "allowedWritePaths": [
+        "pages/hut-v2.html"
+      ],
+      "qualityRisks": [
+        "NO app sidebar / NO light topbar — deliberate deviation for immersion (precedent: settings-window page)",
+        "exactly one data-scroll-region=primary on a overflow-y-auto wrapper",
+        "her-avatar displayed <=505px natural height to avoid blur",
+        "domId hut-exit required for wiring",
+        "dark stage uses --brand-* primitives only; no hex/rgb; single cool-gray hue",
+        "choice labels single-line CJK"
+      ]
+    }
+  ]
+}
