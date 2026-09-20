@@ -114,6 +114,28 @@
       }
     },
     {
+      "id": "page-path",
+      "title": "学习主线 · Duolingo×Finch×Quizlet",
+      "type": "page",
+      "version": 1,
+      "createdAt": 1789776000000,
+      "canvasData": {
+        "x": 0,
+        "y": 0,
+        "group": 0
+      },
+      "devMetadata": {
+        "htmlSrc": "pages/path.html",
+        "interactions": [
+          {
+            "domId": "path-start",
+            "targetPageId": "page-learning-content",
+            "transitionLabel": "现在继续 · 进入这一站"
+          }
+        ]
+      }
+    },
+    {
       "id": "page-plan",
       "title": "学习计划 · 她的课表",
       "type": "page",

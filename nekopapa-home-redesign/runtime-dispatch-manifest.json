@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-09-18T05:49:18.702Z",
+  "generated_at": "2026-09-18T06:51:48.261Z",
   "source": "build-page-dispatch-manifest.mjs",
   "mode": "library-bound",
   "summary_path": "runtime-orchestration-summary.json",
@@ -14,7 +14,7 @@
   },
   "dispatchPreflightManifest": [
     {
-      "recorded_at": "2026-09-18T05:49:18.699Z",
+      "recorded_at": "2026-09-18T06:51:48.257Z",
       "generatedBy": "build-page-dispatch-manifest.mjs",
       "packetType": "LibraryBoundPagePacket",
       "laneContract": {
@@ -26,17 +26,11 @@
       "taskLinePresent": true,
       "outputPathPresent": true,
       "sharedTemplate": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
-      "nodeId": "page-learning-content",
-      "htmlSrc": "pages/learning-content.html",
-      "supplementaryReads": [
-        {
-          "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-          "reason": "page dispatch kernel",
-          "ownerLane": "library_bound"
-        }
-      ],
+      "nodeId": "page-path",
+      "htmlSrc": "pages/path.html",
+      "supplementaryReads": [],
       "allowedWritePaths": [
-        "pages/learning-content.html",
+        "pages/path.html",
         "assets/"
       ],
       "forbiddenWriteRoots": [
@@ -54,7 +48,7 @@
         "helperScriptsAllowed": false,
         "designFileWriteAllowed": false,
         "allowedWritePaths": [
-          "pages/learning-content.html",
+          "pages/path.html",
           "assets/"
         ]
       },
@@ -76,16 +70,16 @@
         "pathInjection": "absolute",
         "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
         "commandTemplates": {
-          "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-learning-content' --html-src='pages/learning-content.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+          "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-path' --html-src='pages/path.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
         }
       },
       "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
-      "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html",
+      "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/path.html",
       "brandPrefix": "minimal",
       "aestheticsMode": "library-bound",
       "toolDisciplineBlockPresent": true,
-      "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html' --title='学习过程 · 内容驱动' --lang='zh-CN' --prefix='minimal'",
-      "headFillMode": "skeleton-first",
+      "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/path.html' --title='学习主线 · Duolingo×Finch×Quizlet' --lang='zh-CN' --prefix='minimal' --replace-head",
+      "headFillMode": "replace-head-after-body",
       "viewportMode": "app-shell",
       "completionSchemaExpected": "full",
       "restoreFields": null,
@@ -94,7 +88,7 @@
       "deterministicCommands": null,
       "sourceAuthorityLock": null,
       "preDispatchFileHashes": {
-        "nekopapa-home-redesign.design": "fada7f2151418e7b8e0881b4448de0155117491f1644f8ddff86f75f17e8bf77"
+        "nekopapa-home-redesign.design": "21d96c051b51d5fbb5000bd0ed091aec4fc9c8ea2bffc03ffe429c4b39c90302"
       },
       "contextPreflight": {
         "workflowPath": "intent-workflows/intent-page-library-bound/INTENT_WORKFLOW.md",
@@ -127,6 +121,6 @@
     }
   ],
   "deterministicCommandsByPage": {
-    "pages/learning-content.html": {}
+    "pages/path.html": {}
   }
 }

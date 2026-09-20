@@ -15,8 +15,8 @@
     "sourceProjectLaneHeritage": "library_bound",
     "intentProfile": {
       "caseFamily": "library_bound",
-      "task": "add-content-first-learning-page",
-      "productContext": "NekoPapa 桌面端。用户反馈对话式学习太烧 token：改为内容驱动活教材——单列阅读流、本地判题、模型调用仅3个口子且账本可见"
+      "task": "add-learning-path-fusion-page",
+      "productContext": "NekoPapa 桌面端。本轮：融合 Duolingo(路径+下一步)/Finch(陪伴轻反馈)/Quizlet(卡组组织) 三核的学习主线页；由 Main Agent 直接基于 home.html 骨架构建（无子代理，省 token 模式）"
     },
     "selectedIntentWorkflowRead": true,
     "contextRequirementsLoaded": [
@@ -82,7 +82,7 @@
       }
     },
     "validationRunDiscipline": {
-      "maxFullValidationRuns": 10,
+      "maxFullValidationRuns": 13,
       "softWarningsTriggerRepair": false,
       "blockingRepairMode": "targeted-once",
       "forbiddenRepairTriggers": [
@@ -90,7 +90,7 @@
         "provenance-warning-only",
         "style-warning-only"
       ],
-      "budgetNote": "session 跨 5 个生成轮次，script-owned ledger 链不可手改，按整场累计声明预算；每轮实际 1 次全量 + 至多 1 次定向复验"
+      "budgetNote": "session 跨 9 个生成轮次（同一设计项目的连续演进），script-owned 台账链累计计数；每轮仍为 1 次全量扫描，Main-Agent 直建轮次无子代理派发"
     },
     "lowValueCallWatchdog": {
       "applies": true,
@@ -256,6 +256,17 @@
         "repairPlanHints": [],
         "errorSignatures": [],
         "terminalState": null
+      },
+      {
+        "reportPath": "validation-report.json",
+        "reportHash": "01e459f27aa3239a22cc68394a4a2e366ac0c37aa5aa1048f820192d3e80cb3c",
+        "checkedAt": "2026-09-18T06:51:48.410Z",
+        "success": true,
+        "exitCode": 0,
+        "renderBlockingErrorCount": 0,
+        "repairPlanHints": [],
+        "errorSignatures": [],
+        "terminalState": null
       }
     ],
     "cssPreflightEvidence": {
@@ -264,7 +275,7 @@
     },
     "dispatchPreflightManifest": [
       {
-        "recorded_at": "2026-09-18T05:49:18.699Z",
+        "recorded_at": "2026-09-18T06:51:48.257Z",
         "generatedBy": "build-page-dispatch-manifest.mjs",
         "packetType": "LibraryBoundPagePacket",
         "laneContract": {
@@ -276,17 +287,11 @@
         "taskLinePresent": true,
         "outputPathPresent": true,
         "sharedTemplate": "intent-workflows/intent-page-library-bound/library-bound-page-runtime.md",
-        "nodeId": "page-learning-content",
-        "htmlSrc": "pages/learning-content.html",
-        "supplementaryReads": [
-          {
-            "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-            "reason": "page dispatch kernel",
-            "ownerLane": "library_bound"
-          }
-        ],
+        "nodeId": "page-path",
+        "htmlSrc": "pages/path.html",
+        "supplementaryReads": [],
         "allowedWritePaths": [
-          "pages/learning-content.html",
+          "pages/path.html",
           "assets/"
         ],
         "forbiddenWriteRoots": [
@@ -304,7 +309,7 @@
           "helperScriptsAllowed": false,
           "designFileWriteAllowed": false,
           "allowedWritePaths": [
-            "pages/learning-content.html",
+            "pages/path.html",
             "assets/"
           ]
         },
@@ -326,16 +331,16 @@
           "pathInjection": "absolute",
           "pathContract": "Do not use {SKILL_DIR} placeholders inside Page Sub-Agent packets; use toolPaths.* absolute paths.",
           "commandTemplates": {
-            "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-learning-content' --html-src='pages/learning-content.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
+            "recordDispatchCompletion": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/record-dispatch-completion.mjs' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign' --node-id='page-path' --html-src='pages/path.html' --status=completed --changed-files=<comma-separated-project-relative-files> --trace-digest=<main-agent-runtime-trace-digest> --tool-ledger-json=<tool-ledger-json-or-file>"
           }
         },
         "cssFilePath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css",
-        "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html",
+        "htmlFilePath": "/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/path.html",
         "brandPrefix": "minimal",
         "aestheticsMode": "library-bound",
         "toolDisciplineBlockPresent": true,
-        "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/learning-content.html' --title='学习过程 · 内容驱动' --lang='zh-CN' --prefix='minimal'",
-        "headFillMode": "skeleton-first",
+        "fillHtmlHeadCommand": "node '/Users/hisakazu/.trae-cn/builtin/design/default/skills/solo-design/shared-runtime/deterministic-tooling/apply-html-head-contract.mjs' '/Users/hisakazu/.trae-cn/design_libraries/Minimalist/colors_and_type.css' '/Users/hisakazu/Projects/nekobuddy/NekoPapa/nekopapa-home-redesign/pages/path.html' --title='学习主线 · Duolingo×Finch×Quizlet' --lang='zh-CN' --prefix='minimal' --replace-head",
+        "headFillMode": "replace-head-after-body",
         "viewportMode": "app-shell",
         "completionSchemaExpected": "full",
         "restoreFields": null,
@@ -344,7 +349,7 @@
         "deterministicCommands": null,
         "sourceAuthorityLock": null,
         "preDispatchFileHashes": {
-          "nekopapa-home-redesign.design": "fada7f2151418e7b8e0881b4448de0155117491f1644f8ddff86f75f17e8bf77"
+          "nekopapa-home-redesign.design": "21d96c051b51d5fbb5000bd0ed091aec4fc9c8ea2bffc03ffe429c4b39c90302"
         },
         "contextPreflight": {
           "workflowPath": "intent-workflows/intent-page-library-bound/INTENT_WORKFLOW.md",
@@ -545,6 +550,13 @@
         "owner": "main-agent",
         "recordedAt": "2026-09-18T06:00:05.517Z",
         "source": "record-dispatch-completion.mjs"
+      },
+      {
+        "path": "nekopapa-home-redesign.design",
+        "reason": "register-page-path-node-and-path-start-interaction",
+        "owner": "main-agent",
+        "recordedAt": "2026-09-18T06:51:48.296Z",
+        "source": "record-dispatch-completion.mjs"
       }
     ],
     "validationRepairLedger": [
@@ -722,24 +734,24 @@
     ],
     "expectedDispatches": [
       {
-        "nodeId": "page-learning-content",
-        "pageId": "page-learning-content",
-        "targetPageId": "page-learning-content",
-        "htmlSrc": "pages/learning-content.html",
+        "nodeId": "page-path",
+        "pageId": "page-path",
+        "targetPageId": "page-path",
+        "htmlSrc": "pages/path.html",
         "packetType": "LibraryBoundPagePacket",
         "status": "completed",
         "changedFiles": [
-          "pages/learning-content.html"
+          "pages/path.html"
         ],
         "toolCallLedger": {
           "source": "main-agent-runtime-trace",
-          "traceDigest": "main-agent-runtime-trace-learning-content-r8",
+          "traceDigest": "main-agent-direct-build-no-subagent-r9",
           "todoWriteCalls": 0,
           "previewCalls": 0,
           "validationScriptCalls": 0,
           "helperScriptWrites": 0
         },
-        "recordedAt": "2026-09-18T06:00:05.517Z",
+        "recordedAt": "2026-09-18T06:51:48.296Z",
         "source": "record-dispatch-completion.mjs"
       }
     ]
@@ -901,23 +913,29 @@
   },
   "pages": [
     {
-      "nodeId": "page-learning-content",
-      "htmlSrc": "pages/learning-content.html",
-      "title": "学习过程 · 内容驱动",
+      "nodeId": "page-path",
+      "htmlSrc": "pages/path.html",
+      "title": "学习主线 · Duolingo×Finch×Quizlet",
       "deviceType": "desktop",
       "viewportMode": "app-shell",
-      "pageType": "information-dense",
+      "pageType": "task-driven",
       "tokenFidelity": "strict",
       "derivationType": "comparison-from-source",
-      "sourcePageId": "page-learning-deep",
-      "sourceHtmlSrc": "pages/learning-deep.html",
-      "inheritedFragment": "partials/app-shell-sidebar.html",
+      "sourcePageId": "page-home",
+      "sourceHtmlSrc": "pages/home.html",
+      "buildMode": "main-agent-direct-copy-edit",
       "componentPlan": [
         {
           "slug": "sidebar",
           "contractKind": "legacy-json",
           "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-sidebar.html",
           "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/sidebar.json"
+        },
+        {
+          "slug": "navigation",
+          "contractKind": "legacy-json",
+          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-navigation.html",
+          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/navigation.json"
         },
         {
           "slug": "button",
@@ -930,31 +948,18 @@
           "contractKind": "legacy-json",
           "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-card.html",
           "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/card.json"
-        },
-        {
-          "slug": "navigation",
-          "contractKind": "legacy-json",
-          "previewFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/preview/component-navigation.html",
-          "contractFile": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/components/navigation.json"
         }
       ],
       "uiKitPath": "/Users/hisakazu/.trae-cn/design_libraries/Minimalist/ui_kits/dashboard/index.html",
-      "supplementaryReads": [
-        {
-          "path": "shared-runtime/agent-dispatch-runtime/shared-page-rendering-kernel.md",
-          "reason": "page dispatch kernel",
-          "ownerLane": "library_bound"
-        }
-      ],
+      "supplementaryReads": [],
       "allowedWritePaths": [
-        "pages/learning-content.html"
+        "pages/path.html"
       ],
       "qualityRisks": [
-        "exactly one data-scroll-region=primary",
-        "domId lc-back-home on return control",
-        "success/destructive only real states",
-        "mono tabular cost ledger",
-        "no chat rail - single reading column"
+        "inherited head+shell from home.html via cp; edits scoped to breadcrumb/nav-active/content column",
+        "exactly one data-scroll-region=primary (inherited)",
+        "serpentine node offsets must not overlap labels at 1280",
+        "mono tabular for all counts"
       ]
     }
   ]
