@@ -24,3 +24,4 @@ build/
 target/
 .vite/
 coverage/
+src-tauri/gen/schemas/
