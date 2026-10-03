@@ -1,116 +1,92 @@
-<p align="center">
-  <img src="assets/cat_moon_icon_no_black_corners.png" alt="NekoPapa 应用图标" width="160">
-</p>
+# NekoPapa
 
-<h1 align="center">NekoPapa</h1>
+一个简单的陪伴 Agent：可以聊日常，记住经你确认的重要小事，用稳定、自然的方式陪你说话。
 
-<p align="center">面向桌面陪伴与学习场景的 React + Tauri 客户端。</p>
+**当前状态：项目重新起步，尚无新版实现。**
 
-<p align="center">
-  <a href="https://github.com/Hisakazu333/NekoPapa/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Hisakazu333/NekoPapa/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="LICENSE"><img alt="Apache-2.0 License" src="https://img.shields.io/badge/license-Apache--2.0-blue.svg"></a>
-  <img alt="Development preview" src="https://img.shields.io/badge/status-development%20preview-f59e0b.svg">
-</p>
+旧代码、页面原型、配套素材、协议草案和相关工程文档已从工作目录移除，历史版本保留在 Git 中。当前仓库仅包含这份 README、许可证和忽略规则，没有可运行应用或安装命令。下文是新版的产品方向与重建计划。
 
-<p align="center"><a href="README_EN.md">English</a> · 简体中文</p>
+## 想做怎样的陪伴
 
-NekoPapa 仓库负责产品 UI、Tauri 桌面宿主、Stage 进程管理和跨进程协议。NekoCore-Nano
-与 Native Stage 的 C++ 实现位于外部原生仓库，角色（Live2D）渲染也全部由该仓库的
-C++ 代码承担，本仓库不再复制其源码或 Cubism Native SDK。桌面宿主通过预构建 sidecar
-接入原生运行时。
+打开就能说几句话；隔几天回来，仍然能接着聊之前在意的事情。
 
-> [!IMPORTANT]
-> 项目处于重写过渡期：新客户端骨架（`app/control-desktop/`）已按
-> `prototype/desktop-app/` 的设计系统 2.0 用 Tauri 2 + React 落地
-> （[ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md)），
-> 首页可用，其余页面逐页重写中。
-> 本仓库不附带 Native Stage 二进制；真实桌面运行始终需要外部预构建产物。
+先围绕一个固定角色做好文字交流。角色有一致的语气，能够按用户设置的称呼和交流偏好回应。用户想倾诉时先回应当下的话，想讨论办法时再一起想办法。
 
-<p align="center">
-  <img src="doc/assets/readme/home-browser-preview.png" alt="NekoPapa 小屋浏览器预览，显示居中导航、Live2D 角色、状态面板和输入栏" width="1200">
-</p>
+陪伴感主要来自对话的连续性、回应的分寸，以及对重要小事的记忆。功能围绕这三点逐步增加。
 
-## 当前状态
+## 首版范围
 
-| 模块 | 已确认状态 | 边界 |
-| --- | --- | --- |
-| 桌面客户端 | 骨架已落地 | `app/control-desktop/`：Tauri 2 + React 首页；其余页面为「重写中」占位 |
-| 角色（Live2D）渲染 | 外部实现 | 全部由 NekoCore-Nano C++ 代码承担；原型中的 Web Live2D 仅用于设计预览 |
-| Tauri host | 最小骨架 | 仅创建主窗口；sidecar 进程管理（启动/监督/协议）尚未实现 |
-| Native Stage | 外部依赖 | 本仓库没有实现或二进制；需按平台提供预构建可执行文件 |
-| NekoCore | 待接入 | 本仓库没有核心源码，界面中的相关数据仍是占位或预览状态 |
-| Stage Protocol v1 | 草案 | schema 与示例在仓库内；通过两端兼容测试前不得宣称 v1 已落地 |
-| 对话、记忆、世界、Agent | 界面原型 | 尚无完整服务、权限和持久化闭环 |
+| 能力 | 预期行为 |
+| --- | --- |
+| 文字聊天 | 接入真实模型，逐步显示回复；可以停止生成，失败后可以重试，输入内容保留。 |
+| 连续对话 | 本地保存会话与消息，关闭后重新打开可以继续；支持新建和删除会话。 |
+| 一个陪伴角色 | 保持一致的人设与语气，允许设置称呼、回复长度和交流偏好。 |
+| Live2D 角色呈现 | 模型在主区常驻，支持显示与隐藏；加载失败时保留聊天入口，并提供重试。 |
+| 可控记忆 | 用户可以主动添加记忆；模型提出的记忆建议经用户确认后才保存，支持查看、修改和删除。 |
+| 基本设置 | 配置模型连接、角色偏好和本地数据；连接失败时给出清楚的反馈。 |
 
-CI 不验证外部 Native Stage 的源码、GPU
-运行或最终安装包。
+界面先保留三个入口：**聊天、记忆、设置**。采用用户提供的 Codex 页面作为布局参考：浅灰侧栏、大面积白色主区、底部固定输入框。会话列表放在侧栏，Live2D 角色作为主区中的常驻陪伴元素，记忆按需打开。欢迎页让角色与问候并列呈现，聊天时为消息阅读留出空间。
 
-## 快速开始
+例如，你确认保存“我喜欢简短的回复”后，新会话可以使用这个偏好；改成“讲详细一点”后，以更新后的记忆为准；删除后，新会话不再检索这条长期记忆。聊天记录和长期记忆分别管理，删除会话时也要明确说明相关记忆的处理方式。
 
-### 设计原型（零构建静态页面，Live2D 预览需要 HTTP）
+语音和主动问候留作后续选项，根据实际使用反馈决定顺序。主动问候需要用户开启，并提供频率、时段和关闭设置。
 
-```bash
-prototype/desktop-app/serve.sh
-```
+## 实现原则
 
-打开 `http://127.0.0.1:8123/prototype/desktop-app/`。原型页用于设计预览与验收锚点，
-其中的 Web Live2D 不代表产品渲染架构。
+- **先做完整的日常使用流程。** 发出一条消息、收到真实回复、退出后继续聊天，是第一条开发主线。
+- **记忆有来源，也能纠正。** 保存用户确认的事实和偏好，并记录来源；每次对话只选取相关记忆，不把猜测当成事实。
+- **数据由用户掌握。** 会话和记忆优先本地保存，提供导出与清除入口。调用在线模型时，说明会发送当前对话所需的消息和选中的记忆。
+- **凭据与内容分开。** 模型密钥使用运行环境适合的凭据存储方式；密钥、聊天记录和个人记忆不进入 Git 或普通日志。
+- **复杂度随功能增长。** 先用一个客户端、一层模型接入和一处本地存储，保持单一产品入口。
 
-### 桌面客户端（`app/control-desktop/`）
+客户端形态、具体框架、模型提供方和存储方案尚待确定。选择以首版能稳定完成文字聊天与本地持久化为依据。
 
-```bash
-npm --prefix app/control-desktop ci
-npm --prefix app/control-desktop run dev           # 浏览器预览首页（:1420）
-npm --prefix app/control-desktop run tauri -- dev   # 真实桌面窗口
-```
+## 文件管理
 
-桌面运行始终需要 Rust 1.96+、对应平台的
-[Tauri 2 依赖](https://v2.tauri.app/start/prerequisites/)，以及与 Rust target triple
-匹配的 Native Stage：设置 `NEKOPAPA_NATIVE_STAGE_BINARY`，或按
-[`native-prebuilt/`](native-prebuilt/README.md) 的目录约定放置产物后运行
-`npm --prefix app/control-desktop run stage:prepare`。单个
-Android/HarmonyOS `.so` 不能替代 macOS 或 Windows 桌面 sidecar。
-
-## 运行时边界
+当前实际目录：
 
 ```text
-React UI ── typed bridge ──> Tauri / Rust host ── process + JSONL ──> external Native Stage
-                                                                          │
-                                                                          └── 角色渲染窗口（NekoCore-Nano C++）
+NekoPapa/
+├── .gitignore
+├── LICENSE
+└── README.md
 ```
 
-- React 只管理页面、交互和短生命周期 UI 状态；主窗口不包含角色画布。
-- Tauri 拥有窗口、权限、资源寻址和 sidecar 生命周期。
-- 外部 Native Stage 拥有独立桌宠窗口、原生渲染、全部 Live2D 渲染和平台 C++ 依赖。
-- `protocol/stage/v1/` 定义目标消息契约；协议兼容不由文件存在自动保证。
+Git 元数据目录 `.git/` 保留，用于版本管理和查阅旧实现。
 
-完整决策见 [ADR-0001](doc/architecture/adr/0001-external-native-stage.md)、
-[ADR-0002](doc/architecture/adr/0002-client-rewrite-external-live2d.md) 和
-[桌面运行时边界](doc/architecture/desktop-runtime-boundaries.md)。
+开始重建时，建议先采用下面的结构。**这些目录目前尚未创建**，有实际内容时再添加：
 
-## 仓库结构
+```text
+NekoPapa/
+├── src/
+│   ├── app/          # 应用入口，以及聊天、记忆、设置界面
+│   ├── agent/        # 角色配置、上下文组织、模型调用和记忆选取
+│   └── storage/      # 会话、记忆和非敏感设置的本地持久化
+├── assets/           # 应用实际使用的头像、图标等资源
+├── tests/            # 对话恢复、记忆更新等关键行为的验证
+├── .gitignore
+├── LICENSE
+└── README.md
+```
 
-| 路径 | 责任 |
-| --- | --- |
-| `app/control-desktop/` | Tauri 2 + React 桌面客户端（新骨架，首页已按设计系统 2.0 实现） |
-| `prototype/desktop-app/` | 零构建产品 UI 设计基线（设计系统 2.0 唯一真相源） |
-| `protocol/stage/v1/` | Native Stage JSONL v1 草案与 fixtures |
-| `native-prebuilt/` | 外部桌面 sidecar 的本地交付约定，不提交实际二进制 |
-| `assets/` | 原型设计预览所需运行时资产 |
-| `doc/` | 产品、架构、开发和治理文档 |
+文件管理约定：
 
-目录责任详见 [仓库结构](doc/architecture/repository-layout.md)。
+- 每项能力只保留一套实现和一个明确入口，相关状态与数据有固定归属。
+- README 记录定位、当前状态和实际启动方式；内容增长到难以阅读时，再拆出 `docs/`。
+- 历史方案通过 Git 查阅；临时试验完成后，将采用的部分并入正式代码，再清理试验目录。
+- 资源随实际用途加入，更新引用；删除功能时一起清理对应资源、配置和说明。
+- 开发临时数据放在 `.local/`；依赖、构建产物、密钥和用户数据按 `.gitignore` 管理。
 
-## 参与开发
+## 重建顺序与完成条件
 
-- [贡献指南](CONTRIBUTING.md)
-- [开发环境](doc/contributing/development-environment.md)
-- [文档中心](doc/README.md)
-- [项目治理](GOVERNANCE.md)
-- [安全策略](SECURITY.md)
+| 顺序 | 交付内容 | 完成条件 |
+| --- | --- | --- |
+| 1 | 一个能聊天的最小应用 | 可以配置并连接真实模型，发送消息、查看回复、停止生成；失败后输入保留且能重试。Live2D 角色可以显示、隐藏，加载失败时仍可聊天。 |
+| 2 | 可继续的日常对话 | 重启后历史消息仍在，可以继续、新建和删除会话；读写失败有明确反馈。 |
+| 3 | 用户可控的长期记忆 | 确认后的记忆可用于新会话；修改后使用新值，删除后不再检索；可以导出和清除本地数据。 |
 
-## 许可证与第三方资产
+首版完成后，再根据真实使用反馈评估下一项能力。可运行版本落地时，同步补充启动命令、环境要求和实际验证结果。
 
-仓库自有代码使用 [Apache License 2.0](LICENSE)。Live2D 示例模型以及外部 Native Stage
-中的 SDK/运行库适用各自条款；外部二进制提供方必须随产物交付来源、版本、校验和和
-许可清单。参见 [Live2D 资产说明](assets/live2d/README.md)。
+## 许可证
+
+本项目沿用 [Apache License 2.0](LICENSE)。

@@ -1,30 +1,26 @@
-# Build outputs
-**/build/
-build-*/
-dist/
-target/
-*.dmg
-*.msi
-*.AppImage
+# Operating-system metadata
+.DS_Store
+Thumbs.db
 
-# JavaScript and Tauri generated files
-node_modules/
-.vite/
-app/control-desktop/src-tauri/binaries/*
-!app/control-desktop/src-tauri/binaries/.gitkeep
-app/control-desktop/src-tauri/gen/
-native-prebuilt/desktop/**
-
-# Local configuration and signing material
+# Local credentials and configuration
 .env
 .env.*
 !.env.example
+*.pem
+*.key
 *.p12
 *.mobileprovision
 
-# Operating-system metadata
-.DS_Store
+# Local user data, caches, and logs
+.local/
+.cache/
+.logs/
+*.log
 
-# Excluded document workspace
-OpenAI/ChatGPT/文档/
-/文档/
+# Dependencies and generated output
+node_modules/
+dist/
+build/
+target/
+.vite/
+coverage/
