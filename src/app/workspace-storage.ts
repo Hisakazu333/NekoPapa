@@ -1,63 +1,10 @@
-import { STORAGE_KEY, contentKinds, normalizeItem, initialState, systemItems, unique, stringList, groupOverview, itemMode, navigationModes, defaultRailOrder } from "./workspace-model";
-import type { ArchiveRecord, WorkspaceItem, WorkspaceGroup, WorkspaceStorage, ShellState, GroupKind, NavigationMode, ContentKind } from "./workspace-model";
+import { STORAGE_KEY, normalizeItem, initialState, systemItems, unique, stringList, groupOverview, itemMode, navigationModes, defaultRailOrder } from "./workspace-model";
+import type { WorkspaceStorage, ShellState, GroupKind, NavigationMode } from "./workspace-model";
 import { removeLegacySamples } from "./workspace-migration";
 import { normalizePinnedFeatures } from "./feature-model";
 import { normalizeSelectedCompanion } from "./companion-model";
-
-function isGroup(value: unknown): value is WorkspaceGroup {
-  if (!value || typeof value !== "object") return false;
-  const group = value as Record<string, unknown>;
-  return typeof group.id === "string" && group.id.length > 0 && typeof group.title === "string" && group.title.trim().length > 0 && (group.kind === "space" || group.kind === "project");
-}
-
-function isItem(value: unknown): value is WorkspaceItem {
-  if (!value || typeof value !== "object") return false;
-  const item = value as Record<string, unknown>;
-  return typeof item.id === "string" && item.id.length > 0 && typeof item.title === "string" && item.title.trim().length > 0 && contentKinds.includes(item.kind as ContentKind) && (item.groupId === undefined || typeof item.groupId === "string");
-}
-
-function readArchives(value: unknown, activeIds: Set<string>, systemIds: Set<string>): ArchiveRecord[] {
-  if (!Array.isArray(value)) return [];
-  const archiveIds = new Set<string>();
-  const itemIds = new Set(activeIds);
-  const groupIds = new Set<string>();
-  return value.flatMap((value: unknown): ArchiveRecord[] => {
-    if (!value || typeof value !== "object") return [];
-    const entry = value as Record<string, unknown>;
-    if (typeof entry.id !== "string" || !entry.id || archiveIds.has(entry.id) || typeof entry.archivedAt !== "string" || !Number.isFinite(Date.parse(entry.archivedAt)) || (entry.target !== "item" && entry.target !== "group") || !Array.isArray(entry.items)) return [];
-    const group = isGroup(entry.group) ? { ...entry.group } : undefined;
-    if (entry.target === "group" && (!group || groupIds.has(group.id))) return [];
-    const items = entry.items.filter(isItem).filter((item) => {
-      if (systemIds.has(item.id) || itemIds.has(item.id)) return false;
-      itemIds.add(item.id);
-      return true;
-    }).map(normalizeItem);
-    if (entry.target === "item" && items.length !== 1) {
-      for (const item of items) itemIds.delete(item.id);
-      return [];
-    }
-    archiveIds.add(entry.id);
-    if (entry.target === "group") groupIds.add(group!.id);
-    const positions = Array.isArray(entry.itemPositions) ? entry.itemPositions.flatMap((value: unknown) => {
-      if (!value || typeof value !== "object") return [];
-      const position = value as Record<string, unknown>;
-      return typeof position.id === "string" && items.some((item) => item.id === position.id) && typeof position.index === "number" && Number.isInteger(position.index) && position.index >= 0 ? [{ id: position.id, index: position.index }] : [];
-    }) : [];
-    const favoritePositions = Array.isArray(entry.favoritePositions) ? entry.favoritePositions.flatMap((value: unknown) => {
-      if (!value || typeof value !== "object") return [];
-      const position = value as Record<string, unknown>;
-      return typeof position.id === "string" && items.some((item) => item.id === position.id) && typeof position.index === "number" && Number.isInteger(position.index) && position.index >= 0 ? [{ id: position.id, index: position.index }] : [];
-    }) : undefined;
-    return [{
-      id: entry.id, archivedAt: entry.archivedAt, target: entry.target, group, items,
-      favoriteIds: stringList(entry.favoriteIds) ? unique(entry.favoriteIds).filter((id) => items.some((item) => item.id === id)) : [],
-      favoritePositions,
-      itemPositions: items.map((item, index) => positions.find((position) => position.id === item.id) ?? { id: item.id, index }),
-      groupPosition: typeof entry.groupPosition === "number" && Number.isInteger(entry.groupPosition) && entry.groupPosition >= 0 ? entry.groupPosition : undefined,
-      expanded: typeof entry.expanded === "boolean" ? entry.expanded : undefined,
-    }];
-  });
-}
+import { normalizeSidebarPreferences } from "./sidebar-query";
+import { isGroup, isItem, readArchives, readTrash, hasRecordDamage } from "./workspace-records";
 
 function readState(storage: WorkspaceStorage | null, recover: (raw: string | null) => void): ShellState {
   const fallback = initialState();
@@ -72,8 +19,9 @@ function readState(storage: WorkspaceStorage | null, recover: (raw: string | nul
     const reservedIds = new Set([...systemIds, "archive"]);
     const items = data.items.filter(isItem).filter((item, index, all) => !reservedIds.has(item.id) && all.findIndex((candidate) => candidate.id === item.id) === index).map(normalizeItem);
     const archives = readArchives(data.archives, new Set(items.map((item) => item.id)), reservedIds);
-    const savedArchiveItems = Array.isArray(data.archives) ? data.archives.reduce((count, entry) => count + (Array.isArray(entry?.items) ? entry.items.length : 0), 0) : 0;
-    if (groups.length !== data.groups.length || items.length !== data.items.length || (data.archives !== undefined && !Array.isArray(data.archives)) || (Array.isArray(data.archives) && (archives.length !== data.archives.length || archives.reduce((count, entry) => count + entry.items.length, 0) !== savedArchiveItems))) recover(raw);
+    const occupiedIds = new Set([...items.map((item) => item.id), ...archives.flatMap((record) => record.items.map((item) => item.id))]);
+    const trash = readTrash(data.trash, occupiedIds, reservedIds, new Set(archives.map((record) => record.id)));
+    if (groups.length !== data.groups.length || items.length !== data.items.length || hasRecordDamage(data.archives, archives) || hasRecordDamage(data.trash, trash)) recover(raw);
     // Repair orphaned content without dropping a user's saved item or open tab.
     const recovered = new Map<GroupKind, string>();
     for (const item of items) {
@@ -112,6 +60,7 @@ function readState(storage: WorkspaceStorage | null, recover: (raw: string | nul
       groups,
       items,
       archives,
+      trash,
       tabs,
       activeId,
       expanded: (stringList(data.expanded) ? unique(data.expanded) : fallback.expanded).filter((id) => groups.some((group) => group.id === id)),
@@ -123,6 +72,7 @@ function readState(storage: WorkspaceStorage | null, recover: (raw: string | nul
       railOrder,
       pinnedFeatures: normalizePinnedFeatures(data.pinnedFeatures),
       selectedCompanionId: normalizeSelectedCompanion(data.selectedCompanionId),
+      sidebarPreferences: normalizeSidebarPreferences(data.sidebarPreferences),
       collapsedSections: stringList(data.collapsedSections) ? unique(data.collapsedSections) : fallback.collapsedSections,
       lastActive,
       groupContext,

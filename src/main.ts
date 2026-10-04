@@ -4,6 +4,11 @@ import "./app/chrome.css";
 import "./app/sidebar.css";
 import "./app/companion.css";
 import "./app/features.css";
+import "./app/lifecycle.css";
+import "./app/settings.css";
+import "./app/settings-content.css";
+import "./app/settings-account.css";
+import "./app/theme.css";
 import { isTauri } from "@tauri-apps/api/core";
 import { ShellController } from "./app/controller";
 

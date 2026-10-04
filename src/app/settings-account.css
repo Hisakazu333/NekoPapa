@@ -1,0 +1,37 @@
+.cloud-quota-heading, .settings-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 17px; }
+.cloud-quota-heading > div > span { font-size: 10px; color: var(--muted); }
+.cloud-quota-heading h2 { margin: 7px 0 0; font-size: 14px; font-weight: 500; }
+.cloud-quota-heading button, .settings-section-heading button, .settings-account-card button { display: inline-flex; align-items: center; gap: 7px; white-space: nowrap; }
+.cloud-quota-heading button .icon, .settings-section-heading button .icon, .settings-option button .icon { width: 12px; height: 12px; margin-left: 3px; }
+.cloud-quota-card { padding: 27px 24px 21px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); }
+.cloud-quota-primary { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 23px; }
+.cloud-quota-primary > div > span { display: block; color: var(--text-secondary); font-size: 11px; }
+.cloud-quota-primary strong { display: block; margin-top: 9px; font-size: 42px; line-height: 1; font-weight: 500; letter-spacing: -1.8px; font-variant-numeric: tabular-nums; }
+.cloud-quota-summary { text-align: right; }
+.cloud-quota-summary small { display: block; margin-top: 9px; color: var(--muted); font-size: 10px; }
+.cloud-quota-track { width: 100%; height: 7px; border-radius: 8px; background: var(--line); overflow: hidden; }
+.cloud-quota-track > span { display: block; height: 100%; border-radius: inherit; background: var(--accent); }
+.cloud-quota-track.is-unavailable { background: repeating-linear-gradient(90deg, var(--line) 0 6px, var(--subtle-surface) 6px 10px); opacity: .65; }
+.cloud-quota-metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin: 25px 0 0; }
+.cloud-quota-metrics > div { min-width: 0; border-right: 1px solid var(--line); }
+.cloud-quota-metrics > div:last-child { border: 0; }
+.cloud-quota-metrics dt { color: var(--muted); font-size: 10px; }
+.cloud-quota-metrics dd { font-size: 14px; font-weight: 500; margin: 8px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.cloud-quota-metrics small { display: block; color: var(--muted); font-size: 9px; font-weight: 400; margin-top: 6px; }
+.settings-section-heading h2 { margin: 0; font-size: 13px; font-weight: 500; }
+.settings-section-heading p { margin: 7px 0 0; font-size: 11px; line-height: 20px; color: var(--muted); }
+.settings-account-card { display: flex; align-items: center; gap: 16px; padding: 24px; border: 1px solid var(--line); border-radius: 12px; background: var(--subtle-surface); }
+.settings-account-mark { display: flex; align-items: center; justify-content: center; width: 48px; height: 48px; flex-shrink: 0; background: var(--accent-soft); border-radius: 50%; }
+.settings-account-mark .icon { width: 24px; height: 24px; color: var(--accent); }
+.settings-account-copy { flex: 1; }
+.settings-account-copy h2 { margin: 0; font-size: 15px; font-weight: 500; }
+.settings-account-copy p { margin: 8px 0 12px; font-size: 11px; color: var(--muted); line-height: 20px; }
+.settings-account-card .primary-button { font-size: 11px; padding: 8px 12px; }
+.settings-account-card .primary-button:disabled { background: var(--line); color: var(--muted); cursor: default; }
+@media (max-width: 980px) {
+  .cloud-quota-card { padding: 22px 18px 18px; }
+  .cloud-quota-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+  .cloud-quota-metrics > div:nth-child(2n) { border: 0; }
+  .settings-account-card { flex-wrap: wrap; padding: 20px; }
+  .settings-account-card > button { margin-left: 64px; }
+}

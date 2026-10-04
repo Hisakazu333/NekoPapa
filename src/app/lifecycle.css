@@ -1,0 +1,38 @@
+.archive-content { padding: 0 23px 23px; }
+.archive-description { margin: 0 0 16px; color: #9b9b93; font-size: 12px; line-height: 20px; }
+.archive-search { display: flex; align-items: center; gap: 7px; max-width: 280px; border: 1px solid #e8eae3; border-radius: 5px; padding: 0 9px; height: 32px; }
+.archive-search .icon { width: 14px; height: 14px; color: #aaa99f; }
+.archive-search input { min-width: 0; width: 100%; border: 0; outline-offset: 4px; background: transparent; height: 25px; font-size: 12px; }
+.archive-search input::placeholder { color: #b1b4a7; }
+.archive-section-heading { display: flex; align-items: center; justify-content: space-between; margin: 18px 0 8px; }
+.archive-section-heading h3 { margin: 0; color: #7e8375; font-size: 12px; font-weight: 500; }
+.archive-total { font-size: 11px; color: #a2a497; }
+.archive-list { max-height: min(360px, 50vh); overflow-y: auto; border-top: 1px solid #edeee9; }
+.archive-list-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(60px, 140px) 58px 60px 40px; gap: 8px; align-items: center; min-height: 42px; padding-right: 3px; border-bottom: 1px solid #f1f2ed; }
+.archive-list-row:hover { background: #fafbf8; }
+.archive-list-main { display: flex; min-width: 0; align-items: center; padding: 7px 8px; gap: 9px; }
+.archive-list-main .icon { width: 16px; height: 16px; color: #94998c; }
+.archive-list-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12.5px; }
+.archive-list-origin, .archive-list-kind { font-size: 11px; color: #a2a699; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.archive-date { font-size: 11px; color: #b0b3a6; white-space: nowrap; }
+.archive-restore { padding: 4px 6px; border-radius: 4px; font-size: 11px; color: #7e8970; text-align: center; }
+.archive-restore:hover { background: #edf1e7; color: #4f5b42; }
+.archive-search-empty { padding: 20px 8px; margin: 0; color: #aaa99f; font-size: 12px; text-align: center; }
+.archive-empty { display: flex; flex-direction: column; align-items: center; padding: 34px 8px; text-align: center; }
+.archive-empty > .icon { width: 24px; height: 24px; color: #bcc1b2; margin-bottom: 14px; }
+.archive-empty h3 { font-size: 14px; font-weight: 500; color: #858b7c; margin: 0 0 6px; }
+.archive-empty p { font-size: 12px; line-height: 21px; margin: 0; color: #a4a89c; }
+.archive-list-row.has-delete { grid-template-columns: minmax(0, 1fr) minmax(60px, 110px) 58px 60px 40px 24px; }
+.archive-list-row:not(.has-delete) { grid-template-columns: minmax(0, 1fr) minmax(60px, 140px) 58px 60px 76px; }
+.collection-delete { width: 24px; height: 26px; color: #9f9991; }
+.collection-delete .icon { width: 14px; height: 14px; }
+.collection-delete:hover:not(:disabled) { color: #b45745; background: #fbefeb; }
+.menu-item.is-danger { color: #b45745; }
+.menu-item.is-danger:hover, .menu-item.is-danger:focus-visible { background: #fcf0ec; }
+.danger-button { background: #b45745; }
+.danger-button:hover { background: #a44d3d; }
+@media (max-width: 700px) {
+  .archive-list-row.has-delete { grid-template-columns: minmax(0, 1fr) 70px 48px 40px 36px 24px; gap: 5px; }
+  .archive-list-row:not(.has-delete) { grid-template-columns: minmax(0, 1fr) 80px 48px 40px 76px; gap: 5px; }
+  .archive-date { font-size: 10px; }
+}

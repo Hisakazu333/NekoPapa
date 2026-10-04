@@ -4,6 +4,7 @@ import { escapeHtml, iconButton, itemIcon } from "./view-shared";
 import { isSession } from "./state";
 import type { WorkspaceStore, WorkspaceItem } from "./state";
 import { companionName } from "./companion-model";
+import type { SettingsNavigation } from "./settings-model";
 
 // Window presentation is temporary; full view never changes the saved sidebar layout.
 export interface ShellPresentation { detailsVisible: boolean; fullView: boolean }
@@ -30,20 +31,22 @@ function sessionIndicator(item: WorkspaceItem): string {
   return activity.unread ? '<span class="session-unread" role="img" aria-label="有未读更新"></span>' : "";
 }
 
-export function renderChrome(store: WorkspaceStore, presentation: ShellPresentation): string {
-  const state = store.state, context = chromeContext(store);
-  const sidebarVisible = state.sidebarVisible;
-  const detailsVisible = presentation.detailsVisible && !presentation.fullView;
-  return `<header class="window-chrome" aria-label="窗口顶部栏">
-    <div class="chrome-navigation" data-tauri-drag-region>
+export function renderWindowNavigation(store: WorkspaceStore, settings?: SettingsNavigation): string {
+  return `<div class="chrome-navigation" data-tauri-drag-region>
       <div class="traffic-light-space" data-tauri-drag-region><div class="preview-traffic-lights" aria-hidden="true"><i></i><i></i><i></i></div></div>
       <div class="chrome-history" role="group" aria-label="历史导航">
-        ${iconButton("left", "后退", "back", store.historyIndex === 0 ? "disabled" : "")}
-        ${iconButton("right", "前进", "forward", store.historyIndex === store.history.length - 1 ? "disabled" : "")}
+        ${settings ? `<button class="icon-button" type="button" data-settings-action="back" data-focus="settings-history-back" aria-label="${settings.canBack ? "返回上一项设置" : "返回工作台"}">${icon("left")}</button><button class="icon-button" type="button" data-settings-action="forward" data-focus="settings-history-forward" aria-label="前进到下一项设置" ${settings.canForward ? "" : "disabled"}>${icon("right")}</button>` : `${iconButton("left", "后退", "back", store.historyIndex === 0 ? "disabled" : "")}${iconButton("right", "前进", "forward", store.historyIndex === store.history.length - 1 ? "disabled" : "")}`}
       </div><span class="chrome-divider" aria-hidden="true" data-tauri-drag-region></span>
-      ${iconButton("sidebar", `${sidebarVisible ? "收起" : "展开"}侧栏 (⌘B)`, "toggle-sidebar", `aria-expanded="${sidebarVisible}" aria-controls="sidebar"`)}
+      ${settings ? "" : iconButton("sidebar", `${store.state.sidebarVisible ? "收起" : "展开"}侧栏 (⌘B)`, "toggle-sidebar", `aria-expanded="${store.state.sidebarVisible}" aria-controls="sidebar"`)}
       <div class="chrome-spacer" data-tauri-drag-region></div>
-    </div>
+    </div>`;
+}
+
+export function renderChrome(store: WorkspaceStore, presentation: ShellPresentation): string {
+  const state = store.state, context = chromeContext(store);
+  const detailsVisible = presentation.detailsVisible && !presentation.fullView;
+  return `<header class="window-chrome" aria-label="窗口顶部栏">
+    ${renderWindowNavigation(store)}
     <div class="chrome-tabs" data-tauri-drag-region>
       <div class="tab-scroll" role="tablist" aria-label="已打开的标签页">
         ${state.tabs.map((id) => {

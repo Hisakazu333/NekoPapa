@@ -10,7 +10,7 @@ export class IconMotion {
   private readonly running = new Map<Element, Animation>();
 
   capture(root: HTMLElement, button: HTMLButtonElement): IconActivation | null {
-    if (this.reducedMotion.matches || button.disabled || !button.querySelector(".icon")) return null;
+    if (this.reducedMotion.matches || document.documentElement.dataset.reducedMotion === "true" || button.disabled || !button.querySelector(".icon")) return null;
     const region = button.closest(".window-chrome, .icon-rail, .sidebar");
     if (!region) return null;
     const scope = region.classList.contains("window-chrome") ? ".window-chrome" : region.classList.contains("icon-rail") ? ".icon-rail" : ".sidebar";
@@ -27,7 +27,7 @@ export class IconMotion {
   }
 
   play(root: HTMLElement, activation: IconActivation | null): void {
-    if (!activation || this.reducedMotion.matches || document.hidden) return;
+    if (!activation || this.reducedMotion.matches || document.documentElement.dataset.reducedMotion === "true" || document.hidden) return;
     // The shell replaces its DOM on navigation. Find the same control after that render.
     const button = root.querySelectorAll<HTMLButtonElement>(activation.selector)[activation.index];
     if (!button || button.closest("[inert]")) return;

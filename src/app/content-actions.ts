@@ -4,30 +4,47 @@ import { rankSearchEntries } from "./search";
 import { sidebarCreationKind, isSession } from "./state";
 import type { WorkspaceStore, ContentKind, GroupKind, NavigationMode, WorkspaceItem } from "./state";
 import { escapeHtml, iconButton, itemIcon } from "./view-shared";
-import { renderArchive } from "./view";
+import { LifecycleActions } from "./lifecycle-actions";
+import { ShellNotice } from "./shell-notice";
+import { SettingsActions } from "./settings-actions";
+import { settingsCatalog } from "./settings-model";
+import type { SettingsSection } from "./settings-model";
+import type { NoticeActions } from "./shell-notice";
 import type { ShellOverlays, MenuEntry, MenuPoint, MenuOptions } from "./overlays";
 import { companionCatalog, companionName } from "./companion-model";
 
-interface SearchEntry { id: string; title: string; icon: IconName; subtitle: string; group: boolean; companionId?: string }
+interface SearchEntry { id: string; title: string; icon: IconName; subtitle: string; group: boolean; companionId?: string; settingsSection?: SettingsSection }
 interface ActionsHost {
   render(focusId?: string, locateActive?: boolean): void;
   open(id: string, focusTab?: boolean): void;
   closeTab(id: string): void;
   closeTabs(ids: string[]): void;
-  navigationSettings(anchor: HTMLElement): void;
   continueCompanion(id: string): void;
+  locateItem(id: string): void;
+  preferencesChanged(): void;
 }
 
 export class ShellActions {
-  private notice: HTMLElement | null = null;
-  private archiveQuery = "";
-  constructor(private root: HTMLElement, private store: WorkspaceStore, private overlays: ShellOverlays, private host: ActionsHost) {}
+  private notice = new ShellNotice();
+  readonly lifecycle: LifecycleActions;
+  readonly settings: SettingsActions;
+  constructor(root: HTMLElement, private store: WorkspaceStore, private overlays: ShellOverlays, private host: ActionsHost) {
+    this.lifecycle = new LifecycleActions(store, overlays, {
+      ...host, notify: (message, actions) => this.notify(message, actions), clearNotice: () => this.notice.clear(),
+      openCollection: (collection, focus) => this.settings.show(collection, focus), collectionFeedback: (message) => this.settings.feedback(message),
+    });
+    this.settings = new SettingsActions(root, store, overlays, {
+      render: host.render, clearNotice: () => this.notice.clear(), preferencesChanged: host.preferencesChanged,
+      bindCollection: (element, collection) => this.lifecycle.bindCollection(element, collection),
+    });
+  }
 
   accountMenu(anchor: HTMLElement): void {
     this.overlays.menu(anchor, [
-      { label: "登录账号", icon: "login", status: "暂未开放", disabled: true, run: () => {} },
-      { label: "使用情况", icon: "usage", status: "登录后可用", disabled: true, separatorBefore: true, run: () => {} },
-      { label: "设置", icon: "settings", run: () => this.host.navigationSettings(anchor) },
+      { label: "账号", icon: "login", status: "未登录", run: () => this.settings.show("account") },
+      { label: "个人资料", icon: "user", status: "本机", run: () => this.settings.show("profile") },
+      { label: "使用情况", icon: "usage", separatorBefore: true, run: () => this.settings.show("usage") },
+      { label: "设置", icon: "settings", run: () => this.settings.show() },
       { label: "帮助", icon: "help", separatorBefore: true, submenu: [
         { label: "键盘快捷键", icon: "keyboard", run: () => this.accountHelp("shortcuts") },
         { label: "导航使用指南", icon: "book", run: () => this.accountHelp("guide") },
@@ -35,16 +52,14 @@ export class ShellActions {
       ], run: () => {} },
     ], "账号菜单", "", {
       className: "account-menu",
-      header: `<div class="account-menu-header"><span class="account-avatar" aria-hidden="true">${icon("user")}</span><div class="account-identity"><strong>未登录</strong><span>NekoPapa 账号</span></div></div><div class="menu-rule" role="separator"></div>`,
+      header: `<div class="account-menu-header"><span class="account-avatar" aria-hidden="true">${icon("user")}</span><div class="account-identity"><strong>${escapeHtml(String(this.settings.configuration.store.data.groups.profile.name))}</strong><span>本机资料 · 未登录</span></div></div><div class="menu-rule" role="separator"></div>`,
     });
   }
 
   accountHelp(kind: "shortcuts" | "guide" | "about"): void {
-    const command = /Mac/.test(navigator.platform) ? "⌘" : "Ctrl+";
-    const titles = { shortcuts: "键盘快捷键", guide: "导航使用指南", about: "关于 NekoPapa" };
-    const shortcuts = [["展开或还原内容区", `⇧${command}F`], ["搜索内容", `${command}K`], ["新建当前分类内容", `${command}N`], ["新建标签菜单", `${command}T`], ["关闭当前标签", `${command}W`], ["恢复关闭的标签", `⇧${command}T`], ["展开或收起侧栏", `${command}B`], ["打开或关闭活动视图", `${/Mac/.test(navigator.platform) ? "⌥" : "Alt+"}${command}U`], ["打开条目操作", "Shift+F10"]];
-    const content = kind === "shortcuts" ? `<dl class="shortcut-list">${shortcuts.map(([label, key]) => `<div><dt>${label}</dt><dd><kbd>${key}</kbd></dd></div>`).join("")}</dl>` : kind === "guide" ? `<div class="account-help-copy"><p>左侧图标切换查找范围，顶部标签保留已经打开的内容。</p><p>点击分组箭头展开列表；点击分组名称选择新建位置。拖动内容可以排序或移入允许的分组。</p><p>关闭标签保留内容；归档后可以从侧栏的归档入口恢复。</p></div>` : `<div class="account-help-copy"><p class="about-product">NekoPapa</p><p>为普通陪伴与 Coding 会话设计的桌面工作台。</p><p>当前提供侧栏与顶部标签管理；聊天正文、Pi 和账号登录将在后续接入。</p></div>`;
-    this.overlays.dialog(`<div class="account-help-content"><h2 class="dialog-heading" id="dialog-title">${titles[kind]}${iconButton("close", "关闭", "dismiss", "data-dismiss")}</h2>${content}<div class="dialog-actions"><button type="button" class="text-button" data-dismiss autofocus>关闭</button></div></div>`, "account-help-dialog");
+    if (kind !== "guide") { this.settings.show(kind); return; }
+    const content = `<div class="account-help-copy"><p>左侧图标切换查找范围，顶部标签保留已经打开的内容。</p><p>点击分组箭头展开列表；点击分组名称选择新建位置。拖动内容可以排序或移入允许的分组。</p><p>关闭标签保留内容；归档收起暂时不用的内容；删除移入回收站，两者可以分别恢复。管理入口在账号菜单的「设置 → 内容管理」中。</p></div>`;
+    this.overlays.dialog(`<div class="account-help-content"><h2 class="dialog-heading" id="dialog-title">导航使用指南${iconButton("close", "关闭", "dismiss", "data-dismiss")}</h2>${content}<div class="dialog-actions"><button type="button" class="text-button" data-dismiss autofocus>关闭</button></div></div>`, "account-help-dialog");
   }
 
   newMenu(anchor: HTMLElement): void {
@@ -77,6 +92,7 @@ export class ShellActions {
     };
     this.overlays.menu(anchor, [
       { label: "在标签页中打开", icon: itemIcon(item), run: () => this.host.open(id, true) },
+      { label: "在侧栏中定位", icon: "sidebar", run: () => this.locateItem(id) },
       { label: "重命名", icon: "edit", run: () => this.rename(id, item.title) },
       { label: "移动到…", icon: "folder", run: () => this.moveItem(id) },
       { label: this.store.state.favorites.includes(id) ? "取消收藏" : "收藏", icon: "star", run: () => { this.store.favorite(id); this.host.render(); } },
@@ -85,9 +101,11 @@ export class ShellActions {
         { label: favorite ? "收藏上移" : "分组内上移", icon: "up" as const, disabled: index <= 0, run: () => reorder(-1) },
         { label: favorite ? "收藏下移" : "分组内下移", icon: "down" as const, disabled: index < 0 || index === peers.length - 1, run: () => reorder(1) },
       ] : []),
-      { label: "归档", icon: "archive", separatorBefore: true, run: () => this.archiveItem(id) },
+      ...this.lifecycle.menuEntries("item", id),
     ], undefined, "", options);
   }
+
+  locateItem(id: string): void { this.host.locateItem(id); }
 
   sessionMenuEntries(item: WorkspaceItem): MenuEntry[] {
     if (!isSession(item)) return [];
@@ -110,7 +128,7 @@ export class ShellActions {
       { label: "重命名", icon: "edit", run: () => this.rename(id, group.title) },
       { label: "上移", icon: "up", disabled: index === 0, run: () => { this.store.moveGroup(id, -1); this.host.render(`group-${id}`); } },
       { label: "下移", icon: "down", disabled: index === siblings.length - 1, run: () => { this.store.moveGroup(id, 1); this.host.render(`group-${id}`); } },
-      { label: `归档${group.kind === "project" ? "项目" : "空间"}`, icon: "archive", separatorBefore: true, run: () => this.archiveGroup(id) },
+      ...this.lifecycle.menuEntries("group", id),
     ], undefined, "", options);
   }
 
@@ -145,10 +163,10 @@ export class ShellActions {
           { label: "移动到…", icon: "folder" as const, run: () => this.moveItem(id) },
           { label: this.store.state.favorites.includes(id) ? "取消收藏" : "收藏", icon: "star" as const, run: () => { this.store.favorite(id); this.host.render(); } },
           ...this.sessionMenuEntries(item),
-          { label: "归档", icon: "archive" as const, run: () => this.archiveItem(id) },
+          ...this.lifecycle.menuEntries("item", id),
         ] : group ? [
           { label: "重命名", icon: "edit" as const, separatorBefore: true, run: () => this.rename(group.id, group.title) },
-          { label: "归档", icon: "archive" as const, run: () => this.archiveGroup(group.id) },
+          ...this.lifecycle.menuEntries("group", group.id),
         ] : []),
       ], undefined, "", { point, toggle: false });
       return true;
@@ -239,7 +257,7 @@ export class ShellActions {
         ...this.store.state.groups.map((group): SearchEntry => ({ id: group.id, title: group.title, icon: group.kind === "project" ? "code" : "folder", subtitle: group.kind === "project" ? "项目 · 定位分组" : "空间 · 定位分组", group: true })),
         { id: "home", title: "首页", icon: "home", subtitle: "工作台", group: false },
         ...companionCatalog.map((companion): SearchEntry => ({ id: `character:${companion.id}`, title: companion.name, icon: "cat", subtitle: "陪伴角色 · 打开对话", group: false, companionId: companion.id })),
-        { id: "archive", title: "归档", icon: "archive", subtitle: "工作台管理", group: false },
+        ...settingsCatalog.map((entry): SearchEntry => ({ id: `settings:${entry.id}`, title: entry.title, icon: entry.icon, subtitle: `设置 · ${entry.group}`, group: false, settingsSection: entry.id })),
       ], input.value);
       selection = Math.max(0, Math.min(selection, matches.length - 1));
       results.innerHTML = matches.length ? matches.map((item, index) => `<button class="search-result ${index === selection ? "is-selected" : ""}" type="button" role="option" id="search-option-${index}" aria-selected="${index === selection}" data-result="${index}" title="${escapeHtml(`${item.title} · ${item.subtitle}`)}">${icon(item.icon)}<span>${escapeHtml(item.title)}</span><small>${escapeHtml(item.subtitle)}</small></button>`).join("") : '<p class="search-empty">没有匹配的内容</p>';
@@ -253,6 +271,7 @@ export class ShellActions {
       this.overlays.close();
       if (item.group) { this.store.locateGroup(item.id); this.host.render(`group-${item.id}`); }
       else if (item.companionId) this.host.continueCompanion(item.companionId);
+      else if (item.settingsSection) this.settings.show(item.settingsSection);
       else this.host.open(item.id, true);
     };
     input.addEventListener("input", () => { selection = 0; drawResults(); });
@@ -273,89 +292,7 @@ export class ShellActions {
     if (id) this.host.render(`tab-${id}`, true);
   }
 
-  filterArchives(): void {
-    const scope = this.overlays.overlay ?? this.root;
-    const input = scope.querySelector<HTMLInputElement>("[data-archive-search]");
-    if (!input) return;
-    if (input.value !== this.archiveQuery) input.value = this.archiveQuery;
-    const query = this.archiveQuery.trim().toLocaleLowerCase();
-    const rows = [...scope.querySelectorAll<HTMLElement>("[data-archive-entry]")];
-    let matches = 0;
-    for (const row of rows) {
-      row.hidden = !(row.dataset.searchText ?? row.textContent ?? "").toLocaleLowerCase().includes(query);
-      if (!row.hidden) matches++;
-    }
-    const empty = scope.querySelector<HTMLElement>("[data-archive-empty]");
-    if (empty) empty.hidden = !rows.length || matches > 0;
-  }
-
-  archiveDialog(): void {
-    const dialog = this.overlays.dialog(`<h2 class="dialog-heading" id="dialog-title">归档${iconButton("close", "关闭归档", "dismiss", "data-dismiss")}</h2>${renderArchive(this.store)}`, "archive-dialog");
-    dialog.addEventListener("input", (event) => {
-      const input = event.target as HTMLInputElement;
-      if (!input.matches("[data-archive-search]")) return;
-      this.archiveQuery = input.value;
-      this.filterArchives();
-    });
-    dialog.addEventListener("click", (event) => {
-      const target = (event.target as Element).closest<HTMLButtonElement>("[data-action]");
-      if (target?.dataset.action === "restore-archive") this.restoreArchive(target.dataset.id ?? "");
-    });
-    this.filterArchives();
-    (dialog.querySelector<HTMLInputElement>("[data-archive-search]") ?? dialog.querySelector<HTMLButtonElement>("[data-dismiss]"))?.focus();
-  }
-
-  archiveItem(id: string): void {
-    const item = this.store.state.items.find((entry) => entry.id === id);
-    if (!item) return;
-    const record = this.store.archiveItem(id);
-    if (!record) return;
-    this.host.render(`tab-${this.store.state.activeId}`, true);
-    this.notify(`已归档「${item.title}」`, record);
-  }
-
-  archiveGroup(id: string): void {
-    const group = this.store.state.groups.find((entry) => entry.id === id);
-    if (!group) return;
-    const count = this.store.state.items.filter((item) => item.groupId === id).length;
-    const dialog = this.overlays.dialog(`<form><h2 class="dialog-heading" id="dialog-title">归档${group.kind === "project" ? "项目" : "空间"}${iconButton("close", "关闭", "dismiss", "data-dismiss")}</h2><p class="move-item-title">「${escapeHtml(group.title)}」${count ? `和其中的 ${count} 条内容将一起归档` : "将从常用列表收起"}。可以在归档中恢复到原位置。</p><div class="dialog-actions"><button type="button" class="text-button" data-dismiss>取消</button><button type="submit" class="primary-button">归档</button></div></form>`);
-    dialog.querySelector("form")!.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const record = this.store.archiveGroup(id);
-      if (!record) return;
-      this.overlays.close();
-      this.host.render(`tab-${this.store.state.activeId}`, true);
-      this.notify(`已归档「${group.title}」`, record);
-    });
-    dialog.querySelector<HTMLButtonElement>("[data-dismiss].text-button")!.focus();
-  }
-
-  restoreArchive(id: string): void {
-    const result = this.store.restoreArchive(id);
-    if (!result) return;
-    this.overlays.close(false);
-    if (result.itemId) this.host.open(result.itemId, true);
-    else if (result.groupId) { this.store.locateGroup(result.groupId); this.host.render(`group-${result.groupId}`, true); }
-    else this.host.render();
-    this.notify("已恢复到原位置");
-  }
-
-  notify(message: string, archiveId?: string): void {
-    this.notice?.remove();
-    const notice = document.createElement("div");
-    notice.className = "shell-notice";
-    notice.setAttribute("role", "status");
-    notice.innerHTML = `<span>${escapeHtml(message)}</span>${archiveId ? '<button class="text-button" type="button" data-undo>撤销</button><button class="text-button" type="button" data-show-archive>查看归档</button>' : ""}<button class="icon-button" type="button" data-dismiss-notice aria-label="关闭提示">${icon("close")}</button>`;
-    notice.addEventListener("click", (event) => {
-      const target = (event.target as Element).closest("button");
-      if (!target) return;
-      if (target.hasAttribute("data-undo") && archiveId) this.restoreArchive(archiveId);
-      else if (target.hasAttribute("data-show-archive")) { this.host.open("archive", true); notice.remove(); }
-      else if (target.hasAttribute("data-dismiss-notice")) notice.remove();
-    });
-    document.body.append(notice);
-    this.notice = notice;
-  }
+  notify(message: string, actions?: NoticeActions): void { this.notice.show(message, actions); }
 
   exportRecovery(): void {
     if (!this.store.recoveryData) return;

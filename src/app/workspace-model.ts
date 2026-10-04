@@ -2,6 +2,8 @@ import { defaultPinnedFeatures } from "./feature-model";
 import type { FeatureId } from "./feature-model";
 import { defaultCompanionId } from "./companion-model";
 import type { CompanionId } from "./companion-model";
+import { defaultSidebarPreferences } from "./sidebar-query";
+import type { SidebarPreferences } from "./sidebar-query";
 
 export type ItemKind = "home" | "overview" | "conversation" | "coding" | "page" | "companion" | "memory" | "workflow" | "tasks" | "settings" | "connections";
 export type ContentKind = "conversation" | "coding" | "page";
@@ -39,9 +41,7 @@ export interface WorkspaceGroup {
   kind: GroupKind;
 }
 
-export interface ArchiveRecord {
-  id: string;
-  archivedAt: string;
+export interface ContentSnapshot {
   target: "item" | "group";
   group?: WorkspaceGroup;
   items: WorkspaceItem[];
@@ -52,12 +52,25 @@ export interface ArchiveRecord {
   expanded?: boolean;
 }
 
+export interface ArchiveRecord extends ContentSnapshot {
+  id: string;
+  archivedAt: string;
+}
+
+export interface TrashRecord extends ContentSnapshot {
+  id: string;
+  deletedAt: string;
+  // When present, restoration returns to the same archive record instead of the live list.
+  archivedAt?: string;
+}
+
 export interface ShellState {
   version: 1;
   sampleCleanupVersion: 0 | 1;
   groups: WorkspaceGroup[];
   items: WorkspaceItem[];
   archives: ArchiveRecord[];
+  trash: TrashRecord[];
   tabs: string[];
   activeId: string;
   expanded: string[];
@@ -69,6 +82,7 @@ export interface ShellState {
   railOrder: NavigationMode[];
   pinnedFeatures: FeatureId[];
   selectedCompanionId: CompanionId;
+  sidebarPreferences: SidebarPreferences;
   collapsedSections: string[];
   lastActive: Partial<Record<NavigationMode, string>>;
   groupContext: Partial<Record<NavigationMode, string>>;
@@ -143,6 +157,7 @@ export function initialState(): ShellState {
     groups: [],
     items: [],
     archives: [],
+    trash: [],
     tabs: ["home"],
     activeId: "home",
     expanded: [],
@@ -154,6 +169,7 @@ export function initialState(): ShellState {
     railOrder: [...defaultRailOrder],
     pinnedFeatures: [...defaultPinnedFeatures],
     selectedCompanionId: defaultCompanionId,
+    sidebarPreferences: defaultSidebarPreferences(),
     collapsedSections: [],
     lastActive: { home: "home" },
     groupContext: {},

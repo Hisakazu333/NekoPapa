@@ -42,10 +42,11 @@ export function assertConsistent(store) {
     assert.ok(group);
     if (item.kind === "coding") assert.equal(group.kind, "project");
   }
-  const archivedIds = state.archives.flatMap((record) => record.items.map((item) => item.id));
-  assert.equal(new Set(archivedIds).size, archivedIds.length);
-  assert.ok(archivedIds.every((id) => !store.item(id) && !state.tabs.includes(id)));
+  const inactiveRecords = [...state.archives, ...state.trash];
+  const inactiveIds = inactiveRecords.flatMap((record) => record.items.map((item) => item.id));
+  assert.equal(new Set(inactiveRecords.map((record) => record.id)).size, inactiveRecords.length);
+  assert.equal(new Set(inactiveIds).size, inactiveIds.length);
+  assert.ok(inactiveIds.every((id) => !store.item(id) && !state.tabs.includes(id)));
   assert.ok([...state.favorites, ...state.recent].every((id) => state.items.some((item) => item.id === id)));
   assert.ok(Object.values(state.groupContext).every((id) => state.groups.some((group) => group.id === id)));
 }
-

@@ -7,6 +7,7 @@ export interface MenuEntry {
   icon?: IconName;
   shortcut?: string;
   disabled?: boolean;
+  danger?: boolean;
   separatorBefore?: boolean;
   selected?: boolean;
   description?: string;
@@ -40,7 +41,7 @@ export class ShellOverlays {
     menu.setAttribute("aria-label", heading ?? "操作菜单");
     const entriesMarkup = (items: MenuEntry[], nested = false) => items.map((entry, index) => {
       const label = entry.description ? `${entry.label} · ${entry.description}` : entry.label;
-      const main = `<button type="button" class="menu-item ${entry.selected ? "is-current" : ""}" role="menuitem" ${nested ? "data-submenu-index" : "data-menu-index"}="${index}" title="${escapeHtml(label)}" ${entry.submenu ? 'aria-haspopup="menu" aria-expanded="false"' : ""} ${entry.selected ? 'aria-current="page"' : ""} ${entry.disabled ? "disabled" : ""}>
+      const main = `<button type="button" class="menu-item ${entry.selected ? "is-current" : ""}${entry.danger ? " is-danger" : ""}" role="menuitem" ${nested ? "data-submenu-index" : "data-menu-index"}="${index}" title="${escapeHtml(label)}" ${entry.submenu ? 'aria-haspopup="menu" aria-expanded="false"' : ""} ${entry.selected ? 'aria-current="page"' : ""} ${entry.disabled ? "disabled" : ""}>
         <span class="menu-glyph" aria-hidden="true">${entry.icon ? icon(entry.icon) : ""}</span>
         <span class="menu-copy"><span class="menu-title">${escapeHtml(entry.label)}</span>${entry.description ? `<small>${escapeHtml(entry.description)}</small>` : ""}</span>
         ${entry.status ? `<span class="menu-status">${escapeHtml(entry.status)}</span>` : ""}${entry.shortcut ? `<span class="menu-shortcut">${entry.shortcut}</span>` : ""}
@@ -194,7 +195,7 @@ export class ShellOverlays {
     }
   }
 
-  dialog(markup: string, className = ""): HTMLDialogElement {
+  dialog(markup: string, className = "", onCancel?: () => void): HTMLDialogElement {
     this.close();
     const returnFocus = document.activeElement;
     if (returnFocus instanceof HTMLElement) this.overlayReturnFocus = { element: returnFocus, key: returnFocus.dataset.focus };
@@ -207,7 +208,9 @@ export class ShellOverlays {
       if ((event.target as Element).closest("[data-dismiss]")) this.close();
       if (event.target === dialog) {
         const bounds = dialog.getBoundingClientRect();
-        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) this.close();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) {
+          if (onCancel) onCancel(); else this.close();
+        }
       }
     });
     document.body.append(dialog);

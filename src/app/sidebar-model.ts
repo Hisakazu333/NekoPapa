@@ -11,8 +11,9 @@ export function workbenchEntries(state: Pick<ShellState, "items" | "favorites" |
   };
 }
 
-export function conversationSections(state: Pick<ShellState, "items" | "groups" | "recent" | "activityFilter">, now = new Date()) {
-  return activitySections({ ...state, items: state.items.filter((item) => item.kind === "conversation"), activityFilter: "all" }, now)
+export function conversationSections(state: Pick<ShellState, "items" | "groups" | "recent" | "activityFilter" | "selectedCompanionId" | "sidebarPreferences">, now = new Date()) {
+  const items = state.items.filter((item) => item.kind === "conversation" && (state.sidebarPreferences.conversationScope === "all" || item.companionId === state.selectedCompanionId));
+  return activitySections({ ...state, items, activityFilter: "all" }, now)
     .filter((section) => section.entries.length)
     .map((section) => ({ ...section, id: `chat-${section.id}`, title: section.id === "activity-priority" ? "置顶与关注" : section.title }));
 }

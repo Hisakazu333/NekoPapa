@@ -1,12 +1,14 @@
 # Session 会话与文件管理
 
-更新日期：2026-10-04。状态：设计基线，待 M1 / M4 实现。当前只有 `nekopapa.workspace-shell.v1` 中的导航索引，没有真实正文或 Agent 存储。
+更新日期：2026-10-05。状态：设计基线，待 M1 / M4 实现。当前 `nekopapa.workspace-shell.v1` 保存导航索引，`nekopapa.settings.v1` 保存本机设置与配置引用，没有真实正文或 Agent 存储。当前索引有独立的 `archives` 与 `trash`，管理入口在设置的内容管理中；下文数据库 / 文件能力仍待实现。
+
+本机设置由 `ConfigurationStore` 单独拥有，不复制工作台对象。导入 / 恢复默认前保存 `.previous`；损坏设置原文保存为 `.recovery` 后才能写入。API 记录只有服务地址、模型与环境变量名，SSH 只有身份文件路径，不保存实际密钥。云端登录、额度和账单未接入，也不写入本机设置备份。完整边界见 [设置清单](settings-map.md)。
 
 ## 数据权威先分清
 
 | 数据 | 计划中的权威来源 | 谁可写 | 可重建范围 |
 | --- | --- | --- | --- |
-| 分组、标题、归属、收藏、归档 | 应用 SQLite | Rust 服务 | 从应用备份恢复，不能仅靠 Pi 文件恢复全部 |
+| 分组、标题、归属、收藏、归档、回收站 | 应用 SQLite | Rust 服务 | 从应用备份恢复，不能仅靠 Pi 文件恢复全部 |
 | 普通会话消息与运行事件 | 应用 SQLite 事务记录 | Rust 服务接收自研 Agent 事件 | 消息展示表、摘要和搜索索引由应用记录重建 |
 | Coding 模型上下文、分支、压缩与 transcript | 应用管理区内的 Pi 文件 | Pi SessionManager，经 Adapter 调用 | Coding 展示 / 搜索投影可从原文件重建 |
 | Coding 请求意图、产品 Run、授权与归属 | 应用 SQLite | Rust 服务 | 与 Pi 文件对账；不能把文件修改或外部执行结果猜成成功 |
@@ -24,7 +26,7 @@ SQLite 不是 Pi transcript 的第二份权威。Coding 的消息表、活动摘
 
 每次被接受的输入创建一个 `runId`，重试有新 Run 并指向 `retryOfRunId`，同一个重复 `requestId` 只查询原 Run。角色 `lumia`、项目 `projectId`、Pi 原生 `engineSessionId`、消息 `messageId`、工具调用 `toolCallId` 都是独立身份。
 
-`createdAt`、`lastActivityAt`、`lastViewedAt` 和 `archivedAt` 各自含义不同。旧记录缺少事件时间时保持空值，另记 `importedAt`；不能用迁移时间制造“今天有回复”。排序使用宿主序号和明确的手动顺序，时间只用于显示及按日期查询。
+`createdAt`、`lastActivityAt`、`lastViewedAt`、`archivedAt` 和 `deletedAt` 各自含义不同。旧记录缺少事件时间时保持空值，另记 `importedAt`；不能用迁移时间制造“今天有回复”。排序使用宿主序号和明确的手动顺序，时间只用于显示及按日期查询。
 
 ## 应用数据目录
 
@@ -69,11 +71,14 @@ SQLite 不是 Pi transcript 的第二份权威。Coding 的消息表、活动摘
 | `approvals` / `tool_executions` | runId、toolCallId、inputHash、decision、revision、effectState | 绑定实际参数和策略；外部动作结果未知时不能重放 |
 | `favorites` / `activity_read_state` | contentId、orderKey / lastReadSeq、manualUnreadSeq | 收藏和置顶分开；未读由实际水位派生 |
 | `archive_batches` / `archive_members` | batchId、objectId、priorGroup、priorOrder、priorFavorites | 保留本次归档影响集，恢复不覆盖后来的操作 |
+| `trash_batches` / `trash_members` | batchId、objectId、deletedAt、sourceLifecycle、sourceArchiveId、priorGroup、priorOrder、priorFavorites | 删除影响集独立保存；归档来源恢复至同一归档记录，常用来源恢复原位置 |
 | `view_state` / `drafts` | windowKind、contentId、tabs、activeId、layout / text、revision | 布局与内容分开；草稿保存失败不丢输入 |
 | `artifacts` / `artifact_revisions` | id、body、revision、sourceSession、sourceRun、sourceMessage | 可编辑成果；按 expectedRevision 保存 |
 | `memories` | id、text、scope、source、confirmedAt、revision、deletedAt | 查询只返回有效且有权限的记忆 |
 | `workflow_definitions` / `workflow_runs` / `node_runs` | targetSessionId、runId、definitionVersion、inputSnapshot、nodeId、attempt、outputRef | workflow_runs 关联同一产品 Run，不另建执行队列；定义修改不影响旧 Run |
 | `command_outbox` / `cleanup_jobs` | operationId、target、state、error | DB 与进程 / 文件之间的可恢复操作记录 |
+
+`content_items.lifecycle` 区分 active / archived / trashed。归档与删除影响集可以保存同一父组不同时期的快照，但每个内容 ID 只能处于一个集合；恢复子项不能因父组快照重复而丢弃有效内容。
 
 页面、记忆和工作流表按 M3 / M5 / M6 加入；M1 不建立一批没有消费者的表。产品元数据备份不可省略，即使 Coding 投影可从 Pi 文件重建。
 
@@ -128,13 +133,15 @@ Pi 树导航继续由 Pi 的活动叶子决定；完整历史和模型当前上�
 
 fork 创建新 Session ID、记录 parentSessionId 与来源切点，不复制活跃 Run、未决授权、调度定义或凭据。进入新分支与新会话都不回滚已经发生的代码修改或外部写入。
 
-## 归档、恢复与永久清除
+## 归档、删除、恢复与永久清除
 
 归档事务保存本次 batch 的对象集合、原位置和收藏，改变 lifecycle，并收起关联视图。文件不移动，Run 不取消，记忆与独立成果不级联归档。恢复按该 batch 处理，缺少父组时使用明确恢复位置；不会恢复用户后来独立归档的其他对象。
 
+删除先将本次对象集合移入回收站，保存原位置、排序、收藏、人物及来源状态；标签、最近访问与打开历史引用同步移除。分组只包含当前成员，不重复处理独立归档 / 删除的子项。常用来源恢复至原位置，归档来源恢复至原归档记录与时间；设置内管理列表恢复不自动打开标签或启动模型。当前索引层已实现该流程，运行中 / 等待处理会话拒绝删除；服务接入后扩展为拒绝所有非终态 Run。删除与归档均不清理磁盘目录或独立成果。
+
 真实执行接入后，**活跃或待处理 Run 必须跨归档可达**：活动侧栏保留单独的运行 / 需要处理区，归档会话可只读打开并操作相应 Run。归档状态保留；新回复不自动取消人工归档。归档搜索与正文检索的范围明确区分。
 
-永久清除是 DATA-05 的独立管理动作，默认不自动触发，不等同回收站操作。条件：对象已归档、无非终态 Run、用户能看到要清除的会话 / 附件 / 应用记录范围。保留独立成果和已确认记忆，解除其来源链接并显示来源已清除；需要清除它们须另选对象。
+永久清除是 DATA-05 的独立管理动作，默认不自动触发，不等同回收站操作。条件：对象在回收站、无非终态 Run、用户能看到要清除的会话 / 附件 / 应用记录范围。保留独立成果和已确认记忆，解除其来源链接并显示来源已清除；需要清除它们须另选对象。
 
 DB 先提交待清理标记及 cleanup job，再删除仅由该对象拥有的托管文件，失败可恢复重试。共享附件按引用数处理；外部 Pi 原件和项目目录永不作为应用垃圾清理目标。删除后的本地记录、既有导出、备份和已发模型请求分别说明，不宣称物理介质或外部服务已被擦除。
 
@@ -142,9 +149,9 @@ DB 先提交待清理标记及 cleanup job，再删除仅由该对象拥有的�
 
 1. 迁移只从当前原生 WebView 读 `nekopapa.workspace-shell.v1` 及已有 recovery 数据。浏览器来源不自动合并；另提供用户选择的 JSON 导入。
 2. 原文保存到 recovery 目录并记 SHA-256、来源、导入时间与迁移版本，成功备份后才解析。
-3. 事务导入分组、有效内容、收藏、顺序、归档批次和活动字段，保留原 ID。系统 / 分组占位不是真实 Session；无归属有效内容进入恢复组，写迁移报告。
+3. 事务导入分组、有效内容、收藏、顺序、归档 / 回收站批次、删除来源和活动字段，保留原 ID。系统 / 分组占位不是真实 Session；无归属有效内容进入恢复组，写迁移报告。
 4. 普通和页面条目正文为空；Coding unbound。缺少历史时间维持空值，旧索引中的运行状态若没有实际 Run 证据，显示为历史索引提示，不宣称仍在执行。
-5. 迁移 marker 按源数据 hash 和版本去重，重复启动不重复导入。校验 active + archived 数量、引用、收藏位置和标签映射后才切换写入口。
+5. 迁移 marker 按源数据 hash 和版本去重，重复启动不重复导入。校验 active + archived + trashed 数量、引用、收藏位置和标签映射后才切换写入口。
 6. 保留旧 localStorage 和原始备份，迁移失败则不启用新 writer。切换成功后 SQLite 为唯一写入口；不能双写旧 JSON 作为永久同步方案。
 
 要回退旧版本，使用迁移前快照在独立数据根恢复；不能把已在新版本产生的真实正文压回只支持索引的旧格式。保留导出新数据和继续使用新版本的选择。

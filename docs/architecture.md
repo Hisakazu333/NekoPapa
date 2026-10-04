@@ -1,10 +1,12 @@
 # 架构与 Agent 接入
 
-更新日期：2026-10-04。状态：提议的实施基线，尚未实现。产品约定见 [产品定义](product.md)，上游依据见 [研究](research/agent-products.md)。
+更新日期：2026-10-05。状态：当前导航实现与后续 Agent 实施基线，Agent 架构尚未实现。产品约定见 [产品定义](product.md)，上游依据见 [研究](research/agent-products.md)。
 
 ## 当前架构和缺口
 
-当前 `src/main.ts` 装配前端，`src/app/state.ts` 管理导航领域操作，`workspace-storage.ts` 处理 localStorage 读写与恢复，`workspace-migration.ts` 处理旧示例清理。`view.ts` 组装外壳，`sidebar-view.ts` / `sidebar.css` 管理内侧栏呈现，`sidebar-model.ts` 从已有记录派生工作台快捷索引与普通对话分区；`chrome.ts` 管理顶部栏及详情。`controller.ts` 协调事件，`content-actions.ts` 和 `overlays.ts` 分别处理内容动作与菜单弹窗。活动、搜索、拖动和动效分别有模块。Rust 的 `src-tauri/src/lib.rs` 只启动 Tauri，capability 目前仅覆盖主窗口基础能力、拖动和缩放。
+当前 `src/main.ts` 装配前端，`src/app/state.ts` 管理导航领域操作，`workspace-storage.ts` 处理 localStorage 读写与恢复，`workspace-migration.ts` 处理旧示例清理。`view.ts` 组装外壳，`rail-view.ts` 复用全局导航，`sidebar-view.ts` / `sidebar.css` 管理内侧栏呈现，`sidebar-model.ts` 从已有记录派生工作台快捷索引与普通对话分区；`chrome.ts` 管理顶部栏及详情。`controller.ts` 协调事件，`content-actions.ts` 和 `overlays.ts` 分别处理内容动作与菜单弹窗。归档 / 删除 / 恢复由 `lifecycle-actions.ts` 协调，`lifecycle-view.ts` / `lifecycle.css` 呈现设置内的管理列表，`shell-notice.ts` 提供提示。快照与原位置恢复规则在 `workspace-lifecycle.ts`，读写校验在 `workspace-records.ts`；对象集合仍由同一个 `WorkspaceStore` 拥有。活动、搜索、拖动和动效分别有模块。Rust 的 `src-tauri/src/lib.rs` 只启动 Tauri，capability 目前仅覆盖主窗口基础能力、拖动和缩放。
+
+独立设置页由 `settings-view.ts` 装配 28 个子页，`settings-model.ts` 定义分类、搜索与窗口内临时历史，`settings-actions.ts` 协调导航、焦点与滚动。`settings-preferences.ts` 委托既有 `WorkspaceStore` 的导航与人物偏好。`ConfigurationStore` 独立拥有 14 组配置和四类配置记录，保存到 `nekopapa.settings.v1`；草稿、记录操作与备份分别有控制器。外观保存后由 `appearance.ts` 应用；运行服务、登录和云点仍未连接。设置历史不进入内容标签或内容历史，页面边界见 [设置清单](settings-map.md)。
 
 当前模块已实现导航壳；下面的 Agent 目标架构仍是计划。详情开合与完整视图由窗口内临时 `ShellPresentation` 管理，不改写保存的侧栏偏好。详情从当前真实对象派生，不保存第二份内容数据或模拟执行信息。
 
@@ -13,6 +15,20 @@
 正式角色目录及按角色查找普通会话由 `companion-model.ts` 管理，`companion-view.ts` / `companion.css` 呈现共享头像及选择 / 继续两个入口，`companion-actions.ts` 使用现有菜单处理选择。当前选择属于 `WorkspaceStore.selectedCompanionId` 偏好，由 `workspace-storage.ts` 校验恢复；每条普通会话拥有独立的 `companionId`。选择角色不修改已有会话，创建表单记录打开时的角色，搜索与功能预设调用同一控制器路径。目录中的名字与头像是产品资源，不是预置会话或运行状态。
 
 项目未建立数据库、Agent 进程、模型连接、密钥存储、多窗口或真实 Session 服务。计划中的桥接不能直接把现有 `WorkspaceStore` 当 Agent 运行时，也不把 SDK 放进 WebView。
+
+## 云端服务接入评估（待确认）
+
+当前只完成设置 UI，不连接 NekoBuddy 或任何模型服务。用户已明确要求暂不接后端，并提出开源客户端可能滥用服务器与数据库的风险；之前的直接复用假设不作为已确定方案。
+
+建议自定义 API 保持独立使用，官方云端作为主动选择的可选服务。公开客户端按不可信调用方设计：接口地址、客户端 ID 或随安装包分发的固定密钥均不能证明调用者可信；[RFC 8252 §8.5](https://www.rfc-editor.org/rfc/rfc8252#section-8.5) 明确指出原生客户端中的共享固定密钥不能作为保密凭据。用户凭据未来由宿主安全存储，公开云端只接受其授权范围内的短期用户凭证，不向客户端分发内部计费密钥或数据库权限。
+
+建议的调用边界为 `NekoPapa → 独立公开入口 → 有限模型服务 → 私有计费接口`。是否复用身份、钱包和底层模型另行决定；只复用账号不等于共用产品额度、账单或通用后台权限。独立域名或网关本身不是防护完成条件，直接访问来源也必须受同等限制。
+
+资源限制须由服务端执行：入口先验证令牌与产品权限，再按 IP / 账号限制请求频率、并发与输入规模；模型执行需设最大输出、超时和工具步骤，并以服务端实际额度作准入、预留、幂等结算和释放。配额查询应尽量使用受控的只读投影，拒绝的请求不能触发昂贵数据库事务。全局与单账号消费上限、熔断、注册赠送防滥用及必要监测另作服务端验收。上述资源与支出边界符合 [OWASP API4](https://api-security.owasp.org/editions/2023/en/0xa4-unrestricted-resource-consumption/) 的建议，不能由 CORS、混淆或客户端开关代替。
+
+2026-10-05 对同级 NekoBuddy 源码的只读核对发现，`NekoAppCommerceController.cloudPointLedger` 的 GET 查询先调用 `CommerceApplicationService.prepareCurrentSnapshot`，后者进入库存和云点准备事务；`AppCloudPointsService.prepare` 包含账号 / 钱包锁及初始化 / 月份更新。若用于公开桌面额度刷新，需要评估缓存、纯查询路径和资源限额。`CloudPointSnapshot` 的月配额字段目前返回零，余额与累计发放也不能替代产品的本期额度。此为接入评估依据，未审计线上网关、限流配置或部署环境，不据此认定现有服务存在可利用漏洞。
+
+页面只依赖 `CloudQuotaSnapshot` 的本期总量、已用、剩余、周期与重置时间。钱包 DTO 到产品配额的适配必须在口径确认后实现；目前不创建网络客户端，不保存令牌，不模拟登录与账单，也未实施上述服务端防护。
 
 ## 目标进程和模块
 
@@ -41,7 +57,7 @@ Tauri / Rust 宿主
 | --- | --- | --- |
 | 前端 Shell | 现有侧栏、标签、菜单、布局与内容路由 | 不直接启动命令或保存权威聊天 |
 | 前端内容模块 | 普通消息、Coding 输出、页面编辑、草稿 | 不根据组件是否挂载取消运行 |
-| Rust Session 服务 | 创建、读取、归档、恢复、导出、迁移 | 不重建 Pi 模型上下文算法 |
+| Rust Session 服务 | 创建、读取、归档、删除至回收站、恢复、导出、迁移 | 不重建 Pi 模型上下文算法 |
 | Rust Run 服务 | 接受请求、状态机、授权、落盘后广播 | 不把收到请求直接标成完成 |
 | Rust Process Manager | 启动、握手、健康状态、退出与崩溃处理 | 不无条件重发有副作用的任务 |
 | Companion Agent | 角色上下文、普通模型、流式、记忆引用与工具 | 不默认获得 Coding Shell 能力 |
@@ -76,7 +92,7 @@ Tauri 官方提供 [Node.js sidecar 示例](https://v2.tauri.app/learn/sidecar-n
 | Snapshot | `sessionId`、`asOfSeq`、`projectionVersion`、当前消息 / Run 摘要 | 反映同一提交水位，前端从下一序号接增量 |
 | Approval Decision | `approvalId`、`runId`、`decision`、`expectedRevision` | 只对尚待确认的相同操作生效，重复或过期决定不能执行两次 |
 
-命令集合首先覆盖 Session 创建 / 打开 / 改名 / 移动 / 归档 / 恢复、Run 启动 / 取消、快照 / 历史分页 / 事件补取、布局与草稿。后续才加入记忆、Artifact、Workflow 和触发器命令。
+命令集合首先覆盖 Session 创建 / 打开 / 改名 / 移动 / 归档 / 删除 / 恢复、Run 启动 / 取消、快照 / 历史分页 / 事件补取、布局与草稿。后续才加入记忆、Artifact、Workflow 和触发器命令。
 
 事件首先覆盖 `run.started`、`message.delta`、`message.final`、`tool.started`、`tool.finished`、`approval.requested`、`run.cancelling`、`run.finished`、`run.interrupted`。大文件与长日志返回资源 ID、预览、长度及截断标记，正文分页读取，不把全部工具输出推入每个窗口。
 

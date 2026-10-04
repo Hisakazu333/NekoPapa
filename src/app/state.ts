@@ -3,6 +3,10 @@ import { activitySections } from "./activity";
 import { featureById, maxPinnedFeatures } from "./feature-model";
 import type { FeatureId } from "./feature-model";
 import { companionById } from "./companion-model";
+import { normalizeSidebarPreferences } from "./sidebar-query";
+import { contentSnapshot, detachGroup, restoreContent, canDeleteContent } from "./workspace-lifecycle";
+import type { RestoreResult } from "./workspace-lifecycle";
+import type { SidebarPreferences } from "./sidebar-query";
 import { systemItems, groupOverview, itemMode, navigationModes, reordered, isSession, sessionStatuses, validTimestamp, contentKinds, normalizeItem } from "./workspace-model";
 import type { ShellState, WorkspaceStorage, WorkspaceItem, WorkspaceGroup, NavigationMode, ContentKind, GroupKind, ActivityFilter, SessionActivityUpdate, ArchiveRecord } from "./workspace-model";
 export * from "./workspace-model";
@@ -32,6 +36,15 @@ export class WorkspaceStore {
     const companion = companionById(id);
     if (!companion || this.state.selectedCompanionId === id) return false;
     this.state.selectedCompanionId = companion.id;
+    this.persist();
+    return true;
+  }
+
+  setSidebarPreferences(update: Partial<SidebarPreferences>): boolean {
+    const previous = this.state.sidebarPreferences;
+    const next = normalizeSidebarPreferences(update, previous);
+    if (next.listLimit === previous.listLimit && next.conversationScope === previous.conversationScope) return false;
+    this.state.sidebarPreferences = next;
     this.persist();
     return true;
   }
@@ -298,6 +311,11 @@ export class WorkspaceStore {
     return true;
   }
 
+  locateItem(id: string): boolean {
+    const item = this.state.items.find((entry) => entry.id === id);
+    return !!item?.groupId && this.locateGroup(item.groupId);
+  }
+
   private revealGroup(id: string): void {
     if (!this.state.expanded.includes(id)) this.state.expanded.push(id);
     const group = this.state.groups.find((entry) => entry.id === id);
@@ -385,7 +403,7 @@ export class WorkspaceStore {
     const group = this.state.groups.find((entry) => entry.id === item.groupId);
     const record = this.archiveSnapshot("item", [item], group);
     this.state.archives.unshift(record);
-    this.removeArchivedViews([id]);
+    this.removeContentViews([id]);
     return record.id;
   }
 
@@ -395,71 +413,75 @@ export class WorkspaceStore {
     const items = this.state.items.filter((item) => item.groupId === id);
     const record = this.archiveSnapshot("group", items, group);
     this.state.archives.unshift(record);
-    this.state.groups = this.state.groups.filter((entry) => entry.id !== id);
-    this.state.expanded = this.state.expanded.filter((entry) => entry !== id);
-    for (const mode of navigationModes) {
-      if (this.state.groupContext[mode] === id) delete this.state.groupContext[mode];
-    }
-    this.removeArchivedViews(items.map((item) => item.id), [`group:${id}`]);
+    detachGroup(this.state, id);
+    this.removeContentViews(items.map((item) => item.id), [`group:${id}`]);
     return record.id;
   }
 
-  restoreArchive(id: string): { itemId?: string; groupId?: string } | undefined {
+  restoreArchive(id: string): RestoreResult | undefined {
     const record = this.state.archives.find((entry) => entry.id === id);
     if (!record) return;
-    if (record.group && !this.state.groups.some((group) => group.id === record.group!.id)) {
-      // A separately archived item may have an older parent snapshot than the later group archive.
-      const parentRecord = this.state.archives.find((entry) => entry.target === "group" && entry.group?.id === record.group!.id) ?? record;
-      this.state.groups.splice(Math.min(parentRecord.groupPosition ?? this.state.groups.length, this.state.groups.length), 0, { ...parentRecord.group! });
-      if (parentRecord.expanded && !this.state.expanded.includes(parentRecord.group!.id)) this.state.expanded.push(parentRecord.group!.id);
-    }
-    const positions = new Map(record.itemPositions.map((entry) => [entry.id, entry.index]));
-    for (const saved of [...record.items].sort((a, b) => (positions.get(a.id) ?? 0) - (positions.get(b.id) ?? 0))) {
-      if (this.item(saved.id)) continue;
-      const item = { ...saved };
-      const parent = this.state.groups.find((group) => group.id === item.groupId);
-      if (!parent || (item.kind === "coding" && parent.kind !== "project")) {
-        const kind = item.kind === "coding" ? "project" : "space";
-        const snapshot = record.group && (kind !== "project" || record.group.kind === "project") ? this.state.groups.find((group) => group.id === record.group!.id) : undefined;
-        if (snapshot) item.groupId = snapshot.id;
-        else {
-          let recoveredId = `recovered-${kind}`;
-          while (this.state.groups.some((group) => group.id === recoveredId && group.kind !== kind)) recoveredId += "-1";
-          if (!this.state.groups.some((group) => group.id === recoveredId)) this.state.groups.push({ id: recoveredId, kind, title: kind === "project" ? "恢复的项目" : "恢复的内容" });
-          item.groupId = recoveredId;
-        }
-      }
-      this.state.items.splice(Math.min(positions.get(item.id) ?? this.state.items.length, this.state.items.length), 0, item);
-    }
-    const favoritePositions = new Map(record.favoritePositions?.map((entry) => [entry.id, entry.index]));
-    const restoredFavorites = record.favoriteIds.filter((itemId) => this.state.items.some((item) => item.id === itemId)).sort((a, b) => (favoritePositions.get(a) ?? Infinity) - (favoritePositions.get(b) ?? Infinity));
-    for (const itemId of restoredFavorites) {
-      if (!this.state.favorites.includes(itemId)) this.state.favorites.splice(Math.min(favoritePositions.get(itemId) ?? this.state.favorites.length, this.state.favorites.length), 0, itemId);
-    }
+    const result = restoreContent(this.state, record);
     this.state.archives = this.state.archives.filter((entry) => entry.id !== id);
     this.persist();
-    return record.target === "item" ? { itemId: record.items[0]?.id, groupId: this.item(record.items[0]?.id ?? "")?.groupId } : { groupId: record.group?.id };
+    return result;
+  }
+
+  deleteItem(id: string): string | undefined {
+    const item = this.state.items.find((entry) => entry.id === id);
+    if (!item || !canDeleteContent([item])) return;
+    const group = this.state.groups.find((entry) => entry.id === item.groupId);
+    const record = { ...contentSnapshot(this.state, "item", [item], group), id: crypto.randomUUID(), deletedAt: new Date().toISOString() };
+    this.state.trash.unshift(record);
+    this.removeContentViews([id]);
+    return record.id;
+  }
+
+  deleteGroup(id: string): string | undefined {
+    const group = this.state.groups.find((entry) => entry.id === id);
+    const items = this.state.items.filter((entry) => entry.groupId === id);
+    if (!group || !canDeleteContent(items)) return;
+    const record = { ...contentSnapshot(this.state, "group", items, group), id: crypto.randomUUID(), deletedAt: new Date().toISOString() };
+    this.state.trash.unshift(record);
+    detachGroup(this.state, id);
+    this.removeContentViews(items.map((item) => item.id), [`group:${id}`]);
+    return record.id;
+  }
+
+  deleteArchive(id: string): string | undefined {
+    const record = this.state.archives.find((entry) => entry.id === id);
+    if (!record || !canDeleteContent(record.items)) return;
+    this.state.trash.unshift({ ...record, deletedAt: new Date().toISOString() });
+    this.state.archives = this.state.archives.filter((entry) => entry.id !== id);
+    this.persist();
+    return id;
+  }
+
+  restoreTrash(id: string): RestoreResult | undefined {
+    const record = this.state.trash.find((entry) => entry.id === id);
+    if (!record) return;
+    let result: RestoreResult;
+    if (record.archivedAt) {
+      const { deletedAt: _deletedAt, ...snapshot } = record;
+      this.state.archives.unshift({ ...snapshot, archivedAt: record.archivedAt });
+      result = { archiveId: id };
+    } else result = restoreContent(this.state, record);
+    this.state.trash = this.state.trash.filter((entry) => entry.id !== id);
+    this.persist();
+    return result;
   }
 
   private archiveSnapshot(target: ArchiveRecord["target"], items: WorkspaceItem[], group?: WorkspaceGroup): ArchiveRecord {
-    return {
-      id: crypto.randomUUID(), archivedAt: new Date().toISOString(), target,
-      group: group ? { ...group } : undefined, items: items.map(normalizeItem),
-      favoriteIds: this.state.favorites.filter((id) => items.some((item) => item.id === id)),
-      favoritePositions: this.state.favorites.flatMap((id, index) => items.some((item) => item.id === id) ? [{ id, index }] : []),
-      itemPositions: items.map((item) => ({ id: item.id, index: this.state.items.indexOf(item) })),
-      groupPosition: group ? this.state.groups.indexOf(group) : undefined,
-      expanded: group ? this.state.expanded.includes(group.id) : undefined,
-    };
+    return { ...contentSnapshot(this.state, target, items, group), id: crypto.randomUUID(), archivedAt: new Date().toISOString() };
   }
 
-  private removeArchivedViews(itemIds: string[], otherIds: string[] = []): void {
+  private removeContentViews(itemIds: string[], otherIds: string[] = []): void {
     const removed = new Set([...itemIds, ...otherIds]);
     this.state.items = this.state.items.filter((item) => !removed.has(item.id));
     this.state.favorites = this.state.favorites.filter((id) => !removed.has(id));
     this.state.recent = this.state.recent.filter((id) => !removed.has(id));
     this.closeMany([...removed]);
-    // Closing a view is reversible with the tab shortcut; archiving content has its own explicit recovery flow.
+    // Closing a view is reversible with the tab shortcut; archive and trash recover content explicitly.
     this.closedTabs = this.closedTabs.flatMap((batch) => {
       const tabs = batch.tabs.filter((tab) => !removed.has(tab.id));
       return tabs.length ? [{ ...batch, tabs, activeId: removed.has(batch.activeId) ? tabs.at(-1)!.id : batch.activeId }] : [];

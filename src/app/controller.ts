@@ -2,7 +2,9 @@ import { defaultPresentation } from "./chrome";
 import { FeatureActions } from "./feature-actions";
 import { CompanionActions } from "./companion-actions";
 import { companionById, conversationForCompanion } from "./companion-model";
-import { contentMenu, openedTabsMenu } from "./chrome-actions";
+import { contentMenu } from "./chrome-actions";
+import { TabPicker } from "./tab-picker";
+import { SidebarActions } from "./sidebar-actions";
 import { ShellOverlays } from "./overlays";
 import { ShellActions } from "./content-actions";
 import { IconMotion } from "./motion";
@@ -21,6 +23,8 @@ export class ShellController {
   private actions: ShellActions;
   private features: FeatureActions;
   private companions: CompanionActions;
+  private sidebarLists: SidebarActions;
+  private tabPicker: TabPicker;
   private sidebarScroll = new Map<string, number>();
   private tabsObserver = new ResizeObserver(() => {
     this.updateTabOverflow();
@@ -29,12 +33,15 @@ export class ShellController {
 
   constructor(private root: HTMLElement) {
     this.overlays = new ShellOverlays(root);
+    this.sidebarLists = new SidebarActions(this.store, this.overlays, (focus) => this.render(focus));
+    this.tabPicker = new TabPicker(root, this.store, this.overlays, { open: (id) => this.open(id, true), close: (id) => this.closeTab(id) });
     this.companions = new CompanionActions(this.store, this.overlays, (focus) => this.render(focus));
     this.actions = new ShellActions(root, this.store, this.overlays, {
       render: (focus, locate) => this.render(focus, locate), open: (id, focus) => this.open(id, focus),
       closeTab: (id) => this.closeTab(id), closeTabs: (ids) => this.closeTabs(ids),
-      navigationSettings: (anchor) => this.navigationSettings(anchor),
       continueCompanion: (id) => this.continueCompanion(id),
+      locateItem: (id) => this.locateItem(id),
+      preferencesChanged: () => this.sidebarLists.expandedLists.clear(),
     });
     this.features = new FeatureActions(root, this.store, this.overlays, {
       render: (focus) => this.render(focus), continueCompanion: () => this.continueCompanion(),
@@ -58,7 +65,9 @@ export class ShellController {
     root.addEventListener("contextmenu", (event) => this.contextMenu(event));
     root.addEventListener("auxclick", (event) => this.middleTabClick(event));
     root.addEventListener("scroll", (event) => {
-      if (event.target instanceof HTMLElement && event.target.matches(".sidebar-scroll, .tab-scroll") && this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement)) this.overlays.close();
+      if (!(event.target instanceof HTMLElement) || !event.target.matches(".sidebar-scroll, .tab-scroll")) return;
+      // Close a moving anchor's menu; fixed titlebar controls survive tab auto-scrolling.
+      if (this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement) && (!this.overlays.menuAnchor || event.target.contains(this.overlays.menuAnchor))) this.overlays.close();
     }, true);
     root.addEventListener("pointerdown", (event) => {
       if (event.button === 1 && (event.target as Element).closest("[data-context-tab]")) event.preventDefault();
@@ -78,16 +87,20 @@ export class ShellController {
   }
 
   private render(focusId?: string, locateActive = false): void {
+    this.actions.settings.capture();
     const previous = (document.activeElement as HTMLElement | null)?.dataset.focus;
     const previousSidebar = this.root.querySelector<HTMLElement>(".sidebar-scroll");
     if (previousSidebar) this.sidebarScroll.set(previousSidebar.dataset.scrollKey!, previousSidebar.scrollTop);
     const tabsScroll = this.root.querySelector(".tab-scroll")?.scrollLeft ?? 0;
     this.root.style.setProperty("--sidebar-width", `${this.store.state.sidebarWidth}px`);
-    this.root.classList.toggle("sidebar-hidden", !this.store.state.sidebarVisible);
-    this.root.classList.toggle("is-full-view", this.presentation.fullView);
-    this.root.classList.toggle("details-open", this.presentation.detailsVisible && !this.presentation.fullView);
+    const settingsOpen = this.actions.settings.navigation.open;
+    this.root.classList.toggle("is-settings", settingsOpen);
+    this.root.classList.toggle("sidebar-hidden", !settingsOpen && !this.store.state.sidebarVisible);
+    this.root.classList.toggle("is-full-view", !settingsOpen && this.presentation.fullView);
+    this.root.classList.toggle("details-open", !settingsOpen && this.presentation.detailsVisible && !this.presentation.fullView);
     this.iconMotion.cancel();
-    this.root.innerHTML = renderShell(this.store, this.presentation);
+    this.root.innerHTML = renderShell(this.store, this.presentation, this.sidebarLists.expandedLists, this.actions.settings.navigation, this.actions.settings.configuration.view);
+    this.actions.settings.bind();
     const sidebar = this.root.querySelector(".sidebar-scroll");
     const tabs = this.root.querySelector(".tab-scroll");
     if (sidebar instanceof HTMLElement) sidebar.scrollTop = this.sidebarScroll.get(sidebar.dataset.scrollKey!) ?? 0;
@@ -130,7 +143,7 @@ export class ShellController {
   }
 
   private open(id: string, focusTab = false): void {
-    if (id === "archive") { this.actions.archiveDialog(); return; }
+    if (this.actions.settings.navigation.open) this.actions.settings.close();
     if (id === "lumia") { this.continueCompanion(id); return; }
     if (!this.store.open(id)) return;
     this.render(focusTab ? `tab-${id}` : undefined, true);
@@ -138,6 +151,16 @@ export class ShellController {
 
   private closeTab(id: string): void {
     this.closeTabs([id]);
+  }
+
+  private locateItem(id: string): void {
+    if (!this.store.locateItem(id)) return;
+    const groupId = this.store.item(id)!.groupId!;
+    this.presentation.fullView = false;
+    this.sidebarLists.expandedLists.add(`group-${groupId}`);
+    const focus = `open-group-${id}`;
+    this.render(focus);
+    this.root.querySelector<HTMLElement>(`[data-focus="${CSS.escape(focus)}"]`)?.scrollIntoView({ block: "nearest" });
   }
 
   private closeTabs(ids: string[]): void {
@@ -161,6 +184,7 @@ export class ShellController {
     this.overlays.menu(anchor, [
       { label: "全部会话", selected: this.store.state.activityFilter === "all", run: () => { this.store.setActivityFilter("all"); this.render("activity-options"); } },
       { label: "只看未读", selected: this.store.state.activityFilter === "unread", run: () => { this.store.setActivityFilter("unread"); this.render("activity-options"); } },
+      { ...this.sidebarLists.densityEntry("activity-options"), separatorBefore: true },
       { label: "全部标为已读", icon: "check", separatorBefore: true, disabled: unreadSessionCount(this.store.state) === 0, run: () => { this.store.markAllSessionsRead(); this.render("activity-options"); } },
     ], "会话活动");
   }
@@ -246,14 +270,17 @@ export class ShellController {
       case "open": this.open(id); break;
       case "companion": this.continueCompanion(); break;
       case "companion-menu": this.companions.menu(target); break;
-      case "navigation-settings": this.navigationSettings(target); break;
-      case "navigate": if (navigationModes.includes(id as NavigationMode)) this.navigate(id as NavigationMode); break;
+      case "navigation-settings": if (this.actions.settings.navigation.open) this.actions.settings.show(); else this.navigationSettings(target); break;
+      case "navigate": if (navigationModes.includes(id as NavigationMode)) { if (this.actions.settings.navigation.open) this.actions.settings.close(`rail-${id}`); this.navigate(id as NavigationMode); } break;
       case "feature-menu": this.features.menu(target); break;
       case "feature-open": this.features.open(id); break;
       case "close-tab": this.closeTab(id); break;
       case "toggle-group": this.store.toggleGroup(id); this.render(); break;
       case "locate-group": if (this.store.locateGroup(id, true)) this.render(`group-${id}`, true); break;
       case "toggle-section": this.store.toggleSection(id); this.render(); break;
+      case "sidebar-list-more": this.sidebarLists.toggleList(id); break;
+      case "sidebar-options": this.sidebarLists.menu(target); break;
+      case "sidebar-all-conversations": this.sidebarLists.showAllConversations(); break;
       case "toggle-sidebar": this.toggleSidebar(); break;
       case "toggle-activity": this.toggleActivity(); break;
       case "activity-options": this.activityOptions(target); break;
@@ -262,7 +289,7 @@ export class ShellController {
       case "forward": this.store.travel(1); this.render(undefined, true); break;
       case "search": this.actions.search(); break;
       case "new-tab": this.actions.newMenu(target); break;
-      case "tab-overflow": openedTabsMenu(target, this.store, this.overlays, (id) => this.open(id, true)); break;
+      case "tab-overflow": this.tabPicker.show(target); break;
       case "content-menu": contentMenu(target, this.store, this.actions, this.overlays, () => this.render()); break;
       case "toggle-details": this.toggleDetails(); break;
       case "toggle-full-view": this.toggleFullView(); break;
@@ -323,6 +350,7 @@ export class ShellController {
     if (event.isComposing || event.defaultPrevented) return;
     if (event.key === "Escape" && this.overlays.overlay) { event.preventDefault(); this.overlays.close(); return; }
     if (this.overlays.overlay instanceof HTMLDialogElement) return;
+    if (this.actions.settings.keydown(event)) return;
     if (event.key === "Escape" && this.presentation.fullView) { event.preventDefault(); this.toggleFullView(); return; }
     if (event.key === "Escape" && this.presentation.detailsVisible) { event.preventDefault(); this.toggleDetails(); return; }
     const target = event.target as HTMLElement;
