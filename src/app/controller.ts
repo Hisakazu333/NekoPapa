@@ -1,53 +1,103 @@
-import { icon } from "./icons";
-import type { IconName } from "./icons";
-import { systemItems, WorkspaceStore } from "./state";
-import type { GroupKind, WorkspaceItem } from "./state";
-import { escapeHtml, iconButton, itemIcons, renderShell } from "./view";
-
-interface MenuEntry {
-  label: string;
-  icon?: IconName;
-  shortcut?: string;
-  run: () => void;
-}
+import { defaultPresentation } from "./chrome";
+import { FeatureActions } from "./feature-actions";
+import { CompanionActions } from "./companion-actions";
+import { companionById, conversationForCompanion } from "./companion-model";
+import { contentMenu, openedTabsMenu } from "./chrome-actions";
+import { ShellOverlays } from "./overlays";
+import { ShellActions } from "./content-actions";
+import { IconMotion } from "./motion";
+import { ShellDragController } from "./drag";
+import type { DragRef, DragTarget } from "./drag";
+import { sidebarCreationKind, defaultRailOrder, navigationModes, WorkspaceStore } from "./state";
+import type { GroupKind, NavigationMode } from "./state";
+import { unreadSessionCount } from "./activity";
+import { renderShell } from "./view";
 
 export class ShellController {
   private store = new WorkspaceStore();
-  private overlay: HTMLElement | null = null;
-  private menuReturnFocus: HTMLElement | null = null;
-  private lastClosed: string[] = [];
+  private presentation = defaultPresentation();
+  private iconMotion = new IconMotion();
+  private overlays: ShellOverlays;
+  private actions: ShellActions;
+  private features: FeatureActions;
+  private companions: CompanionActions;
+  private sidebarScroll = new Map<string, number>();
   private tabsObserver = new ResizeObserver(() => {
     this.updateTabOverflow();
     this.revealActiveTab();
   });
 
   constructor(private root: HTMLElement) {
+    this.overlays = new ShellOverlays(root);
+    this.companions = new CompanionActions(this.store, this.overlays, (focus) => this.render(focus));
+    this.actions = new ShellActions(root, this.store, this.overlays, {
+      render: (focus, locate) => this.render(focus, locate), open: (id, focus) => this.open(id, focus),
+      closeTab: (id) => this.closeTab(id), closeTabs: (ids) => this.closeTabs(ids),
+      navigationSettings: (anchor) => this.navigationSettings(anchor),
+      continueCompanion: (id) => this.continueCompanion(id),
+    });
+    this.features = new FeatureActions(root, this.store, this.overlays, {
+      render: (focus) => this.render(focus), continueCompanion: () => this.continueCompanion(),
+      chooseCompanion: () => {
+        const selector = this.store.state.sidebarVisible ? this.root.querySelector<HTMLElement>('[data-focus="companion-selector"]') : null;
+        const anchor = selector ?? this.root.querySelector<HTMLElement>('[data-focus="feature-characters"]') ?? this.root.querySelector<HTMLElement>('[data-focus="feature-menu"]');
+        if (anchor) this.companions.menu(anchor);
+      },
+      showActivity: () => {
+        if (!this.store.state.activityVisible) this.store.toggleActivity();
+        this.render("activity-toggle");
+      },
+    });
+    new ShellDragController(root, {
+      beforeDrag: () => { this.overlays.close(false); this.iconMotion.cancel(); },
+      canDrop: (source, target) => this.dragDestination(source, target) !== undefined,
+      drop: (source, target) => this.drop(source, target),
+      didDrop: (focus) => this.render(focus),
+    });
     root.addEventListener("click", (event) => this.click(event));
     root.addEventListener("contextmenu", (event) => this.contextMenu(event));
-    root.addEventListener("pointerdown", (event) => this.resize(event));
+    root.addEventListener("auxclick", (event) => this.middleTabClick(event));
+    root.addEventListener("scroll", (event) => {
+      if (event.target instanceof HTMLElement && event.target.matches(".sidebar-scroll, .tab-scroll") && this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement)) this.overlays.close();
+    }, true);
+    root.addEventListener("pointerdown", (event) => {
+      if (event.button === 1 && (event.target as Element).closest("[data-context-tab]")) event.preventDefault();
+      this.resize(event);
+    });
     root.addEventListener("dblclick", (event) => {
       if ((event.target as Element).closest(".sidebar-resizer")) this.setWidth(232);
     });
     document.addEventListener("pointerdown", (event) => {
-      if (this.overlay && !(this.overlay instanceof HTMLDialogElement) && !this.overlay.contains(event.target as Node)) this.closeOverlay();
+      if (this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement) && !this.overlays.overlay.contains(event.target as Node) && !this.overlays.menuAnchor?.contains(event.target as Node)) this.overlays.close(false);
     });
     document.addEventListener("keydown", (event) => this.keydown(event));
+    window.addEventListener("resize", () => {
+      if (this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement)) this.overlays.close();
+    });
     this.render();
   }
 
-  private render(focusId?: string): void {
+  private render(focusId?: string, locateActive = false): void {
     const previous = (document.activeElement as HTMLElement | null)?.dataset.focus;
-    const sidebarScroll = this.root.querySelector(".sidebar-scroll")?.scrollTop ?? 0;
+    const previousSidebar = this.root.querySelector<HTMLElement>(".sidebar-scroll");
+    if (previousSidebar) this.sidebarScroll.set(previousSidebar.dataset.scrollKey!, previousSidebar.scrollTop);
     const tabsScroll = this.root.querySelector(".tab-scroll")?.scrollLeft ?? 0;
     this.root.style.setProperty("--sidebar-width", `${this.store.state.sidebarWidth}px`);
     this.root.classList.toggle("sidebar-hidden", !this.store.state.sidebarVisible);
-    this.root.innerHTML = renderShell(this.store);
+    this.root.classList.toggle("is-full-view", this.presentation.fullView);
+    this.root.classList.toggle("details-open", this.presentation.detailsVisible && !this.presentation.fullView);
+    this.iconMotion.cancel();
+    this.root.innerHTML = renderShell(this.store, this.presentation);
     const sidebar = this.root.querySelector(".sidebar-scroll");
     const tabs = this.root.querySelector(".tab-scroll");
-    if (sidebar) sidebar.scrollTop = sidebarScroll;
+    if (sidebar instanceof HTMLElement) sidebar.scrollTop = this.sidebarScroll.get(sidebar.dataset.scrollKey!) ?? 0;
     if (tabs) tabs.scrollLeft = tabsScroll;
     const focus = focusId ?? previous;
-    if (focus) this.root.querySelector<HTMLElement>(`[data-focus="${CSS.escape(focus)}"]`)?.focus({ preventScroll: true });
+    if (focus) (this.root.querySelector<HTMLElement>(`[data-focus="${CSS.escape(focus)}"]`) ?? this.root.querySelector<HTMLElement>(".is-selected .tab-target"))?.focus({ preventScroll: true });
+    if (locateActive) {
+      const row = this.root.querySelector<HTMLElement>(".sidebar .activity-row.is-active .activity-open, .sidebar .navigation-row.is-active .row-main");
+      if (row?.getClientRects().length) row.scrollIntoView({ block: "nearest" });
+    }
     this.tabsObserver.disconnect();
     if (tabs) this.tabsObserver.observe(tabs);
     this.updateTabOverflow();
@@ -60,25 +110,39 @@ export class ShellController {
 
   private updateTabOverflow(): void {
     const tabs = this.root.querySelector<HTMLElement>(".tab-scroll");
-    const overflow = this.root.querySelector<HTMLButtonElement>('[data-action="tab-overflow"]');
-    if (!tabs || !overflow) return;
-    // Measure without the extra button so its own width cannot keep it visible.
-    const available = tabs.clientWidth + (overflow.hidden ? 0 : overflow.offsetWidth + 4);
-    const showOverflow = tabs.scrollWidth > available + 1;
-    if (overflow.hidden === showOverflow) {
-      overflow.hidden = !showOverflow;
-    }
+    tabs?.classList.toggle("has-overflow", tabs.scrollWidth > tabs.clientWidth + 1);
+  }
+
+  private toggleDetails(): void {
+    this.overlays.close(false);
+    if (this.presentation.fullView) {
+      this.presentation.fullView = false;
+      this.presentation.detailsVisible = true;
+    } else this.presentation.detailsVisible = !this.presentation.detailsVisible;
+    this.render("toggle-details");
+  }
+
+  private toggleFullView(): void {
+    this.overlays.close(false);
+    if (!this.presentation.fullView && !this.presentation.detailsVisible) return;
+    this.presentation.fullView = !this.presentation.fullView;
+    this.render("toggle-full-view");
   }
 
   private open(id: string, focusTab = false): void {
-    this.store.open(id);
-    this.render(focusTab ? `tab-${id}` : undefined);
+    if (id === "archive") { this.actions.archiveDialog(); return; }
+    if (id === "lumia") { this.continueCompanion(id); return; }
+    if (!this.store.open(id)) return;
+    this.render(focusTab ? `tab-${id}` : undefined, true);
   }
 
   private closeTab(id: string): void {
-    this.lastClosed.push(id);
-    this.store.close(id);
-    this.render(`tab-${this.store.state.activeId}`);
+    this.closeTabs([id]);
+  }
+
+  private closeTabs(ids: string[]): void {
+    if (!this.store.closeMany(ids)) return;
+    this.render(`tab-${this.store.state.activeId}`, true);
   }
 
   private toggleSidebar(): void {
@@ -87,238 +151,143 @@ export class ShellController {
     this.render();
   }
 
+  private toggleActivity(): void {
+    this.overlays.close(false);
+    this.store.toggleActivity();
+    this.render("activity-toggle");
+  }
+
+  private activityOptions(anchor: HTMLElement): void {
+    this.overlays.menu(anchor, [
+      { label: "全部会话", selected: this.store.state.activityFilter === "all", run: () => { this.store.setActivityFilter("all"); this.render("activity-options"); } },
+      { label: "只看未读", selected: this.store.state.activityFilter === "unread", run: () => { this.store.setActivityFilter("unread"); this.render("activity-options"); } },
+      { label: "全部标为已读", icon: "check", separatorBefore: true, disabled: unreadSessionCount(this.store.state) === 0, run: () => { this.store.markAllSessionsRead(); this.render("activity-options"); } },
+    ], "会话活动");
+  }
+
+  private navigate(mode: NavigationMode): void {
+    this.store.navigate(mode);
+    this.render(`rail-${mode}`, true);
+  }
+
+  private continueCompanion(id?: string): void {
+    if (id && !companionById(id)) return;
+    if (id) this.store.selectCompanion(id);
+    const conversation = conversationForCompanion(this.store.state);
+    if (!this.store.state.activityVisible) this.store.navigate("chat");
+    if (conversation) {
+      this.store.open(conversation.id);
+      this.render(`open-activity-${conversation.id}`, true);
+    } else {
+      this.render("companion-continue");
+      this.actions.newItem("conversation");
+    }
+  }
+
+  private dragDestination(source: DragRef, target: DragTarget): { beforeId?: string; groupId?: string } | undefined {
+    const before = (ids: string[]): { beforeId?: string } | undefined => {
+      if (!target.id || !ids.includes(source.id) || !ids.includes(target.id) || source.id === target.id || target.placement === "inside") return;
+      const peers = ids.filter((id) => id !== source.id);
+      return { beforeId: target.placement === "before" ? target.id : peers[peers.indexOf(target.id) + 1] };
+    };
+    const state = this.store.state;
+    if (source.kind === "rail" && target.kind === "rail") return before(state.railOrder);
+    if (source.kind === "tab" && target.kind === "tab") return before(state.tabs);
+    if (source.kind === "favorite" && target.kind === "favorite") return before(state.favorites);
+    if (source.kind === "group" && target.kind === "group") {
+      const group = state.groups.find((entry) => entry.id === source.id);
+      return group ? before(state.groups.filter((entry) => entry.kind === group.kind).map((entry) => entry.id)) : undefined;
+    }
+    if (source.kind !== "item") return;
+    const item = state.items.find((entry) => entry.id === source.id);
+    const targetItem = target.kind === "item" ? state.items.find((entry) => entry.id === target.id) : undefined;
+    const groupId = targetItem?.groupId ?? (target.kind === "group" ? target.id : target.kind === "group-content" ? target.groupId : undefined);
+    const group = state.groups.find((entry) => entry.id === groupId);
+    if (!item || !group || (item.kind === "coding" && group.kind !== "project")) return;
+    if ((target.kind === "group" || target.kind === "group-content") && target.placement === "inside") return { groupId };
+    if (!targetItem || targetItem.id === item.id || target.placement === "inside") return;
+    const peers = state.items.filter((entry) => entry.groupId === groupId && entry.id !== source.id);
+    return { groupId, beforeId: target.placement === "before" ? targetItem.id : peers[peers.indexOf(targetItem) + 1]?.id };
+  }
+
+  private drop(source: DragRef, target: DragTarget): boolean {
+    const destination = this.dragDestination(source, target);
+    if (!destination) return false;
+    const { beforeId, groupId } = destination;
+    if (source.kind === "rail") return this.store.reorderRail(source.id as NavigationMode, beforeId as NavigationMode | undefined);
+    if (source.kind === "tab") return this.store.reorderTab(source.id, beforeId);
+    if (source.kind === "group") return this.store.reorderGroup(source.id, beforeId);
+    if (source.kind === "favorite") return this.store.reorderFavorite(source.id, beforeId);
+    if (!groupId) return false;
+    const moved = this.store.reorderItem(source.id, beforeId, groupId);
+    if (moved && !this.store.state.expanded.includes(groupId)) this.store.toggleGroup(groupId);
+    return moved;
+  }
+
+  private navigationSettings(anchor: HTMLElement): void {
+    this.overlays.menu(anchor, [
+      { label: this.store.state.sidebarVisible ? "收起侧栏" : "展开侧栏", icon: "sidebar", shortcut: "⌘B", run: () => this.toggleSidebar() },
+      { label: "恢复默认侧栏宽度", run: () => this.setWidth(232) },
+      { label: "恢复导航顺序", run: () => { this.store.state.railOrder = [...defaultRailOrder]; this.store.persist(); this.render("navigation-settings"); } },
+    ], "侧栏布局");
+  }
+
+  private createForNavigation(): void {
+    const kind = sidebarCreationKind(this.store.state);
+    if (kind) this.actions.newItem(kind);
+  }
+
   private click(event: MouseEvent): void {
     const target = (event.target as Element).closest<HTMLButtonElement>("button[data-action]");
     if (!target || target.disabled) return;
+    const activation = this.iconMotion.capture(this.root, target);
     const id = target.dataset.id ?? "";
     switch (target.dataset.action) {
       case "open": this.open(id); break;
+      case "companion": this.continueCompanion(); break;
+      case "companion-menu": this.companions.menu(target); break;
+      case "navigation-settings": this.navigationSettings(target); break;
+      case "navigate": if (navigationModes.includes(id as NavigationMode)) this.navigate(id as NavigationMode); break;
+      case "feature-menu": this.features.menu(target); break;
+      case "feature-open": this.features.open(id); break;
       case "close-tab": this.closeTab(id); break;
       case "toggle-group": this.store.toggleGroup(id); this.render(); break;
+      case "locate-group": if (this.store.locateGroup(id, true)) this.render(`group-${id}`, true); break;
+      case "toggle-section": this.store.toggleSection(id); this.render(); break;
       case "toggle-sidebar": this.toggleSidebar(); break;
-      case "back": this.store.travel(-1); this.render(); break;
-      case "forward": this.store.travel(1); this.render(); break;
-      case "search": this.search(); break;
-      case "new-tab": this.newMenu(target); break;
-      case "tab-overflow": this.menu(target, this.store.state.tabs.map((tabId) => {
-        const item = this.store.item(tabId)!;
-        return { label: item.title, icon: tabId === this.store.state.activeId ? "check" : itemIcons[item.kind], run: () => this.open(tabId, true) };
-      }), "打开的标签页"); break;
-      case "new-conversation": this.newItem("conversation"); break;
-      case "add-group": this.newGroup(target.dataset.kind as GroupKind); break;
-      case "item-menu": this.itemMenu(id, target); break;
-      case "group-menu": this.groupMenu(id, target); break;
-      case "workspace-menu": this.workspaceMenu(target); break;
-      case "open-project": {
-        const projectItem = this.store.state.items.find((item) => item.kind === "coding");
-        if (projectItem) this.open(projectItem.id);
-        else this.newItem("coding");
-        break;
-      }
-      case "rail-menu": this.menu(target, [
-        { label: "记忆", icon: "book", run: () => this.open("memory") },
-        { label: "连接器", icon: "link", run: () => this.open("connections") },
-        { label: "搜索", icon: "search", shortcut: "⌘K", run: () => this.search() },
-      ]); break;
-      case "notifications": this.menu(target, [], "通知", '<p class="notification-empty">暂无通知</p>'); break;
+      case "toggle-activity": this.toggleActivity(); break;
+      case "activity-options": this.activityOptions(target); break;
+      case "activity-all": this.store.setActivityFilter("all"); this.render("activity-options"); break;
+      case "back": this.store.travel(-1); this.render(undefined, true); break;
+      case "forward": this.store.travel(1); this.render(undefined, true); break;
+      case "search": this.actions.search(); break;
+      case "new-tab": this.actions.newMenu(target); break;
+      case "tab-overflow": openedTabsMenu(target, this.store, this.overlays, (id) => this.open(id, true)); break;
+      case "content-menu": contentMenu(target, this.store, this.actions, this.overlays, () => this.render()); break;
+      case "toggle-details": this.toggleDetails(); break;
+      case "toggle-full-view": this.toggleFullView(); break;
+      case "sidebar-create": this.createForNavigation(); break;
+      case "export-recovery": this.actions.exportRecovery(); break;
+      case "add-group": this.actions.newGroup(target.dataset.kind as GroupKind); break;
+      case "create-in-group": this.actions.newItem(target.dataset.kind === "coding" ? "coding" : "page", id); break;
+      case "item-menu": this.actions.itemMenu(id, target); break;
+      case "group-menu": this.actions.groupMenu(id, target); break;
+      case "account-menu": this.actions.accountMenu(target); break;
     }
+    this.iconMotion.play(this.root, activation);
   }
 
-  private menu(anchor: HTMLElement | { x: number; y: number }, entries: MenuEntry[], heading?: string, extra = ""): void {
-    this.closeOverlay();
-    this.menuReturnFocus = anchor instanceof HTMLElement ? anchor : document.activeElement as HTMLElement | null;
-    const menu = document.createElement("div");
-    menu.className = "floating-menu";
-    menu.setAttribute("role", "menu");
-    menu.setAttribute("aria-label", heading ?? "操作菜单");
-    menu.innerHTML = `${heading ? `<div class="menu-label">${escapeHtml(heading)}</div>` : ""}${entries.map((entry, index) => `<button type="button" class="menu-item" role="menuitem" data-menu-index="${index}">${entry.icon ? icon(entry.icon) : ""}<span>${escapeHtml(entry.label)}</span>${entry.shortcut ? `<span class="menu-shortcut">${entry.shortcut}</span>` : ""}</button>`).join("")}${extra}`;
-    document.body.append(menu);
-    const point = anchor instanceof HTMLElement ? { x: anchor.getBoundingClientRect().left, y: anchor.getBoundingClientRect().bottom + 5 } : anchor;
-    menu.style.left = `${Math.max(8, Math.min(point.x, window.innerWidth - menu.offsetWidth - 8))}px`;
-    menu.style.top = `${Math.max(8, Math.min(point.y, window.innerHeight - menu.offsetHeight - 8))}px`;
-    this.overlay = menu;
-    menu.addEventListener("click", (event) => {
-      const button = (event.target as Element).closest<HTMLElement>("[data-menu-index]");
-      if (!button) return;
-      const entry = entries[Number(button.dataset.menuIndex)];
-      this.closeOverlay();
-      entry?.run();
-    });
-    menu.addEventListener("keydown", (event) => {
-      const buttons = [...menu.querySelectorAll<HTMLButtonElement>("button")];
-      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key)) {
-        event.preventDefault();
-        const index = buttons.indexOf(document.activeElement as HTMLButtonElement);
-        const next = event.key === "Home" ? 0 : event.key === "End" ? buttons.length - 1 : (index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length;
-        buttons[next]?.focus();
-      }
-    });
-    menu.querySelector<HTMLElement>("button")?.focus();
-  }
-
-  private newMenu(anchor: HTMLElement): void {
-    this.menu(anchor, [
-      { label: "新聊天", icon: "message", shortcut: "⌘N", run: () => this.newItem("conversation") },
-      { label: "Coding 会话", icon: "code", run: () => this.newItem("coding") },
-      { label: "新页面", icon: "file", run: () => this.newItem("page") },
-    ], "新建标签页");
-  }
-
-  private workspaceMenu(anchor: HTMLElement): void {
-    this.menu(anchor, [
-      { label: "添加空间", icon: "folder", run: () => this.newGroup("space") },
-      { label: "添加项目", icon: "code", run: () => this.newGroup("project") },
-      { label: this.store.state.sidebarVisible ? "收起侧栏" : "展开侧栏", icon: "sidebar", shortcut: "⌘B", run: () => this.toggleSidebar() },
-      { label: "设置", icon: "settings", run: () => this.open("settings") },
-    ], "NekoPapa · 本地工作台");
-  }
-
-  private itemMenu(id: string, anchor: HTMLElement | { x: number; y: number }): void {
-    const item = this.store.state.items.find((entry) => entry.id === id);
-    if (!item) return;
-    this.menu(anchor, [
-      { label: "在标签页中打开", icon: itemIcons[item.kind], run: () => this.open(id, true) },
-      { label: "重命名", icon: "edit", run: () => this.rename(id, item.title) },
-      { label: this.store.state.favorites.includes(id) ? "取消收藏" : "收藏", icon: "star", run: () => { this.store.favorite(id); this.render(); } },
-    ]);
-  }
-
-  private groupMenu(id: string, anchor: HTMLElement | { x: number; y: number }): void {
-    const group = this.store.state.groups.find((entry) => entry.id === id);
-    if (!group) return;
-    this.menu(anchor, [
-      { label: group.kind === "project" ? "新建 Coding 会话" : "新聊天", icon: group.kind === "project" ? "code" : "message", run: () => this.newItem(group.kind === "project" ? "coding" : "conversation", id) },
-      { label: "新页面", icon: "file", run: () => this.newItem("page", id) },
-      { label: "重命名", icon: "edit", run: () => this.rename(id, group.title) },
-    ]);
+  private middleTabClick(event: MouseEvent): void {
+    if (event.button !== 1) return;
+    const tab = (event.target as Element).closest<HTMLElement>("[data-context-tab]");
+    if (!tab) return;
+    event.preventDefault();
+    this.overlays.close(false);
+    this.closeTab(tab.dataset.contextTab!);
   }
 
   private contextMenu(event: MouseEvent): void {
-    const tab = (event.target as Element).closest<HTMLElement>("[data-context-tab]");
-    if (tab) {
-      event.preventDefault();
-      const id = tab.dataset.contextTab!;
-      const index = this.store.state.tabs.indexOf(id);
-      this.menu({ x: event.clientX, y: event.clientY }, [
-        { label: "关闭标签页", icon: "close", shortcut: "⌘W", run: () => this.closeTab(id) },
-        { label: "关闭其他标签页", run: () => { this.store.state.tabs.filter((entry) => entry !== id).forEach((entry) => this.closeTab(entry)); this.open(id, true); } },
-        { label: "关闭右侧标签页", run: () => { this.store.state.tabs.slice(index + 1).forEach((entry) => this.closeTab(entry)); } },
-      ]);
-      return;
-    }
-    const row = (event.target as Element).closest<HTMLElement>("[data-context-id]");
-    if (!row) return;
-    event.preventDefault();
-    const id = row.dataset.contextId!;
-    const point = { x: event.clientX, y: event.clientY };
-    if (this.store.state.groups.some((entry) => entry.id === id)) this.groupMenu(id, point);
-    else this.itemMenu(id, point);
-  }
-
-  private dialog(markup: string, className = ""): HTMLDialogElement {
-    this.closeOverlay();
-    const dialog = document.createElement("dialog");
-    dialog.className = `shell-dialog ${className}`;
-    dialog.innerHTML = markup;
-    dialog.setAttribute("aria-labelledby", "dialog-title");
-    dialog.addEventListener("close", () => { if (this.overlay === dialog) this.overlay = null; dialog.remove(); });
-    dialog.addEventListener("click", (event) => {
-      if ((event.target as Element).closest("[data-dismiss]")) this.closeOverlay();
-      if (event.target === dialog) {
-        const bounds = dialog.getBoundingClientRect();
-        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) this.closeOverlay();
-      }
-    });
-    document.body.append(dialog);
-    this.overlay = dialog;
-    dialog.showModal();
-    return dialog;
-  }
-
-  private form(title: string, label: string, value: string, extra: string, onSubmit: (data: FormData) => void): void {
-    const dialog = this.dialog(`<form><h2 class="dialog-heading" id="dialog-title">${escapeHtml(title)}${iconButton("close", "关闭", "dismiss", "data-dismiss")}</h2><label class="field-label" for="entry-name">${escapeHtml(label)}</label><input class="text-field" id="entry-name" name="title" required maxlength="72" autocomplete="off" value="${escapeHtml(value)}" autofocus />${extra}<div class="dialog-actions"><button type="button" class="text-button" data-dismiss>取消</button><button type="submit" class="primary-button">${title === "重命名" ? "保存" : "创建"}</button></div></form>`);
-    const input = dialog.querySelector<HTMLInputElement>("input")!;
-    input.addEventListener("input", () => input.setCustomValidity(""));
-    dialog.querySelector("form")!.addEventListener("submit", (event) => {
-      event.preventDefault();
-      const data = new FormData(event.target as HTMLFormElement);
-      const name = String(data.get("title") ?? "").trim();
-      if (!name) { input.setCustomValidity("请输入名称"); input.reportValidity(); return; }
-      data.set("title", name);
-      this.closeOverlay();
-      onSubmit(data);
-    });
-    input.focus();
-    input.select();
-  }
-
-  private newItem(kind: "conversation" | "coding" | "page", preferredGroup?: string): void {
-    const groups = this.store.state.groups.filter((group) => kind === "coding" ? group.kind === "project" : group.kind === "space" || group.id === preferredGroup);
-    if (!groups.length) { this.newGroup(kind === "coding" ? "project" : "space", (id) => this.newItem(kind, id)); return; }
-    const titles = { conversation: "新聊天", coding: "新 Coding 会话", page: "新页面" };
-    const extra = `<label class="field-label" for="entry-group">${kind === "coding" ? "所属项目" : "保存到"}</label><select class="select-field" id="entry-group" name="groupId">${groups.map((group) => `<option value="${escapeHtml(group.id)}" ${preferredGroup === group.id ? "selected" : ""}>${escapeHtml(group.title)}</option>`).join("")}</select>`;
-    this.form(titles[kind], "名称", titles[kind], extra, (data) => {
-      const id = this.store.addItem(kind, String(data.get("title")), String(data.get("groupId")));
-      this.render(`tab-${id}`);
-    });
-  }
-
-  private newGroup(kind: GroupKind, afterCreate?: (id: string) => void): void {
-    this.form(kind === "space" ? "添加空间" : "添加项目", "名称", "", "", (data) => {
-      const id = this.store.addGroup(kind, String(data.get("title")));
-      this.store.state.sidebarVisible = true;
-      this.store.persist();
-      this.render(`group-${id}`);
-      afterCreate?.(id);
-    });
-  }
-
-  private rename(id: string, title: string): void {
-    this.form("重命名", "名称", title, "", (data) => {
-      this.store.rename(id, String(data.get("title")));
-      this.render();
-    });
-  }
-
-  private search(): void {
-    const dialog = this.dialog(`<h2 class="sr-only" id="dialog-title">搜索工作台</h2><div class="search-input-row">${icon("search")}<input class="search-input" aria-label="搜索内容" placeholder="搜索会话、页面和项目…" aria-controls="search-results" autocomplete="off" autofocus /><kbd>esc</kbd></div><div class="search-results" id="search-results" role="listbox" aria-label="搜索结果"></div><div class="search-help">↑ ↓ 选择　↵ 打开</div>`, "search-dialog");
-    const input = dialog.querySelector<HTMLInputElement>("input")!;
-    const results = dialog.querySelector<HTMLElement>(".search-results")!;
-    let selection = 0;
-    let matches: WorkspaceItem[] = [];
-    const drawResults = () => {
-      const query = input.value.trim().toLocaleLowerCase();
-      matches = [...this.store.state.items, ...systemItems].filter((item) => {
-        const group = this.store.state.groups.find((entry) => entry.id === item.groupId);
-        return `${item.title} ${group?.title ?? ""}`.toLocaleLowerCase().includes(query);
-      }).slice(0, 20);
-      selection = Math.max(0, Math.min(selection, matches.length - 1));
-      results.innerHTML = matches.length ? matches.map((item, index) => `<button class="search-result ${index === selection ? "is-selected" : ""}" type="button" role="option" id="search-option-${index}" aria-selected="${index === selection}" data-result="${index}">${icon(itemIcons[item.kind])}<span>${escapeHtml(item.title)}</span><small>${escapeHtml(this.store.state.groups.find((entry) => entry.id === item.groupId)?.title ?? "工作台")}</small></button>`).join("") : '<p class="search-empty">没有匹配的内容</p>';
-      if (matches.length) input.setAttribute("aria-activedescendant", `search-option-${selection}`);
-      else input.removeAttribute("aria-activedescendant");
-      results.querySelector(".is-selected")?.scrollIntoView({ block: "nearest" });
-    };
-    const choose = (index: number) => { const item = matches[index]; if (item) { this.closeOverlay(); this.open(item.id, true); } };
-    input.addEventListener("input", () => { selection = 0; drawResults(); });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "ArrowDown" || event.key === "ArrowUp") { event.preventDefault(); selection = (selection + (event.key === "ArrowDown" ? 1 : -1) + matches.length) % Math.max(1, matches.length); drawResults(); }
-      if (event.key === "Enter") { event.preventDefault(); choose(selection); }
-    });
-    results.addEventListener("click", (event) => {
-      const target = (event.target as Element).closest<HTMLElement>("[data-result]");
-      if (target) choose(Number(target.dataset.result));
-    });
-    drawResults();
-    input.focus();
-  }
-
-  private closeOverlay(): void {
-    const returnFocus = this.menuReturnFocus;
-    this.menuReturnFocus = null;
-    if (this.overlay instanceof HTMLDialogElement) this.overlay.close();
-    this.overlay?.remove();
-    this.overlay = null;
-    if (returnFocus?.isConnected) returnFocus.focus({ preventScroll: true });
+    if (this.actions.openContextMenu(event.target as Element, { x: event.clientX, y: event.clientY })) event.preventDefault();
   }
 
   private setWidth(width: number): void {
@@ -351,34 +320,57 @@ export class ShellController {
   }
 
   private keydown(event: KeyboardEvent): void {
-    if (event.isComposing) return;
-    if (event.key === "Escape" && this.overlay) { event.preventDefault(); this.closeOverlay(); return; }
-    if (this.overlay instanceof HTMLDialogElement) return;
+    if (event.isComposing || event.defaultPrevented) return;
+    if (event.key === "Escape" && this.overlays.overlay) { event.preventDefault(); this.overlays.close(); return; }
+    if (this.overlays.overlay instanceof HTMLDialogElement) return;
+    if (event.key === "Escape" && this.presentation.fullView) { event.preventDefault(); this.toggleFullView(); return; }
+    if (event.key === "Escape" && this.presentation.detailsVisible) { event.preventDefault(); this.toggleDetails(); return; }
+    const target = event.target as HTMLElement;
+    if ((event.key === "ContextMenu" || (event.shiftKey && event.key === "F10")) && !event.ctrlKey && !event.metaKey && !event.altKey && this.actions.openContextMenu(target)) {
+      event.preventDefault();
+      return;
+    }
+    const menuTrigger = target.closest<HTMLButtonElement>('button[aria-haspopup="menu"]');
+    if (menuTrigger && !menuTrigger.disabled && ["ArrowDown", "ArrowUp"].includes(event.key) && !event.shiftKey && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      if (!this.overlays.overlay || this.overlays.menuAnchor !== menuTrigger) menuTrigger.click();
+      if (this.overlays.overlay && !(this.overlays.overlay instanceof HTMLDialogElement)) {
+        const buttons = [...this.overlays.overlay.querySelectorAll<HTMLButtonElement>("button:not(:disabled)")];
+        (event.key === "ArrowUp" ? buttons.at(-1) : buttons[0])?.focus();
+      }
+      return;
+    }
     const modifier = event.metaKey || event.ctrlKey;
     const key = event.key.toLowerCase();
+    if (modifier && event.shiftKey && key === "f" && !event.altKey) { event.preventDefault(); this.toggleFullView(); return; }
+    if (modifier && event.altKey && (event.code === "KeyU" || key === "u") && !event.shiftKey) { event.preventDefault(); this.toggleActivity(); return; }
     if (modifier && ["t", "n", "w", "k", "b"].includes(key)) {
       event.preventDefault();
       if (key === "t") {
         if (event.shiftKey) {
-          const closed = this.lastClosed.pop();
-          if (closed) this.open(closed, true);
+          this.overlays.close();
+          this.actions.restoreClosedTab();
         }
-        else this.newItem("conversation");
+        else {
+          const trigger = this.root.querySelector<HTMLElement>('[data-focus="chrome-create"]');
+          if (trigger) this.actions.newMenu(trigger);
+        }
       }
-      if (key === "n") this.newItem("conversation");
-      if (key === "w") this.closeTab(this.store.state.activeId);
-      if (key === "k") this.search();
-      if (key === "b") this.toggleSidebar();
+      if (key === "n") this.createForNavigation();
+      if (key === "w") { this.overlays.close(); this.closeTab(this.store.state.activeId); }
+      if (key === "k") this.actions.search();
+      if (key === "b") { this.overlays.close(); this.toggleSidebar(); }
       return;
     }
-    if (event.altKey && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); this.store.travel(event.key === "ArrowLeft" ? -1 : 1); this.render(); return; }
-    const target = event.target as HTMLElement;
+    const editable = target.matches("input, textarea, select") || target.isContentEditable;
+    if (!editable && event.altKey && ["ArrowLeft", "ArrowRight"].includes(event.key)) { event.preventDefault(); this.overlays.close(); this.store.travel(event.key === "ArrowLeft" ? -1 : 1); this.render(undefined, true); return; }
     if (target.classList.contains("sidebar-resizer") && ["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) { event.preventDefault(); this.setWidth(event.key === "Home" ? 232 : this.store.state.sidebarWidth + (event.key === "ArrowRight" ? 8 : -8)); return; }
     if ((target.getAttribute("role") === "tab" && ["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) || (event.ctrlKey && event.key === "Tab")) {
       event.preventDefault();
       const tabs = this.store.state.tabs;
-      const index = tabs.indexOf(this.store.state.activeId);
+      const index = tabs.indexOf(target.getAttribute("role") === "tab" ? target.dataset.id! : this.store.state.activeId);
       const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 : (index + (event.key === "ArrowLeft" || event.shiftKey ? -1 : 1) + tabs.length) % tabs.length;
+      this.overlays.close();
       this.open(tabs[next], true);
     }
   }

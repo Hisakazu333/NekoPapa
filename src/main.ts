@@ -1,4 +1,9 @@
 import "./styles.css";
+import "./app/drag.css";
+import "./app/chrome.css";
+import "./app/sidebar.css";
+import "./app/companion.css";
+import "./app/features.css";
 import { isTauri } from "@tauri-apps/api/core";
 import { ShellController } from "./app/controller";
 
@@ -9,11 +14,3 @@ const native = isTauri();
 root.classList.toggle("is-native", native);
 root.classList.toggle("is-macos", /Mac/.test(navigator.platform));
 new ShellController(root);
-
-if (native) {
-  root.addEventListener("dblclick", async (event) => {
-    if (!(event.target as Element).matches("[data-tauri-drag-region]")) return;
-    const { getCurrentWindow } = await import("@tauri-apps/api/window");
-    await getCurrentWindow().toggleMaximize();
-  });
-}

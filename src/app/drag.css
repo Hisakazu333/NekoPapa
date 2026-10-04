@@ -1,0 +1,114 @@
+[data-drag-kind] {
+  -webkit-user-drag: none;
+}
+
+.has-shell-drag,
+.has-shell-drag * {
+  cursor: grabbing !important;
+}
+
+.has-shell-drag-denied,
+.has-shell-drag-denied * {
+  cursor: no-drop !important;
+}
+
+.is-shell-dragging {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.is-shell-drag-source {
+  opacity: .42;
+}
+
+.shell-drag-ghost {
+  position: fixed;
+  z-index: 10002;
+  inset: 0 auto auto 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 24px));
+  height: 34px;
+  padding: 0 11px;
+  box-sizing: border-box;
+  border: 1px solid rgba(39, 38, 34, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .97);
+  color: #37362f;
+  box-shadow: 0 3px 12px rgba(30, 29, 24, .12), 0 12px 30px rgba(30, 29, 24, .07);
+  pointer-events: none;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.2;
+  will-change: transform;
+}
+
+.shell-drag-ghost > svg,
+.shell-drag-ghost > img {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  color: #797870;
+  border-radius: 4px;
+}
+
+.shell-drag-ghost > span {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.shell-drag-ghost.is-drop-denied::after {
+  content: "";
+  flex: 0 0 10px;
+  width: 10px;
+  height: 10px;
+  border: 1.3px solid #a39d94;
+  border-radius: 50%;
+  background: linear-gradient(135deg, transparent 44%, #a39d94 45%, #a39d94 55%, transparent 56%);
+}
+
+.shell-drag-marker {
+  position: fixed;
+  z-index: 10001;
+  box-sizing: border-box;
+  border-radius: 2px;
+  background: #8b887d;
+  pointer-events: none;
+}
+
+.shell-drag-marker[hidden] {
+  display: none;
+}
+
+.shell-drag-marker[data-placement="inside"] {
+  border: 1px solid rgba(114, 111, 99, .55);
+  border-radius: 6px;
+  background: rgba(120, 116, 103, .055);
+}
+
+.is-shell-drop-inside {
+  background-color: rgba(120, 116, 103, .04);
+}
+
+.shell-drag-announcement {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-shell-drag-source,
+  .is-shell-drop-inside {
+    animation: none !important;
+    transition: none !important;
+  }
+}

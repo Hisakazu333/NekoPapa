@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
+  "include": ["../src/app/state.ts", "../src/app/activity.ts", "../src/app/chrome.ts", "../src/app/sidebar-model.ts"]
+}

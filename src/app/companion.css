@@ -1,0 +1,26 @@
+.companion-entry { display: flex; align-items: center; width: 100%; min-height: 38px; gap: 2px; }
+.companion-select { display: flex; align-items: center; flex: 1; min-width: 0; height: 38px; padding: 0 7px; gap: 7px; border-radius: 6px; }
+.companion-select:hover, .companion-select[aria-expanded="true"] { background: var(--hover-background); }
+.companion-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500; font-size: 12.5px; }
+.companion-select > .icon { width: 10px; height: 10px; color: #aaa99f; flex: 0 0 10px; }
+.companion-continue { flex: 0 0 auto; padding: 6px; border-radius: 5px; color: #919288; font-size: 10px; line-height: 18px; white-space: nowrap; }
+.companion-continue:hover { background: var(--hover-background); color: #53564b; }
+.companion-avatar { display: inline-flex; align-items: center; justify-content: center; position: relative; width: 24px; height: 24px; overflow: hidden; background: #ebe7ed; border-radius: 7px; flex: 0 0 auto; }
+.companion-avatar img { position: absolute; max-width: none; object-fit: cover; pointer-events: none; }
+.avatar-lumia img { width: 190%; height: 190%; left: -78%; top: -36%; }
+.avatar-rinne img { width: 420%; height: 420%; left: -160%; top: -12%; }
+.companion-avatar > span { font-size: 12px; color: #847b8c; }
+.avatar-iori { background: #ede6e7; }
+.avatar-shiori { background: #e5e9e6; }
+.avatar-tsumugi { background: #e8e8e4; }
+.companion-menu { width: 274px; }
+.companion-menu .menu-item { min-height: 46px; gap: 10px; }
+.companion-menu .menu-glyph { display: flex; flex: 0 0 28px; width: 28px; }
+.companion-menu .companion-avatar { width: 28px; height: 28px; }
+.companion-menu .menu-title { font-size: 12px; font-weight: 500; }
+.companion-menu .menu-copy small { font-size: 10px; color: #a0a096; }
+.companion-menu .menu-status { font-size: 9px; color: #aaa99f; }
+.companion-menu-note { margin: 5px 6px 0; padding: 9px 6px 4px; border-top: 1px solid var(--line); font-size: 10px; line-height: 16px; color: #9a9b91; }
+.creation-companion { display: flex; align-items: center; gap: 12px; margin: 15px 0 2px; font-size: 11px; color: #96988c; }
+.creation-companion span { font-size: 12px; color: #62665a; }
+@container (max-width: 210px) { .companion-select { padding-left: 6px; padding-right: 3px; gap: 5px; } .companion-continue { padding-right: 4px; padding-left: 4px; } .companion-name { font-size: 12px; } }
