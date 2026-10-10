@@ -1,11 +1,12 @@
-.companion-entry { display: flex; align-items: center; width: 100%; min-height: 38px; gap: 2px; }
-.companion-select { display: flex; align-items: center; flex: 1; min-width: 0; height: 38px; padding: 0 7px; gap: 7px; border-radius: 6px; }
+.companion-entry { display: flex; align-items: center; width: 100%; min-height: 40px; gap: 2px; }
+.companion-select { display: flex; align-items: center; flex: 1; min-width: 0; height: 40px; padding: 0 7px; gap: 8px; border-radius: 6px; }
 .companion-select:hover, .companion-select[aria-expanded="true"] { background: var(--hover-background); }
-.companion-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500; font-size: 12.5px; }
+.companion-name { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-weight: 500; font-size: 13px; line-height: 18px; }
 .companion-select > .icon { width: 10px; height: 10px; color: #aaa99f; flex: 0 0 10px; }
-.companion-continue { flex: 0 0 auto; padding: 6px; border-radius: 5px; color: #919288; font-size: 10px; line-height: 18px; white-space: nowrap; }
-.companion-continue:hover { background: var(--hover-background); color: #53564b; }
+.companion-continue { flex: 0 0 auto; padding: 6px; border-radius: 6px; color: var(--text-secondary); font-size: 12px; line-height: 18px; white-space: nowrap; }
+.companion-continue:hover { background: var(--hover-background); color: var(--text-primary); }
 .companion-avatar { display: inline-flex; align-items: center; justify-content: center; position: relative; width: 24px; height: 24px; overflow: hidden; background: #ebe7ed; border-radius: 7px; flex: 0 0 auto; }
+.companion-select .companion-avatar { width: 28px; height: 28px; border-radius: 8px; }
 .companion-avatar img { position: absolute; max-width: none; object-fit: cover; pointer-events: none; }
 .avatar-lumia img { width: 190%; height: 190%; left: -78%; top: -36%; }
 .avatar-rinne img { width: 420%; height: 420%; left: -160%; top: -12%; }

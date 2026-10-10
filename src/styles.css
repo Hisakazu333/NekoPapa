@@ -50,10 +50,10 @@ button:disabled .icon { color: #cfceca; }
 .window-chrome { grid-column: 1 / -1; display: grid; grid-template-columns: var(--chrome-left-width) minmax(0, 1fr); height: var(--chrome-height); background: var(--frame-background); }
 .chrome-navigation { display: flex; align-items: center; gap: 2px; min-width: 0; padding-right: 8px; }
 .chrome-history { display: flex; align-items: center; flex: 0 0 auto; }
-.chrome-navigation .icon-button { width: 26px; height: 26px; }
+.chrome-navigation .icon-button { width: 28px; height: 28px; }
 .chrome-navigation .icon { width: 17px; height: 17px; }
 .chrome-history .icon { width: 16px; height: 16px; }
-.chrome-divider { width: 1px; height: 14px; margin: 0 7px; flex: 0 0 auto; background: #deded9; }
+.chrome-divider { width: 1px; height: 12px; margin: 0 6px; flex: 0 0 auto; background: var(--line); }
 .traffic-light-space { width: 82px; height: 100%; flex: 0 0 auto; display: flex; align-items: center; padding-left: 16px; }
 .preview-traffic-lights { display: flex; align-items: center; gap: 8px; }
 .preview-traffic-lights i { display: block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid #0000000c; background: #ff5f57; }
@@ -98,7 +98,7 @@ button:disabled .icon { color: #cfceca; }
 .profile-button:hover, .profile-button[aria-expanded="true"] { background: #dcdcd5; color: #4d4e47; }
 .profile-button[aria-expanded="true"] { box-shadow: 0 0 0 4px #e8e8e3; }
 
-.workspace { grid-column: 3; grid-row: 2; min-width: 0; min-height: 0; overflow: auto; position: relative; display: flex; flex-direction: column; margin: 0 8px 8px 0; background: #ffffff; border: 1px solid var(--frame-border); border-top: 0; border-left-color: #e9ece4; border-radius: 0 10px 10px 0; }
+.workspace { grid-column: 3; grid-row: 2; min-width: 0; min-height: 0; overflow: auto; position: relative; display: flex; flex-direction: column; margin: 0 8px 8px 0; background: #ffffff; border: 1px solid var(--frame-border); border-top: 0; border-radius: 0 10px 10px 0; }
 .sidebar-hidden .workspace { border-radius: 0 10px 10px 10px; }
 .content-toolbar { display: flex; align-items: center; min-height: 48px; padding: 0 24px; gap: 12px; }
 .breadcrumbs { display: flex; align-items: center; gap: 9px; min-width: 0; font-size: 12px; }

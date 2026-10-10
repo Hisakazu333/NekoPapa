@@ -1,133 +1,122 @@
 # NekoPapa
 
-带桌面角色的个人 Agent 工作台。普通模式做持续的聊天陪伴，Coding 模式集成 Pi；会话、项目和成果在同一个桌面客户端里组织，后续再加入可重复运行的工作流。
+一个正在开发的 AI 桌面伙伴。
 
-**当前版本为 `0.1.0`，已经实现桌面导航壳。聊天正文、模型调用、Pi、Live2D 和工作流还未接入。** 下表和文档中的状态以 2026-10-05 的代码为准，规划不代表已经可用。
+我们希望 NekoPapa 既能陪你聊日常，也能在需要时帮你处理代码项目。聊天、项目和整理好的内容都放在一个桌面应用里，方便下次继续。
 
-## 产品方向
+[界面预览](#界面预览) · [从源码运行](#从源码运行) · [开发计划](#开发计划) · [文档](docs/README.md) · [反馈问题](https://github.com/Hisakazu333/NekoPapa/issues)
 
-- **普通模式**：自研 TypeScript 陪伴 Agent，从真实聊天、停止与重试、本地历史开始，再加入用户确认的记忆、工具和工作流。
-- **Coding 模式**：直接集成 [Pi Coding Agent](https://pi.dev/)，维护适配层和产品扩展。普通会话与 Coding 会话分别管理上下文和工具。
-- **主窗口**：Codex 风格双层侧栏，Notion 风格顶部多标签。界面采用紧凑的黑白灰配色，普通聊天借鉴即时通讯的消息排列。
-- **桌面角色**：完整 Live2D 显示在独立透明窗口，主窗口使用角色头像；独立 Agent 工作区显示真实运行、步骤和待确认操作。
+> [!NOTE]
+> 当前版本为 `0.1.0`，处于早期开发阶段。角色选择、多标签、内容管理和设置已经可用；聊天、Live2D、Pi 编程和官方账号服务尚未接入。
 
-侧栏、标签、桌面角色和工作区引用同一份会话与运行记录。关闭标签只关闭视图，归档用于暂时收纳，删除进入可恢复的回收站；取消运行和退出应用分别处理。具体边界见 [产品定义](docs/product.md)。
+## 界面预览
 
-## 现在可以做什么
+![NekoPapa 当前界面：角色入口、双层侧栏与顶部标签](docs/images/workspace.jpg)
 
-| 能力 | 当前情况 |
-| --- | --- |
-| 双层侧栏与顶部多标签 | 可用；分类查找与打开内容相互独立，同一内容复用标签 |
-| 内侧栏信息组织 | 工作台集中角色、收藏与去重后的最近访问；对话按人物筛选并按真实活动时间分组；目录子项与各列表可选择每组显示 5 / 10 / 20 项或全部 |
-| 产品功能预设 | 外侧「更多功能」提供七项用途说明；默认固定桌面陪伴、记忆、工作流，可固定 / 取消并保存偏好，实际能力状态明确标注 |
-| 顶部内容与视图操作 | 当前内容菜单、侧栏定位、真实详情、完整视图可用；已打开标签支持按名称 / 分组 / 人物查找、切换及关闭，名称与数量同步 |
-| 内容管理 | 新建索引、重命名、移动、收藏、拖动排序、搜索、归档、删除与恢复可用；全局管理在「设置 → 内容管理」，侧栏不放管理按钮 |
-| 设置页面 | 六组分类与 28 个子页；导航、资料、外观与角色生效；14 组表单和 API / 工具 / SSH / 钩子配置支持本机保存、取消、校验、搜索和备份，退出保留原内容与标签 |
-| 云点与自定义 API 页面 | 云点配额、百分比、周期与账单待服务接入，无数据时显示「—」；自定义 API 独立配置，不要求云端登录，不内置后端地址或服务密钥 |
-| 会话活动侧栏 | 可用；置顶、未读、真实时间分组及活动更新接口已实现；尚无真实 Agent 事件来源 |
-| 布局与窗口 | 可调侧栏宽度、折叠与恢复布局；macOS 原生标题栏和主窗口可用 |
-| 人物与账号区域 | 五位正式角色可切换；头像 / 名称打开选择列表，独立按钮开始或继续该角色的普通会话；账号仍为未登录界面 |
-| 数据 | 分组、内容索引、归档、回收站、标签、布局、当前角色、列表筛选 / 显示数量与固定功能偏好保存在 WebView `localStorage`；聊天与页面正文尚无存储 |
-| 普通 Agent / Pi Coding | 未实现；现有 Coding 条目尚未绑定磁盘目录 |
-| Live2D / 页面编辑 / 工作流 | 未实现；主内容区仍为占位 |
+当前界面的浏览器预览，截图来自独立验证环境。
 
-当前导航数据键为 `nekopapa.workspace-shell.v1`，本机配置为 `nekopapa.settings.v1`，两者由各自的领域存储拥有。浏览器预览与原生客户端各有自己的数据；后续通过迁移接入应用数据目录，不能把浏览器中的索引当作已经保存的聊天历史。当前按钮职责和验收证据分别见 [导航矩阵](docs/navigation-map.md)、[导航闭环](docs/navigation-contract.md)。
+<details>
+<summary>正在设计的首页</summary>
 
-新工作台从空数据开始。升级会一次性清理未改动的旧开发示例及其导航引用；用户创建、改名、移动或已有实际活动的记录保留，清理不会重新填入示例。详情只展示现有索引与活动信息，Agent 变更、后台进程和资料来源仍待相应模块接入。
+![NekoPapa 首页设计预览：任务输入、最近工作与待处理事项](docs/images/home-design-preview.jpg)
 
-功能预设是产品入口说明，不生成示例会话或空标签。角色选择只保存当前偏好，已有会话保留原角色；普通会话创建时绑定所选角色，「继续对话」复用该角色已有的会话 ID。白羽澪和雪代凛音使用官网正式人物图，其余三位标注头像待更新。Agent 工作区预设可进入已有会话活动视图；Live2D、记忆、工作流、定时与模型连接仍待对应模块实现。各按钮的用途、当前动作和交付阶段见 [功能预设](docs/feature-presets.md)。
+首页原型使用示例数据，展示任务输入、最近工作和待处理事项。它可以独立运行，目前尚未接入主窗口和 Agent 执行。运行方法见 [首页设计预览](prototypes/home/README.md)。
 
-## 开发与验证
+</details>
 
-沿用 **TypeScript + Vite + Tauri 2 / Rust**。前端直接使用 TypeScript、CSS 和系统字体，目前没有 React，也没有已安装的 Agent SDK。
+## 目前可以体验
 
-开发与重构遵循 [仓库迭代约定](AGENTS.md)：按职责拆分模块，保留导航契约，代码文件采用 500 / 800 / 1000 行分级上限，修改相关流程时落实存量拆分与回归。
+- **选择角色**：切换白羽澪、雪代凛音等五位角色，创建或重新打开对应的会话入口。已有会话保留原来的角色。
+- **管理标签**：在多个内容之间切换、查找和排序。关闭标签后，仍可以从侧栏重新打开内容。
+- **整理工作台**：新建、重命名、移动、收藏和搜索内容入口；归档暂时不用的内容，删除后可从回收站恢复。
+- **调整外观**：切换浅色 / 深色主题，调整侧栏宽度、布局和列表显示数量。
+- **保存设置**：编辑本机资料、模型与工具配置，取消未保存的修改，导出和恢复配置备份。
 
-需要 Node.js `^20.19.0 || >=22.12.0`、npm、Rust stable 及 [Tauri 平台构建依赖](https://v2.tauri.app/start/prerequisites/)。macOS 需要 Xcode 开发工具。
+目前保存的是工作台索引、布局和设置，聊天与页面正文还在开发中。具体操作见 [界面操作说明](docs/navigation-map.md)。
+
+## 从源码运行
+
+客户端使用 TypeScript、Vite 和 Tauri 2，原生宿主使用 Rust。当前开发和原生验证以 macOS Apple Silicon 为主，Windows / Linux 尚待验证。
+
+运行桌面客户端需要：
+
+- Node.js `^20.19.0 || >=22.12.0` 和 npm。
+- Rust stable 及 [Tauri 平台构建依赖](https://v2.tauri.app/start/prerequisites/)。macOS 需要 Xcode 开发工具。
 
 ```bash
+git clone https://github.com/Hisakazu333/NekoPapa.git
+cd NekoPapa
 npm ci
 npm run desktop
 ```
 
-单独预览界面：
+单独在浏览器中预览界面，只需 Node.js 和 npm。安装依赖后运行：
 
 ```bash
 npm run dev
 ```
 
-地址为 `http://127.0.0.1:1420`。原生窗口行为需在 Tauri 客户端验证。
+打开 `http://127.0.0.1:1420`。浏览器与桌面客户端分别保存各自的工作台数据。
+
+构建桌面应用：
 
 ```bash
-npm run check
-npm run test
-npm run build
-cargo check --manifest-path src-tauri/Cargo.toml
 npm run desktop:build
 ```
 
-macOS 应用输出为 `src-tauri/target/release/bundle/macos/NekoPapa.app`。调试包使用 `npm run desktop:build -- --debug`，输出在对应的 `target/debug/bundle/macos/`。当前打包目标为 `.app`，公开发行签名与公证尚未配置。
+当前打包配置生成 macOS `.app`，输出为 `src-tauri/target/release/bundle/macos/NekoPapa.app`。正式发行的签名与公证尚未配置。
 
-2026-10-04 顶部栏迭代验证：**85 / 85 测试通过**，TypeScript、Vite 和 macOS 调试包构建通过。已更新 `/Applications/NekoPapa.app`，验证详情开合、完整视图恢复、真实标签列表和旧示例清理；浏览器还验证重命名、收藏、切换、复制 ID 与归档联动。截图和验证边界见 [导航闭环](docs/navigation-contract.md)。当前已验证平台以 macOS Apple Silicon 为主，Windows / Linux 尚未完成验证。
+## 账号与云服务
 
-2026-10-04 功能预设迭代：**90 / 90 测试通过**，TypeScript、Vite 和 macOS 调试包构建通过。浏览器验证图钉联动、偏好恢复、角色与活动入口，以及最小 760 × 520 布局；取消全部固定与重启空列表另有状态测试覆盖。已更新 `/Applications/NekoPapa.app` 并严格验证本地签名；本轮原生界面因 Mac 锁屏尚未验证，已运行的旧实例需重启。新增预设不改变内容、标签或会话模式；完整记录见 [导航闭环](docs/navigation-contract.md)。
+NekoPapa 使用自己的账号与云端服务。官方账号、云点和计费后端不包含在本仓库中。
 
-2026-10-04 侧栏信息组织与角色切换迭代：分支 `codex/sidebar-information-layout`，**104 / 104 测试通过**，`npm run build`、macOS 调试包构建及本地签名验证通过。独立浏览器验证收藏与最近访问去重、真实时间分组、目录定位、人物切换 / 取消、按角色继续原会话、重载恢复，以及 760 × 520 布局。安装版已更新并重启，原生窗口验证五位角色选择、方向键与 Escape、切换后标签不增加、创建取消无记录；主内容模板未扩展。证据与未验证范围见 [导航闭环](docs/navigation-contract.md)。
+模型接入计划提供两种方式：
 
-## 下一步怎么迭代
+- **官方云服务**：登录 NekoPapa 账号，使用官方提供的模型服务，通过云点结算。
+- **自定义 API**：配置自己的服务地址和模型，由 API 提供方计费；使用这条路径无需登录官方账号。
 
-按当前授权先完善侧栏、顶部栏和独立设置页面，主页内容保持原样。导航专项已有按人物筛选、列表数量、顶部定位、标签查找 / 关闭与可恢复删除；设置扩展为 28 个子页，增加资料、外观、语音、Agent、模型与集成配置，以及导入预览、备份和恢复流程。**177 / 177 测试通过**；本轮页面、构建和安装版的实际验证记录见 [导航闭环](docs/navigation-contract.md)。云端后端暂不连接，是否复用 NekoBuddy 需独立评估，[架构文档](docs/architecture.md#云端服务接入评估待确认)记录公开客户端的权限、资源限制与计费边界建议；当前未实施服务端防护。完整页面与运行服务的边界见 [设置接入清单](docs/settings-map.md)。
+两种方式都还在开发，目前仅支持保存相关配置。完整说明见 [模型与账号设置](docs/settings-map.md)。
 
-后续在确认导航专项的验收后，再验证 Agent 进程和 Pi 接入方式，建设真正的会话存储。普通陪伴优先成为每天可用的完整流程，随后接入透明桌面角色和 Coding，最后串起页面成果与工作流。
+## 开发计划
 
-| 阶段 | 交付目标 |
-| --- | --- |
-| M0 | 验证随桌面应用分发的 Node.js 进程、Pi SDK、事件与取消契约 |
-| M1 | 应用数据目录、会话模型、`localStorage` 迁移、恢复、归档与回收站迁移闭环 |
-| M2 | 普通陪伴 Agent：真实流式聊天、停止、失败重试、重启继续 |
-| M3 | Live2D 透明窗口、独立 Agent 工作区、可管理的长期记忆 |
-| M4 | Pi Coding：绑定目录，读取、修改、验证、恢复与变更查看 |
-| M5 | 可编辑页面成果和第一个普通模式工作流 |
-| M6 | 工作流模板、定时触发、按场景接入连接器，以及发行验证 |
+- [x] 桌面界面、角色选择、多标签和工作台管理。
+- [x] 本机设置、外观调整和配置备份。
+- [ ] 真实聊天：流式回复、停止、重试，以及重启后继续对话。
+- [ ] Live2D 桌面角色：独立透明窗口、拖动、隐藏和角色反馈。
+- [ ] Pi Coding：选择本地项目，读取、修改代码并执行验证。
+- [ ] 记忆与页面：管理角色记忆，把有用的结果保存成可编辑内容。
+- [ ] 工作流与定时任务：复用常用步骤，查看执行过程和结果。
+- [ ] 官方账号与模型服务接入。
 
-M0–M6 是迭代编号，未承诺发布版本或日期。任务依赖、验收和范围取舍见 [迭代计划](docs/iteration-plan.md)；可以直接领取的开发项见 [开发任务清单](docs/iteration-backlog.md)。
+具体开发顺序见 [迭代计划](docs/iteration-plan.md)，模块和任务见 [开发清单](docs/iteration-backlog.md)。
 
-研究涵盖 ZCode、Kimi Code、Pi、Notion、DeepSeek Harness 和 Hermes Agent。上游事实、源码快照、会话文件布局及采用理由集中在 [Agent 产品研究](docs/research/agent-products.md)。其中 Pi 调研快照的 SDK 包为 `@earendil-works/pi-coding-agent`，源码版本为 `1.0.1`，要求 Node.js ≥22.19；**这与当前项目允许 Node 20 的范围不同**，M0 必须验证并锁定兼容版本，当前项目依赖尚未变更。
+## 参与贡献
 
-## 文档入口
+欢迎提交问题、文档修正和代码改进。
 
-[文档索引](docs/README.md)列出各文档的用途与维护边界。
+报告问题时，请在 [Issues](https://github.com/Hisakazu333/NekoPapa/issues) 中附上操作系统、应用版本、复现步骤，以及预期和实际结果；界面问题可以附截图。
 
-| 文档 | 解决的问题 |
-| --- | --- |
-| [产品定义](docs/product.md) | 陪伴、Coding、窗口、导航和成果分别负责什么 |
-| [功能预设](docs/feature-presets.md) | 七个产品功能入口、固定偏好、实际动作与后续接入阶段 |
-| [设置分类与接入清单](docs/settings-map.md) | 当前可用选项、配置范围及模型 / 角色 / 工具 / 数据设置的接入条件 |
-| [架构与接入](docs/architecture.md) | TypeScript、Rust、Node.js 和两种 Agent 怎么连接 |
-| [会话与文件管理](docs/session-storage.md) | 谁保存会话、文件放在哪里、如何迁移、归档、删除和恢复 |
-| [迭代计划](docs/iteration-plan.md) | 每轮交付的完整流程、依赖与完成条件 |
-| [开发任务清单](docs/iteration-backlog.md) | 具体模块、任务编号和验证要求 |
-| [验收与交付](docs/acceptance.md) | 状态、故障、多窗口、打包和数据升级如何验证 |
+修改前端代码后，请运行：
 
-## 仓库结构
-
-```text
-NekoPapa/
-├── src/
-│   ├── main.ts                  # 前端入口与原生窗口桥接
-│   ├── styles.css               # 当前视觉与布局
-│   └── app/                     # 导航状态、视图、交互、活动、搜索与动效
-├── src-tauri/                   # Rust 宿主、主窗口配置与原生图标
-├── public/brand/                # 桌面端 Logo
-├── public/characters/           # 人物头像资源
-├── tests/                       # 当前导航、搜索与活动回归
-├── docs/                        # 产品、研究、技术设计和迭代文档
-├── package.json / package-lock.json
-└── README.md
+```bash
+npm run test
+npm run build
 ```
 
-未来模块目录在架构文档中标为“计划”，按对应迭代建立。用户会话、密钥、运行日志和项目工作目录不存入此源码仓库。
+涉及 Rust 或原生能力时，追加：
 
-## 许可证与资源
+```bash
+cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --manifest-path src-tauri/Cargo.toml
+npm run desktop:build -- --debug
+```
 
-自有代码采用 [Apache License 2.0](LICENSE)。Pi 使用其 [MIT 许可证](https://github.com/earendil-works/pi/blob/76dfb88f63ce51ff2e3fe2ead4fcf1f65f71f121/LICENSE)。桌面 Logo 和人物资源的来源见 [Logo 说明](docs/brand/nekopapa-logo.md)、[人物头像说明](docs/brand/lumia-avatar.md)。Live2D SDK、模型和其他第三方资源在实际接入与分发前记录各自许可；头像可用不代表已有可分发的 Live2D 模型。
+代码结构和修改约定见 [AGENTS.md](AGENTS.md)，技术设计见 [架构文档](docs/architecture.md)。各次测试与界面检查记录在 [验收记录](docs/navigation-contract.md) 中，其他文档见 [文档目录](docs/README.md)。
+
+## 许可证
+
+本仓库的客户端代码采用 [Apache License 2.0](LICENSE)。你可以按许可证要求使用、修改和分发代码；官方账号与云服务由我们运营。
+
+Pi Coding 计划接入 [Pi Coding Agent](https://pi.dev/)，其代码使用 [MIT 许可证](https://github.com/earendil-works/pi/blob/76dfb88f63ce51ff2e3fe2ead4fcf1f65f71f121/LICENSE)。
+
+Logo 和人物资源的来源见 [Logo 说明](docs/brand/nekopapa-logo.md) 与 [人物头像说明](docs/brand/lumia-avatar.md)。人物插画、Live2D 模型和 SDK 的使用与分发需遵守各自的授权条款。

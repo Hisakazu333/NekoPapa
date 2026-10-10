@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="/brand/nekopapa-favicon-v1.png" />
+    <title>NekoPapa · 首页设计预览</title>
+  </head>
+  <body>
+    <div class="preview-toolbar" aria-label="设计预览控制">
+      <span class="preview-title">NekoPapa <span>首页设计预览</span></span>
+      <span class="preview-note">示例预览</span>
+      <div class="preview-controls">
+        <div class="preview-scenarios" role="group" aria-label="预览场景">
+          <button type="button" data-scenario="daily" aria-pressed="true">日常使用</button>
+          <button type="button" data-scenario="empty" aria-pressed="false">首次打开</button>
+        </div>
+        <button class="preview-theme" type="button" data-preview-theme aria-pressed="false">深色</button>
+      </div>
+    </div>
+    <div id="app" class="home-preview-app"></div>
+    <div id="preview-feedback" class="preview-feedback" role="status" hidden></div>
+
+    <template id="home-template">
+      <div class="home-page">
+        <section class="home-start" aria-labelledby="home-heading">
+          <div class="home-introduction">
+            <h1 id="home-heading">今天想完成什么？</h1>
+          </div>
+          <form class="home-composer" id="home-composer">
+            <label class="sr-only" for="task-input">任务目标</label>
+            <textarea id="task-input" name="goal" rows="3" maxlength="4000" placeholder="写下你的想法，或者交给我一个任务…"></textarea>
+            <div class="home-attachments" id="home-attachments" hidden></div>
+            <div class="composer-toolbar">
+              <div class="composer-options">
+                <button class="composer-attach" type="button" data-home-action="attach" aria-label="添加资料" title="添加资料"></button>
+                <span class="composer-divider" aria-hidden="true"></span>
+                <label class="composer-select mode-select">
+                  <span id="mode-icon" aria-hidden="true"></span>
+                  <select name="mode" aria-label="执行模式">
+                    <option value="conversation">普通模式</option>
+                    <option value="coding">Coding</option>
+                  </select>
+                </label>
+                <label class="composer-select project-select" hidden>
+                  <span id="project-icon" aria-hidden="true"></span>
+                  <select name="project" aria-label="选择项目"></select>
+                </label>
+                <button class="composer-model" type="button" data-home-action="model">选择模型 <span id="model-chevron" aria-hidden="true"></span></button>
+              </div>
+              <button class="composer-submit" type="submit" disabled aria-label="开始任务"><span>开始</span><span id="submit-icon" aria-hidden="true"></span></button>
+            </div>
+            <input id="context-files" type="file" multiple hidden />
+          </form>
+          <div class="composer-help"><span id="home-message" role="alert"></span><span>⌘ / Ctrl + Enter 开始</span></div>
+          <div class="home-suggestions" aria-label="任务灵感">
+            <button type="button" data-suggestion="research"><span data-suggestion-icon="book"></span>整理资料</button>
+            <button type="button" data-suggestion="plan"><span data-suggestion-icon="clock"></span>梳理计划</button>
+            <button type="button" data-suggestion="thinking"><span data-suggestion-icon="layers"></span>分析问题</button>
+            <button type="button" data-suggestion="coding"><span data-suggestion-icon="code"></span>开发项目</button>
+          </div>
+        </section>
+
+        <div class="home-workspace-grid">
+          <section class="home-recent" aria-labelledby="recent-heading">
+            <div class="home-section-heading"><h2 id="recent-heading">继续工作</h2><button class="home-text-action" type="button" data-home-action="all-work">查看全部 <span data-inline-icon="right"></span></button></div>
+            <div class="recent-filters" role="group" aria-label="筛选最近工作">
+              <button type="button" data-work-filter="all" aria-pressed="true">全部</button>
+              <button type="button" data-work-filter="conversation" aria-pressed="false">对话</button>
+              <button type="button" data-work-filter="coding" aria-pressed="false">项目</button>
+              <button type="button" data-work-filter="page" aria-pressed="false">页面</button>
+            </div>
+            <div id="recent-work-list" class="recent-work-list"></div>
+          </section>
+          <aside class="home-attention" aria-labelledby="attention-heading">
+            <div class="home-section-heading"><h2 id="attention-heading">待处理 <span id="attention-count" class="attention-count"></span></h2></div>
+            <div id="attention-list" class="attention-list"></div>
+            <div class="home-places">
+              <span>常用位置</span>
+              <button type="button" data-home-action="spaces"><span data-inline-icon="folder"></span><span>我的空间</span><span data-inline-icon="right"></span></button>
+              <button type="button" data-home-action="projects"><span data-inline-icon="code"></span><span>项目目录</span><span data-inline-icon="right"></span></button>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </template>
+    <script type="module" src="./home.ts"></script>
+  </body>
+</html>
