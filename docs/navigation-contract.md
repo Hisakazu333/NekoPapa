@@ -281,3 +281,10 @@
 - 深色模式通过真实外观设置启用，本次角色动作文字随主题变为次级文本色；接缝与分隔线使用现有主题令牌。控制台无警告或错误。深色模式其他既有控件的颜色层级不在本轮全面验收范围。
 
 截图：[精修前](../.local/screenshots/shell-refinement-before.jpg)、[精修后](../.local/screenshots/shell-refinement-after.jpg)、[最窄窗口与六个标签](../.local/screenshots/shell-refinement-narrow.jpg)。数据只在独立浏览器来源创建；用户工作台与安装版数据未修改。本轮未构建、更新或验收 Tauri 安装版，原生窗口行为、Windows / Linux 未验证。
+
+### 主分支合并前检查（2026-10-11）
+
+- 整理前与整理后 `npm run test` 均为 **177 / 177 通过**；`npm run build`、首页原型 TypeScript 检查与 Vite 构建通过。
+- 清理八个模块 / 测试文件的行尾空白和多余文件末尾空行，逐项确认只改变空白。相对 `origin/main` 的完整 `git diff --check` 通过。
+- README 与文档索引的本地链接、截图引用检查通过。扫描 98 个手写代码文件，全部符合 500 行档，最长文件 `src/app/state.ts` 为 491 行。
+- 本轮未重新执行浏览器或 Tauri GUI 验收，也未重新构建原生安装包；界面与原生检查的既有证据和范围见上文。

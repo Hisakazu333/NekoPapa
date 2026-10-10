@@ -274,4 +274,3 @@ test("older archives without favorite positions still restore memberships safely
   assert.deepEqual(reloaded.state.favorites, ["weekend", "today"]);
   assertConsistent(reloaded);
 });
-

@@ -59,4 +59,3 @@ test("disclosing another group does not redirect the next creation", () => {
   assert.equal(store.creationGroup("page"), "daily");
   assertConsistent(store);
 });
-

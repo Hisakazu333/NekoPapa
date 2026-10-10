@@ -84,4 +84,3 @@ test("moving a background entry preserves the active tab and does not pollute hi
   assert.equal(store.state.navigationMode, "home");
   assertConsistent(store);
 });
-

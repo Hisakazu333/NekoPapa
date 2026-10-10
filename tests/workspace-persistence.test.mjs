@@ -191,4 +191,3 @@ test("a legacy workspace containing only empty system tabs falls back to home", 
   assert.equal(store.state.groups.length, seed.groups.length);
   assertConsistent(store);
 });
-

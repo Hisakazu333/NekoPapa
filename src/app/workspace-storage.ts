@@ -94,7 +94,7 @@ export class WorkspacePersistence {
   constructor(storage?: WorkspaceStorage) {
     try { this.storage = storage ?? localStorage; }
     catch { this.storage = null; this.storageAvailable = false; }
-    
+
     if (!this.recoveryData) {
       try { this.recoveryData = this.storage?.getItem(`${STORAGE_KEY}.recovery.latest`) ?? this.storage?.getItem(`${STORAGE_KEY}.recovery`) ?? null; }
       catch { /* The primary workspace can still be used if the optional backup cannot be read. */ }

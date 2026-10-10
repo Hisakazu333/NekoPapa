@@ -26,4 +26,3 @@ export function generalSettings(store: WorkspaceStore): string {
 export function characterSettings(store: WorkspaceStore): string {
   return `<section class="settings-block"><h2>当前陪伴角色</h2><p class="settings-block-description">新对话使用所选角色，已有会话保留原人物。</p><div class="settings-character-list" role="radiogroup" aria-label="选择陪伴角色">${companionCatalog.map((companion) => `<label class="settings-character-row">${renderCompanionAvatar(companion)}<span><strong>${companion.name}</strong><small>${companion.description}${companion.avatar ? "" : " · 头像待更新"}</small></span><input type="radio" name="settings-companion" value="${companion.id}" data-preference="companion" data-focus="preference-companion-${companion.id}" aria-label="${companion.name}" ${companion.id === store.state.selectedCompanionId ? "checked" : ""} /></label>`).join("")}</div></section>`;
 }
-

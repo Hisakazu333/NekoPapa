@@ -18,4 +18,3 @@ export function itemIcon(item: WorkspaceItem): IconName {
 export function iconButton(name: IconName, label: string, action: string, attributes = "", focus = action): string {
   return `<button class="icon-button" type="button" data-action="${action}" data-focus="${focus}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}" ${attributes}>${icon(name)}</button>`;
 }
-

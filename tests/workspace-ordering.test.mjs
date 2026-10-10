@@ -111,4 +111,3 @@ test("favorite dragging persists one shared order without changing the underlyin
   assert.deepEqual(new WorkspaceStore(disk).state.favorites, store.state.favorites);
   assertConsistent(store);
 });
-
