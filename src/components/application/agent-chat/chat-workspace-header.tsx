@@ -1,0 +1,61 @@
+import type { Ref } from "react";
+import { RiArrowRightSLine, RiCloseLine, RiFolderLine, RiMenuLine } from "@remixicon/react";
+import { IconButton } from "@/components/base/buttons/icon-button";
+import { cx } from "@/utils/cx";
+import { AgentChatActions, type AgentChatActionsProps } from "./agent-chat-actions";
+
+export interface ChatWorkspaceHeaderProps extends AgentChatActionsProps {
+  title: string;
+  titleRef: Ref<HTMLElement>;
+  navOpen: boolean;
+  onToggleNavigation: () => void;
+  frosted: boolean;
+  workspaceLabel?: string;
+  placement?: "panel" | "window";
+}
+
+export function ChatWorkspaceHeader({
+  title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", placement = "panel", ...actions
+}: ChatWorkspaceHeaderProps) {
+  const Wrapper = placement === "window" ? "div" : "header";
+  const shellClass = placement === "window"
+    ? "flex min-w-0 flex-1 items-center gap-3"
+    : cx(
+        "absolute inset-x-0 top-0 z-10 flex h-14 items-center gap-2 border-b px-5 transition-colors",
+        frosted
+          ? "border-separator-border bg-white/70 backdrop-blur-[20px] dark:bg-black/40"
+          : "border-transparent",
+      );
+
+  return (
+    <Wrapper
+      role={placement === "window" ? "group" : undefined}
+      aria-label={placement === "window" ? "聊天标题栏" : undefined}
+      className={shellClass}
+    >
+      <IconButton
+        icon={navOpen ? RiCloseLine : RiMenuLine}
+        size="small"
+        aria-label={navOpen ? "关闭导航" : "打开导航"}
+        onClick={onToggleNavigation}
+        className="lg:hidden"
+      />
+      <nav ref={titleRef} aria-label="当前位置" className="min-w-0 shrink">
+        <ol className="flex min-w-0 items-center gap-2 text-body-medium sm:gap-3">
+          <li className="flex shrink-0 items-center gap-2 text-text-tertiary">
+            <RiFolderLine className="size-[18px] shrink-0" aria-hidden />
+            <span className="max-w-28 truncate" title={workspaceLabel}>{workspaceLabel}</span>
+          </li>
+          <li className="shrink-0 text-text-tertiary" aria-hidden>
+            <RiArrowRightSLine className="size-[18px]" />
+          </li>
+          <li aria-current="page" title={title} className="min-w-0 truncate text-text-secondary">
+            {title}
+          </li>
+        </ol>
+      </nav>
+      {placement === "window" && <div data-tauri-drag-region className="h-full min-w-4 flex-1" />}
+      <AgentChatActions {...actions} className={placement === "window" ? undefined : "ms-auto"} />
+    </Wrapper>
+  );
+}

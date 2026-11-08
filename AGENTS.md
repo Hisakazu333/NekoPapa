@@ -5,11 +5,21 @@
 ## 项目事实与职责边界
 
 - 开始工作前读取 `README.md`、相关代码和测试，检查 `git status --short`，保留已有变更；按实际调用链确认本次范围。
-- 当前使用 TypeScript + Vite 的直接 DOM 界面、Tauri 2 / Rust 宿主和 npm。沿用 `package-lock.json`、`src-tauri/Cargo.lock` 与现有分层，不为局部迭代引入另一套框架。
-- `src/main.ts` 负责启动组装；`src/app` 管理界面、导航状态和交互；`src-tauri/src` 管理原生能力。普通 Agent、Pi 适配层及工作流按实际接入进度独立建设。
-- 导航行为以 `docs/navigation-map.md` 和 `docs/navigation-contract.md` 为依据。分类、内容标签、会话模式、归档和运行状态各有职责；操作同一对象必须保持同一 ID。
+- 当前入口使用 React 19 + TypeScript + Vite、Tailwind CSS 4、Tauri 2 / Rust 宿主和 npm。界面沿用已引入的 BoardUI 基础组件；锁定版本以 `package-lock.json`、`src-tauri/Cargo.lock` 为准，不为局部迭代引入另一套框架。旧直接 DOM 导航源码仅作历史兼容，不能当作当前入口。
+- `src/main.ts` 负责启动组装；`src/components/application` 管理当前工作台、联系人、账号页面与设置交互，`src/components/base` 管理共享组件；`src/app` 与 `src/hooks` 按实际领域拥有数据、存储、请求与协调，`src-tauri/src` 管理原生能力。普通 Agent、Pi 适配层及工作流按实际接入进度独立建设。
+- 导航行为以 `docs/navigation-map.md` 和 `docs/navigation-contract.md` 中标注为当前的契约为依据。若文档与当前源码或用户最新明确要求冲突，先按真实调用链确认并在本轮同步修复实现和文档；历史验收和计划内容不得覆盖当前行为。分类、内容标签、会话模式、归档和运行状态各有职责；操作同一对象必须保持同一 ID。
 - 状态由对应领域模块拥有，视图负责呈现，控制器负责交互协调，存储负责读写与兼容。多个窗口或入口共享契约和处理路径，避免重复状态源。
 - 界面状态依据真实数据与执行结果；未接入的聊天、Pi、登录或工具能力不得呈现为已经完成。测试样例只放在测试或独立验证环境。
+
+## 设计依据与页面边界
+
+- 设计实现前读取 [当前设计系统](docs/design-system.md) 与相关基础组件。视觉数值以 `src/styles/theme.css`、`theme-light.css`、`theme-dark.css`、`typography.css` 和 `src/platform/fonts.css` 为依据；复用语义 token、既有组件与图标，不凭截图另造近似样式或为单页新增一套 token。
+- 本仓库使用 BoardUI React + Tailwind v4 设计基础。编码时先查 BoardUI Skill 的精确组件目录及本仓库 `src/components/base`；已有组件直接组合。缺少组件时先查 BoardUI 官方注册表，只通过官方 `add` 安装已获授权的组件，再在页面层组合；Pro 源码需要有效授权。不得猜组件 API、手写已有组件的近似版本，或把模板截图当作安装了对应源码。
+- 新增界面使用语义颜色 token、`text-<family>-<weight>` 复合排版类、`cx()` 类名合并和 React Aria 基础交互；主题颜色由 `<html>` 上的 `.dark` 选择，不添加逐页原始颜色或 `dark:` 覆盖。已有页面专用尺寸与布局样式可以保留，不宣称它们都是全局 token。
+- 用户最新明确的交互要求优先。当前入口与当前文档描述发生冲突时，核对真实调用链并在同轮修正实现与文档；不得用历史模板行为覆盖产品要求。历史 DOM 说明、模板来源、拟定功能和实际可用功能必须明确区分。
+- 登录使用独立应用页面，从账号入口进入并能返回原工作台；登录流程不放在设置分类或设置弹窗内。设置管理本机偏好和配置。后端未开放时显示真实不可用状态，不生成二维码、账号资料或成功登录。
+- 页面切换、菜单和弹窗复用现有导航与组件，保留原会话、草稿与对象 ID；完成返回、取消和焦点恢复。macOS 交通灯、原生标题栏和拖动区域属于 Tauri / 系统窗口，浏览器截图不能证明其行为正确。
+- 每次改变入口、页面归属或基础视觉契约，同步更新当前设计系统与导航 / 设置文档，并记录本轮实际验证；历史验收记录不得改写为当前已完成状态。
 
 ## 500 / 800 / 1000 行分级管理
 

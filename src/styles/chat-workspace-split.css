@@ -1,0 +1,90 @@
+.chat-workspace-split {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.chat-workspace-main {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.chat-workspace-panel {
+  display: flex;
+  flex: 0 0 auto;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  outline: none;
+}
+
+.chat-workspace-panel > * {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.chat-workspace-open {
+  position: absolute;
+  z-index: 15;
+  top: 50%;
+  right: 0;
+  display: flex;
+  width: 24px;
+  height: 56px;
+  align-items: center;
+  justify-content: center;
+  transform: translateY(-50%);
+  border: 1px solid var(--color-separator-border);
+  border-right: 0;
+  border-radius: 12px 0 0 12px;
+  background: var(--color-background-secondary-default);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  outline: none;
+  transition: color 160ms, background-color 160ms;
+}
+
+.chat-workspace-open:hover {
+  color: var(--color-text-primary);
+  background: var(--color-background-secondary-hover);
+}
+
+.chat-workspace-open:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--color-border-focus-ring);
+}
+
+.chat-workspace-backdrop {
+  position: absolute;
+  z-index: 30;
+  inset: 0;
+  border: 0;
+  border-radius: 24px;
+  background: rgb(0 0 0 / 30%);
+  cursor: pointer;
+}
+
+.chat-workspace-split[data-overlay] > .chat-workspace-panel {
+  position: absolute;
+  z-index: 31;
+  inset: 0 0 0 auto;
+  width: min(430px, calc(100% - 36px));
+  max-width: 100%;
+  border-radius: 24px;
+  box-shadow: -8px 0 28px rgb(0 0 0 / 12%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-workspace-open {
+    transition: none;
+  }
+}

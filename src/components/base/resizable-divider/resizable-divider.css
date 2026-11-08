@@ -1,0 +1,66 @@
+@layer components {
+.resizable-divider {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex: 0 0 20px;
+  min-width: 20px;
+  align-items: stretch;
+  justify-content: center;
+  padding: 0;
+  cursor: col-resize;
+  outline: none;
+  touch-action: none;
+  user-select: none;
+}
+
+.resizable-divider-handle {
+  position: absolute;
+  top: clamp(12.5px, var(--divider-handle-position, 50%), calc(100% - 12.5px));
+  left: 50%;
+  display: flex;
+  width: 15px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+  border: 1px solid var(--color-separator-border);
+  border-radius: 4px;
+  background: var(--color-background-full);
+  box-shadow: var(--shadow-xs, 0 1px 2px 0 rgb(0 0 0 / 5%));
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 140ms;
+}
+
+.resizable-divider-lines {
+  display: flex;
+  height: 13px;
+  gap: 2px;
+}
+
+.resizable-divider-lines i {
+  width: 1px;
+  border-radius: 1px;
+  background: currentColor;
+}
+
+.resizable-divider:hover .resizable-divider-handle,
+.resizable-divider:focus-visible .resizable-divider-handle,
+.resizable-divider[data-dragging] .resizable-divider-handle {
+  opacity: 1;
+}
+
+.resizable-divider:focus-visible .resizable-divider-handle::after {
+  position: absolute;
+  inset: -3px;
+  border: 2px solid var(--color-border-focus-ring);
+  border-radius: 6px;
+  content: "";
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .resizable-divider-handle { transition: none; }
+}
+}

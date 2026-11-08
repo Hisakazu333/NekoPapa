@@ -1,0 +1,97 @@
+"use client";
+
+import { createContext, createElement, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import type { RefObject } from "react";
+import { isTargetWithinOverlay, registerOverlayRefs, type OverlayRef, type OverlayRegistry } from "@/utils/overlay-boundary";
+
+const OverlayRegistriesContext = createContext<OverlayRegistry[]>([]);
+
+/**
+ * React Aria's `Popover` couples "non-modal" with "not dismissable on
+ * outside interaction" — `isNonModal` (which we set to avoid the scroll
+ * lock / focus trap that comes with a modal popover) also silently disables
+ * its built-in outside-click-to-close behavior. The boundary restores that
+ * behavior and tracks descendant overlays across React portals.
+ */
+export function DismissOnOutsidePressBoundary({
+  isOpen,
+  onDismiss,
+  refs,
+  children,
+}: {
+  isOpen: boolean;
+  onDismiss: () => void;
+  refs: OverlayRef[];
+  children: ReactNode;
+}) {
+  const ancestors = useContext(OverlayRegistriesContext);
+  const descendantsRef = useRef<OverlayRegistry>(new Set());
+  const refsRef = useRef(refs);
+  refsRef.current = refs;
+
+  useEffect(() => registerOverlayRefs(refsRef.current, ancestors), [ancestors]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (isTargetWithinOverlay(event.target as Node, refsRef.current, descendantsRef.current)) return;
+      onDismiss();
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => document.removeEventListener("pointerdown", handlePointerDown, true);
+  }, [isOpen, onDismiss]);
+
+  const registries = useMemo(
+    () => [descendantsRef.current, ...ancestors],
+    [ancestors],
+  );
+
+  return createElement(OverlayRegistriesContext.Provider, { value: registries }, children);
+}
+
+/**
+ * Companion fix for the same `isNonModal` popovers: pressing the trigger
+ * while the popover is open should close it (toggle), but React Aria fires
+ * `onOpenChange(false)` immediately followed by `onOpenChange(true)` within
+ * the same press, so the popover never actually closes.
+ *
+ * This watches for a pointerdown on the trigger while open and swallows the
+ * spurious reopen that follows. Wire the returned guard into the component's
+ * `onOpenChange`:
+ *
+ *   const allowOpenChange = useTriggerToggle(isOpen, triggerRef);
+ *   <AriaSelect onOpenChange={(o) => allowOpenChange(o) && setIsOpen(o)} …
+ */
+export function useTriggerToggle(
+  isOpen: boolean,
+  triggerRef: RefObject<HTMLElement | null>,
+) {
+  const suppressReopenRef = useRef(false);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!triggerRef.current?.contains(event.target as Node)) return;
+      suppressReopenRef.current = true;
+      // Safety valve: only the very next open within this click may be
+      // swallowed; never leave a stale suppression behind.
+      setTimeout(() => {
+        suppressReopenRef.current = false;
+      }, 400);
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown, true);
+    return () => document.removeEventListener("pointerdown", handlePointerDown, true);
+  }, [isOpen, triggerRef]);
+
+  return (next: boolean) => {
+    if (next && suppressReopenRef.current) {
+      suppressReopenRef.current = false;
+      return false;
+    }
+    return true;
+  };
+}

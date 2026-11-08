@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../scripts", "types": ["node"] },
+  "include": ["../scripts/boardui-chat-api.ts"]
+}

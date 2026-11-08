@@ -1,21 +1,17 @@
-import "./styles.css";
-import "./app/drag.css";
-import "./app/chrome.css";
-import "./app/sidebar.css";
-import "./app/companion.css";
-import "./app/features.css";
-import "./app/lifecycle.css";
-import "./app/settings.css";
-import "./app/settings-content.css";
-import "./app/settings-account.css";
-import "./app/theme.css";
-import { isTauri } from "@tauri-apps/api/core";
-import { ShellController } from "./app/controller";
+import { createElement, Fragment } from "react";
+import { createRoot } from "react-dom/client";
+import { AgentChat } from "@/components/application/agent-chat/agent-chat";
+import "./styles/globals.css";
+import "./platform/fonts.css";
+import { ConfiguredTheme } from "./platform/configured-theme";
+import { WorkspaceSettingsProvider } from "@/components/application/settings/workspace-settings";
+import { AccountPageProvider } from "@/components/application/account/account-page-provider";
+import { ApplicationLanguageProvider } from "@/components/application/language/application-language";
 
-const root = document.querySelector<HTMLElement>("#app");
+const root = document.getElementById("app");
 if (!root) throw new Error("Application root is missing");
 
-const native = isTauri();
-root.classList.toggle("is-native", native);
-root.classList.toggle("is-macos", /Mac/.test(navigator.platform));
-new ShellController(root);
+createRoot(root).render(createElement(AccountPageProvider, null,
+  createElement(ApplicationLanguageProvider, null,
+    createElement(WorkspaceSettingsProvider, null,
+      createElement(Fragment, null, createElement(ConfiguredTheme), createElement(AgentChat))))));

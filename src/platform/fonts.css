@@ -1,0 +1,8 @@
+/* Vite equivalent of the official starter's next/font variables. */
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/jetbrains-mono";
+
+:root {
+  --font-inter: "Inter Variable";
+  --font-mono-source: "JetBrains Mono Variable";
+}

@@ -1,0 +1,28 @@
+@layer components {
+  .sidebar-resize-frame {
+    position: relative;
+    display: flex;
+    height: 100%;
+    flex: 0 0 auto;
+    min-width: 0;
+    max-width: 100%;
+    transition: width 200ms ease;
+  }
+
+  .sidebar-resize-frame:has(> .resizable-divider[data-dragging]) {
+    transition: none;
+  }
+
+  .sidebar-resize-frame > .resizable-divider {
+    position: absolute;
+    z-index: 20;
+    top: 0;
+    bottom: 0;
+    right: -18px;
+    width: 20px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidebar-resize-frame { transition: none; }
+  }
+}

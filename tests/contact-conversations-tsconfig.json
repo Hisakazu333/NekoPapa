@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src" },
+  "include": ["../src/components/application/contacts/contact-conversations.ts", "../src/components/application/contacts/contact-thread-sync.ts", "../src/components/application/agent-chat/chat-session-memory.ts"]
+}

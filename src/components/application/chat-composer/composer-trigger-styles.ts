@@ -1,0 +1,1 @@
+export const COMPOSER_MENU_TRIGGER = "flex h-8 min-w-0 shrink cursor-pointer items-center gap-1 rounded-lg px-2 text-caption-1-regular text-text-secondary transition-colors hover:bg-background-tertiary-default aria-expanded:bg-background-tertiary-default disabled:cursor-not-allowed disabled:opacity-50";

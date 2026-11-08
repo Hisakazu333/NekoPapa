@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/components/application/dashboard" },
+  "include": ["../src/components/application/dashboard/sidebar-layout.ts"]
+}

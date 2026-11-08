@@ -86,7 +86,13 @@ export function validateConfiguration(input: unknown): ValidationResult<Configur
     if (input.groups[schema.id] === undefined) continue;
     let fields = schema.blocks.flatMap((block) => block.fields);
     if (schema.id === "agent" || schema.id === "coding") fields = fields.map((field) => field.key === "modelId" ? { ...field, type: "text" as const, maxLength: 100 } : field);
-    const result = validateFields(fields, input.groups[schema.id]);
+    let groupValues = input.groups[schema.id];
+    if (schema.id === "appearance" && object(groupValues) && Object.hasOwn(groupValues, "language")) {
+      if (groupValues.language !== "zh-CN" && groupValues.language !== "en-US") return { ok: false, errors: { file: "appearance：界面语言值无效。" } };
+      const { language: _legacyLanguage, ...appearance } = groupValues;
+      groupValues = appearance;
+    }
+    const result = validateFields(fields, groupValues);
     if (!result.ok) return { ok: false, errors: { file: `${schema.id}：${Object.values(result.errors)[0]}` } };
     next.groups[schema.id] = result.value;
     if (schema.id === "agent" && result.value.modelId && object(input.groups.agent)

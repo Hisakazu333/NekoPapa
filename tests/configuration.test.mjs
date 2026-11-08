@@ -33,6 +33,18 @@ test("每类配置均可完整校验，新增字段在旧版本 1 数据中使�
   assert.equal(Object.keys(old.value.groups).length, 14);
 });
 
+test("旧外观语言可兼容读取但不再进入设置配置或导出备份", () => {
+  const legacy = configurationDefaults();
+  legacy.groups.appearance.language = "en-US";
+  const restored = validateConfiguration(legacy);
+  assert.equal(restored.ok, true);
+  assert.equal(Object.hasOwn(restored.value.groups.appearance, "language"), false);
+  assert.equal(Object.hasOwn(configurationDefaults().groups.appearance, "language"), false);
+  assert.equal(Object.hasOwn(JSON.parse(exportConfiguration(restored.value)).data.groups.appearance, "language"), false);
+  legacy.groups.appearance.language = "ja";
+  assert.equal(validateConfiguration(legacy).ok, false);
+});
+
 test("保存外观、资料、Git 与桌面偏好后重载保持，不修改其他域", () => {
   const storage = memory();
   const store = new ConfigurationStore(storage);
