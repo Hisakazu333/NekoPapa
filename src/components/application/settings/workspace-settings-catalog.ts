@@ -1,5 +1,5 @@
 import {
-  RiBookOpenLine, RiCameraLine, RiChatHistoryLine, RiCodeLine,
+  RiBarChartBoxLine, RiBookOpenLine, RiCameraLine, RiChatHistoryLine, RiCodeLine,
   RiComputerLine, RiCpuLine, RiDatabase2Line, RiGitBranchLine, RiGitMergeLine,
   RiGlobalLine, RiInformationLine, RiKeyboardLine, RiMagicLine, RiMicLine,
   RiPaletteLine, RiPuzzle2Line, RiRobot2Line, RiSettings6Line, RiShieldCheckLine,
@@ -8,7 +8,7 @@ import {
 } from "@remixicon/react";
 import type { ConfigurationGroup } from "@/app/configuration-types";
 
-export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "data" | "connections" | "hooks" | "shortcuts" | "about";
+export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage";
 
 interface SettingsSectionEntry {
   label: string;
@@ -19,7 +19,8 @@ interface SettingsSectionEntry {
 
 export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   general: { label: "常规", title: "常规", description: "语言、对话方式、通知与更新。", icon: RiSettings6Line },
-  profile: { label: "个人资料", title: "个人资料", description: "你的身份、NekoPapa 账号和本机使用记录。", icon: RiUserLine },
+  profile: { label: "个人资料", title: "个人资料", description: "你的身份、NekoPapa 账号和本机活跃记录。", icon: RiUserLine },
+  usage: { label: "消耗统计", title: "消耗统计", description: "本机记录的 Token 用量、活跃日与流向。", icon: RiBarChartBoxLine },
   appearance: { label: "外观", title: "外观偏好", description: "选择当前工作区的主题模式。", icon: RiPaletteLine },
   model: { label: "模型与 API", title: "模型与自定义 API", description: "管理本机模型连接配置。", icon: RiCpuLine },
   agent: { label: "Agent", title: "Agent 默认值", description: "保存新运行的模型、回复和权限偏好。", icon: RiRobot2Line },
@@ -48,7 +49,7 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
 };
 
 export const settingsGroups: readonly { label: string; sections: readonly SettingsSection[] }[] = [
-  { label: "工作区", sections: ["general", "profile", "appearance", "data", "privacy"] },
+  { label: "工作区", sections: ["general", "profile", "usage", "appearance", "data", "privacy"] },
   { label: "智能与工具", sections: ["model", "agent", "personalization", "voice", "tools"] },
   { label: "桌面与设备", sections: ["desktop", "computer", "history", "screenshots", "browser", "connections"] },
   { label: "开发", sections: ["coding", "permissions", "context", "skills", "hooks", "editor", "review", "git", "worktrees"] },

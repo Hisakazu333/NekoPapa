@@ -24,8 +24,11 @@
  * Button gradients (linear, 180°, light stop → dark stop) sourced from the
  * blue/red primitives that each Button/{type}/{state} style references in
  * Figma. Direction inferred — confirm visually against Figma.
+ *
+ * `.light` re-applies these tokens inside a dark document, the counterpart of
+ * `.dark` below; previews of the light theme (Appearance settings) use it.
  * --------------------------------------------------------------------------- */
-:root {
+:root, .light {
   /* Foreground (icons + on-fill content) */
   --color-foreground-full:               var(--color-white);
   --color-foreground-icon-primary:       var(--color-neutral-950);

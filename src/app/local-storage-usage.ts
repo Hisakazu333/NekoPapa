@@ -26,7 +26,7 @@ export const localDataCategories: readonly LocalDataCategory[] = [
   // workspace-model.ts (legacy DOM workspace index, kept for compatibility)
   { id: "workspace", label: "旧工作台索引", description: "早期版本的标签、分类与侧栏布局，仅用于兼容读取。", inSettingsBackup: false, keys: ["nekopapa.workspace-shell.v1"] },
   // application-language-store.ts, sidebar-pins.ts, project-folders.ts
-  { id: "preferences", label: "界面偏好", description: "界面语言、侧栏固定入口和最近项目文件夹等不进入设置备份的本机偏好。", inSettingsBackup: false, keys: ["nekopapa.ui-language.v1", "nekopapa.sidebar-pins.v1", "nekopapa.project-folders.v1"] },
+  { id: "preferences", label: "界面偏好", description: "界面语言、侧栏固定入口和本地项目等不进入设置备份的本机偏好。", inSettingsBackup: false, keys: ["nekopapa.ui-language.v1", "nekopapa.sidebar-pins.v1", "nekopapa.projects.v1", "nekopapa.project-folders.v1"] },
 ];
 
 const otherCategory: LocalDataCategory = { id: "other", label: "其他", description: "其他 NekoPapa 本机数据。", inSettingsBackup: false, keys: [] };

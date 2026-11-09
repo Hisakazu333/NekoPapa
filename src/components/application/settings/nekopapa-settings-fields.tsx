@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useState } from "react";
+import { canPickFolder, folderPickerError, pickProjectFolder } from "@/app/native-folder-picker";
 import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
@@ -101,6 +102,10 @@ function defaultControl(field: ConfigurationField): NonNullable<ConfigurationFie
   return "input";
 }
 
+/**
+ * A directory path. The desktop app fills it from the system folder picker
+ * (full path); the browser preview cannot read a folder's path, so it is typed.
+ */
 function DirectoryControl({ id, value, placeholder, aria, onChange }: {
   id: string;
   value: string;
@@ -108,14 +113,21 @@ function DirectoryControl({ id, value, placeholder, aria, onChange }: {
   aria: Record<string, string | undefined>;
   onChange: (value: string) => void;
 }) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  return <div className="flex shrink-0 items-center gap-2">
-    <Input id={id} value={value} onChange={onChange} size="small" placeholder={placeholder} className="w-48" {...aria} />
-    <input ref={(node) => { inputRef.current = node; node?.setAttribute("webkitdirectory", ""); }} type="file" className="hidden" aria-label="选择项目目录" onChange={(event) => {
-      const first = event.currentTarget.files?.[0]?.webkitRelativePath;
-      if (first) onChange(first.split("/")[0]);
-      event.currentTarget.value = "";
-    }} />
-    <Button type="button" variant="secondary" size="small" onClick={() => inputRef.current?.click()}>选择</Button>
+  const [error, setError] = useState("");
+  const choose = async () => {
+    try {
+      const chosen = await pickProjectFolder(value || undefined);
+      if (chosen) onChange(chosen);
+      setError("");
+    } catch (cause) {
+      setError(`无法打开系统文件夹窗口：${folderPickerError(cause)}`);
+    }
+  };
+  return <div className="flex shrink-0 flex-col items-end gap-1">
+    <div className="flex items-center gap-2">
+      <Input id={id} value={value} onChange={onChange} size="small" placeholder={placeholder} className="w-48" {...aria} />
+      {canPickFolder() && <Button type="button" variant="secondary" size="small" onClick={() => void choose()}>选择</Button>}
+    </div>
+    {error && <p role="alert" className="max-w-64 text-caption-1-regular text-text-error-primary">{error}</p>}
   </div>;
 }

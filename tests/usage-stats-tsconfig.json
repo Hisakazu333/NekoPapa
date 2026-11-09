@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src" },
+  "include": ["../src/app/usage-stats.ts", "../src/app/usage-sankey-layout.ts", "../src/app/chat-usage.ts", "../src/app/local-day.ts"]
+}

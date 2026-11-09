@@ -7,6 +7,7 @@ import { ModalDialog, ModalHeader } from "@/components/base/modal/modal";
 import { AlertDialog } from "@/components/base/modal/modal";
 import { useDirection } from "@/components/foundations/direction/direction";
 import { ProfileSettingsPanel } from "./profile/profile-settings-panel";
+import { UsageSettingsPanel } from "./usage/usage-settings-panel";
 import { cx } from "@/utils/cx";
 import { AppearanceSettingsPanel } from "./nekopapa-appearance-settings";
 import { ConfigurationGroupPanel, ConnectionsSettingsPanel, HooksSettingsPanel } from "./nekopapa-configuration-settings";
@@ -43,6 +44,7 @@ function SettingsPanel({ page, onClose }: {
   switch (page) {
     case "general": return <GeneralSettingsPanel onClose={onClose} />;
     case "profile": return <ProfileSettingsPanel onClose={onClose} />;
+    case "usage": return <UsageSettingsPanel onClose={onClose} />;
     case "appearance": return <AppearanceSettingsPanel onClose={onClose} />;
     case "model": return <ModelSettingsPanel onClose={onClose} />;
     case "tools": return <ToolSettingsPanel onClose={onClose} />;

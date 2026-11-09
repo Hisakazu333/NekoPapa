@@ -444,3 +444,30 @@
 - 测试：新增 `tests/profile.test.mjs` 7 项，覆盖只计算发送消息、周一起始的 53 周热力图与未来日期、固定阈值、最长与当前连续、常用项目排除联系人对话、空记录、账号身份覆盖与后备。
 - 浏览器 `localhost:1495` 实测：常规页保存“聊天”与“⌘/Ctrl+Enter”后首页显示“对话模式：聊天”，Enter 只换行；个人资料空数据显示全零与空热力图；临时写入 4 段测试对话后显示 4 段对话、31 条消息、17 个活跃日、最长 6 天、当前 4 天与两个常用项目；编辑保存后回到资料页并聚焦“编辑资料”；有修改时 Escape 弹出放弃确认，取消保留原名称；“查看登录页”关闭设置进入 `#login`，Escape 返回后焦点回到账号菜单按钮；深色、浅色与 375px 宽度均无页面横向溢出，窄屏热力图在自身容器内滚动并默认停在最新一周。验证后恢复测试源原数据与设置。
 - 未验证：Tauri 宿主窗口内的显示；登录后的账号身份只由单元测试覆盖，账号服务开放后需实测。
+
+### 主题预览、设置内 toast 关闭与 Token 用量（2026-11-10）
+
+- 主题预览：缩略图原先用当前主题的 token 模拟另一主题，浅色下“深色”预览的面板仍是浅灰。改为每块缩略图挂 `.light` / `.dark` 作用域（`theme-light.css` 的定义同时挂到 `.light`），预览与实际主题一致。
+- toast 关闭：设置弹窗打开时 React Aria 把弹窗外元素设为 `inert`，“外观已保存”等 toast 的 × 点击会穿到设置面板。给 toast 区域加 React Aria 的 `data-react-aria-top-layer`，点击 × 立即关闭 toast，设置保持打开。设置弹窗自身的 × 实测可关闭（有草稿时先确认）。
+- Token 用量：`/api/chat` 在 finish 事件用 `messageMetadata` 附上模型服务返回的 `totalUsage` 与模型名，随助手消息存入本机聊天记录；个人资料新增 Token 用量卡。新增 `local-day.ts`（统计共用的本地日期）、`chat-usage.ts`、`profile-token-usage.ts`。
+- 测试：`profile.test.mjs` 增至 10 项（用量元数据的写入与损坏数据忽略、按回复 / 按天 / 按模型汇总、空记录与紧凑格式）；`chat-contact-api.test.mjs` 在真实 POST 流（本地模拟的 OpenAI 兼容服务）中断言 finish 事件带 `usage { inputTokens: 1, outputTokens: 1, totalTokens: 2 }` 与模型名。
+- 浏览器 `localhost:1495`：深色与浅色下三张主题预览正确；保存外观后约 1 秒点击 toast × 立即关闭（自动关闭为 5 秒），设置仍打开。Token 卡曾临时写入验证用对话核对数值，已删除并确认测试源无残留；该做法不再使用，有数据的显示由单元测试覆盖。
+- 未验证：测试源未配置模型，未用真实模型服务跑一次回复；Tauri 宿主内未验证。
+
+### 项目文件夹：系统选择窗口与真实检查（2026-11-10）
+
+- 问题：添加项目文件夹只把输入的文字存下；浏览器“浏览文件夹”（`webkitdirectory`）只能拿到文件夹名称，列表里出现只有名称、并不对应任何真实路径的条目，输错路径也会被加入。
+- 桌面版：引入 `@tauri-apps/plugin-dialog` 2.8.4 / `tauri-plugin-dialog` 2，`capabilities/main.json` 只增加 `dialog:allow-open`。首页菜单“添加文件夹…”、侧栏“+”、常规设置的目录“选择”按钮直接打开系统文件夹窗口，拿到完整路径。
+- 检查：新增 Rust 命令 `inspect_project_folder`（`src-tauri/src/project_folder.rs`）与浏览器预览用的 `POST /api/project-folder`（`scripts/project-folder-api.ts`，只接受 JSON），共享 `src/app/project-folder-info.ts` 契约：展开 `~`、解析符号链接、确认是文件夹，并沿上级目录读取 `.git/HEAD` 得到分支 / 分离提交 / 链接工作树。只有存在的文件夹以解析后的完整路径加入；失败给出原因（不是完整路径、找不到、不是文件夹、无权限、暂时无法检查），不保存。首页菜单每次打开时重新检查列出的文件夹并显示分支或原因。移除 `webkitdirectory` 浏览；智能体模式的 `ProjectDirectorySelector` 属暂缓的 Agent 功能，附件选择不受影响。
+- 测试：`npm run test` **441 / 441 通过**（新增 `project-folder-api.test.mjs` 3 项：完整路径、分支、分离提交与工作树；名称 / 相对路径 / 不存在 / 文件的原因；接口只接受 JSON POST 与契约校验）；`cargo test` 2 项通过；`npm run build`、`git diff --check` 通过。
+- 浏览器 `localhost:1495`：接口对本仓库返回完整路径与 `main` 分支，对“NekoBuddy”返回“不是完整路径”，对不存在的路径返回“找不到这个文件夹”；在首页菜单提交不存在的路径显示“找不到这个文件夹。”，存储中的文件夹列表未变化。未通过界面加入真实文件夹，以免改动测试源列表；成功路径由接口与单元测试覆盖。
+- 未验证：系统文件夹窗口与 Rust 命令在 Tauri 宿主内的实际操作（桌面调试构建通过，未手动点击）。
+
+### 本地项目：多文件夹、置顶、编辑与移除（2026-11-10）
+
+- 问题：参照 Codex，项目不只是一个文件夹：需要能改名、包含多个源文件夹并指定主要文件夹、置顶和移除；此前一个文件夹就是一个“项目”，侧栏行没有菜单。
+- 模型：新增 `src/app/projects.ts`（`Project { id, name, folders, pinned }`，`folders[0]` 为主要文件夹；名称 ≤ 80 字符，每项目 ≤ 10 个文件夹，最多 50 个项目，一个文件夹只属于一个项目）与 `src/hooks/use-projects.ts`（取代 `use-project-folders.ts`），存储键 `nekopapa.projects.v1`。新对话的 `project` 存项目 ID；旧对话的文件夹路径按包含关系解析，首次加载一次性把尚无项目的旧路径建为项目（`legacyAdopted`），之后的移除不会被迁移复活。旧 `nekopapa.project-folders.v1` 只读，用于生成首份项目列表。`use-add-project-folder.ts` 改为 `use-project-folder-chooser.ts`，只负责选择并检查文件夹。
+- 界面：侧栏项目行新增“…”菜单（置顶 / 取消置顶、编辑、移除项目）与置顶标记；新增 `projects/project-edit-dialog.tsx`（名称、源文件夹、设为主要、添加文件夹、移除本地项目）、`project-row-menu.tsx`、`project-folder-detail.tsx`。移除前用 AlertDialog 确认，说明不删除文件夹及保留的对话数。首页选择器改为选择项目。个人资料“常用项目”按项目汇总（旧路径与项目 ID 合并计数，已移除项目不计）。Codex 的“分区”“归档聊天”没有对应功能，未加入菜单。
+- 测试：`npm run test` **446 / 446 通过**（新增 `projects.test.mjs` 5 项：旧列表迁移与重载、添加去重、编辑校验、置顶与移除及解析、旧路径一次性迁移；`project-folders.test.mjs` 改为项目分组与置顶排序；`profile.test.mjs` 增加按项目合并计数）；`npm run build`、`git diff --check` 通过。
+- 浏览器 `localhost:1495`（独立标签页）：“+”输入本仓库路径后出现项目并提示“已添加项目”；“…”菜单显示置顶 / 编辑 / 移除项目；编辑弹窗显示 `main` 分支、单个文件夹时 × 不可用；添加 `~/Projects/nekobuddy`（解析为完整路径，无 Git 时显示路径）、设为主要、改名 Nekobuddy 后保存，存储中 ID 不变、文件夹顺序更新；首页选择器显示“Nekobuddy · 2 个文件夹”并可选中；置顶后存储 `pinned: true` 且行显示置顶标记；移除项目确认后列表为空，选择器回到“项目”。验证用项目已通过移除操作删除，测试源项目列表恢复为空。
+- 未验证：Tauri 宿主内系统文件夹窗口添加源文件夹；键盘遍历菜单与弹窗；有对话的项目被移除后的侧栏显示（由分组单元测试覆盖）。

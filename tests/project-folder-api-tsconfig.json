@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "..", "types": ["node"] },
+  "include": ["../scripts/project-folder-api.ts", "../src/app/project-folder-info.ts"]
+}

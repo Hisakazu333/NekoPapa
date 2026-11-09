@@ -15,6 +15,7 @@ import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
 import { groupSystemPrompt, resolveGroupContext, type GroupContext } from "./group-context";
 import type { ChatContactMetadata } from "../../../components/application/agent-chat/chat-contact";
 import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../official-companion-service";
+import { chatReplyMetadata } from "../../chat-usage";
 
 /**
  * The chat runtime every BoardUI agent template talks to.
@@ -371,6 +372,13 @@ export async function POST(req: Request) {
   });
 
   return createUIMessageStreamResponse({
-    stream: toUIMessageStream({ stream: result.stream }),
+    stream: toUIMessageStream({
+      stream: result.stream,
+      // Token counts the provider reported for this reply, saved with the
+      // chat history so the profile page can sum real usage.
+      messageMetadata: ({ part }) => part.type === "finish"
+        ? chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label })
+        : undefined,
+    }),
   });
 }

@@ -199,6 +199,10 @@ export function Toaster({
       role="region"
       aria-live="polite"
       aria-relevant="additions text"
+      // React Aria hides and inerts everything outside an open modal except
+      // top-layer elements, so a toast raised from a dialog stays clickable
+      // and pressing it does not count as a click outside that dialog.
+      data-react-aria-top-layer=""
       className={cx("z-130", className)}
       onPointerEnter={() => setHovered(true)}
       onPointerLeave={() => setHovered(false)}

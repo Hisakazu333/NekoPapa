@@ -185,7 +185,12 @@ test("真实POST将规范后的联系人系统提示传给模型；旧请求无�
     const response = await POST(request({ messages, ...(contact ? { contact } : {}) }));
     assert.equal(response.status, 200);
     assert.match(response.headers.get("content-type"), /text\/event-stream/);
-    assert.match(await response.text(), /你好/);
+    const streamed = await response.text();
+    assert.match(streamed, /你好/);
+    // The finish event carries the provider's own token counts for the profile page.
+    const finish = streamed.split("\n").filter((line) => line.startsWith("data: {")).map((line) => JSON.parse(line.slice(6))).find((chunk) => chunk.type === "finish");
+    assert.deepEqual(finish?.messageMetadata?.usage, { inputTokens: 1, outputTokens: 1, totalTokens: 2 });
+    assert.equal(finish?.messageMetadata?.model, "contact-test");
   }
   const systems = captured.map((body) => body.messages.find((message) => message.role === "system").content);
   assert.match(systems[0], /周末搭子/);

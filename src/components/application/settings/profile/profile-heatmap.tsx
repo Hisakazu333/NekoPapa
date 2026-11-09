@@ -3,7 +3,7 @@ import type { ActivityLevel, ProfileActivity } from "@/app/profile-activity";
 import { cx } from "@/utils/cx";
 
 const LEVEL: Record<ActivityLevel, string> = {
-  0: "bg-background-tertiary-default",
+  0: "bg-chart-track",
   1: "bg-accent-500/25",
   2: "bg-accent-500/45",
   3: "bg-accent-500/70",

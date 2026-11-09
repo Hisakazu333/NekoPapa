@@ -26,6 +26,8 @@ import { useChatHistory } from "@/hooks/use-chat-history";
 import { useChatComposer } from "@/hooks/use-chat-composer";
 import { useContacts } from "@/hooks/use-contacts";
 import { useConfiguration } from "@/hooks/use-configuration";
+import { useProjects } from "@/hooks/use-projects";
+import { resolveProject } from "@/app/projects";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
@@ -83,6 +85,7 @@ export function AgentChat({
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
   /** Project folder the open workbench chat is grouped under. */
   const [activeProject, setActiveProject] = useState<string>();
+  const { projects, legacyAdopted, adoptLegacy: adoptLegacyProjects } = useProjects();
   const contactBaseline = useRef<StoredThread | null>(null);
   const sessionMemory = useRef(new ChatSessionMemory());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -255,8 +258,9 @@ export function AgentChat({
     setSelectedContact(undefined);
     restoreSession({ ...emptyChatSession(newThreadId()), ...(project ? { project } : {}) });
   }, [busy, keepLiveThread, rememberSession, restoreSession]);
-  // General → 新建对话 → 项目文件夹 decides whether a new chat stays in the open project.
-  const newChatProject = useConfiguration().data.groups.general.projectFolder === "none" ? undefined : activeProject;
+  // General → 新建对话 → 项目文件夹 decides whether a new chat stays in the open project
+  // (by id; a legacy folder path resolves to its project, a removed project to none).
+  const newChatProject = useConfiguration().data.groups.general.projectFolder === "none" ? undefined : resolveProject(projects, activeProject)?.id;
   const startNewChat = useCallback(() => startChatIn(newChatProject), [startChatIn, newChatProject]);
 
   const renameThread = useCallback((id: string, title: string) => {
@@ -338,7 +342,10 @@ export function AgentChat({
     enterWorkspace: () => setPage("chat"),
     project: newChatProject,
   });
-  const knownProjects = useMemo(() => [...new Set(allThreads.flatMap((thread) => thread.project ? [thread.project] : []))], [allThreads]);
+  // Chats saved before projects stored a folder path: turn those into projects once.
+  useEffect(() => {
+    if (!legacyAdopted) adoptLegacyProjects([...new Set(allThreads.flatMap((thread) => thread.project ? [thread.project] : []))]);
+  }, [legacyAdopted, allThreads, adoptLegacyProjects]);
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
@@ -422,7 +429,6 @@ export function AgentChat({
                         composer={composer}
                         project={activeProject}
                         onProjectChange={setActiveProject}
-                        knownProjects={knownProjects}
                       />
                     ) : (
                       messages.map((message, index) => (

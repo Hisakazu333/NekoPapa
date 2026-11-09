@@ -1,4 +1,5 @@
 import type { StoredThread } from "../components/application/agent-chat/thread-storage";
+import { calendarDate, dayKey, localDay, validTime, type CalendarDate } from "./local-day";
 
 /**
  * Local usage summary for the profile page, computed only from chat history
@@ -6,9 +7,10 @@ import type { StoredThread } from "../components/application/agent-chat/thread-s
  * a recorded time counts once toward its day.
  */
 export type ActivityLevel = 0 | 1 | 2 | 3 | 4;
-export interface ActivityDay { key: string; date: { year: number; month: number; day: number }; count: number; level: ActivityLevel; future: boolean }
+export interface ActivityDay { key: string; date: CalendarDate; count: number; level: ActivityLevel; future: boolean }
 export interface ActivityMonthLabel { column: number; month: number }
-export interface ActivityProject { folder: string; conversations: number; updatedAt: number }
+/** `key` is the chat's project value, or the project id `projectKey` maps it to. */
+export interface ActivityProject { key: string; conversations: number; updatedAt: number }
 export interface ProfileActivity {
   /** Chats (workbench and contact) in which you sent at least one message. */
   conversations: number;
@@ -24,28 +26,6 @@ export interface ProfileActivity {
   months: ActivityMonthLabel[];
   /** Workbench project folders by number of chats, most used first. */
   projects: ActivityProject[];
-}
-
-const DAY = 86_400_000;
-
-/** Calendar day number that ignores time zones and daylight-saving shifts. */
-function dayNumber(year: number, month: number, day: number) {
-  return Date.UTC(year, month, day) / DAY;
-}
-
-function localDay(timestamp: number) {
-  const date = new Date(timestamp);
-  return dayNumber(date.getFullYear(), date.getMonth(), date.getDate());
-}
-
-function calendar(number: number) {
-  const date = new Date(number * DAY);
-  return { year: date.getUTCFullYear(), month: date.getUTCMonth(), day: date.getUTCDate() };
-}
-
-function dayKey(number: number) {
-  const { year, month, day } = calendar(number);
-  return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 /** Fixed thresholds keep a square's meaning stable as history grows. */
@@ -77,7 +57,9 @@ function currentRun(active: ReadonlySet<number>, today: number) {
   return run;
 }
 
-export function profileActivity(threads: readonly StoredThread[], now: number, { weeks: weekCount = 53, projects: projectLimit = 3 } = {}): ProfileActivity {
+export function profileActivity(threads: readonly StoredThread[], now: number, {
+  weeks: weekCount = 53, projects: projectLimit = 3, projectKey = (value: string): string | undefined => value,
+}: { weeks?: number; projects?: number; projectKey?: (value: string) => string | undefined } = {}): ProfileActivity {
   const counts = new Map<number, number>();
   const projects = new Map<string, ActivityProject>();
   let conversations = 0;
@@ -88,16 +70,18 @@ export function profileActivity(threads: readonly StoredThread[], now: number, {
     conversations += 1;
     sentMessages += sent.length;
     for (const message of sent) {
-      const time = thread.messageAt[message.id];
-      if (typeof time !== "number" || !Number.isFinite(time) || time <= 0) continue;
+      const time = validTime(thread.messageAt[message.id]);
+      if (time === undefined) continue;
       const day = localDay(time);
       counts.set(day, (counts.get(day) ?? 0) + 1);
     }
-    if (thread.project && !thread.contact) {
-      const entry = projects.get(thread.project) ?? { folder: thread.project, conversations: 0, updatedAt: 0 };
+    // Chats in a removed project (no key) are not counted under any project.
+    const key = thread.project && !thread.contact ? projectKey(thread.project) : undefined;
+    if (key) {
+      const entry = projects.get(key) ?? { key, conversations: 0, updatedAt: 0 };
       entry.conversations += 1;
       entry.updatedAt = Math.max(entry.updatedAt, thread.updatedAt);
-      projects.set(thread.project, entry);
+      projects.set(key, entry);
     }
   }
 
@@ -112,7 +96,7 @@ export function profileActivity(threads: readonly StoredThread[], now: number, {
     const week: ActivityDay[] = [];
     for (let row = 0; row < 7; row += 1) {
       const number = firstDay + column * 7 + row;
-      const date = calendar(number);
+      const date = calendarDate(number);
       const future = number > today;
       const count = future ? 0 : counts.get(number) ?? 0;
       if (count > 0) activeDays += 1;

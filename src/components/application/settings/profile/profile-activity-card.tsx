@@ -1,9 +1,12 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { RiFolder3Line } from "@remixicon/react";
 import { profileActivity } from "@/app/profile-activity";
-import { projectFolderName } from "@/app/project-folders";
+import { resolveProject } from "@/app/projects";
+import { useProjects } from "@/hooks/use-projects";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { ProfileHeatmap } from "./profile-heatmap";
+import { RiArrowRightSLine } from "@remixicon/react";
+import { useWorkspaceSettings } from "../workspace-settings";
 
 function StatTile({ label, value, unit, note }: { label: string; value: number; unit?: string; note?: ReactNode }) {
   return (
@@ -19,14 +22,21 @@ function StatTile({ label, value, unit, note }: { label: string; value: number; 
 }
 
 /**
- * 本机使用: totals, a year of activity and the most used project folders,
- * all read from chat history on this device. Assistant replies do not count.
+ * 本机使用: totals, a year of activity, a link to token usage (消耗统计) and the most used project
+ * folders, all read from chat history on this device. Activity counts only
+ * messages you sent.
  */
 export function ProfileActivityCard() {
   const history = useChatHistory();
   // The page shows a snapshot; reopening settings picks up a new day.
   const [now] = useState(() => Date.now());
-  const activity = useMemo(() => profileActivity(history.threads, now), [history.threads, now]);
+  const { projects } = useProjects();
+  const openSettings = useWorkspaceSettings();
+  const activity = useMemo(
+    () => profileActivity(history.threads, now, { projectKey: (value) => resolveProject(projects, value)?.id }),
+    [history.threads, now, projects],
+  );
+  const projectOf = (id: string) => projects.find((project) => project.id === id);
   const empty = activity.sentMessages === 0;
 
   return (
@@ -48,18 +58,29 @@ export function ProfileActivityCard() {
             </div>
             <ProfileHeatmap activity={activity} />
             {empty && <p className="px-1 text-body-2-regular text-text-tertiary">发送第一条消息后，这里会记录你的活跃日。</p>}
+            <button type="button" onClick={() => openSettings("usage")}
+              className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-background-secondary-default px-4 py-3 text-start outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+              <span className="flex flex-col">
+                <span className="text-body-medium text-text-primary">Token 消耗</span>
+                <span className="text-body-2-regular text-text-secondary">用量、活跃日与流向在“消耗统计”中查看</span>
+              </span>
+              <RiArrowRightSLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+            </button>
             {activity.projects.length > 0 && <div className="flex flex-col gap-1.5">
               <p className="px-1 text-body-2-medium text-text-secondary">常用项目</p>
               <ul className="flex flex-col rounded-2xl bg-background-secondary-default ps-3">
-                {activity.projects.map((project) => <li key={project.folder}
-                  className="flex min-h-12 items-center gap-3 border-b border-border-button-default py-2 pe-3 last:border-b-0">
-                  <RiFolder3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-                  <span className="flex min-w-0 flex-1 flex-col">
-                    <span translate="no" className="truncate text-body-medium text-text-primary">{projectFolderName(project.folder)}</span>
-                    <span translate="no" className="truncate text-caption-1-regular text-text-tertiary">{project.folder}</span>
-                  </span>
-                  <span className="shrink-0 text-body-2-regular tabular-nums text-text-secondary">{project.conversations} 个对话</span>
-                </li>)}
+                {activity.projects.map((entry) => {
+                  const project = projectOf(entry.key);
+                  return <li key={entry.key}
+                    className="flex min-h-12 items-center gap-3 border-b border-border-button-default py-2 pe-3 last:border-b-0">
+                    <RiFolder3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+                    <span className="flex min-w-0 flex-1 flex-col">
+                      <span translate="no" className="truncate text-body-medium text-text-primary">{project?.name ?? entry.key}</span>
+                      {project && <span translate="no" className="truncate text-caption-1-regular text-text-tertiary">{project.folders[0]}</span>}
+                    </span>
+                    <span className="shrink-0 text-body-2-regular tabular-nums text-text-secondary">{entry.conversations} 个对话</span>
+                  </li>;
+                })}
               </ul>
             </div>}
             {history.error && <p role="alert" className="px-1 text-body-2-regular text-text-error-primary">{history.error}</p>}

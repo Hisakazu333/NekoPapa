@@ -45,9 +45,8 @@ const themePreview = {
   system: { label: "自动", description: "跟随设备当前外观" },
 } as const;
 
-function ThemePreviewCard({ id, actualTheme, onPointerDown, onFocus }: {
+function ThemePreviewCard({ id, onPointerDown, onFocus }: {
   id: AppearanceMode;
-  actualTheme: "light" | "dark";
   onPointerDown: (event: ReactPointerEvent<HTMLLabelElement>) => void;
   onFocus: (event: ReactFocusEvent<Element>) => void;
 }) {
@@ -55,7 +54,7 @@ function ThemePreviewCard({ id, actualTheme, onPointerDown, onFocus }: {
   return <RadioCard value={id} aria-label={preview.label} showRadio={false}
     onPointerDown={onPointerDown} onFocus={onFocus}
     className={(state) => `min-w-0 flex-1 flex-col items-stretch gap-2 p-2 ${state.isSelected ? "border-border-focus-ring ring-2 ring-border-focus-ring" : ""}`}>
-    <ThemeThumbnail mode={id} actualTheme={actualTheme} />
+    <ThemeThumbnail mode={id} />
     <span className="flex flex-col gap-1 px-1">
       <span className="text-body-medium text-text-primary">{preview.label}</span>
       <span className="text-body-2-regular text-text-tertiary">{preview.description}</span>
@@ -63,32 +62,27 @@ function ThemePreviewCard({ id, actualTheme, onPointerDown, onFocus }: {
   </RadioCard>;
 }
 
-function ThemeThumbnail({ mode, actualTheme }: { mode: AppearanceMode; actualTheme: "light" | "dark" }) {
-  const light = actualTheme === "dark"
-    ? { canvas: "bg-text-primary", rail: "bg-text-primary", panel: "bg-text-primary", line: "bg-background-full" }
-    : { canvas: "bg-background-full", rail: "bg-background-secondary-default", panel: "bg-background-primary-default", line: "bg-background-secondary-hover" };
-  const dark = actualTheme === "dark"
-    ? { canvas: "bg-background-full", rail: "bg-background-secondary-default", panel: "bg-background-primary-default", line: "bg-background-secondary-hover" }
-    : { canvas: "bg-text-primary", rail: "bg-text-primary", panel: "bg-background-secondary-default", line: "bg-background-secondary-hover" };
+/**
+ * Each half renders inside its own `.light` / `.dark` scope, so the same
+ * semantic tokens show that theme exactly, whatever theme is applied now.
+ */
+function ThemeThumbnail({ mode }: { mode: AppearanceMode }) {
   const modes = mode === "system" ? ["light", "dark"] as const : [mode] as const;
   return <span aria-hidden className="grid aspect-[1.6] w-full overflow-hidden rounded-xl border border-separator-border" style={{ gridTemplateColumns: `repeat(${modes.length}, minmax(0, 1fr))` }}>
-    {modes.map((target) => {
-      const palette = target === "light" ? light : dark;
-      return <span key={target} className={`relative flex min-w-0 overflow-hidden ${palette.canvas}`}>
-        <span className={`flex w-[23%] shrink-0 flex-col gap-1 p-1 ${palette.rail}`}>
-          <span className="size-2 rounded-sm bg-accent-500" />
-          <span className={`mt-1 h-1 rounded ${palette.line}`} />
-          <span className={`h-1 rounded ${palette.line} opacity-70`} />
-          <span className={`h-1 rounded ${palette.line} opacity-50`} />
-        </span>
-          <span className={`relative m-1 flex min-w-0 flex-1 flex-col gap-1 rounded-md p-1.5 ${palette.panel}`}>
-          <span className={`h-1 w-2/5 rounded ${palette.line}`} />
-          <span className="mt-auto ms-auto h-2 w-2/3 rounded-md bg-accent-500" />
-          <span className={`h-1 w-full rounded ${palette.line}`} />
-          <span className={`absolute bottom-1 end-1 size-1.5 rounded-full bg-accent-600`} />
-        </span>
-      </span>;
-    })}
+    {modes.map((target) => <span key={target} className={`${target} relative flex min-w-0 overflow-hidden bg-background-full`}>
+      <span className="flex w-[23%] shrink-0 flex-col gap-1 bg-background-secondary-default p-1">
+        <span className="size-2 rounded-sm bg-accent-500" />
+        <span className="mt-1 h-1 rounded bg-background-secondary-hover" />
+        <span className="h-1 rounded bg-background-secondary-hover opacity-70" />
+        <span className="h-1 rounded bg-background-secondary-hover opacity-50" />
+      </span>
+      <span className="relative m-1 flex min-w-0 flex-1 flex-col gap-1 rounded-md bg-background-primary-default p-1.5">
+        <span className="h-1 w-2/5 rounded bg-background-secondary-hover" />
+        <span className="mt-auto ms-auto h-2 w-2/3 rounded-md bg-accent-500" />
+        <span className="h-1 w-full rounded bg-background-secondary-hover" />
+        <span className="absolute bottom-1 end-1 size-1.5 rounded-full bg-accent-600" />
+      </span>
+    </span>)}
   </span>;
 }
 
@@ -196,7 +190,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
                   void applyThemeWithTransition(resolved, { persist: false, animate: !reducedMotion, ...interaction, duration: 820 });
                   setMode(next); setErrors({}); setConflicts([]); setStatus("");
                 }} className="grid grid-cols-3 gap-2">
-                  {modeOptions.map((option) => <ThemePreviewCard key={option.id} id={option.id} actualTheme={currentTheme}
+                  {modeOptions.map((option) => <ThemePreviewCard key={option.id} id={option.id}
                     onPointerDown={(event) => { themeInteraction.current = { origin: { x: event.clientX, y: event.clientY }, element: event.currentTarget }; }}
                     onFocus={(event) => { if (event.currentTarget.matches(":focus-visible")) themeInteraction.current = { origin: null, element: event.currentTarget as HTMLElement }; }} />)}
                 </RadioGroup>

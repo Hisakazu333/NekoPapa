@@ -1,8 +1,8 @@
 /**
- * Project folders a workbench chat can belong to. A folder is identified by the
- * text the user chose (an absolute path, or only a folder name when the browser
- * picker cannot reveal the path). Choosing one only groups chats; nothing here
- * reads the folder, runs commands or connects the NekoBuddy backend.
+ * Folder paths used by local projects (see projects.ts). The recent-folder
+ * list under `PROJECT_FOLDERS_KEY` is the format before projects existed; it
+ * is only read, to build the first project list. Nothing here reads the
+ * folder, runs commands or connects the NekoBuddy backend.
  */
 
 export const PROJECT_FOLDERS_KEY = "nekopapa.project-folders.v1";
@@ -41,7 +41,7 @@ export function readProjectFolders(storage: Pick<ProjectFolderStorage, "getItem"
 }
 
 /** Most recent first, without duplicates, capped at the limit. */
-export function mergeProjectFolders(...lists: readonly (readonly string[])[]): string[] {
+function mergeProjectFolders(...lists: readonly (readonly string[])[]): string[] {
   const seen = new Set<string>();
   const merged: string[] = [];
   for (const folder of lists.flat()) {
@@ -50,24 +50,4 @@ export function mergeProjectFolders(...lists: readonly (readonly string[])[]): s
     merged.push(folder);
   }
   return merged.slice(0, PROJECT_FOLDER_LIMIT);
-}
-
-/** Moves a folder to the front; unusable input leaves the list unchanged. */
-export function rememberProjectFolder(folders: readonly string[], folder: string): string[] {
-  const normalized = normalizeProjectFolder(folder);
-  return normalized ? mergeProjectFolders([normalized], folders) : [...folders];
-}
-
-export function forgetProjectFolder(folders: readonly string[], folder: string): string[] {
-  return folders.filter((entry) => entry !== folder);
-}
-
-/** Returns false when the write fails; callers keep the in-memory list and say so. */
-export function saveProjectFolders(storage: Pick<ProjectFolderStorage, "setItem">, folders: readonly string[]): boolean {
-  try {
-    storage.setItem(PROJECT_FOLDERS_KEY, JSON.stringify({ version: 1, folders: mergeProjectFolders(folders) }));
-    return true;
-  } catch {
-    return false;
-  }
 }

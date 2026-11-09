@@ -59,8 +59,7 @@ export interface ChatHomeProps {
   composer: ChatComposerState;
   /** Project folder of the workbench chat; contact chats have none. */
   project?: string;
-  onProjectChange: (folder: string | undefined) => void;
-  knownProjects: readonly string[];
+  onProjectChange: (projectId: string | undefined) => void;
 }
 
 function greeting() {
@@ -70,7 +69,7 @@ function greeting() {
   return "晚上好。";
 }
 
-export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlockedReason, onOpenSettings, onSelectContact, onClearContact, selectedContact, composer, project, onProjectChange, knownProjects }: ChatHomeProps) {
+export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlockedReason, onOpenSettings, onSelectContact, onClearContact, selectedContact, composer, project, onProjectChange }: ChatHomeProps) {
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -144,7 +143,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
             <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><RiPlugLine aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
-            {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} knownFolders={knownProjects} />}
+            {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} />}
             <HomeContactsMenu onSelectContact={onSelectContact} onClearContact={onClearContact} selectedContact={selectedContact} />
           </div>
         </div>

@@ -2,7 +2,9 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import { AlertDialog } from "@/components/base/modal/modal";
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
-import { useProjectFolders } from "@/hooks/use-project-folders";
+import { resolveProject, type Project } from "@/app/projects";
+import { useProjects } from "@/hooks/use-projects";
+import { ProjectEditDialog } from "@/components/application/projects/project-edit-dialog";
 import { groupRecentThreads, type RecentProjectGroup } from "./sidebar-recent-groups";
 import { RecentConversationRow, type RowActions } from "./recent-conversation-row";
 import { AddProjectFolderButton, ProjectFolderGroup } from "./sidebar-project-folders";
@@ -26,9 +28,9 @@ function SectionHeading({ label, collapsed, action }: { label: string; collapsed
 }
 
 /**
- * The sidebar's 对话 section. Project folders (from chats and the shared
- * recent-folder list) expand into a tree of their chats; chats with no folder
- * follow as plain rows. Grouping comes from each chat's stored folder.
+ * The sidebar's 对话 section. Local projects expand into a tree of their
+ * chats; chats with no project follow as plain rows. Grouping comes from each
+ * chat's stored project. Projects are edited and removed from here.
  */
 export function DashboardRecentConversations({
   threads, collapsed, activeId, busy, onSelect, onShowAll, onRename, onToggleUnread, onDelete, onNewChatInProject,
@@ -42,12 +44,17 @@ export function DashboardRecentConversations({
   onRename: (id: string, title: string) => void;
   onToggleUnread: (id: string) => void;
   onDelete: (id: string) => boolean | Promise<boolean>;
-  onNewChatInProject: (folder: string) => void;
+  onNewChatInProject: (projectId: string) => void;
 }) {
   const localize = useTemplateCopy();
   const now = useMinuteClock();
-  const { folders } = useProjectFolders();
-  const { projects, loose, hiddenLoose } = groupRecentThreads(threads, { folders });
+  const { projects: known, remove: removeProject } = useProjects();
+  const { projects, loose, hiddenLoose } = groupRecentThreads(threads, { projects: known });
+  const [editTarget, setEditTarget] = useState<Project | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<Project | null>(null);
+  const removeCount = removeTarget
+    ? threads.filter((thread) => !thread.contact && thread.messages.length > 0 && resolveProject(known, thread.project)?.id === removeTarget.id).length
+    : 0;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [deleteTarget, setDeleteTarget] = useState<StoredThread | null>(null);
   const [deleteError, setDeleteError] = useState<string>();
@@ -65,7 +72,7 @@ export function DashboardRecentConversations({
   };
   // A folder opens by default when it holds the open chat, or when it is the most recent one with chats.
   const isOpen = (group: RecentProjectGroup, index: number) =>
-    expanded[group.folder] ?? ((index === 0 && group.threads.length > 0) || group.threads.some((thread) => thread.id === activeId));
+    expanded[group.project.id] ?? ((index === 0 && group.threads.length > 0) || group.threads.some((thread) => thread.id === activeId));
 
   const empty = projects.length === 0 && loose.length === 0;
 
@@ -74,11 +81,11 @@ export function DashboardRecentConversations({
   // one empty state, so a chat never has two places it might appear.
   return localize(<section aria-label="对话" className="flex min-w-0 flex-col gap-0.5">
     <SectionHeading label="对话" collapsed={collapsed} action={!collapsed && <AddProjectFolderButton />} />
-    {projects.map((group, index) => <ProjectFolderGroup key={group.folder} group={group} open={isOpen(group, index)}
-      onToggle={(open) => setExpanded((current) => ({ ...current, [group.folder]: open }))} actions={actions}
-      onNewChat={onNewChatInProject} onShowAll={onShowAll} />)}
+    {projects.map((group, index) => <ProjectFolderGroup key={group.project.id} group={group} open={isOpen(group, index)}
+      onToggle={(open) => setExpanded((current) => ({ ...current, [group.project.id]: open }))} actions={actions}
+      onNewChat={onNewChatInProject} onShowAll={onShowAll} onEdit={setEditTarget} onRemove={setRemoveTarget} />)}
     {loose.map((thread) => <RecentConversationRow key={thread.id} thread={thread} actions={actions} />)}
-    {empty && !collapsed && <p className="px-2 py-1 text-body-2-regular text-text-tertiary">聊天后会显示在这里。用 + 添加项目文件夹，对话会按项目分组。</p>}
+    {empty && !collapsed && <p className="px-2 py-1 text-body-2-regular text-text-tertiary">聊天后会显示在这里。用 + 添加项目，对话会按项目分组。</p>}
     {hiddenLoose > 0 && !collapsed && <button type="button" onClick={onShowAll}
       className="w-full cursor-pointer rounded-2lg px-2 py-1 text-start text-body-2-medium text-text-secondary hover:bg-background-secondary-hover">查看全部对话</button>}
     <AlertDialog
@@ -94,5 +101,18 @@ export function DashboardRecentConversations({
     >
       {deleteError && <p role="alert" className="text-body-2-regular text-text-error-primary">{deleteError}</p>}
     </AlertDialog>
+    {editTarget && <ProjectEditDialog key={editTarget.id} project={editTarget} onClose={() => setEditTarget(null)}
+      onRemove={() => { setRemoveTarget(editTarget); setEditTarget(null); }} />}
+    <AlertDialog
+      isOpen={removeTarget !== null}
+      onOpenChange={(open) => { if (!open) setRemoveTarget(null); }}
+      title={removeTarget ? `移除项目“${removeTarget.name}”？` : "移除项目？"}
+      description={removeCount > 0
+        ? `只从 NekoPapa 移除，不会删除文件夹。其中 ${removeCount} 段对话会保留，改列在未归入项目的对话中。`
+        : "只从 NekoPapa 移除，不会删除文件夹。"}
+      confirmLabel="移除项目"
+      cancelLabel="取消"
+      onConfirm={() => { if (removeTarget) removeProject(removeTarget.id); }}
+    />
   </section>);
 }

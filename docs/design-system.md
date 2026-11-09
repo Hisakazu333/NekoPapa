@@ -17,7 +17,7 @@
 
 - [globals.css](../src/styles/globals.css)：样式入口，导入 Tailwind、主题和排版；定义 `.dark` 策略、基础规则及共享动效。
 - [theme.css](../src/styles/theme.css)：基元覆盖、`accent-*` 色阶、字体族、圆角、阴影；用 `@theme inline` 把语义变量导出为 Tailwind 工具类，并实现主按钮渐变等共享样式。
-- [theme-light.css](../src/styles/theme-light.css)：`:root` 下的浅色语义颜色。
+- [theme-light.css](../src/styles/theme-light.css)：`:root` 下的浅色语义颜色；同一组定义也挂在 `.light` 上，用于在深色文档里局部呈现浅色主题（目前只有外观设置的主题预览），与 `.dark` 对称，不是另一套 token。
 - [theme-dark.css](../src/styles/theme-dark.css)：`.dark` 下覆盖同名语义颜色及阴影。
 - [typography.css](../src/styles/typography.css)：字号、行高、字距和字重组合。`text-body-medium` 等类一次应用整套排版。
 - [fonts.css](../src/platform/fonts.css)：本地打包 Inter Variable 与 JetBrains Mono Variable，并设置 `--font-inter`、`--font-mono-source`。当前使用 Fontsource，未使用 `next/font`。
@@ -34,6 +34,10 @@
 
 正文和控件使用 Inter 的系统回退栈，中文由可用系统字体回退；代码使用 JetBrains Mono 的等宽回退栈。正文 `text-body-*` 为 14 / 20，辅助正文 `text-body-2-*` 为 13 / 18，说明 `text-caption-1-*` 为 12 / 16；标题使用对应 `text-title-*` 或 `text-display-*`。当前工作台问候的衬线字体与自适应字号来自 [chat-home.css](../src/styles/chat-home.css)，是该区域已有的展示样式，不把整套控件改成衬线。
 
+图表与统计使用已有 chart 语义：空格子、空闲日和占比轨道用 `bg-chart-track`，数值用 `accent-*`（个人资料的活跃热力图、Token 用量柱和模型占比）。
+
+通知（toast）区域带 `data-react-aria-top-layer`，这是 React Aria 为 toast 保留的顶层标记：设置等弹窗打开时，弹窗外的内容会被设为 `inert`，只有顶层元素保持可点，点击它也不会被当作点在弹窗外。新增类似的全局浮层时沿用该标记，不要用提高 z-index 代替。
+
 现有首页仍有专用 CSS 尺寸与阴影，它们是已适配布局的实现事实，不能称为全部 token 化。扩展共享视觉时先检查现有组件是否已经覆盖；确需新增语义时，在主题及浅深色定义中统一加入并验证使用者，不能从这些专用值无限派生页面变体。
 
 ## 组件、图标与资源
@@ -42,7 +46,7 @@
 
 运行类设置在 schema 中显式声明 `control`（`input`、`textarea`、`select`、`segmented`、`switch`、`number`、`slider`、`directory` 或 `tags`），值校验仍由字段 `type` 负责；渲染器不通过字段名或选项文字长度猜测组件。普通枚举使用 BoardUI `Select`，互斥且选项有限的策略才使用 `SegmentedControl`，整数计数用 `NumberField`，连续范围用 `Slider`。配置块统一按设置页面配方渲染为分区标题 + 卡片行，不再声明布局变体；集合编辑和通用保存状态继续复用同一配置面板。
 
-侧栏“最近对话”参照 BoardUI 侧栏的存储库树：文件夹行使用 `RiFolder3Line` / 展开时 `RiFolderOpenLine`，子对话缩进并以 `border-border-button-default` 引导线连接，单行标题右侧是 `bg-background-tertiary-default` 的时间徽标；悬停时徽标淡出，行 `…` 菜单在同一位置出现。首页工具栏的项目文件夹选择复用 `chat-home__toolbar-button` 触发样式与 BoardUI Popover，列表行与联系人菜单保持同一尺寸和选中勾选图标。
+侧栏“最近对话”参照 BoardUI 侧栏的存储库树：文件夹行使用 `RiFolder3Line` / 展开时 `RiFolderOpenLine`，子对话缩进并以 `border-border-button-default` 引导线连接，单行标题右侧是 `bg-background-tertiary-default` 的时间徽标；悬停时徽标淡出，行 `…` 菜单在同一位置出现。项目行悬停显示 `RiMoreFill` “…”菜单（BoardUI Dropdown，与对话行菜单同宽同内边距，移除项为错误色）与新建对话图标，置顶项目名称后跟 `RiPushpinFill` 小图标。“编辑项目”使用 BoardUI Modal（md）：名称 Input 带文件夹前置图标，源文件夹为 `rounded-2xl border-border-button-default` 的分隔列表，主要文件夹用描边标签、其余用 secondary xs“设为主要”按钮，页脚左侧“移除本地项目”为错误色 secondary 按钮。首页工具栏的项目选择复用 `chat-home__toolbar-button` 触发样式与 BoardUI Popover，列表行与联系人菜单保持同一尺寸和选中勾选图标，第二行显示主要文件夹的 Git 分支（`RiGitBranchLine`）。
 
 普通功能图标沿用 `@remixicon/react`，尺寸由对应组件决定。展开箭头使用仓库现有 [chevrons.tsx](../src/components/foundations/icons/chevrons.tsx)。模型供应商和附件插件使用已核实并随包保存的 BoardUI SVG，资源来源与路径见源码说明；装饰插画、Logo、人物头像与 Live2D 模型各有资源所有者，不能把供应商品牌图标当作普通功能图标替代。
 

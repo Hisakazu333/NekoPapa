@@ -1,38 +1,42 @@
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
+import { resolveProject, type Project } from "../../../app/projects";
 
-/** A project folder in the sidebar with its newest workbench chats. */
-export interface RecentProjectGroup { folder: string; threads: StoredThread[]; updatedAt: number; hidden: number }
+/** A project in the sidebar with its newest workbench chats. */
+export interface RecentProjectGroup { project: Project; threads: StoredThread[]; updatedAt: number; hidden: number }
 export interface RecentSidebarGroups { projects: RecentProjectGroup[]; loose: StoredThread[]; hiddenLoose: number }
 
 /**
- * Splits workbench chats into project folders and chats that belong to no
- * folder. Contact chats and empty drafts never appear. Folders with chats are
- * ordered by their newest chat; remembered folders without chats follow in
- * their own order, so a folder added before its first chat is still listed.
+ * Splits workbench chats into projects and chats that belong to none (no
+ * project, or a project that was removed). Contact chats and empty drafts
+ * never appear. Pinned projects come first in list order; the rest are
+ * ordered by their newest chat, then projects without chats in list order.
  */
 export function groupRecentThreads(threads: readonly StoredThread[], {
-  folders = [], perProject = 5, loose: looseLimit = 6,
-}: { folders?: readonly string[]; perProject?: number; loose?: number } = {}): RecentSidebarGroups {
+  projects: known = [], perProject = 5, loose: looseLimit = 6,
+}: { projects?: readonly Project[]; perProject?: number; loose?: number } = {}): RecentSidebarGroups {
   const recent = threads
     .filter((thread) => !thread.contact && thread.messages.length > 0)
     .sort((a, b) => b.updatedAt - a.updatedAt);
-  const projects = new Map<string, RecentProjectGroup>();
+  const groups = new Map<string, RecentProjectGroup>(known.map((project) => [project.id, { project, threads: [], updatedAt: 0, hidden: 0 }]));
   const loose: StoredThread[] = [];
   for (const thread of recent) {
-    if (!thread.project) {
+    const group = groups.get(resolveProject(known, thread.project)?.id ?? "");
+    if (!group) {
       loose.push(thread);
       continue;
     }
-    const group = projects.get(thread.project);
-    if (group) group.threads.push(thread);
-    else projects.set(thread.project, { folder: thread.project, threads: [thread], updatedAt: thread.updatedAt, hidden: 0 });
+    group.threads.push(thread);
+    group.updatedAt = Math.max(group.updatedAt, thread.updatedAt);
   }
-  for (const folder of folders) {
-    if (!projects.has(folder)) projects.set(folder, { folder, threads: [], updatedAt: 0, hidden: 0 });
-  }
+  const all = [...groups.values()];
+  const ordered = [
+    ...all.filter((group) => group.project.pinned),
+    ...all.filter((group) => !group.project.pinned && group.threads.length > 0).sort((a, b) => b.updatedAt - a.updatedAt),
+    ...all.filter((group) => !group.project.pinned && group.threads.length === 0),
+  ];
   const limit = (count: number) => Math.max(0, count);
   return {
-    projects: [...projects.values()].map((group) => ({
+    projects: ordered.map((group) => ({
       ...group, threads: group.threads.slice(0, limit(perProject)), hidden: Math.max(0, group.threads.length - limit(perProject)),
     })),
     loose: loose.slice(0, limit(looseLimit)),
