@@ -1,53 +1,33 @@
-import { Avatar } from "@/components/base/avatar/avatar";
-import { Chip } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { useConfiguration } from "@/hooks/use-configuration";
-import { useLocalProfile } from "@/hooks/use-local-profile";
 import { ConfigurationGroupPanel } from "./nekopapa-configuration-settings";
 import { SettingsCard, SettingsRow } from "./settings-rows";
-import type { SettingsSection } from "./workspace-settings-catalog";
 
-export function GeneralSettingsPanel({ onClose, onNavigate }: {
-  onClose: () => void;
-  onNavigate: (section: SettingsSection) => void;
-}) {
-  return <ConfigurationGroupPanel group="general" onClose={onClose} lead={<ProfileCard onNavigate={onNavigate} />} />;
+/**
+ * General: how new chats start and how messages are sent (these work now),
+ * then the desktop blocks that wait for the host. The local profile has its
+ * own page, and the interface language stays in the account menu.
+ */
+export function GeneralSettingsPanel({ onClose }: { onClose: () => void }) {
+  return <ConfigurationGroupPanel group="general" onClose={onClose} />;
 }
 
-/** The official General page's plan card, carrying the local profile instead of a plan. */
-function ProfileCard({ onNavigate }: { onNavigate: (section: SettingsSection) => void }) {
-  const { profile } = useLocalProfile();
-  const { data } = useConfiguration();
-  const collections = data.collections;
-  const counts = [
-    `${collections.models.length} 个 API 配置`,
-    `${collections.extensions.length} 个工具与技能`,
-    `${collections.connections.length} 台设备`,
-  ].join(" · ");
-  const initials = Array.from(profile.name.trim()).slice(0, 2).join("").toLocaleUpperCase() || "NE";
-  return <div className="flex w-full items-center gap-3 rounded-2xl bg-background-secondary-default py-3 ps-3 pe-2.5">
-    <Avatar size="lg" initials={initials} />
-    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-      <div className="flex min-w-0 items-center gap-2">
-        <p translate="no" className="min-w-0 truncate text-headline-medium text-text-primary">{profile.name}</p>
-        <Chip variant="caption" color="neutral" className="shrink-0">本机资料 · 未登录</Chip>
-      </div>
-      <p className="truncate text-body-2-regular text-text-secondary">{counts}，均保存在当前设备。</p>
-    </div>
-    <Button variant="secondary" size="small" className="shrink-0" onClick={() => onNavigate("profile")}>编辑资料</Button>
-  </div>;
+/** Send and newline keys follow the General setting, so this list never contradicts it. */
+function shortcutList(sendKey: unknown) {
+  const modEnter = sendKey === "mod-enter";
+  return [
+    { keys: "⌘L / Ctrl+K", action: "快速搜索", description: "搜索会话内容、联系人名称和设置分类。" },
+    { keys: modEnter ? "⌘ / Ctrl + Enter" : "Enter", action: "发送消息", description: "在聊天输入框中发送；需要可用的模型连接。可在“常规”中更改。" },
+    { keys: modEnter ? "Enter" : "Shift + Enter", action: "插入换行", description: "在聊天输入框中继续编写多行消息。" },
+    { keys: "Escape", action: "关闭弹窗", description: "关闭当前可取消的对话框。" },
+    { keys: "⌘ / Ctrl + ,", action: "打开或关闭设置", description: "macOS 使用 ⌘，Windows 和 Linux 使用 Ctrl。" },
+  ];
 }
-
-const shortcuts = [
-  { keys: "⌘L / Ctrl+K", action: "快速搜索", description: "搜索会话内容、联系人名称和设置分类。" },
-  { keys: "Enter", action: "发送消息", description: "在聊天输入框中发送；需要可用的模型连接。" },
-  { keys: "Shift + Enter", action: "插入换行", description: "在聊天输入框中继续编写多行消息。" },
-  { keys: "Escape", action: "关闭弹窗", description: "关闭当前可取消的对话框。" },
-  { keys: "⌘ / Ctrl + ,", action: "打开或关闭设置", description: "macOS 使用 ⌘，Windows 和 Linux 使用 Ctrl。" },
-] as const;
 
 export function ShortcutsSettingsPanel({ onClose }: { onClose: () => void }) {
+  const { data } = useConfiguration();
+  const shortcuts = shortcutList(data.groups.general.sendKey);
   return <>
     <ModalBody>
       <SettingsCard>

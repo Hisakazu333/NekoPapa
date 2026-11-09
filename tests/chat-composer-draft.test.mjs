@@ -133,3 +133,14 @@ test("输出形式未接入时保留原消息草稿并阻止发送", () => {
     assert.equal(buildComposerText("原始问题", draft), "原始问题");
   }
 });
+
+test("常规设置的默认模式只作用于工作台新草稿；联系人仍从聊天开始，不允许的模式回退到 Auto", () => {
+  assert.equal(createComposerDraft("workspace").mode, "auto");
+  assert.equal(createComposerDraft("workspace", "chat").mode, "chat");
+  assert.equal(createComposerDraft("workspace", "study").mode, "study");
+  assert.equal(createComposerDraft("workspace", "agent").mode, "agent");
+  assert.equal(createComposerDraft("workspace", "professional").mode, "auto");
+  assert.equal(createComposerDraft("workspace", "bogus").mode, "auto");
+  assert.equal(createComposerDraft("custom", "agent").mode, "chat");
+  assert.equal(createComposerDraft("official", "study").mode, "chat");
+});

@@ -129,10 +129,3 @@ export function filterSidebarSearch(entries: SidebarSearchEntry[], query: string
     return terms.every((term) => text.includes(term));
   }).slice(0, limit);
 }
-
-export function recentSidebarThreads(threads: StoredThread[], limit = 6) {
-  return [...threads]
-    .filter((thread) => !thread.contact && thread.messages.length > 0)
-    .sort((a, b) => b.updatedAt - a.updatedAt)
-    .slice(0, Math.max(0, limit));
-}

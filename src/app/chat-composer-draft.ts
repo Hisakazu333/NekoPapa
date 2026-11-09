@@ -65,8 +65,10 @@ export const COMPOSER_FILE_LIMIT = 10;
 export const COMPOSER_FILE_MAX_BYTES = 10 * 1024 * 1024;
 export const COMPOSER_TOTAL_MAX_BYTES = 25 * 1024 * 1024;
 
-export function createComposerDraft(context: ComposerContext = "custom"): ComposerDraft {
-  return { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? "auto" : "chat", permission: "ask" };
+/** `workspaceMode` is General → 新建对话 → 默认模式; contacts always start in chat. */
+export function createComposerDraft(context: ComposerContext = "custom", workspaceMode: ComposerMode = "auto"): ComposerDraft {
+  const allowed = composerModesForContext(context).some((mode) => mode.id === workspaceMode);
+  return { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? (allowed ? workspaceMode : "auto") : "chat", permission: "ask" };
 }
 
 export function projectDirectoryFromFiles(files: readonly Pick<File, "webkitRelativePath">[]): string {

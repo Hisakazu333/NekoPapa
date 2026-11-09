@@ -1,4 +1,5 @@
 import { RiArrowUpLine, RiEmotionHappyLine, RiStopFill } from "@remixicon/react";
+import { useSendKey } from "@/hooks/use-send-key";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/base/buttons/button";
 import { Dropdown, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
@@ -33,13 +34,8 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   const composerContext = context ?? (officialCompanion ? "official" : "custom");
   const blockedReason = (officialCompanion ? composer.draftBlockReason : composer.blockReason) ?? sendBlockedReason;
   const canSend = ready && !busy && !blockedReason && Boolean(value.trim());
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.nativeEvent.isComposing || composing.current || event.keyCode === 229) return;
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      if (canSend) onSend();
-    }
-  };
+  const handleSendKey = useSendKey(composing);
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { handleSendKey(event, () => { if (canSend) onSend(); }); };
 
   return <div className="relative mx-2 mb-2 flex shrink-0 flex-col rounded-3xl border border-border-button-default bg-background-primary-default">
     <div className="relative z-1 flex flex-col gap-2 rounded-3xl border border-border-button-white bg-background-full p-3 shadow-xs">

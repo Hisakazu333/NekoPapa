@@ -5,8 +5,12 @@
 
 export const SIDEBAR_PINS_KEY = "nekopapa.sidebar-pins.v1";
 
-/** Ordered list of destinations offered by the sidebar "更多" panel. */
-export const sidebarDestinations = ["knowledge", "projects"] as const;
+/**
+ * Ordered list of destinations offered by the sidebar "更多" panel. Projects
+ * were removed: they are the sidebar's own 项目 section, so an old "projects"
+ * pin is dropped on read like any other unknown ID.
+ */
+export const sidebarDestinations = ["knowledge"] as const;
 export type SidebarDestination = (typeof sidebarDestinations)[number];
 export const defaultSidebarPins: readonly SidebarDestination[] = [];
 

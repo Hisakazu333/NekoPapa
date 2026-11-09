@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { SettingsModal } from "./settings-modal";
+import { SettingsOpenerContext } from "./settings-opener";
 import type { SettingsSection } from "./workspace-settings-catalog";
 
 export type OpenWorkspaceSettings = (section: SettingsSection, returnFocusTarget?: HTMLElement | null) => void;
@@ -28,6 +29,7 @@ export function WorkspaceSettingsProvider({ children }: { children: ReactNode })
     setSession((current) => ({ open: true, page, id: current.open ? current.id : current.id + 1 }));
   }, [rememberFocus]);
   const close = useCallback(() => setSession((current) => ({ ...current, open: false })), []);
+  const opener = useCallback(() => (returnFocus.current?.isConnected ? returnFocus.current : null), []);
 
   useEffect(() => {
     const shortcut = (event: KeyboardEvent) => {
@@ -46,8 +48,10 @@ export function WorkspaceSettingsProvider({ children }: { children: ReactNode })
 
   return (
     <SettingsContext.Provider value={open}>
-      {children}
-      <SettingsModal key={session.id} isOpen={session.open} onClose={close} onAfterClose={restoreFocus} defaultPage={session.page} requestCloseRef={requestCloseRef} />
+      <SettingsOpenerContext.Provider value={opener}>
+        {children}
+        <SettingsModal key={session.id} isOpen={session.open} onClose={close} onAfterClose={restoreFocus} defaultPage={session.page} requestCloseRef={requestCloseRef} />
+      </SettingsOpenerContext.Provider>
     </SettingsContext.Provider>
   );
 }

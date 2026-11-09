@@ -26,7 +26,12 @@ export interface ConfigurationField {
   required?: boolean;
   format?: "url" | "environment" | "branch" | "host" | "accent";
 }
-export interface ConfigurationBlock { title: string; fields: readonly ConfigurationField[] }
+export interface ConfigurationBlock {
+  title: string;
+  fields: readonly ConfigurationField[];
+  /** Set when this block's service is not connected although the rest of the page works. */
+  pending?: string;
+}
 export interface ConfigurationSchema {
   id: ConfigurationGroup;
   effect: "immediate" | "runtime";

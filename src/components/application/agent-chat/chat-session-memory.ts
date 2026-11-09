@@ -9,6 +9,7 @@ export interface ChatSessionSnapshot {
   messageAt: StoredThread["messageAt"];
   input: string;
   contact?: ChatContact;
+  project?: string;
 }
 
 export function emptyChatSession(id: string, contact?: ChatContact): ChatSessionSnapshot {
@@ -34,6 +35,7 @@ export class ChatSessionMemory {
       messages: thread.messages, messageAt: thread.messageAt,
       input: this.inputs.get(thread.id) ?? "",
       ...(contact ? { contact } : {}),
+      ...(thread.project ? { project: thread.project } : {}),
     };
     this.sessions.set(thread.id, session);
     return session;

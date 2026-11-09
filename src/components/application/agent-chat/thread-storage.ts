@@ -24,6 +24,8 @@ export interface StoredThread {
   messages: UIMessage[];
   messageAt: Record<string, number>;
   contact?: ChatContactMetadata;
+  /** Project folder a workbench chat is grouped under; contact chats have none. */
+  project?: string;
 }
 
 export function orderThreads(threads: StoredThread[]) {
@@ -66,6 +68,9 @@ function parseThread(value: unknown): StoredThread {
     !Object.values(value.messageAt).every((time) => typeof time === "number" && Number.isFinite(time)))) throw new Error("Invalid message times");
   const contact = value.contact === undefined ? undefined : parseStoredChatContact(value.contact);
   if (value.contact !== undefined && !contact) throw new Error("Invalid contact metadata");
+  if (value.project !== undefined && (typeof value.project !== "string" || !value.project.trim() || value.project.length > 1024)) {
+    throw new Error("Invalid project folder");
+  }
   return { ...value, messageAt: value.messageAt ?? {}, ...(contact ? { contact } : {}) } as unknown as StoredThread;
 }
 

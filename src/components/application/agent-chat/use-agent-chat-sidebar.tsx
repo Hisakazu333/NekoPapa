@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { RiBook2Line, RiChatAiLine, RiContactsLine, RiFolder3Line, RiGraduationCapLine } from "@remixicon/react";
+import { RiBook2Line, RiChatAiLine, RiContactsLine, RiGraduationCapLine } from "@remixicon/react";
 import type { SidebarDestination } from "@/app/sidebar-pins";
 import { useSidebarPins } from "@/hooks/use-sidebar-pins";
 import type { SidebarMoreEntry } from "@/components/application/dashboard/sidebar-more-menu";
@@ -15,7 +15,7 @@ import type { DashboardNavItem } from "@/components/application/dashboard/sideba
 export function useAgentChatSidebar({
   setPage, setRequestedContactId, setNavOpen, activeContactId, activeId,
   threads, contacts, busy, onSelectThread, onShowAllThreads,
-  onRenameThread, onToggleUnread, onDeleteThread,
+  onRenameThread, onToggleUnread, onDeleteThread, onNewChatInProject,
 }: {
   setPage: (page: WorkspacePage) => void;
   setRequestedContactId: (id: string | undefined) => void;
@@ -30,13 +30,13 @@ export function useAgentChatSidebar({
   onRenameThread: (id: string, title: string) => void;
   onToggleUnread: (id: string) => void;
   onDeleteThread: (id: string) => boolean;
+  onNewChatInProject: (folder: string) => void;
 }) {
   const openSettings = useWorkspaceSettings();
   const { pins, toggle, notice } = useSidebarPins();
   // Secondary pages offered by "更多"; pinned ones also appear in the main navigation.
   const destinations: Record<SidebarDestination, Omit<DashboardNavItem, "key">> = useMemo(() => ({
     knowledge: { label: "知识库", icon: RiBook2Line, href: "#knowledge", onSelect: () => { setPage("knowledge"); setNavOpen(false); } },
-    projects: { label: "项目", icon: RiFolder3Line, href: "#projects", onSelect: () => { setPage("projects"); setNavOpen(false); } },
   }), [setNavOpen, setPage]);
   const items: DashboardNavItem[] = useMemo(() => [
     { key: "chat", label: "工作台", icon: RiChatAiLine, href: "/", onSelect: () => { setPage("chat"); setNavOpen(false); } },
@@ -104,8 +104,9 @@ export function useAgentChatSidebar({
   }, [busy, contacts, onSelectThread, setNavOpen, setPage, setRequestedContactId]);
   const children = useCallback((collapsed: boolean) => <DashboardRecentConversations
     threads={threads} collapsed={collapsed} activeId={activeId} onSelect={onSelectRecent} onShowAll={onShowAllThreads}
-    onRename={onRenameThread} onToggleUnread={onToggleUnread} onDelete={onDeleteThread} busy={busy} />,
-  [activeId, busy, onDeleteThread, onRenameThread, onSelectRecent, onShowAllThreads, onToggleUnread, threads]);
+    onRename={onRenameThread} onToggleUnread={onToggleUnread} onDelete={onDeleteThread} busy={busy}
+    onNewChatInProject={(folder) => { onNewChatInProject(folder); setPage("chat"); setNavOpen(false); }} />,
+  [activeId, busy, onDeleteThread, onRenameThread, onSelectRecent, onShowAllThreads, onToggleUnread, threads, onNewChatInProject, setPage, setNavOpen]);
 
   return { items, more, searchEntries: entries, onSearchSelect, children };
 }

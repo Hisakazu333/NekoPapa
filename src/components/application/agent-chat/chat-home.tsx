@@ -19,8 +19,10 @@ import { ComposerAddMenu } from "../chat-composer/composer-add-menu";
 import { ComposerModelMenu } from "../chat-composer/composer-model-menu";
 import { ComposerDraftSummary } from "../chat-composer/composer-draft-summary";
 import { HomeContactsMenu } from "./home-contacts-menu";
+import { HomeProjectMenu } from "./home-project-menu";
 import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
+import { useSendKey } from "@/hooks/use-send-key";
 import "@/styles/chat-home.css";
 
 const modes = [
@@ -55,6 +57,10 @@ export interface ChatHomeProps {
   onClearContact: () => void;
   selectedContact?: ChatContact;
   composer: ChatComposerState;
+  /** Project folder of the workbench chat; contact chats have none. */
+  project?: string;
+  onProjectChange: (folder: string | undefined) => void;
+  knownProjects: readonly string[];
 }
 
 function greeting() {
@@ -64,7 +70,7 @@ function greeting() {
   return "晚上好。";
 }
 
-export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlockedReason, onOpenSettings, onSelectContact, onClearContact, selectedContact, composer }: ChatHomeProps) {
+export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlockedReason, onOpenSettings, onSelectContact, onClearContact, selectedContact, composer, project, onProjectChange, knownProjects }: ChatHomeProps) {
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -90,11 +96,8 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
     event?.preventDefault();
     if (canSend) onSubmit(value);
   };
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing || composing.current || event.keyCode === 229) return;
-    event.preventDefault();
-    submit();
-  };
+  const handleSendKey = useSendKey(composing);
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { handleSendKey(event, submit); };
 
   return (
     <section className="chat-home" aria-labelledby={titleId}>
@@ -141,6 +144,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
             <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><RiPlugLine aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
+            {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} knownFolders={knownProjects} />}
             <HomeContactsMenu onSelectContact={onSelectContact} onClearContact={onClearContact} selectedContact={selectedContact} />
           </div>
         </div>

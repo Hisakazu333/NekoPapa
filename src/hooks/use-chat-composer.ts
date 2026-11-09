@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft } from "@/app/chat-composer-draft";
+import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat-composer-draft";
 import { composerModelBlockReason, composerModels, type ComposerRuntimeModel } from "@/app/composer-model";
 import { useConfiguration } from "./use-configuration";
 
@@ -9,9 +9,12 @@ interface DraftState { draft: ComposerDraft; selectedModel?: string; error?: str
 export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, context: ComposerContext = "custom") {
   const { data } = useConfiguration();
   const [states, setStates] = useState<Record<string, DraftState>>({});
-  const state = states[scope] ?? { draft: createComposerDraft(context) };
+  // New drafts start in General → 新建对话 → 默认模式; drafts already open keep their mode.
+  const defaultMode = data.groups.general.defaultMode as ComposerMode;
+  const fresh = () => ({ draft: createComposerDraft(context, defaultMode) });
+  const state = states[scope] ?? fresh();
   const update = (change: (previous: DraftState) => DraftState) => {
-    setStates((all) => ({ ...all, [scope]: change(all[scope] ?? { draft: createComposerDraft(context) }) }));
+    setStates((all) => ({ ...all, [scope]: change(all[scope] ?? fresh()) }));
   };
   const models = composerModels(data.collections.models, runtime);
   const selected = models.find((option) => option.id === (state.selectedModel ?? "runtime"));

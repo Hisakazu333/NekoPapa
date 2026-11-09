@@ -6,7 +6,7 @@ import { Modal as AriaModal, ModalOverlay } from "react-aria-components";
 import { ModalDialog, ModalHeader } from "@/components/base/modal/modal";
 import { AlertDialog } from "@/components/base/modal/modal";
 import { useDirection } from "@/components/foundations/direction/direction";
-import { ProfileSettingsPanel } from "@/components/application/dashboard/dashboard-account-dialog";
+import { ProfileSettingsPanel } from "./profile/profile-settings-panel";
 import { cx } from "@/utils/cx";
 import { AppearanceSettingsPanel } from "./nekopapa-appearance-settings";
 import { ConfigurationGroupPanel, ConnectionsSettingsPanel, HooksSettingsPanel } from "./nekopapa-configuration-settings";
@@ -36,13 +36,12 @@ function SettingsFocusReturn({ onAfterClose }: Pick<SettingsModalProps, "onAfter
   return null;
 }
 
-function SettingsPanel({ page, onClose, onNavigate }: {
+function SettingsPanel({ page, onClose }: {
   page: SettingsPage;
   onClose: () => void;
-  onNavigate: (page: SettingsPage) => void;
 }) {
   switch (page) {
-    case "general": return <GeneralSettingsPanel onClose={onClose} onNavigate={onNavigate} />;
+    case "general": return <GeneralSettingsPanel onClose={onClose} />;
     case "profile": return <ProfileSettingsPanel onClose={onClose} />;
     case "appearance": return <AppearanceSettingsPanel onClose={onClose} />;
     case "model": return <ModelSettingsPanel onClose={onClose} />;
@@ -153,7 +152,7 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
               className="min-h-0 flex-1 flex-col gap-4 pb-6 outline-none"
             >
               <SettingsDraftProvider value={reportDraft}>
-              <SettingsPanel page={section} onClose={requestClose} onNavigate={navigate} />
+              <SettingsPanel page={section} onClose={requestClose} />
               </SettingsDraftProvider>
             </section>)}
           </div>

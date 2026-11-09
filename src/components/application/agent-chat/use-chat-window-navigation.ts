@@ -15,6 +15,7 @@ export function useChatWindowNavigation({
   restoreSession,
   setSelectedContact,
   enterWorkspace,
+  project,
 }: {
   activeId: string;
   busy: boolean;
@@ -25,17 +26,19 @@ export function useChatWindowNavigation({
   restoreSession: (session: ChatSessionSnapshot) => void;
   setSelectedContact: Dispatch<SetStateAction<ChatContact | undefined>>;
   enterWorkspace: () => void;
+  /** Project folder of the open chat; a new chat starts in the same folder. */
+  project?: string;
 }) {
   const beforeSwitch = useCallback(() => {
     keepLiveThread();
     rememberSession();
   }, [keepLiveThread, rememberSession]);
   const createSession = useCallback(() => {
-    const session = emptyChatSession(newThreadId());
+    const session = { ...emptyChatSession(newThreadId()), ...(project ? { project } : {}) };
     setSelectedContact(undefined);
     restoreSession(session);
     return session.id;
-  }, [restoreSession, setSelectedContact]);
+  }, [restoreSession, setSelectedContact, project]);
   const restoreById = useCallback((id: string) => {
     const snapshot = sessionMemory.current.getSession(id);
     if (snapshot) {

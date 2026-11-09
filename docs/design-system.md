@@ -40,7 +40,9 @@
 
 按钮、输入、选择、菜单、模态框、提示和确认框优先复用 [base](../src/components/base) 下现有组件。组件基于当前锁定的 React Aria 与 React 版本；页面负责组合与业务状态，基础组件负责外观、键盘语义及焦点行为。菜单与选择列表的语义不同，不能只因样式相近就互换。
 
-运行类设置在 schema 中显式声明 `control`（`input`、`textarea`、`select`、`segmented`、`switch`、`number`、`slider` 或 `directory`），值校验仍由字段 `type` 负责；渲染器不通过字段名或选项文字长度猜测组件。普通枚举使用 BoardUI `Select`，互斥且选项有限的策略才使用 `SegmentedControl`，整数计数用 `NumberField`，连续范围用 `Slider`。配置块通过 `layout` 声明纵向或双列布局，集合编辑和通用保存状态继续复用同一配置面板。
+运行类设置在 schema 中显式声明 `control`（`input`、`textarea`、`select`、`segmented`、`switch`、`number`、`slider`、`directory` 或 `tags`），值校验仍由字段 `type` 负责；渲染器不通过字段名或选项文字长度猜测组件。普通枚举使用 BoardUI `Select`，互斥且选项有限的策略才使用 `SegmentedControl`，整数计数用 `NumberField`，连续范围用 `Slider`。配置块统一按设置页面配方渲染为分区标题 + 卡片行，不再声明布局变体；集合编辑和通用保存状态继续复用同一配置面板。
+
+侧栏“最近对话”参照 BoardUI 侧栏的存储库树：文件夹行使用 `RiFolder3Line` / 展开时 `RiFolderOpenLine`，子对话缩进并以 `border-border-button-default` 引导线连接，单行标题右侧是 `bg-background-tertiary-default` 的时间徽标；悬停时徽标淡出，行 `…` 菜单在同一位置出现。首页工具栏的项目文件夹选择复用 `chat-home__toolbar-button` 触发样式与 BoardUI Popover，列表行与联系人菜单保持同一尺寸和选中勾选图标。
 
 普通功能图标沿用 `@remixicon/react`，尺寸由对应组件决定。展开箭头使用仓库现有 [chevrons.tsx](../src/components/foundations/icons/chevrons.tsx)。模型供应商和附件插件使用已核实并随包保存的 BoardUI SVG，资源来源与路径见源码说明；装饰插画、Logo、人物头像与 Live2D 模型各有资源所有者，不能把供应商品牌图标当作普通功能图标替代。
 

@@ -25,6 +25,7 @@ import { resolveContactThread } from "@/components/application/contacts/contact-
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { useChatComposer } from "@/hooks/use-chat-composer";
 import { useContacts } from "@/hooks/use-contacts";
+import { useConfiguration } from "@/hooks/use-configuration";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
@@ -34,6 +35,8 @@ import { createChatWindowChrome } from "./chat-window-chrome";
 
 import { ChatHome } from "./chat-home";
 import { useChatProvider } from "./use-chat-provider";
+import { useChatTranscript } from "./use-chat-transcript";
+import { useStartupThread } from "./use-startup-thread";
 import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { toChatContactRequest } from "./chat-contact";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
@@ -78,6 +81,8 @@ export function AgentChat({
   /** Set when the open thread is renamed. Without it the derived title
    *  (built from the first message) would immediately overwrite the name. */
   const [activeTitle, setActiveTitle] = useState<string | null>(null);
+  /** Project folder the open workbench chat is grouped under. */
+  const [activeProject, setActiveProject] = useState<string>();
   const contactBaseline = useRef<StoredThread | null>(null);
   const sessionMemory = useRef(new ChatSessionMemory());
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -115,29 +120,7 @@ export function AgentChat({
     return () => { cancelled = true; };
   }, [selectedContact, deletedIds, stop, setMessages]);
 
-  // Reasoning models stream their thinking before any text, and the SDK flips
-  // status to "streaming" on that first non-text chunk. Gating the indicator on
-  // "submitted" alone therefore hides it seconds before a word appears, leaving
-  // an empty transcript. It stays up until real text exists.
-  const streamedText = useMemo(() => {
-    const last = messages[messages.length - 1];
-    if (!last || last.role !== "assistant") return "";
-    return last.parts
-      .filter((part) => part.type === "text")
-      .map((part) => part.text)
-      .join("");
-  }, [messages]);
-  const showThinking = busy && streamedText.length === 0;
-
-  /** The open chat as plain text, for the share control. */
-  const transcript = useMemo(
-    () =>
-      messages
-        .map((message) => `${message.role === "user" ? "You" : "Assistant"}: ${messageText(message)}`)
-        .filter((line) => !line.endsWith(": "))
-        .join("\n\n"),
-    [messages],
-  );
+  const { showThinking, transcript } = useChatTranscript(messages, busy);
 
   useEffect(() => { setActiveId(newThreadId()); }, []);
 
@@ -154,10 +137,10 @@ export function AgentChat({
             updatedAt: activeUpdatedAt,
             messages,
             messageAt,
-            ...(activeContact ? { contact: activeContact } : {}),
+            ...(activeContact ? { contact: activeContact } : activeProject ? { project: activeProject } : {}),
           }
         : null,
-    [activeId, messages, activeUpdatedAt, messageAt, activeTitle, activeContact],
+    [activeId, messages, activeUpdatedAt, messageAt, activeTitle, activeContact, activeProject],
   );
 
   // Ordered by last message, never by what is open: selecting a thread must
@@ -238,14 +221,15 @@ export function AgentChat({
   const rememberSession = useCallback(() => {
     sessionMemory.current.remember({
       id: activeId, title: activeTitle, updatedAt: activeUpdatedAt, messages, messageAt, input,
-      ...(activeContact ? { contact: activeContact } : {}),
+      ...(activeContact ? { contact: activeContact } : {}), ...(activeProject ? { project: activeProject } : {}),
     }, Boolean(activeContact));
-  }, [activeId, activeTitle, activeUpdatedAt, messages, messageAt, input, activeContact]);
+  }, [activeId, activeTitle, activeUpdatedAt, messages, messageAt, input, activeContact, activeProject]);
   const restoreSession = useCallback((session: ChatSessionSnapshot) => {
     setSelectedContact(session.contact);
     setActiveId(session.id);
     setActiveUpdatedAt(session.updatedAt);
     setActiveTitle(session.title);
+    setActiveProject(session.project);
     setMessageAt(session.messageAt);
     setMessages(session.messages);
     setInput(session.input);
@@ -262,14 +246,18 @@ export function AgentChat({
     restoreSession(session);
   }, [busy, activeContact, keepLiveThread, rememberSession, restoreSession]);
 
-  const startNewChat = useCallback(() => {
+  /** A new chat stays in the open project folder unless another one is given. */
+  const startChatIn = useCallback((project: string | undefined) => {
     if (busy) return;
     keepLiveThread();
     rememberSession();
     contactBaseline.current = null;
     setSelectedContact(undefined);
-    restoreSession(emptyChatSession(newThreadId()));
+    restoreSession({ ...emptyChatSession(newThreadId()), ...(project ? { project } : {}) });
   }, [busy, keepLiveThread, rememberSession, restoreSession]);
+  // General → 新建对话 → 项目文件夹 decides whether a new chat stays in the open project.
+  const newChatProject = useConfiguration().data.groups.general.projectFolder === "none" ? undefined : activeProject;
+  const startNewChat = useCallback(() => startChatIn(newChatProject), [startChatIn, newChatProject]);
 
   const renameThread = useCallback((id: string, title: string) => {
     if (id === activeId) setActiveTitle(title);
@@ -326,6 +314,7 @@ export function AgentChat({
     restoreSession(sessionMemory.current.openThread(thread));
   }, [busy, activeContact?.id, keepLiveThread, rememberSession, history.threads, toggleUnread, restoreSession]);
 
+  useStartupThread({ ready: history.ready, activeId, threads: allThreads, onOpen: selectThread });
   const { showAllThreads } = useChatWorkspaceNavigation({
     setNavOpen,
     setPage,
@@ -335,6 +324,7 @@ export function AgentChat({
     setPage, setRequestedContactId, setNavOpen, activeContactId: activeContact?.id, activeId,
     threads: history.threads, contacts, busy, onSelectThread: selectThread,
     onShowAllThreads: showAllThreads, onRenameThread: renameThread, onToggleUnread: toggleUnread, onDeleteThread: deleteThread,
+    onNewChatInProject: startChatIn,
   });
   const windowNavigation = useChatWindowNavigation({
     activeId,
@@ -346,7 +336,9 @@ export function AgentChat({
     restoreSession,
     setSelectedContact,
     enterWorkspace: () => setPage("chat"),
+    project: newChatProject,
   });
+  const knownProjects = useMemo(() => [...new Set(allThreads.flatMap((thread) => thread.project ? [thread.project] : []))], [allThreads]);
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
@@ -428,6 +420,9 @@ export function AgentChat({
                         onClearContact={clearContact}
                         selectedContact={activeContact}
                         composer={composer}
+                        project={activeProject}
+                        onProjectChange={setActiveProject}
+                        knownProjects={knownProjects}
                       />
                     ) : (
                       messages.map((message, index) => (

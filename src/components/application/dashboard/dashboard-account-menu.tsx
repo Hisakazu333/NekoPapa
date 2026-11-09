@@ -25,6 +25,7 @@ import {
 } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { profileInitials } from "@/app/profile-identity";
 import { desktopAccountApi } from "@/app/desktop-account-api";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { useWorkspaceSettings, type OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
@@ -88,7 +89,7 @@ export function DashboardAccountMenu({
   const [languageError, setLanguageError] = useState<string>();
   const [appearanceError, setAppearanceError] = useState("");
   const container = useRef<HTMLDivElement>(null);
-  const initials = Array.from(profile.name).slice(0, 2).join("").toUpperCase();
+  const initials = profileInitials(profile.name);
   const accountStatus = desktopAccountApi.availability.kind === "disabled" ? "登录暂未开放" : "未登录";
   const showSettings = (section: AccountSettingsSection) => {
     setOpen(false);

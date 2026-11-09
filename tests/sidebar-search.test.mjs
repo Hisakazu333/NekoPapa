@@ -15,7 +15,7 @@ try {
   search = await import(pathToFileURL(join(output, "components/application/dashboard/sidebar-search.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
-const { buildSidebarSearchEntries, filterSidebarSearch, isSidebarQuickSearchShortcut, recentSidebarThreads, sidebarQuickSearchShortcut, sidebarSearchOptionId } = search;
+const { buildSidebarSearchEntries, filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId } = search;
 const message = (id, role, text) => ({ id, role, parts: [{ type: "text", text }] });
 const thread = (id, title, updatedAt, messages, contact) => ({ id, title, updatedAt, messages, messageAt: {}, ...(contact ? { contact } : {}) });
 
@@ -54,15 +54,6 @@ test("设置支持ID和英文别名检索，联系人聊天可搜但不会混入
   assert.equal(filterSidebarSearch(entries, "dark mode")[0].id, "setting:appearance");
   assert.equal(filterSidebarSearch(entries, "agent defaults")[0].id, "setting:agent");
   assert.equal(filterSidebarSearch(entries, "Review course")[0].id, "thread:contact-thread");
-  assert.deepEqual(recentSidebarThreads([conversation, workspace]).map((item) => item.id), ["workspace-thread"]);
-});
-
-test("最近对话只返回有消息的记录并按更新时间排列", () => {
-  const first = thread("first", "First", 10, [message("a", "user", "one")]);
-  const latest = thread("latest", "Latest", 30, [message("b", "user", "two")]);
-  const empty = thread("empty", "Empty", 40, []);
-  assert.deepEqual(recentSidebarThreads([first, empty, latest]).map((item) => item.id), ["latest", "first"]);
-  assert.deepEqual(recentSidebarThreads([first, latest], 1).map((item) => item.id), ["latest"]);
 });
 
 test("快速搜索快捷键按系统区分并忽略输入法、重复按键和浏览器地址栏组合", () => {

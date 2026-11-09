@@ -9,6 +9,7 @@ import { useConfiguration } from "@/hooks/use-configuration";
 import { CollectionSettingsPanel } from "./nekopapa-collection-settings";
 import { SettingsFields } from "./nekopapa-settings-fields";
 import { SettingsCard, SettingsSectionLabel } from "./settings-rows";
+import { StatusDot } from "@/components/base/badges/status-dot";
 import { SettingsServiceStatus } from "./settings-service-status";
 import { useSettingsDraft } from "./settings-draft-context";
 
@@ -16,7 +17,7 @@ type EditableGroup = Exclude<ConfigurationGroup, "profile" | "appearance">;
 export interface ConfigurationGroupPanelProps {
   group: EditableGroup;
   onClose: () => void;
-  /** Page-specific content shown above the service status, e.g. the General profile card. */
+  /** Page-specific content shown above the saved fields, e.g. General's language row. */
   lead?: ReactNode;
 }
 const equal = (left: ConfigurationValues, right: ConfigurationValues) => JSON.stringify(left) === JSON.stringify(right);
@@ -91,13 +92,16 @@ export function ConfigurationGroupPanel({ group, onClose, lead }: ConfigurationG
       <ModalBody>
         <form id={formId} onSubmit={submit} noValidate className="flex flex-col gap-6">
           {lead}
-          <SettingsServiceStatus runtime={schema.effect === "runtime"} scope={schema.scope} />
+          {schema.effect === "runtime" && <SettingsServiceStatus runtime scope={schema.scope} />}
           {updated && dirty && <div role="status" className="flex flex-col gap-2 rounded-xl border border-border-button-default p-3">
             <p className="text-body-2-regular text-text-secondary">本机配置已在其他位置更新。你的草稿仍然保留；保存时只合并你编辑的字段，并检查冲突。</p>
             <Button variant="secondary" size="small" className="self-start" onClick={loadCurrent}>放弃草稿并载入最新值</Button>
           </div>}
           {schema.blocks.map((block) => <section key={block.title} className="flex flex-col gap-2" aria-label={block.title}>
             <SettingsSectionLabel>{block.title}</SettingsSectionLabel>
+            {block.pending && <p className="flex items-start gap-2 px-3 text-body-2-regular text-text-tertiary">
+              <StatusDot color="yellow" className="mt-1.5" /><span><span className="text-text-secondary">未接入</span> · {block.pending}</span>
+            </p>}
             <SettingsCard>
               <SettingsFields fields={block.fields.map((field) => fields.find((current) => current.key === field.key)!)} values={values} errors={errors} onChange={update} prefix={formId} />
             </SettingsCard>

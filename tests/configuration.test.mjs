@@ -33,6 +33,10 @@ test("每类配置均可完整校验，新增字段在旧版本 1 数据中使�
   assert.equal(Object.keys(old.value.groups).length, 19);
   // Backups written before the General, privacy and development pages existed load their defaults.
   assert.equal(old.value.groups.general.sendKey, "enter");
+  assert.equal(old.value.groups.general.defaultMode, "auto");
+  assert.equal(old.value.groups.general.projectFolder, "inherit");
+  const generalFields = configurationSchemas.find((schema) => schema.id === "general").blocks.flatMap((block) => block.fields);
+  assert.equal(validateFields(generalFields, { ...configurationDefaults().groups.general, defaultMode: "professional" }).ok, false);
   assert.equal(old.value.groups.privacy.usageStats, false);
   assert.equal(old.value.groups.permissions.mode, "ask");
   assert.equal(old.value.groups.permissions.deny, "rm -rf");

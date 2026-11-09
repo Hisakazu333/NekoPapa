@@ -18,8 +18,8 @@ interface SettingsSectionEntry {
 }
 
 export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
-  general: { label: "常规", title: "常规", description: "启动、发送方式、通知与更新。", icon: RiSettings6Line },
-  profile: { label: "个人资料", title: "个人资料", description: "名称和介绍保存在本机，与在线账号独立。", icon: RiUserLine },
+  general: { label: "常规", title: "常规", description: "语言、对话方式、通知与更新。", icon: RiSettings6Line },
+  profile: { label: "个人资料", title: "个人资料", description: "你的身份、NekoPapa 账号和本机使用记录。", icon: RiUserLine },
   appearance: { label: "外观", title: "外观偏好", description: "选择当前工作区的主题模式。", icon: RiPaletteLine },
   model: { label: "模型与 API", title: "模型与自定义 API", description: "管理本机模型连接配置。", icon: RiCpuLine },
   agent: { label: "Agent", title: "Agent 默认值", description: "保存新运行的模型、回复和权限偏好。", icon: RiRobot2Line },
@@ -60,6 +60,6 @@ export const settingsNavigationSections = settingsGroups.flatMap((group) => grou
 
 /** Runtime-only preferences are retained as settings with explicit unavailable states until their services are connected. */
 export const deferredSettingsSections: readonly SettingsSection[] = [
-  "general", "privacy", "agent", "personalization", "voice", "desktop", "computer", "history", "screenshots", "browser",
+  "privacy", "agent", "personalization", "voice", "desktop", "computer", "history", "screenshots", "browser",
   "coding", "permissions", "context", "editor", "review", "git", "worktrees",
 ];

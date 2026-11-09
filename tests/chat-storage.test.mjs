@@ -326,3 +326,19 @@ test("导入头像随同一联系人历史往返，仅保存一份图片字段�
     assert.equal(readThreads(memoryStorage({ [CHAT_STORAGE_KEY]: currentEnvelope([invalid]) })).writable, false);
   }
 });
+
+test("工作台对话的项目文件夹随记录保存并恢复；没有项目的旧记录保持不变，无效项目拒绝写入且不覆盖原数据", () => {
+  const storage = memoryStorage();
+  const grouped = { ...thread("grouped", 20), project: "/Users/me/vibl" };
+  const plain = thread("plain", 10);
+  assert.equal(writeThreads([grouped, plain], true, storage).saved, true);
+  const loaded = readThreads(storage);
+  assert.equal(loaded.threads[0].project, "/Users/me/vibl");
+  assert.equal(Object.hasOwn(loaded.threads[1], "project"), false);
+  const raw = storage.getItem(CHAT_STORAGE_KEY);
+  for (const project of ["", "   ", 42, "x".repeat(1025)]) {
+    assert.equal(writeThreads([{ ...grouped, project }], true, storage).saved, false);
+    assert.equal(storage.getItem(CHAT_STORAGE_KEY), raw);
+  }
+  assert.equal(readThreads(memoryStorage({ [CHAT_STORAGE_KEY]: currentEnvelope([{ ...grouped, project: 7 }]) })).writable, false);
+});

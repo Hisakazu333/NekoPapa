@@ -4,12 +4,17 @@ import { Input } from "@/components/base/input/input";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { Textarea } from "@/components/base/textarea/textarea";
 import { useLocalProfile } from "@/hooks/use-local-profile";
-import { useSettingsDraft } from "../settings/settings-draft-context";
+import { useSettingsDraft } from "../settings-draft-context";
 
-export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
+/**
+ * Edits the local profile in place of the profile overview. Cancel and save
+ * both return to the overview; closing settings with unsaved edits goes
+ * through the shared settings draft guard.
+ */
+export function ProfileEditForm({ onDone }: { onDone: () => void }) {
   const { profile, saveProfile, storageAvailable, notice } = useLocalProfile();
   const formId = useId();
-  // The draft belongs to this dialog. External updates can refresh the menu
+  // The draft belongs to this form. External updates can refresh the menu
   // without replacing edits until this instance is saved or dismissed.
   const [original, setOriginal] = useState(profile);
   const [draft, setDraft] = useState(original);
@@ -23,13 +28,14 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
     event.preventDefault();
     const result = saveProfile(draft, original);
     if (result) setErrors(result);
-    else { setOriginal(draft); clearDraft(); onClose(); }
+    else { setOriginal(draft); clearDraft(); onDone(); }
   };
 
   return (
     <>
       <ModalBody>
-        <form id={formId} onSubmit={save} noValidate className="flex flex-col gap-4">
+        <form id={formId} onSubmit={save} noValidate aria-label="编辑本机资料" className="flex flex-col gap-4">
+          <p className="text-body-regular text-text-secondary">名称、介绍和网站只保存在此设备。登录 NekoPapa 账号后，账号名称和头像会优先显示。</p>
           <Input
             label="显示名称"
             value={draft.name}
@@ -49,7 +55,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
             showCount
             rows={4}
             isInvalid={Boolean(errors.biography)}
-            hint={errors.biography || "可选，仅保存在本机。"}
+            hint={errors.biography || "可选，显示在个人资料中。"}
           />
           <Input
             label="个人网站"
@@ -70,7 +76,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
         </form>
       </ModalBody>
       <ModalFooter>
-        <Button variant="secondary" onClick={() => { setDraft(original); clearDraft(); onClose(); }}>取消</Button>
+        <Button variant="secondary" onClick={() => { setDraft(original); clearDraft(); onDone(); }}>取消</Button>
         <Button type="submit" form={formId}>
           {storageAvailable ? "保存" : "重试保存"}
         </Button>

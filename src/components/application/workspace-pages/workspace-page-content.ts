@@ -1,7 +1,7 @@
 import type { ComponentType } from "react";
 import {
-  RiBook2Line, RiBookOpenLine, RiDraftLine, RiFileList2Line, RiFolder3Line, RiGitRepositoryLine,
-  RiGraduationCapLine, RiQuestionAnswerLine, RiRoadMapLine, RiSearchLine, RiTaskLine, RiUploadCloud2Line,
+  RiBook2Line, RiBookOpenLine, RiDraftLine, RiGraduationCapLine, RiQuestionAnswerLine, RiRoadMapLine,
+  RiSearchLine, RiUploadCloud2Line,
 } from "@remixicon/react";
 import type { BackendWorkspacePage } from "@/components/application/dashboard/workspace-page";
 
@@ -31,17 +31,7 @@ export const workspacePageContent: Record<BackendWorkspacePage, WorkspacePageCon
     planned: [
       { icon: RiUploadCloud2Line, title: "上传资料", description: "导入 PDF、Markdown、网页等资料并自动解析。" },
       { icon: RiSearchLine, title: "检索与引用", description: "回答时引用资料原文，并标明出处。" },
-      { icon: RiBookOpenLine, title: "分组管理", description: "按课程、项目或主题整理资料。" },
-    ],
-  },
-  projects: {
-    title: "项目", icon: RiFolder3Line,
-    intro: "把相关的对话、资料和任务归到同一个项目里。",
-    status: "项目及其成员、资料和进度由 NekoBuddy 后端保存。当前客户端没有连接后端，不会创建项目。",
-    planned: [
-      { icon: RiFileList2Line, title: "项目概览", description: "汇总项目说明、最近对话和关联资料。" },
-      { icon: RiTaskLine, title: "任务与进度", description: "拆分目标并跟踪完成情况。" },
-      { icon: RiGitRepositoryLine, title: "代码项目", description: "关联本地工作目录，供未来的 Coding 会话使用。" },
+      { icon: RiBookOpenLine, title: "分组管理", description: "按课程或主题整理资料，并可关联到侧栏中的项目。" },
     ],
   },
 };
