@@ -20,11 +20,11 @@ import { CloseButton } from "@/components/base/buttons/close-button";
 import { Kbd } from "@/components/base/kbd/kbd";
 import { Collapsible, NavRows, DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./sidebar-navigation";
 import { SidebarResizeFrame } from "./sidebar-resize-frame";
+import { SidebarMoreMenu, type SidebarMoreEntry } from "./sidebar-more-menu";
 export { DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./sidebar-navigation";
 import { cx } from "@/utils/cx";
 import { filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
 import { DashboardSidebarSearchResults } from "./dashboard-sidebar-search-results";
-import { isMacTauriWindow } from "./mac-window-frame";
 
 /**
  * Figma sources:
@@ -53,6 +53,7 @@ export function DashboardSidebar({
   className,
   searchEntries = [],
   onSearchSelect,
+  more,
 }: {
   /** Rendered inside the mobile drawer: always expanded, close button instead of collapse. */
   mobile?: boolean;
@@ -74,10 +75,11 @@ export function DashboardSidebar({
   /** Current local conversations, contacts, pages and settings. */
   searchEntries?: SidebarSearchEntry[];
   onSearchSelect?: (entry: SidebarSearchEntry) => boolean | void;
+  /** Codex-style "更多" panel of secondary destinations with pin toggles. */
+  more?: { entries: SidebarMoreEntry[]; notice?: string; onTogglePin: (id: string) => void };
   className?: string;
 } = {}) {
   const localize = useTemplateCopy();
-  const macTitlebar = isMacTauriWindow();
   const [collapsedState, setCollapsed] = useState(false);
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState("");
@@ -189,33 +191,31 @@ export function DashboardSidebar({
             "flex w-full transition-[gap] duration-300 ease-in-out",
             collapsed
               ? "flex-col-reverse items-start justify-center gap-2.5"
-              : cx("flex-row items-center justify-between", macTitlebar && "justify-end"),
+              : "flex-row items-center justify-between",
           )}
         >
-          {!macTitlebar && (
+          <div
+            className={cx(
+              "-m-2 min-w-0 overflow-hidden p-2 transition-[max-width,opacity,transform] duration-300 ease-in-out",
+              mobile && flat && searchActive
+                ? "max-w-0 scale-95 opacity-0"
+                : "max-w-[206px] scale-100 opacity-100",
+            )}
+          >
             <div
-              className={cx(
-                "-m-2 min-w-0 overflow-hidden p-2 transition-[max-width,opacity,transform] duration-300 ease-in-out",
-                mobile && flat && searchActive
-                  ? "max-w-0 scale-95 opacity-0"
-                  : "max-w-[206px] scale-100 opacity-100",
-              )}
+              aria-label="NekoPapa local workspace"
+              className={cx("flex min-w-0 items-center gap-2", collapsed && "w-9 justify-center gap-0")}
             >
-              <div
-                aria-label="NekoPapa local workspace"
-                className={cx("flex min-w-0 items-center gap-2", collapsed && "w-9 justify-center gap-0")}
-              >
-                <img
-                  src="/brand/nekopapa-app-icon-v1-128.png"
-                  alt=""
-                  className="size-8 shrink-0 rounded-full object-contain"
-                />
-                <Collapsible collapsed={collapsed}>
-                  <span className="text-body-medium whitespace-nowrap text-text-primary">NekoPapa</span>
-                </Collapsible>
-              </div>
+              <img
+                src="/brand/nekopapa-app-icon-v1-128.png"
+                alt=""
+                className="size-8 shrink-0 rounded-full object-contain"
+              />
+              <Collapsible collapsed={collapsed}>
+                <span className="text-body-medium whitespace-nowrap text-text-primary">NekoPapa</span>
+              </Collapsible>
             </div>
-          )}
+          </div>
           {mobile && flat ? (
             <div
               ref={searchFieldRef}
@@ -367,6 +367,7 @@ export function DashboardSidebar({
             <>
               <nav className={cx("flex w-full flex-col gap-1.5", !collapsed && "px-0.5")}>
                 <NavRows items={items} query={normalizedQuery} selected={selected} collapsed={collapsed} />
+                {more && <SidebarMoreMenu {...more} collapsed={collapsed} />}
               </nav>
               {children?.(collapsed)}
             </>

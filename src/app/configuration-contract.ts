@@ -1,10 +1,12 @@
 import { personalConfiguration } from "./configuration-personal";
 import { integrationConfiguration, collectionSchemas } from "./configuration-integrations";
 import { codingConfiguration } from "./configuration-coding";
+import { developmentConfiguration } from "./configuration-development";
+import { workspaceConfiguration } from "./configuration-workspace";
 import { configurationCollections } from "./configuration-types";
 import type { ConfigurationData, ConfigurationValues, ConfigurationField, ConfigurationRecord, ValidationResult } from "./configuration-types";
 
-export const configurationSchemas = [...personalConfiguration, ...integrationConfiguration, ...codingConfiguration];
+export const configurationSchemas = [...workspaceConfiguration, ...personalConfiguration, ...integrationConfiguration, ...codingConfiguration, ...developmentConfiguration];
 export { collectionSchemas };
 
 export function configurationDefaults(): ConfigurationData {
@@ -44,6 +46,13 @@ export function validateFields(fields: readonly ConfigurationField[], input: unk
     const value = raw.trim();
     if (field.required && !value) errors[field.key] = "请填写此项。";
     else if (field.maxLength && value.length > field.maxLength) errors[field.key] = `最多 ${field.maxLength} 个字符。`;
+    else if (field.type === "select" && field.format === "accent") {
+      // Custom accents are stored as lowercase six-digit HEX beside the named presets.
+      if (field.options?.some(([id]) => id === value)) values[field.key] = value;
+      else if (/^#[\da-f]{6}$/i.test(value)) values[field.key] = value.toLowerCase();
+      else errors[field.key] = "请选择预设强调色或填写六位 HEX 颜色。";
+      continue;
+    }
     else if (field.type === "select" && !field.options?.some(([id]) => id === value)) errors[field.key] = "请选择有效选项。";
     else if (value && field.format === "url") {
       try {

@@ -13,6 +13,7 @@ export function useWorkspaceSettings() {
 export function WorkspaceSettingsProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<{ open: boolean; page: SettingsSection; id: number }>({ open: false, page: "general", id: 0 });
   const returnFocus = useRef<HTMLElement | null>(null);
+  const requestCloseRef = useRef<(() => void) | null>(null);
   const sessionOpen = useRef(session.open);
   sessionOpen.current = session.open;
   const rememberFocus = useCallback((target?: HTMLElement | null) => {
@@ -32,10 +33,11 @@ export function WorkspaceSettingsProvider({ children }: { children: ReactNode })
     const shortcut = (event: KeyboardEvent) => {
       if (!event.repeat && (event.metaKey || event.ctrlKey) && event.key === ",") {
         event.preventDefault();
-        if (!session.open) rememberFocus();
-        setSession((current) => current.open
-          ? { ...current, open: false }
-          : { open: true, page: "general", id: current.id + 1 });
+        if (session.open) requestCloseRef.current?.();
+        else {
+          rememberFocus();
+          setSession((current) => ({ open: true, page: "general", id: current.id + 1 }));
+        }
       }
     };
     window.addEventListener("keydown", shortcut);
@@ -45,7 +47,7 @@ export function WorkspaceSettingsProvider({ children }: { children: ReactNode })
   return (
     <SettingsContext.Provider value={open}>
       {children}
-      <SettingsModal key={session.id} isOpen={session.open} onClose={close} onAfterClose={restoreFocus} defaultPage={session.page} />
+      <SettingsModal key={session.id} isOpen={session.open} onClose={close} onAfterClose={restoreFocus} defaultPage={session.page} requestCloseRef={requestCloseRef} />
     </SettingsContext.Provider>
   );
 }

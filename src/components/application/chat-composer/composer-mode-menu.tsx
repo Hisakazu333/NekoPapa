@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { RiBookOpenLine, RiCheckLine, RiChatSmile2Line, RiMagicLine, RiRobot2Line, RiUserSettingsLine } from "@remixicon/react";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
-import { composerModesForContext, type ComposerContext, type ComposerMode } from "@/app/chat-composer-draft";
+import { composerModesForContext, selectComposerMode, type ComposerContext, type ComposerMode } from "@/app/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";
@@ -35,7 +35,7 @@ export function ComposerModeMenu({ state, context = "custom", disabled, classNam
     <DropdownPopover aria-label="对话模式" placement="top start" dialogClassName="max-h-[min(420px,70dvh)] overflow-y-auto">
       <DropdownGroup label="对话模式">
         {modes.map((item) => { const Icon = modeIcons[item.id]; return <DropdownItem key={item.id} selected={mode.id === item.id} onSelect={() => {
-          state.setDraft((draft) => ({ ...draft, mode: item.id as ComposerMode }));
+          state.setDraft((draft) => selectComposerMode(draft, item.id as ComposerMode));
           setOpen(false);
         }} className="items-start gap-3">
           <Icon className="mt-0.5 size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />

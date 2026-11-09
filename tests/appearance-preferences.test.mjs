@@ -23,6 +23,8 @@ test("normalizes supported appearance values and falls back to safe defaults", (
   assert.equal(appearance.normalizeAppearanceMode("dark"), "dark");
   assert.equal(appearance.normalizeAppearanceMode("unknown"), "system");
   assert.equal(appearance.normalizeAppearanceAccent("purple"), "purple");
+  assert.equal(appearance.normalizeAppearanceAccent("#AABBCC"), "#aabbcc");
+  assert.equal(appearance.normalizeAppearanceAccent("#xyzxyz"), "green");
   assert.equal(appearance.normalizeAppearanceAccent(null), "green");
 });
 
@@ -35,13 +37,27 @@ test("resolves explicit and system-following themes", () => {
 });
 
 test("applies a validated accent to the document root without changing the input", () => {
-  const root = { dataset: {} };
+  const values = new Map();
+  const root = { dataset: {}, style: { setProperty: (key, value) => values.set(key, value), removeProperty: (key) => values.delete(key) } };
   const selected = { accent: "orange" };
   assert.equal(appearance.applyAppearanceAccent(root, selected.accent), "orange");
   assert.equal(root.dataset.accent, "orange");
   assert.deepEqual(selected, { accent: "orange" });
   appearance.applyAppearanceAccent(root, "unsupported");
   assert.equal(root.dataset.accent, "green");
+  assert.equal(values.has("--color-accent-500"), false);
+});
+
+test("custom HEX accents generate and clear the eleven BoardUI accent tokens", () => {
+  const values = new Map();
+  const root = { dataset: {}, style: { setProperty: (key, value) => values.set(key, value), removeProperty: (key) => values.delete(key) } };
+  assert.equal(appearance.applyAppearanceAccent(root, "#5c7a62"), "#5c7a62");
+  assert.equal(root.dataset.accent, "custom");
+  for (const shade of [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950]) {
+    assert.match(values.get(`--color-accent-${shade}`), /color-mix\(in oklab/);
+  }
+  appearance.applyAppearanceAccent(root, "orange");
+  assert.equal(values.has("--color-accent-500"), false);
 });
 
 test("every non-default accent has a complete static Tailwind token ramp", () => {

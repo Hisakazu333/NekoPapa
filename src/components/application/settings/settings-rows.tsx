@@ -47,28 +47,44 @@ export function SettingsSectionLabel({ className, children }: { className?: stri
   ));
 }
 
-/** One label + control row. Rows separate themselves; the last has no border. */
+/**
+ * One label + control row. Rows separate themselves; the last has no border.
+ * NekoPapa additions: `labelId` / `descriptionId` let the control reference
+ * the row text, `error` replaces the description in the error colour, and
+ * `stacked` puts wide controls (long text, tag lists) under the label.
+ */
 export function SettingsRow({
   label,
   description,
   children,
+  labelId,
+  descriptionId,
+  error,
+  stacked = false,
 }: {
   label: string;
   description?: string;
   children?: ReactNode;
+  labelId?: string;
+  descriptionId?: string;
+  error?: string;
+  stacked?: boolean;
 }) {
   const localize = useTemplateCopy();
+  const detail = error || description;
   return localize((
     <div
       className={cx(
-        "flex min-h-[52px] w-full items-center justify-between gap-4 py-2.5 pe-2.5",
+        "flex min-h-[52px] w-full gap-4 py-2.5 pe-2.5",
+        stacked ? "flex-col items-stretch gap-2.5" : "items-center justify-between",
         "border-b border-separator-border last:border-b-0",
       )}
     >
       <div className="flex min-w-0 flex-col">
-        <p className="text-body-regular text-text-primary">{label}</p>
-        {description && (
-          <p className="text-body-2-regular text-text-secondary">{description}</p>
+        <p id={labelId} className="text-body-regular text-text-primary">{label}</p>
+        {detail && (
+          <p id={descriptionId} role={error ? "alert" : undefined}
+            className={cx("text-body-2-regular", error ? "text-text-error-primary" : "text-text-secondary")}>{detail}</p>
         )}
       </div>
       {children}

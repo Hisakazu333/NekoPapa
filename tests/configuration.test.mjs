@@ -30,7 +30,49 @@ test("每类配置均可完整校验，新增字段在旧版本 1 数据中使�
   assert.equal(old.ok, true);
   assert.equal(old.value.groups.profile.name, "旧资料");
   assert.equal(old.value.groups.appearance.mode, "system");
-  assert.equal(Object.keys(old.value.groups).length, 14);
+  assert.equal(Object.keys(old.value.groups).length, 19);
+  // Backups written before the General, privacy and development pages existed load their defaults.
+  assert.equal(old.value.groups.general.sendKey, "enter");
+  assert.equal(old.value.groups.privacy.usageStats, false);
+  assert.equal(old.value.groups.permissions.mode, "ask");
+  assert.equal(old.value.groups.permissions.deny, "rm -rf");
+  assert.equal(old.value.groups.context.compactThreshold, 85);
+  assert.equal(old.value.groups.editor.shell, "system");
+  const outOfRange = validateConfiguration({ version: 1, groups: { context: { compactThreshold: 120 } }, collections: {} });
+  assert.equal(outOfRange.ok, false);
+});
+
+test("运行类设置显式声明适合的 BoardUI 控件，不依赖字段名猜测", () => {
+  const controls = new Map();
+  for (const schema of configurationSchemas) {
+    for (const field of schema.blocks.flatMap((block) => block.fields)) {
+      if (field.control) controls.set(`${schema.id}.${field.key}`, field.control);
+      if (["segmented", "select"].includes(field.control)) assert.equal(field.type, "select");
+      if (field.control === "switch") assert.equal(field.type, "boolean");
+      // Segmented choices sit on the right of a settings row, so their labels stay short.
+      if (field.control === "segmented") assert.ok(field.options.reduce((total, [, name]) => total + name.length, 0) <= 10, `${schema.id}.${field.key}`);
+      for (const option of Object.keys(field.optionHints ?? {})) assert.ok(field.options?.some(([id]) => id === option), `${schema.id}.${field.key}.${option}`);
+      if (field.control === "tags") assert.equal(field.type, "textarea");
+      if (field.control === "slider" || field.control === "number") assert.equal(field.type, "number");
+      if (field.control === "directory") assert.equal(field.type, "text");
+      if (field.control === "textarea") assert.equal(field.type, "textarea");
+    }
+  }
+  assert.equal(controls.get("desktop.scale"), "slider");
+  assert.equal(controls.get("desktop.opacity"), "slider");
+  assert.equal(controls.get("worktrees.limit"), "number");
+  assert.equal(controls.get("coding.directory"), "directory");
+  assert.equal(controls.get("agent.reasoning"), "segmented");
+  assert.equal(controls.get("agent.modelSource"), "select");
+  assert.equal(controls.get("computer.applications"), "tags");
+  assert.equal(controls.get("history.excluded"), "tags");
+  assert.equal(controls.get("agent.approval"), "segmented");
+  assert.equal(controls.get("computer.confirmation"), "select");
+  assert.equal(controls.get("desktop.alwaysOnTop"), "switch");
+  assert.equal(controls.get("permissions.allow"), "tags");
+  assert.equal(controls.get("context.compactThreshold"), "slider");
+  assert.equal(controls.get("editor.diff"), "segmented");
+  assert.equal(controls.get("git.commitInstructions"), "textarea");
 });
 
 test("旧外观语言可兼容读取但不再进入设置配置或导出备份", () => {

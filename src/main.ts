@@ -7,6 +7,7 @@ import { ConfiguredTheme } from "./platform/configured-theme";
 import { WorkspaceSettingsProvider } from "@/components/application/settings/workspace-settings";
 import { AccountPageProvider } from "@/components/application/account/account-page-provider";
 import { ApplicationLanguageProvider } from "@/components/application/language/application-language";
+import { Toaster } from "@/components/base/toast/toast";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Application root is missing");
@@ -14,4 +15,7 @@ if (!root) throw new Error("Application root is missing");
 createRoot(root).render(createElement(AccountPageProvider, null,
   createElement(ApplicationLanguageProvider, null,
     createElement(WorkspaceSettingsProvider, null,
-      createElement(Fragment, null, createElement(ConfiguredTheme), createElement(AgentChat))))));
+      createElement(Fragment, null,
+        createElement(ConfiguredTheme),
+        createElement(AgentChat),
+        createElement(Toaster, { "aria-label": "通知", closeLabel: "关闭通知" }))))));

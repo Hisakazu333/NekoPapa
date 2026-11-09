@@ -31,7 +31,8 @@ Vite 适配保留 `src/platform/fonts.css`（字体变量）和 `scripts/boardui
 - 自建联系人行支持更多菜单、右键与键盘菜单的编辑 / 删除；删除确认同时清理单聊，保留既有群聊，存储失败按阶段显示原记录保留或历史待清理，并明确重试。
 - 自建联系人资料面板支持本机头像导入、裁剪预览、更换与移除，保存 / 取消复用联系人草稿；列表与单聊读取同一保存结果。头像不随模型请求上传，官方人物资料仍只读。
 - 工作台右侧历史辅助区使用可拖动分隔条；联系人按稳定 contact.id 继续最近会话，保留原 thread.id。
-- 共享 ChatHistoryStore 按 ID 合并工作台与联系人历史，兼容读取旧历史；设置有 23 个分类，未接入能力只保存配置。
+- 共享 ChatHistoryStore 按 ID 合并工作台与联系人历史，兼容读取旧历史；设置有 27 个分类，未接入能力只保存配置。
+- 设置页按官方 `settings-modal` 区块组合：`settings-rows.tsx` 的 `SettingsRow` 增加 `labelId` / `descriptionId` / `error` / `stacked`；`settings-record-rows.tsx` 改编自官方 Tools 页的 ServerTile / ServerRow / ServerMenu / NewServerRow（方块颜色改用 Chip 状态色，状态点只表示未接入）；`radio-card.tsx` 的说明由截断改为换行。未安装官方 `file-upload`：它模拟上传进度，与真实状态要求冲突，数据页导入区只沿用其空闲外观。
 
 未配置模型时，探针返回 `configured: false`，界面保留草稿输入并禁用发送，不生成脚本回复。真实调用路径需要 Vite 服务器环境变量，本机模型配置记录尚未驱动此路由；本轮没有据此宣称已经完成真实提供方问答验收。
 

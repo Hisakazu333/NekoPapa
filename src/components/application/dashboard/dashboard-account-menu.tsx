@@ -169,7 +169,7 @@ export function DashboardAccountMenu({
           <DropdownDivider />
           <DropdownGroup label="工作区">
             <AccountAction icon={RiCpuLine} label="模型与 API" onSelect={() => showSettings("model")} />
-            <AccountAction icon={RiToolsLine} label="工具与技能" onSelect={() => showSettings("tools")} />
+            <AccountAction icon={RiToolsLine} label="MCP 与连接器" onSelect={() => showSettings("tools")} />
             <AccountAction icon={RiDatabase2Line} label="数据与备份" onSelect={() => showSettings("data")} />
           </DropdownGroup>
           <DropdownDivider />

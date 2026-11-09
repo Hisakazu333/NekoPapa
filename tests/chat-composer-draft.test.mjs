@@ -30,7 +30,7 @@ test("每个输入区拥有独立空草稿，修改文件、目标和产物不�
   first.goal = "理解课程";
   first.planning = true;
   first.artifact = "document";
-  assert.deepEqual(second, { attachments: [], goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
+  assert.deepEqual(second, { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
 });
 
 test("添加文件保留原File内容、稳定ID和文件夹路径，移除时其他文件身份不变", async () => {

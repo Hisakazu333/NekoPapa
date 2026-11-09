@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import { isTauri } from "@tauri-apps/api/core";
+import { RiArrowLeftLine, RiArrowRightLine, RiAddLine } from "@remixicon/react";
+import { ToolbarIconButton } from "./toolbar-icon-button";
 import { cx } from "@/utils/cx";
 
 export function isMacTauriWindow() {
@@ -11,16 +13,44 @@ export function MacWindowFrame({
   contained = false,
   className,
   titlebarContent,
+  toolbarNavigation,
 }: {
   children: ReactNode;
   contained?: boolean;
   className?: string;
   titlebarContent?: ReactNode;
+  toolbarNavigation?: {
+    onBack: () => void;
+    onForward: () => void;
+    onCreate: () => void;
+    canGoBack?: boolean;
+    canGoForward?: boolean;
+  };
 }) {
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
   const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", height, className);
 
-  if (contained || !isMacTauriWindow()) return <div className={frameClass}>{children}</div>;
+  const navigation = toolbarNavigation && (
+    <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
+      <ToolbarIconButton icon={RiArrowLeftLine} label="返回" onPress={toolbarNavigation.onBack} isDisabled={!toolbarNavigation.canGoBack} />
+      <ToolbarIconButton icon={RiArrowRightLine} label="前进" onPress={toolbarNavigation.onForward} isDisabled={!toolbarNavigation.canGoForward} />
+      <span aria-hidden className="mx-1 h-4 w-px bg-separator-border" />
+      <ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={toolbarNavigation.onCreate} />
+    </div>
+  );
+  if (contained) return <div className={frameClass}>{children}</div>;
+
+  if (!isMacTauriWindow()) {
+    return (
+      <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-full", className)}>
+        <header aria-label="工作区工具栏" className="flex h-10 shrink-0 items-center gap-3 px-2">
+          {navigation}
+          {titlebarContent && <div className="flex min-w-0 flex-1 items-center">{titlebarContent}</div>}
+        </header>
+        <div className="relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3">{children}</div>
+      </div>
+    );
+  }
 
   return (
     <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-full", className)}>
@@ -28,16 +58,7 @@ export function MacWindowFrame({
         aria-label="NekoPapa window title bar"
         className="flex h-10 shrink-0 select-none items-center ps-[88px] text-text-primary"
       >
-        <span data-tauri-drag-region className="flex shrink-0 items-center gap-2">
-          <img
-            src="/brand/nekopapa-app-icon-v1-128.png"
-            alt=""
-            draggable={false}
-            data-tauri-drag-region
-            className="size-5 shrink-0 object-contain"
-          />
-          <span data-tauri-drag-region className="text-body-medium">NekoPapa</span>
-        </span>
+        {navigation}
         {titlebarContent ? (
           <div className="flex h-full min-w-0 flex-1 items-center ps-6 pe-3">{titlebarContent}</div>
         ) : (

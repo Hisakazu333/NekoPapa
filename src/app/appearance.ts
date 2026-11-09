@@ -1,4 +1,5 @@
 import type { ConfigurationValues } from "./configuration-types";
+import { applyAppearanceAccent } from "./appearance-preferences";
 
 const systemMode = window.matchMedia("(prefers-color-scheme: dark)");
 let current: ConfigurationValues;
@@ -12,7 +13,7 @@ export function applyAppearance(values: ConfigurationValues): void {
   current = values;
   const root = document.documentElement;
   root.dataset.theme = values.mode === "system" ? systemMode.matches ? "dark" : "light" : String(values.mode);
-  root.dataset.accent = String(values.accent);
+  applyAppearanceAccent(root, values.accent);
   root.dataset.density = String(values.density);
   root.dataset.reducedMotion = String(values.reducedMotion);
   root.style.setProperty("--app-font", fonts[String(values.font)] ?? fonts.system);

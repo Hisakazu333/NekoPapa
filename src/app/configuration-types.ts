@@ -1,22 +1,30 @@
 import type { CloudQuotaSnapshot } from "./cloud-account-contract";
 
-export type ConfigurationGroup = "profile" | "appearance" | "voice" | "agent" | "personalization" | "desktop" | "computer" | "history" | "screenshots" | "browser" | "coding" | "review" | "git" | "worktrees";
+export type ConfigurationGroup = "general" | "privacy" | "profile" | "appearance" | "voice" | "agent" | "personalization" | "desktop" | "computer" | "history" | "screenshots" | "browser" | "coding" | "permissions" | "context" | "editor" | "review" | "git" | "worktrees";
 export type ConfigurationValue = string | boolean | number;
 export type ConfigurationValues = Record<string, ConfigurationValue>;
 export type ConfigurationCollection = "models" | "extensions" | "connections" | "hooks";
+export type ConfigurationControl = "input" | "textarea" | "select" | "segmented" | "switch" | "number" | "slider" | "directory" | "tags";
 export interface ConfigurationField {
   key: string;
   label: string;
   hint: string;
   type: "text" | "textarea" | "select" | "boolean" | "number";
+  /** Presentation control. Value validation still follows `type`. */
+  control?: ConfigurationControl;
   initial: ConfigurationValue;
   options?: readonly (readonly [string, string])[];
+  /** Explanation of the selected option, shown in the row description. */
+  optionHints?: Readonly<Record<string, string>>;
   min?: number;
   max?: number;
   step?: number;
   maxLength?: number;
+  unit?: string;
+  /** Empty-state hint inside text and directory inputs. */
+  placeholder?: string;
   required?: boolean;
-  format?: "url" | "environment" | "branch" | "host";
+  format?: "url" | "environment" | "branch" | "host" | "accent";
 }
 export interface ConfigurationBlock { title: string; fields: readonly ConfigurationField[] }
 export interface ConfigurationSchema {

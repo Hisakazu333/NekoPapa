@@ -13,6 +13,7 @@ import {
   DropdownTrigger,
 } from "@/components/base/dropdown/dropdown";
 import { cx } from "@/utils/cx";
+import { toolbarIconButtonClass as ACTION_BUTTON, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";
 
 /**
  * The controls in the top right of the chat surface: share the open chat, and
@@ -90,9 +91,9 @@ export function AgentChatActions({
         className={ACTION_BUTTON}
       >
         {shared ? (
-          <RiCheckLine className="size-[18px] shrink-0" aria-hidden />
+          <RiCheckLine className={toolbarIconClass} aria-hidden />
         ) : (
-          <RiUploadLine className="size-[18px] shrink-0" aria-hidden />
+          <RiUploadLine className={toolbarIconClass} aria-hidden />
         )}
       </button>
 
@@ -102,7 +103,7 @@ export function AgentChatActions({
           isDisabled={disabled}
           className={cx(ACTION_BUTTON, menuOpen && "bg-background-primary-hover text-text-primary")}
         >
-          <RiMoreFill className="size-[18px] shrink-0" aria-hidden />
+          <RiMoreFill className={toolbarIconClass} aria-hidden />
         </DropdownTrigger>
 
         <DropdownPopover
@@ -132,12 +133,3 @@ export function AgentChatActions({
     </div>
   ));
 }
-
-/** DropdownTrigger is itself a button, so both controls share plain classes
- *  rather than wrapping an IconButton (which would nest one button in another). */
-const ACTION_BUTTON = cx(
-  "inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md",
-  "text-foreground-icon-secondary transition-colors duration-150 ease",
-  "hover:bg-background-primary-hover hover:text-foreground-icon-primary",
-  "disabled:cursor-not-allowed disabled:opacity-40",
-);

@@ -11,27 +11,20 @@ export interface ChatWorkspaceHeaderProps extends AgentChatActionsProps {
   onToggleNavigation: () => void;
   frosted: boolean;
   workspaceLabel?: string;
-  placement?: "panel" | "window";
+  showActions?: boolean;
 }
 
 export function ChatWorkspaceHeader({
-  title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", placement = "panel", ...actions
+  title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", showActions = true, ...actions
 }: ChatWorkspaceHeaderProps) {
-  const Wrapper = placement === "window" ? "div" : "header";
-  const shellClass = placement === "window"
-    ? "flex min-w-0 flex-1 items-center gap-3"
-    : cx(
+  return (
+    <header
+      className={cx(
         "absolute inset-x-0 top-0 z-10 flex h-14 items-center gap-2 border-b px-5 transition-colors",
         frosted
           ? "border-separator-border bg-white/70 backdrop-blur-[20px] dark:bg-black/40"
           : "border-transparent",
-      );
-
-  return (
-    <Wrapper
-      role={placement === "window" ? "group" : undefined}
-      aria-label={placement === "window" ? "聊天标题栏" : undefined}
-      className={shellClass}
+      )}
     >
       <IconButton
         icon={navOpen ? RiCloseLine : RiMenuLine}
@@ -54,8 +47,7 @@ export function ChatWorkspaceHeader({
           </li>
         </ol>
       </nav>
-      {placement === "window" && <div data-tauri-drag-region className="h-full min-w-4 flex-1" />}
-      <AgentChatActions {...actions} className={placement === "window" ? undefined : "ms-auto"} />
-    </Wrapper>
+      {showActions && <AgentChatActions {...actions} className="ms-auto" />}
+    </header>
   );
 }

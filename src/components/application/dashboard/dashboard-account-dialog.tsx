@@ -4,14 +4,16 @@ import { Input } from "@/components/base/input/input";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { Textarea } from "@/components/base/textarea/textarea";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { useSettingsDraft } from "../settings/settings-draft-context";
 
 export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
   const { profile, saveProfile, storageAvailable, notice } = useLocalProfile();
   const formId = useId();
   // The draft belongs to this dialog. External updates can refresh the menu
   // without replacing edits until this instance is saved or dismissed.
-  const [original] = useState(profile);
+  const [original, setOriginal] = useState(profile);
   const [draft, setDraft] = useState(original);
+  const clearDraft = useSettingsDraft("profile", JSON.stringify(draft) !== JSON.stringify(original));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const update = (key: keyof typeof draft, value: string) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -21,7 +23,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
     event.preventDefault();
     const result = saveProfile(draft, original);
     if (result) setErrors(result);
-    else onClose();
+    else { setOriginal(draft); clearDraft(); onClose(); }
   };
 
   return (
@@ -68,7 +70,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
         </form>
       </ModalBody>
       <ModalFooter>
-        <Button variant="secondary" onClick={onClose}>取消</Button>
+        <Button variant="secondary" onClick={() => { setDraft(original); clearDraft(); onClose(); }}>取消</Button>
         <Button type="submit" form={formId}>
           {storageAvailable ? "保存" : "重试保存"}
         </Button>

@@ -1,11 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import { RiDownloadLine, RiUploadLine } from "@remixicon/react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { RiDownloadLine, RiUploadCloud2Line } from "@remixicon/react";
 import { exportConfiguration, parseConfigurationBackup, validateConfiguration } from "@/app/configuration-contract";
 import type { ConfigurationData } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
+import { formatStorageSize } from "@/app/local-storage-usage";
 import { useConfiguration } from "@/hooks/use-configuration";
+import { cx } from "@/utils/cx";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
+import { readLocalStorageUsage, StorageOverview } from "./settings-storage-overview";
+import { useSettingsDraft } from "./settings-draft-context";
 
 type Feedback = { text: string; error?: boolean };
 const modeLabels: Record<string, string> = { system: "跟随系统", light: "浅色", dark: "深色" };
@@ -32,6 +36,9 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
   const [filename, setFilename] = useState("");
   const [reading, setReading] = useState(false);
   const [feedback, setFeedback] = useState<Feedback>();
+  useSettingsDraft("data", Boolean(preview || reading));
+  // Re-measure whenever this window's settings change (save, import, retry).
+  const usage = useMemo(() => readLocalStorageUsage(), [data, storageAvailable]);
 
   useEffect(() => () => { selection.current++; }, []);
 
@@ -108,14 +115,16 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
   return (
     <>
       <ModalBody>
-        <div className="flex flex-col gap-5">
-          <p className="text-body-regular text-text-secondary">
-            设置保存在当前设备。备份包含本机资料、外观、执行默认值和模型、工具、设备、钩子配置；不包含聊天历史、附件或旧工作台索引。
-          </p>
-          <div className="flex flex-col gap-2">
-            <SettingsSectionLabel>导出与备份</SettingsSectionLabel>
+        <div className="flex flex-col gap-6">
+          <StorageOverview usage={usage} />
+
+          <section className="flex flex-col gap-2" aria-labelledby="settings-backup-heading">
+            <div className="flex flex-col gap-0.5">
+              <SettingsSectionLabel><span id="settings-backup-heading">设置备份</span></SettingsSectionLabel>
+              <p className="px-3 text-body-2-regular text-text-tertiary">凭据只保存环境变量名或身份文件路径，备份不包含 API Key、密码或私钥；可能包含自定义指令和服务地址，请妥善保管。</p>
+            </div>
             <SettingsCard>
-              <SettingsRow label="当前设置" description={`${(new TextEncoder().encode(JSON.stringify(data)).length / 1024).toFixed(1)} KiB · NekoPapa 设置格式版本 1`}>
+              <SettingsRow label="当前设置" description={`${formatStorageSize(new TextEncoder().encode(JSON.stringify(data)).length)} · NekoPapa 设置格式版本 1`}>
                 <Button variant="secondary" size="small" leadingIcon={RiDownloadLine} onClick={() => exportBackup("settings")}>导出设置</Button>
               </SettingsRow>
               <SettingsRow label="替换前的设置" description="导入确认前自动保留一份备份，可导出后重新导入。">
@@ -127,37 +136,27 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
                 </SettingsRow>
               )}
             </SettingsCard>
-            <p className="px-3 text-body-2-regular text-text-tertiary">
-              凭据仅保存环境变量名或身份文件路径；备份不包含实际 API Key、密码或私钥。备份可能包含自定义指令和服务地址，请妥善保管。
-            </p>
-          </div>
+          </section>
 
-          <section className="flex flex-col gap-3" aria-labelledby="configuration-import-heading">
-            <h3 id="configuration-import-heading" className="px-3 text-body-medium text-text-primary">从设置备份导入</h3>
-            <div className="flex flex-col gap-3 rounded-2xl border border-dashed border-border-button-default p-4">
-              <p className="text-body-regular text-text-secondary">选择 NekoPapa 导出的 JSON 文件，先校验和预览，再确认替换。最大 1 MiB。</p>
-              <input ref={input} type="file" accept="application/json,.json" aria-label="选择设置备份文件" className="hidden" onChange={(event) => {
-                const file = event.currentTarget.files?.[0];
-                event.currentTarget.value = "";
-                void read(file);
-              }} />
-              <div className="flex flex-wrap items-center gap-2">
-                <Button variant="secondary" size="small" leadingIcon={RiUploadLine} onClick={() => input.current?.click()}>选择设置文件</Button>
-                {filename && <span className="min-w-0 break-all text-body-2-regular text-text-tertiary">{filename}</span>}
-              </div>
-              {reading && <p role="status">正在读取并校验…</p>}
-            </div>
+          <section className="flex flex-col gap-2" aria-labelledby="configuration-import-heading">
+            <SettingsSectionLabel><span id="configuration-import-heading">从设置备份导入</span></SettingsSectionLabel>
+            <input ref={input} type="file" accept="application/json,.json" aria-label="选择设置备份文件" className="sr-only" tabIndex={-1} onChange={(event) => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = "";
+              void read(file);
+            }} />
+            <ImportDropzone busy={reading} filename={filename} onBrowse={() => input.current?.click()} onDrop={(file) => void read(file)} />
             {preview && (
-              <div className="flex flex-col gap-3 rounded-2xl border border-border-focus-ring bg-background-secondary-default p-4">
-                <h4 className="text-body-medium text-text-primary">导入预览</h4>
-                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-2 text-body-regular">
+              <div className="flex flex-col gap-3 rounded-2xl border border-border-focus-ring bg-background-secondary-default p-3">
+                <p className="text-body-medium text-text-primary">导入预览</p>
+                <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-body-2-regular text-text-secondary">
                   <dt>本机名称</dt><dd className="break-all text-text-primary">{String(preview.groups.profile.name)}</dd>
                   <dt>主题</dt><dd className="text-text-primary">{modeLabels[String(preview.groups.appearance.mode)]}</dd>
-                  <dt>模型与工具</dt><dd className="text-text-primary">{preview.collections.models.length} 个模型 · {preview.collections.extensions.length} 个工具</dd>
+                  <dt>模型与工具</dt><dd className="text-text-primary">{preview.collections.models.length} 个模型 · {preview.collections.extensions.length} 个工具与技能</dd>
                   <dt>设备与钩子</dt><dd className="text-text-primary">{preview.collections.connections.length} 个设备 · {preview.collections.hooks.length} 个钩子</dd>
                 </dl>
-                <p className="text-body-2-regular text-text-secondary">确认后替换全部本机设置与配置列表，并备份替换前的配置。聊天历史、附件和旧工作台内容保持原样；不会连接服务或执行命令。</p>
-                <div className="flex flex-wrap gap-2">
+                <p className="text-body-2-regular text-text-secondary">确认后替换全部本机设置与配置列表，并备份替换前的配置。聊天记录、联系人和旧工作台内容保持原样；不会连接服务或执行命令。</p>
+                <div className="flex flex-wrap justify-end gap-2">
                   <Button variant="secondary" size="small" onClick={cancelPreview}>取消导入</Button>
                   <Button size="small" onClick={applyImport}>确认替换本机设置</Button>
                 </div>
@@ -165,7 +164,7 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
             )}
           </section>
 
-          {!storageAvailable && <div className="flex flex-wrap items-center gap-2 rounded-xl bg-background-secondary-default p-3">
+          {!storageAvailable && <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-background-secondary-default p-3">
             <p className="min-w-0 flex-1 text-body-2-regular text-text-error-primary" role="alert">{notice || "设置尚未保存到本机。"}</p>
             <Button variant="secondary" size="small" onClick={retry}>重试保存</Button>
           </div>}
@@ -175,4 +174,30 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
       <ModalFooter><Button variant="secondary" onClick={onClose}>关闭</Button></ModalFooter>
     </>
   );
+}
+
+/**
+ * Idle look of BoardUI's FileUpload dropzone. The official component simulates
+ * upload progress, so the import keeps this static zone and reports the real
+ * read / validation state instead.
+ */
+function ImportDropzone({ busy, filename, onBrowse, onDrop }: { busy: boolean; filename: string; onBrowse: () => void; onDrop: (file: File) => void }) {
+  const [dragOver, setDragOver] = useState(false);
+  return <div role="button" tabIndex={0} aria-label="拖放或选择设置备份文件" aria-busy={busy}
+    onClick={onBrowse}
+    onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onBrowse(); } }}
+    onDragOver={(event) => { event.preventDefault(); setDragOver(true); }}
+    onDragLeave={() => setDragOver(false)}
+    onDrop={(event) => { event.preventDefault(); setDragOver(false); const file = event.dataTransfer.files?.[0]; if (file) onDrop(file); }}
+    className="group relative flex h-[164px] w-full cursor-pointer flex-col items-center justify-center gap-3.5 rounded-2xl bg-background-secondary-default outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring focus-visible:ring-offset-2">
+    <span aria-hidden className={cx("pointer-events-none absolute inset-0 rounded-2xl border-2 border-dashed transition-colors duration-300 ease-out",
+      dragOver ? "border-border-button-active" : "border-border-checkbox-default group-hover:border-border-button-active")} />
+    <span className="flex size-10 items-center justify-center rounded-full bg-background-tertiary-default">
+      <RiUploadCloud2Line className="size-6 shrink-0 text-foreground-icon-secondary" aria-hidden />
+    </span>
+    <div className="flex flex-col items-center gap-2 px-4 text-center">
+      <p className="text-body-medium text-text-secondary">{busy ? "正在读取并校验…" : <>拖放设置文件，或<span className="text-accent-500">选择文件</span></>}</p>
+      <p className="max-w-full truncate text-body-2-regular text-text-tertiary">{filename || "NekoPapa 导出的 JSON（最大 1 MB），先预览再确认替换"}</p>
+    </div>
+  </div>;
 }

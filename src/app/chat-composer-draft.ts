@@ -14,6 +14,8 @@ export type ComposerContext = "workspace" | "custom" | "official";
 export type ComposerPermission = "ask" | "read" | "auto";
 export interface ComposerDraft {
   attachments: ComposerAttachment[];
+  /** Browser-safe project folder label; the host resolves a real path later. */
+  projectDirectory: string;
   goal: string;
   planning: boolean;
   artifact: ComposerArtifact | null;
@@ -64,7 +66,29 @@ export const COMPOSER_FILE_MAX_BYTES = 10 * 1024 * 1024;
 export const COMPOSER_TOTAL_MAX_BYTES = 25 * 1024 * 1024;
 
 export function createComposerDraft(context: ComposerContext = "custom"): ComposerDraft {
-  return { attachments: [], goal: "", planning: false, artifact: null, mode: context === "workspace" ? "auto" : "chat", permission: "ask" };
+  return { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? "auto" : "chat", permission: "ask" };
+}
+
+export function projectDirectoryFromFiles(files: readonly Pick<File, "webkitRelativePath">[]): string {
+  const path = files.find((file) => file.webkitRelativePath)?.webkitRelativePath ?? "";
+  return path.split("/")[0] ?? "";
+}
+
+export function selectComposerProjectDirectory(
+  draft: ComposerDraft,
+  files: readonly Pick<File, "webkitRelativePath">[],
+): ComposerDraft {
+  if (!files.length) return draft;
+  const name = projectDirectoryFromFiles(files);
+  return name ? { ...draft, projectDirectory: name } : draft;
+}
+
+export function clearComposerProjectDirectory(draft: ComposerDraft): ComposerDraft {
+  return draft.projectDirectory ? { ...draft, projectDirectory: "" } : draft;
+}
+
+export function selectComposerMode(draft: ComposerDraft, mode: ComposerMode): ComposerDraft {
+  return { ...draft, mode, projectDirectory: mode === "agent" ? draft.projectDirectory : "" };
 }
 
 export function addComposerFiles(current: ComposerAttachment[], files: readonly File[]) {
@@ -104,6 +128,7 @@ export function composerDraftBlockReason(draft: ComposerDraft): string | undefin
 
 export function buildComposerText(input: string, draft: ComposerDraft): string {
   const parts = [input.trim()];
+  if (draft.projectDirectory) parts.push(`项目目录：${draft.projectDirectory}`);
   if (draft.goal) parts.push(`本次目标：${draft.goal}`);
   if (draft.planning) parts.push("请先给出分步计划，说明需要澄清的问题，暂不执行操作。");
   return parts.filter(Boolean).join("\n\n");

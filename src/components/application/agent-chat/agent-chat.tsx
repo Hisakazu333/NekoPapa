@@ -12,6 +12,9 @@ import { AgentMessage } from "@/components/application/agent-chat/agent-chat-mes
 import { AgentComposer } from "@/components/application/agent-chat/agent-composer";
 import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { DashboardSidebar } from "@/components/application/dashboard/dashboard-sidebar";
+import { DashboardSidebarDrawer } from "@/components/application/dashboard/dashboard-sidebar-drawer";
+import { isBackendWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
+import { BackendPendingPage } from "@/components/application/workspace-pages/backend-pending-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
 import { cx } from "@/utils/cx";
@@ -26,10 +29,11 @@ import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
 import { downloadChatThreads } from "./export-chat-history";
+import { useChatWindowNavigation } from "./use-chat-window-navigation";
+import { createChatWindowChrome } from "./chat-window-chrome";
 
 import { ChatHome } from "./chat-home";
 import { useChatProvider } from "./use-chat-provider";
-import { ChatWorkspaceHeader } from "./chat-workspace-header";
 import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { toChatContactRequest } from "./chat-contact";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
@@ -55,7 +59,7 @@ export function AgentChat({
   const probe = useChatProvider(ENDPOINT);
   const [input, setInput] = useState("");
   const [navOpen, setNavOpen] = useState(false);
-  const [page, setPage] = useState<"chat" | "contacts">("chat");
+  const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
   const [panelOpen, setPanelOpen] = useState(false);
   const history = useChatHistory();
@@ -332,59 +336,64 @@ export function AgentChat({
     threads: history.threads, contacts, busy, onSelectThread: selectThread,
     onShowAllThreads: showAllThreads, onRenameThread: renameThread, onToggleUnread: toggleUnread, onDeleteThread: deleteThread,
   });
+  const windowNavigation = useChatWindowNavigation({
+    activeId,
+    busy,
+    threads: allThreads,
+    sessionMemory,
+    keepLiveThread,
+    rememberSession,
+    restoreSession,
+    setSelectedContact,
+    enterWorkspace: () => setPage("chat"),
+  });
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
-  const workspaceHeader = (
-    <ChatWorkspaceHeader
-      title={workspaceTitle}
-      titleRef={titleRef}
-      navOpen={navOpen}
-      onToggleNavigation={() => setNavOpen((open) => !open)}
-      frosted={messages.length > 0}
-      transcript={transcript}
-      onExport={exportThreads}
-      onToggleUnread={() => toggleUnread(activeId)}
-      onDelete={() => deleteThread(activeId)}
-      deleteDisabled={busy}
-      disabled={messages.length === 0}
-      showThreadMenu={!activeContact}
-      placement={nativeWindow ? "window" : "panel"}
-    />
-  );
+  const windowToolbar = !contained && page === "chat";
+  const chatActions = {
+    transcript,
+    onExport: exportThreads,
+    onToggleUnread: () => toggleUnread(activeId),
+    onDelete: () => deleteThread(activeId),
+    deleteDisabled: busy,
+    disabled: messages.length === 0,
+    showThreadMenu: !activeContact,
+  };
+  const { workspaceHeader, windowActions } = createChatWindowChrome({
+    title: workspaceTitle,
+    titleRef,
+    navOpen,
+    onToggleNavigation: () => setNavOpen((open) => !open),
+    hasMessages: messages.length > 0,
+    windowToolbar,
+    nativeWindow,
+    actions: chatActions,
+  });
 
   return localize((
     <MacWindowFrame
       contained={contained}
       className={className}
-      titlebarContent={nativeWindow && page === "chat" ? workspaceHeader : undefined}
+      titlebarContent={windowActions}
+      toolbarNavigation={{
+        onBack: windowNavigation.back,
+        onForward: windowNavigation.forward,
+        onCreate: windowNavigation.create,
+        canGoBack: windowNavigation.canGoBack,
+        canGoForward: windowNavigation.canGoForward,
+      }}
     >
       <DashboardSidebar {...sidebar} selected={page} className="hidden lg:flex" />
 
-      {/* Below lg the sidebar rides in as an overlay drawer. The Pro template
-          pushes the workspace across instead; this is the plain version. */}
-      {navOpen && (
-        <div className={cx(contained ? "absolute" : "fixed", "inset-0 z-50 flex lg:hidden")}>
-          <button
-            type="button"
-            aria-label="Close navigation"
-            onClick={() => setNavOpen(false)}
-            className="absolute inset-0 cursor-pointer bg-black/40"
-          />
-          <div className="relative flex h-full p-3">
-            <DashboardSidebar
-              mobile
-              {...sidebar}
-              selected={page}
-              onClose={() => setNavOpen(false)}
-              className="flex"
-            />
-          </div>
-        </div>
-      )}
+      {/* The Pro template pushes the workspace across; this is the plain overlay drawer. */}
+      <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
+        <DashboardSidebar mobile {...sidebar} selected={page} onClose={() => setNavOpen(false)} className="flex" />
+      </DashboardSidebarDrawer>
 
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
         <ContactsMessenger onNavigate={() => setNavOpen(true)} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />
       </div>
+      {isBackendWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={() => setNavOpen(true)} />}
       <div hidden={page !== "chat"} style={{ display: page === "chat" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
       <ChatWorkspaceSplit panelOpen={panelOpen} onOpen={() => setPanelOpen(true)} onClose={() => setPanelOpen(false)} panel={
         <AgentChatHistory threads={allThreads} activeId={activeId} onSelect={selectThread}
@@ -393,7 +402,7 @@ export function AgentChat({
           onClose={() => setPanelOpen(false)} className="w-full" />
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
-            {!nativeWindow && workspaceHeader}
+            {workspaceHeader}
             <>
                 <div
                   ref={scrollRef}

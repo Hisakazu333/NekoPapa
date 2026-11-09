@@ -1,6 +1,5 @@
 import { useCallback, type Dispatch, type SetStateAction } from "react";
-
-type WorkspacePage = "chat" | "contacts";
+import type { WorkspacePage } from "./workspace-page";
 
 export function useChatWorkspaceNavigation({
   setNavOpen,

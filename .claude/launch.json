@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "settings-verify",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["vite", "--port", "1495", "--strictPort"],
+      "port": 1495
+    }
+  ]
+}

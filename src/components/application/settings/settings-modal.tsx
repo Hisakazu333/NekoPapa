@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import { Modal as AriaModal, ModalOverlay } from "react-aria-components";
 import { ModalDialog, ModalHeader } from "@/components/base/modal/modal";
+import { AlertDialog } from "@/components/base/modal/modal";
 import { useDirection } from "@/components/foundations/direction/direction";
 import { ProfileSettingsPanel } from "@/components/application/dashboard/dashboard-account-dialog";
 import { cx } from "@/utils/cx";
@@ -11,9 +12,11 @@ import { AppearanceSettingsPanel } from "./nekopapa-appearance-settings";
 import { ConfigurationGroupPanel, ConnectionsSettingsPanel, HooksSettingsPanel } from "./nekopapa-configuration-settings";
 import { DataSettingsPanel } from "./nekopapa-data-settings";
 import { ModelSettingsPanel } from "./nekopapa-model-settings";
-import { ToolSettingsPanel } from "./nekopapa-tool-settings";
+import { SkillSettingsPanel, ToolSettingsPanel } from "./nekopapa-tool-settings";
 import { AboutSettingsPanel, GeneralSettingsPanel, ShortcutsSettingsPanel } from "./workspace-settings-info";
 import { settingsGroups, settingsSections, type SettingsSection } from "./workspace-settings-catalog";
+import { SettingsDraftProvider } from "./settings-draft-context";
+import { hasUnsavedSettingsDrafts, updateSettingsDraft } from "@/app/settings-draft-state";
 
 export type SettingsPage = SettingsSection;
 
@@ -22,6 +25,7 @@ export interface SettingsModalProps {
   onClose: () => void;
   defaultPage?: SettingsPage;
   onAfterClose?: () => void;
+  requestCloseRef?: { current: (() => void) | null };
 }
 
 /** Runs after the animated overlay and its focus scope have left the DOM. */
@@ -43,6 +47,7 @@ function SettingsPanel({ page, onClose, onNavigate }: {
     case "appearance": return <AppearanceSettingsPanel onClose={onClose} />;
     case "model": return <ModelSettingsPanel onClose={onClose} />;
     case "tools": return <ToolSettingsPanel onClose={onClose} />;
+    case "skills": return <SkillSettingsPanel onClose={onClose} />;
     case "data": return <DataSettingsPanel onClose={onClose} />;
     case "connections": return <ConnectionsSettingsPanel onClose={onClose} />;
     case "hooks": return <HooksSettingsPanel onClose={onClose} />;
@@ -53,13 +58,27 @@ function SettingsPanel({ page, onClose, onNavigate }: {
 }
 
 /** BoardUI's two-pane settings shell, using NekoPapa's configuration panels. */
-export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfterClose }: SettingsModalProps) {
+export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfterClose, requestCloseRef }: SettingsModalProps) {
   const localize = useTemplateCopy();
   const direction = useDirection();
   const [page, setPage] = useState<SettingsPage>(defaultPage);
   const [visited, setVisited] = useState<SettingsPage[]>([defaultPage]);
+  const dirtyPagesRef = useRef<ReadonlySet<string>>(new Set());
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
   const activePanel = useRef<HTMLElement | null>(null);
   const focusAfterNavigation = useRef(false);
+  const reportDraft = useCallback((section: string, dirty: boolean) => {
+    const next = updateSettingsDraft(dirtyPagesRef.current, section, dirty);
+    dirtyPagesRef.current = next;
+  }, []);
+  const requestClose = useCallback(() => {
+    if (hasUnsavedSettingsDrafts(dirtyPagesRef.current)) setConfirmDiscard(true);
+    else onClose();
+  }, [onClose]);
+  useEffect(() => {
+    if (requestCloseRef) requestCloseRef.current = requestClose;
+    return () => { if (requestCloseRef) requestCloseRef.current = null; };
+  }, [requestClose, requestCloseRef]);
   const navigate = (next: SettingsPage) => {
     focusAfterNavigation.current = next !== page;
     setPage(next);
@@ -83,7 +102,7 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
   return localize((
     <ModalOverlay
       isOpen={isOpen}
-      onOpenChange={(open) => { if (!open) onClose(); }}
+      onOpenChange={(open) => { if (!open) requestClose(); }}
       isDismissable
       dir={direction}
       className="group/settings fixed inset-0 z-100 flex items-center justify-center p-4"
@@ -133,11 +152,27 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
               style={{ display: section === page ? "flex" : "none" }}
               className="min-h-0 flex-1 flex-col gap-4 pb-6 outline-none"
             >
-              <SettingsPanel page={section} onClose={onClose} onNavigate={navigate} />
+              <SettingsDraftProvider value={reportDraft}>
+              <SettingsPanel page={section} onClose={requestClose} onNavigate={navigate} />
+              </SettingsDraftProvider>
             </section>)}
           </div>
         </ModalDialog>
       </AriaModal>
+      <AlertDialog
+        isOpen={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title="放弃未保存的更改？"
+        description="设置中的草稿尚未保存。关闭后将丢弃这些更改。"
+        variant="default"
+        icon={false}
+        cancelLabel="继续编辑"
+        confirmLabel="放弃更改"
+        onConfirm={() => {
+          setConfirmDiscard(false);
+          onClose();
+        }}
+      />
     </ModalOverlay>
   ));
 }

@@ -49,6 +49,23 @@ test("workbench defaults to Auto while contact draft defaults remain chat and st
   assert.equal(freshWorkspace.mode, "auto");
   assert.equal(freshWorkspace.permission, "ask");
   assert.deepEqual(freshWorkspace.attachments, []);
+  assert.equal(freshWorkspace.projectDirectory, "");
+});
+
+test("project directory selection keeps only a browser-safe folder label and clears outside Agent mode", () => {
+  assert.equal(draft.projectDirectoryFromFiles([file("index.ts", 1, 1, "neko-app/src/index.ts")]), "neko-app");
+  assert.equal(draft.projectDirectoryFromFiles([file("index.ts")]), "");
+  const selected = { ...draft.createComposerDraft("workspace"), projectDirectory: "neko-app" };
+  assert.match(draft.buildComposerText("检查项目", selected), /项目目录：neko-app/);
+  assert.equal(draft.selectComposerProjectDirectory(selected, []), selected, "cancel keeps the previous directory");
+  assert.equal(draft.selectComposerProjectDirectory(selected, [file("index.ts")]), selected, "a file without a folder path keeps the previous directory");
+  const replaced = draft.selectComposerProjectDirectory(selected, [file("other.ts", 1, 1, "other-app/src/other.ts")]);
+  assert.equal(replaced.projectDirectory, "other-app");
+  assert.equal(draft.clearComposerProjectDirectory(replaced).projectDirectory, "");
+  const chat = draft.selectComposerMode(selected, "chat");
+  assert.equal(chat.projectDirectory, "");
+  const agent = draft.selectComposerMode(chat, "agent");
+  assert.equal(agent.projectDirectory, "");
 });
 
 test("file selection retains actual file and stable existing identities, without upload or data URLs", () => {

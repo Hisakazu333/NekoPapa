@@ -167,3 +167,24 @@ test("模型被删除后未编辑的旧引用不会复活，主动选择失效�
   assert.ok(invalid.errors.modelId);
   assert.equal(store.data.groups.coding.modelId, "");
 });
+
+test("自定义 HEX 强调色经外观草稿保存并重载，无效颜色返回字段错误且不写回", () => {
+  const storage = memory();
+  const store = new ConfigurationStore(storage);
+  const base = store.data.groups.appearance;
+  const saved = saveConfigurationDraft(store, "appearance", { ...base, accent: "#6A2CB8" }, base);
+  assert.equal(saved.saved, true);
+  assert.deepEqual(saved.errors, {});
+  assert.equal(new ConfigurationStore(storage).data.groups.appearance.accent, "#6a2cb8");
+  const before = storage.entries.get(key);
+  for (const accent of ["#6a2cb", "pink", "#gggggg"]) {
+    const current = store.data.groups.appearance;
+    const result = saveConfigurationDraft(store, "appearance", { ...current, accent }, current);
+    assert.equal(result.saved, false);
+    assert.match(result.errors.accent, /HEX/);
+    assert.equal(storage.entries.get(key), before);
+  }
+  const preset = saveConfigurationDraft(store, "appearance", { ...store.data.groups.appearance, accent: "blue" }, store.data.groups.appearance);
+  assert.equal(preset.saved, true);
+  assert.equal(store.data.groups.appearance.accent, "blue");
+});

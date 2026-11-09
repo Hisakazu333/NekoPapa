@@ -1,19 +1,28 @@
-import { useEffect, useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
 import { configurationSchemas } from "@/app/configuration-contract";
 import { saveConfigurationDraft } from "@/app/configuration-draft";
 import type { ConfigurationGroup, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
+import { toast } from "@/components/base/toast/toast";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { CollectionSettingsPanel } from "./nekopapa-collection-settings";
 import { SettingsFields } from "./nekopapa-settings-fields";
+import { SettingsCard, SettingsSectionLabel } from "./settings-rows";
+import { SettingsServiceStatus } from "./settings-service-status";
+import { useSettingsDraft } from "./settings-draft-context";
 
 type EditableGroup = Exclude<ConfigurationGroup, "profile" | "appearance">;
-export interface ConfigurationGroupPanelProps { group: EditableGroup; onClose: () => void }
+export interface ConfigurationGroupPanelProps {
+  group: EditableGroup;
+  onClose: () => void;
+  /** Page-specific content shown above the service status, e.g. the General profile card. */
+  lead?: ReactNode;
+}
 const equal = (left: ConfigurationValues, right: ConfigurationValues) => JSON.stringify(left) === JSON.stringify(right);
 
 /** Each mounted instance owns one category's draft until save or cancellation. */
-export function ConfigurationGroupPanel({ group, onClose }: ConfigurationGroupPanelProps) {
+export function ConfigurationGroupPanel({ group, onClose, lead }: ConfigurationGroupPanelProps) {
   const { store, data, storageAvailable, notice, refresh } = useConfiguration();
   const schema = configurationSchemas.find((entry) => entry.id === group)!;
   const [base, setBase] = useState(() => ({ ...data.groups[group] }));
@@ -23,9 +32,9 @@ export function ConfigurationGroupPanel({ group, onClose }: ConfigurationGroupPa
   const [status, setStatus] = useState("");
   const formId = useId();
   const dirty = !equal(values, base);
+  const clearDraft = useSettingsDraft(group, dirty);
   const updated = !equal(data.groups[group], base);
   const fields = store.fields(group);
-
   useEffect(() => {
     if (!dirty && updated) {
       const current = { ...data.groups[group] };
@@ -64,7 +73,9 @@ export function ConfigurationGroupPanel({ group, onClose }: ConfigurationGroupPa
     }
     setBase(result.values);
     setValues(result.values);
-    setStatus(schema.effect === "immediate" ? "设置已保存到本机。" : "默认配置已保存到本机；对应执行服务尚未接入。");
+    setStatus("");
+    toast.success(schema.effect === "immediate" ? "设置已保存" : "默认配置已保存",
+      schema.effect === "runtime" ? { description: "对应执行服务尚未接入，保存不会启动进程或申请权限。" } : undefined);
   };
   const submit = (event: FormEvent) => { event.preventDefault(); save(); };
   const retry = () => {
@@ -73,20 +84,23 @@ export function ConfigurationGroupPanel({ group, onClose }: ConfigurationGroupPa
     setErrors(saved ? {} : { form: store.notice });
     if (saved) setStatus("当前窗口中的配置已保存到本机。表单中尚未提交的草稿仍然保留。");
   };
-  const cancel = () => { loadCurrent(); onClose(); };
+  const cancel = () => { loadCurrent(); clearDraft(); onClose(); };
 
   return (
     <>
       <ModalBody>
-        <form id={formId} onSubmit={submit} noValidate className="flex flex-col gap-5">
-          <p className="rounded-2xl bg-background-secondary-default p-3 text-body-regular text-text-secondary">{schema.scope}</p>
+        <form id={formId} onSubmit={submit} noValidate className="flex flex-col gap-6">
+          {lead}
+          <SettingsServiceStatus runtime={schema.effect === "runtime"} scope={schema.scope} />
           {updated && dirty && <div role="status" className="flex flex-col gap-2 rounded-xl border border-border-button-default p-3">
             <p className="text-body-2-regular text-text-secondary">本机配置已在其他位置更新。你的草稿仍然保留；保存时只合并你编辑的字段，并检查冲突。</p>
             <Button variant="secondary" size="small" className="self-start" onClick={loadCurrent}>放弃草稿并载入最新值</Button>
           </div>}
-          {schema.blocks.map((block) => <section key={block.title} className="flex flex-col gap-4" aria-label={block.title}>
-            <h3 className="border-b border-separator-border pb-2 text-body-medium text-text-primary">{block.title}</h3>
-            <SettingsFields fields={block.fields.map((field) => fields.find((current) => current.key === field.key)!)} values={values} errors={errors} onChange={update} prefix={formId} />
+          {schema.blocks.map((block) => <section key={block.title} className="flex flex-col gap-2" aria-label={block.title}>
+            <SettingsSectionLabel>{block.title}</SettingsSectionLabel>
+            <SettingsCard>
+              <SettingsFields fields={block.fields.map((field) => fields.find((current) => current.key === field.key)!)} values={values} errors={errors} onChange={update} prefix={formId} />
+            </SettingsCard>
           </section>)}
           {!storageAvailable && <div className="flex flex-col gap-2 rounded-xl border border-border-error-default p-3">
             <p className="text-body-2-regular text-text-error-primary" role="alert">{notice || "当前配置尚未保存到本机。"}</p>

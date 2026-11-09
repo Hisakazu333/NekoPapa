@@ -1,8 +1,10 @@
-import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
+import { Avatar } from "@/components/base/avatar/avatar";
+import { Chip } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { useLocalProfile } from "@/hooks/use-local-profile";
+import { ConfigurationGroupPanel } from "./nekopapa-configuration-settings";
 import { SettingsCard, SettingsRow } from "./settings-rows";
 import type { SettingsSection } from "./workspace-settings-catalog";
 
@@ -10,48 +12,31 @@ export function GeneralSettingsPanel({ onClose, onNavigate }: {
   onClose: () => void;
   onNavigate: (section: SettingsSection) => void;
 }) {
-  const localize = useTemplateCopy();
-  const { data, storageAvailable, notice } = useConfiguration();
+  return <ConfigurationGroupPanel group="general" onClose={onClose} lead={<ProfileCard onNavigate={onNavigate} />} />;
+}
+
+/** The official General page's plan card, carrying the local profile instead of a plan. */
+function ProfileCard({ onNavigate }: { onNavigate: (section: SettingsSection) => void }) {
   const { profile } = useLocalProfile();
+  const { data } = useConfiguration();
   const collections = data.collections;
-  return localize((<>
-    <ModalBody>
-      <div className="flex flex-col gap-5">
-        <div className="rounded-2xl border border-separator-border p-4">
-          <p translate="no" className="text-title-3-medium text-text-primary">{profile.name}</p>
-          <p className="mt-1 text-body-regular text-text-secondary">本机资料</p>
-          <p className="mt-3 text-body-2-regular text-text-tertiary">资料、默认配置和设置备份保存在当前设备。</p>
-        </div>
-        <SettingsCard>
-          <SettingsRow label="个人资料" description="编辑账号菜单显示的名称、介绍和个人网站。">
-            <Button variant="secondary" size="small" onClick={() => onNavigate("profile")}>编辑</Button>
-          </SettingsRow>
-          <SettingsRow label="模型与 API" description={`已保存 ${collections.models.length} 份自定义 API 配置。`}>
-            <Button variant="secondary" size="small" onClick={() => onNavigate("model")}>管理</Button>
-          </SettingsRow>
-          <SettingsRow label="工具与技能" description={`已保存 ${collections.extensions.length} 份工具、技能或连接器配置。`}>
-            <Button variant="secondary" size="small" onClick={() => onNavigate("tools")}>管理</Button>
-          </SettingsRow>
-          <SettingsRow label="设备与 SSH" description={`已保存 ${collections.connections.length} 份设备配置。`}>
-            <Button variant="secondary" size="small" onClick={() => onNavigate("connections")}>管理</Button>
-          </SettingsRow>
-          <SettingsRow label="生命周期钩子" description={`已保存 ${collections.hooks.length} 份钩子配置。`}>
-            <Button variant="secondary" size="small" onClick={() => onNavigate("hooks")}>管理</Button>
-          </SettingsRow>
-        </SettingsCard>
-        <SettingsCard>
-          <SettingsRow label="数据与备份" description="导出当前设置，或检查备份后再恢复。">
-            <Button variant="secondary" size="small" onClick={() => onNavigate("data")}>打开</Button>
-          </SettingsRow>
-          <SettingsRow label="快捷键" description="查看当前聊天页支持的键盘操作。">
-            <Button variant="secondary" size="small" onClick={() => onNavigate("shortcuts")}>查看</Button>
-          </SettingsRow>
-        </SettingsCard>
-        {!storageAvailable && <p role="alert" className="text-body-regular text-text-error-primary">{notice || "本机存储暂不可用；请在相应设置中重试保存。"}</p>}
+  const counts = [
+    `${collections.models.length} 个 API 配置`,
+    `${collections.extensions.length} 个工具与技能`,
+    `${collections.connections.length} 台设备`,
+  ].join(" · ");
+  const initials = Array.from(profile.name.trim()).slice(0, 2).join("").toLocaleUpperCase() || "NE";
+  return <div className="flex w-full items-center gap-3 rounded-2xl bg-background-secondary-default py-3 ps-3 pe-2.5">
+    <Avatar size="lg" initials={initials} />
+    <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+      <div className="flex min-w-0 items-center gap-2">
+        <p translate="no" className="min-w-0 truncate text-headline-medium text-text-primary">{profile.name}</p>
+        <Chip variant="caption" color="neutral" className="shrink-0">本机资料 · 未登录</Chip>
       </div>
-    </ModalBody>
-    <ModalFooter><Button variant="secondary" onClick={onClose}>关闭</Button></ModalFooter>
-  </>));
+      <p className="truncate text-body-2-regular text-text-secondary">{counts}，均保存在当前设备。</p>
+    </div>
+    <Button variant="secondary" size="small" className="shrink-0" onClick={() => onNavigate("profile")}>编辑资料</Button>
+  </div>;
 }
 
 const shortcuts = [

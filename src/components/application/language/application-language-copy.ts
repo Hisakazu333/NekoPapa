@@ -34,6 +34,8 @@ const copyPairs = [
   ["浏览器", "Browser"], ["设备与 SSH", "Devices & SSH"], ["Coding 默认值", "Coding defaults"],
   ["生命周期钩子", "Lifecycle hooks"], ["代码审查", "Code review"], ["Git", "Git"],
   ["工作树", "Worktrees"], ["快捷键", "Keyboard shortcuts"], ["关于", "About"],
+  ["MCP 与连接器", "MCP & connectors"], ["技能", "Skills"], ["隐私", "Privacy"], ["权限规则", "Permission rules"],
+  ["上下文与指令", "Context & instructions"], ["编辑器与终端", "Editor & terminal"],
   ["智能与工具", "Agents & tools"], ["桌面与设备", "Desktop & devices"],
   ["开发", "Development"], ["应用", "Application"],
   ["更改应用界面文案；聊天内容与联系人名称保留原文。", "Change app interface labels. Chat content and contact names remain unchanged."],

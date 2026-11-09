@@ -7,6 +7,7 @@ import { ComposerModelMenu } from "../chat-composer/composer-model-menu";
 import { ComposerDraftSummary } from "../chat-composer/composer-draft-summary";
 import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
+import { ProjectDirectorySelector } from "../chat-composer/project-directory-selector";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import type { ComposerContext } from "@/app/chat-composer-draft";
 
@@ -29,6 +30,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   const composing = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [emojisOpen, setEmojisOpen] = useState(false);
+  const composerContext = context ?? (officialCompanion ? "official" : "custom");
   const blockedReason = (officialCompanion ? composer.draftBlockReason : composer.blockReason) ?? sendBlockedReason;
   const canSend = ready && !busy && !blockedReason && Boolean(value.trim());
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -56,7 +58,8 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
     </div>
     </div>
     <div aria-label="对话工具栏" className="flex min-h-11 items-center justify-between gap-2 px-3 py-1">
-      <ComposerModeMenu state={composer} context={context ?? (officialCompanion ? "official" : "custom")} disabled={busy} />
+      <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />
+      {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}
       <Dropdown isOpen={emojisOpen} onOpenChange={setEmojisOpen}>
         <DropdownTrigger aria-label="选择表情" isDisabled={busy} className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-foreground-icon-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
           <RiEmotionHappyLine className="size-5" aria-hidden />
