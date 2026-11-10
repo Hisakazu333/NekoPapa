@@ -1,6 +1,6 @@
 import { CheckIcon, CopyIcon } from "@/components/foundations/icons/app-icons";
 import { useEffect, useState } from "react";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { cx } from "@/utils/cx";
 

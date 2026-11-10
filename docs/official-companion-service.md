@@ -8,7 +8,7 @@
 
 ## 当前实现
 
-- `src/app/companion-model.ts` 与对应 JavaScript 目录提供五位官方人物的公开展示资料；稳定 ID 保持 `lumia`、`rinne`、`iori`、`shiori`、`tsumugi`。
+- `src/app/contacts/companion-model.ts` 与对应 JavaScript 目录提供五位官方人物的公开展示资料；稳定 ID 保持 `lumia`、`rinne`、`iori`、`shiori`、`tsumugi`。
 - `src/app/api/chat/contact-prompt.ts` 只组装普通工作台和自建联系人的通用模型提示词。官方人物资料不能传入该函数生成本地人设。
 - `/api/chat` 的 GET 响应单独提供 `officialCompanions.configured` 与 `reason`，区别于通用模型的 `configured`。当前官方人物服务为未接入，即使开发服务器已经配置模型密钥也不会变为可用。
 - 官方人物 POST 请求先检查身份、客户端系统消息和群聊限制；合法的单人请求当前返回 `503 official_companion_unavailable`。不会向通用模型发送公开简介，也不会生成替代人物回复。

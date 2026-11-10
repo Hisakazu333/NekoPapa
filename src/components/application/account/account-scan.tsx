@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { QRCodeSVG } from "qrcode.react";
-import { parseDesktopAccountProfile } from "@/app/desktop-account-contract";
+import { parseDesktopAccountProfile } from "@/app/account/desktop-account-contract";
 import { Button } from "@/components/base/buttons/button";
 import { LinkButton } from "@/components/base/buttons/link-button";
 import { SpinnerGlyph } from "@/components/base/spinner/spinner";

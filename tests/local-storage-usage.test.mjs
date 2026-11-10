@@ -11,7 +11,7 @@ let measureLocalStorage, formatStorageSize;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./local-storage-usage-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  ({ measureLocalStorage, formatStorageSize } = await import(pathToFileURL(join(output, "local-storage-usage.js"))));
+  ({ measureLocalStorage, formatStorageSize } = await import(pathToFileURL(join(output, "settings/local-storage-usage.js"))));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

@@ -1,6 +1,6 @@
 import { FileTextIcon } from "@/components/foundations/icons/app-icons";
-import type { Project } from "@/app/projects";
-import type { ThreadUsage } from "@/app/thread-usage";
+import type { Project } from "@/app/projects/projects";
+import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { useGitStatus } from "@/hooks/use-git-status";
 import { Button } from "@/components/base/buttons/button";
 import { ContextUsageCard } from "../context-usage-card";

@@ -12,7 +12,7 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./application-language-store-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  module = await import(pathToFileURL(join(output, "application-language-store.js")));
+  module = await import(pathToFileURL(join(output, "navigation/application-language-store.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const { ApplicationLanguageStore, applicationLanguageKey } = module;

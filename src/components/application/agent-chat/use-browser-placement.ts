@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import type { ChatTool } from "@/app/chat-tools";
+import type { ChatTool } from "@/app/chat/chat-tools";
 
 type ChatAuxiliary = "panel" | "browser" | null;
 export type WorkPanelView = "history" | "code" | "study" | ChatTool;

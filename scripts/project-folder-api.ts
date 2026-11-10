@@ -3,7 +3,7 @@ import { readFile, realpath, stat } from "node:fs/promises";
 import { homedir } from "node:os";
 import { basename, dirname, isAbsolute, join, resolve } from "node:path";
 import type { Connect, Plugin } from "vite";
-import { folderProblem, parseGitHead, type ProjectFolderCheck } from "../src/app/project-folder-info";
+import { folderProblem, parseGitHead, type ProjectFolderCheck } from "../src/app/projects/project-folder-info";
 
 /**
  * Folder check for the browser preview (Vite dev and preview servers), which

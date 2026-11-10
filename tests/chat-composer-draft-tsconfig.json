@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/chat-composer-draft.ts"]
+  "include": ["../src/app/chat/chat-composer-draft.ts"]
 }

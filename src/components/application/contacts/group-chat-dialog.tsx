@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { UsersIcon } from "@/components/foundations/icons/app-icons";
-import type { ChatContact } from "@/app/contacts-store";
-import type { GroupChat } from "@/app/group-chat-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
+import type { GroupChat } from "@/app/contacts/group-chat-store";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Button } from "@/components/base/buttons/button";
 import { Checkbox } from "@/components/base/checkbox/checkbox";

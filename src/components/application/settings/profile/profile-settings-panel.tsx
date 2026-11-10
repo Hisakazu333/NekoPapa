@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { profileIdentity } from "@/app/profile-identity";
+import { profileIdentity } from "@/app/account/profile-identity";
 import { useAccountSession } from "@/components/application/account/account-session";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { Button } from "@/components/base/buttons/button";

@@ -16,7 +16,7 @@ try {
     const path = join(output, String(name));
     if (path.endsWith(".js")) writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+)(["'])(\.{1,2}\/[^"']+?)(?<!\.js)\2/g, "$1$2$3.js$2"));
   }
-  domain = await import(pathToFileURL(join(output, "app/chat-composer-draft.js")));
+  domain = await import(pathToFileURL(join(output, "app/chat/chat-composer-draft.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const { createComposerDraft, addComposerFiles, validateComposerGoal, composerDraftBlockReason,

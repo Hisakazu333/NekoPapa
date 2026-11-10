@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { GroupChat } from "@/app/group-chat-store";
+import type { GroupChat } from "@/app/contacts/group-chat-store";
 import { AlertDialog } from "@/components/base/modal/modal";
 import { useGroupChats } from "@/hooks/use-group-chats";
 

@@ -1,7 +1,7 @@
 import { SettingsIcon } from "@/components/foundations/icons/app-icons";
 import { Button } from "@/components/base/buttons/button";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
-import { contextUsageRatio, formatTokens, type ThreadUsage } from "@/app/thread-usage";
+import { contextUsageRatio, formatTokens, type ThreadUsage } from "@/app/usage/thread-usage";
 import { cx } from "@/utils/cx";
 import { WorkPanelSection } from "./tools/work-panel-section";
 

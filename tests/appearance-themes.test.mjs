@@ -13,8 +13,8 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./appearance-themes-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  themes = await import(pathToFileURL(join(output, "appearance-themes.js")));
-  preferences = await import(pathToFileURL(join(output, "appearance-preferences.js")));
+  themes = await import(pathToFileURL(join(output, "appearance/appearance-themes.js")));
+  preferences = await import(pathToFileURL(join(output, "appearance/appearance-preferences.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

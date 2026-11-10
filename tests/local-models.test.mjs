@@ -20,7 +20,7 @@ try {
   }
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   api = await import(pathToFileURL(join(output, "scripts/local-models-api.js")));
-  models = await import(pathToFileURL(join(output, "src/app/local-models.js")));
+  models = await import(pathToFileURL(join(output, "src/app/models/local-models.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isSidebarToggleShortcut, readSidebarHidden, sidebarToggleShortcut, writeSidebarHidden } from "@/app/sidebar-visibility";
+import { isSidebarToggleShortcut, readSidebarHidden, sidebarToggleShortcut, writeSidebarHidden } from "@/app/navigation/sidebar-visibility";
 
 const storage = () => (typeof window === "undefined" ? undefined : window.localStorage);
 const platform = () => (typeof navigator === "undefined" ? "" : navigator.platform);

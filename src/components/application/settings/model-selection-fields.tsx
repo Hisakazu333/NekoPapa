@@ -1,6 +1,6 @@
 import { useState, type ClipboardEvent } from "react";
 import { ListIcon, PlusIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { MODELS_PER_CONNECTION, validModelId } from "@/app/model-connection-models";
+import { MODELS_PER_CONNECTION, validModelId } from "@/app/models/model-connection-models";
 import { Button } from "@/components/base/buttons/button";
 import { IconButton } from "@/components/base/buttons/icon-button";
 import { Checkbox } from "@/components/base/checkbox/checkbox";

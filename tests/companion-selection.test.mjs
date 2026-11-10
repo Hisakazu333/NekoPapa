@@ -1,8 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { companionsModule, chromeModule } from "./helpers/production.mjs";
+import { companionsModule, companionConversationModule, chromeModule } from "./helpers/production.mjs";
 import { WorkspaceStore, storage, sampleState, workspace, assertConsistent } from "./helpers/workspace.mjs";
-const { companionCatalog, conversationForCompanion } = companionsModule;
+const { companionCatalog } = companionsModule;
+const { conversationForCompanion } = companionConversationModule;
 
 test("choosing a character changes only the preference and survives reload with the same open content", () => {
   const saved = storage(sampleState());

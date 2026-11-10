@@ -1,7 +1,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { FolderIcon, GitBranchIcon, MonitorIcon } from "@/components/foundations/icons/app-icons";
 import { gitBranchLabel, type GitState } from "@/hooks/use-git-status";
-import type { Project } from "@/app/projects";
+import type { Project } from "@/app/projects/projects";
 import { WorkPanelSection } from "./work-panel-section";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;

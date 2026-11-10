@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { checkProjectFolder } from "@/app/project-folder-check";
-import type { ProjectFolderCheck } from "@/app/project-folder-info";
+import { checkProjectFolder } from "@/app/projects/project-folder-check";
+import type { ProjectFolderCheck } from "@/app/projects/project-folder-info";
 
 /**
  * Live checks of the listed folders, refreshed each time `active` turns on

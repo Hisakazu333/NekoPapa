@@ -1,5 +1,7 @@
 #[path = "account_device.rs"]
 pub(crate) mod device;
+#[path = "account_models.rs"]
+pub(crate) mod models;
 
 // Official account login. Bearer tokens stay in the host for this app session.
 use reqwest::{Client, Method, Url};
@@ -156,10 +158,15 @@ async fn request(
     if let Some(token) = token {
         req = req.bearer_auth(token);
     }
-    let mut response = req
+    let response = req
         .send()
         .await
         .map_err(|_| Other("账号服务暂时无法连接，请重试。".into()))?;
+    decode_response(response).await
+}
+
+async fn decode_response(mut response: reqwest::Response) -> Result<Value, RequestFailure> {
+    use RequestFailure::Other;
     let status = response.status();
     if status.as_u16() == 401 {
         return Err(RequestFailure::Unauthorized);
@@ -366,11 +373,14 @@ pub async fn account_cancel<R: Runtime>(
 
 #[tauri::command]
 pub async fn account_logout<R: Runtime>(
+    app: tauri::AppHandle<R>,
     webview: Webview<R>,
     auth: State<'_, AccountAuth>,
 ) -> Result<(), String> {
     main_view(&webview)?;
-    sign_out(&auth).await
+    sign_out(&auth).await?;
+    crate::desktop_pet::close_account_pet(&app);
+    Ok(())
 }
 
 async fn sign_out(auth: &AccountAuth) -> Result<(), String> {

@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/desktop-account-contract.ts", "../src/app/desktop-account-api.ts"]
+  "include": ["../src/app/account/desktop-account-contract.ts", "../src/app/account/desktop-account-api.ts"]
 }

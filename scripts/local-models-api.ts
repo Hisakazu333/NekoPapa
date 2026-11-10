@@ -1,6 +1,6 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Connect, Plugin } from "vite";
-import { LOCAL_PROBE_PATHS, type LocalProbe } from "../src/app/local-models";
+import { LOCAL_PROBE_PATHS, type LocalProbe } from "../src/app/models/local-models";
 
 /**
  * Local model check for the browser preview (Vite dev and preview servers),

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ContactIcon } from "@/components/foundations/icons/app-icons";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";

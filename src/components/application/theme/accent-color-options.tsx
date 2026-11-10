@@ -1,6 +1,6 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import { parseColor, type Key } from "react-aria-components";
-import { APPEARANCE_ACCENTS, type AppearanceAccent } from "@/app/appearance-preferences";
+import { APPEARANCE_ACCENTS, type AppearanceAccent } from "@/app/appearance/appearance-preferences";
 import { ColorWell } from "@/components/base/color-picker/color-picker";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
 import { tokenHex } from "@/platform/token-color";

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { CheckIcon, FolderIcon, FolderPlusIcon } from "@/components/foundations/icons/app-icons";
-import { resolveProject, type Project } from "@/app/projects";
+import { resolveProject, type Project } from "@/app/projects/projects";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { ProjectFolderDetail } from "@/components/application/projects/project-folder-detail";

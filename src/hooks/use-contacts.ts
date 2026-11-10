@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { CONTACTS_STORAGE_KEY, ContactsStore, type ContactDraft } from "@/app/contacts-store";
+import { CONTACTS_STORAGE_KEY, ContactsStore, type ContactDraft } from "@/app/contacts/contacts-store";
 
 let store: ContactsStore | undefined;
 let snapshot: { contacts: ReturnType<typeof readContacts>; deletedIds: string[]; storageAvailable: boolean; notice: string } | undefined;

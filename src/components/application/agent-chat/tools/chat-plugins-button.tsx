@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { ExternalLinkIcon, GithubIcon, LibraryIcon, LinkIcon, PlugIcon, PuzzleIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
 import { DSH_PLUGIN_SEARCH_URL, openExternal } from "@/platform/open-external";
-import type { ConfigurationRecord } from "@/app/configuration-types";
+import type { ConfigurationRecord } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Popover, PopoverHeader, PopoverTrigger } from "@/components/base/popover/popover";
 import { toolbarIconButtonClass, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";

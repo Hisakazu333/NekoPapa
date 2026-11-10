@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/hover-intent.ts"]
+  "include": ["../src/app/navigation/hover-intent.ts"]
 }

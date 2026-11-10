@@ -14,7 +14,7 @@
 // The app polls `window.__nekoPapaPick.take()`: `{ pending: true }` while
 // annotating, `{ annotations: [...] }` (or `{ cancelled: true }`) once, then
 // null. Everything read here is page content and is validated again by the
-// app (src/app/browser-pick.ts). The UI lives in a closed shadow root so the
+// app (src/app/browser/browser-pick.ts). The UI lives in a closed shadow root so the
 // page's styles cannot reach it, and page handlers never see its events.
 (() => {
   const KEY = "__nekoPapaPick";

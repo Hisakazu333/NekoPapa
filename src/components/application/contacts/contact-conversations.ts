@@ -1,4 +1,4 @@
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { messageText, orderThreads, type StoredThread } from "../agent-chat/thread-storage";
 
 /** Older contact histories keep their IDs; opening a contact resumes its latest conversation. */

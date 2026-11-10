@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { parseChatProviderProbe, type ChatProviderProbe } from "@/app/chat-provider-status";
-import { chatFetch } from "@/app/desktop-chat-runtime";
+import { parseChatProviderProbe, type ChatProviderProbe } from "@/app/chat/chat-provider-status";
+import { chatFetch } from "@/app/chat/desktop-chat-runtime";
 
 export function useChatProvider(endpoint: string) {
   const [probe, setProbe] = useState<ChatProviderProbe>(() => ({ ...parseChatProviderProbe(null), status: "checking" }));

@@ -1,10 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CloudUploadIcon, DownloadIcon } from "@/components/foundations/icons/app-icons";
-import { exportConfiguration, parseConfigurationBackup, validateConfiguration } from "@/app/configuration-contract";
-import type { ConfigurationData } from "@/app/configuration-types";
+import { exportConfiguration, parseConfigurationBackup, validateConfiguration } from "@/app/settings/configuration-contract";
+import type { ConfigurationData } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
-import { formatStorageSize } from "@/app/local-storage-usage";
+import { formatStorageSize } from "@/app/settings/local-storage-usage";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { cx } from "@/utils/cx";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";

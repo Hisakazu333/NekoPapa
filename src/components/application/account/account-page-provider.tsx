@@ -4,7 +4,7 @@ import {
   createAccountPageNavigation,
   restoreAccountPageFocusTarget,
   type AccountPageNavigation,
-} from "@/app/account-page-navigation";
+} from "@/app/account/account-page-navigation";
 import { AccountSessionProvider } from "./account-session";
 import { AccountLoginPage } from "./account-login-page";
 

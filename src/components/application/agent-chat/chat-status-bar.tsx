@@ -1,8 +1,8 @@
 import { useRef, type ComponentType, type ReactNode } from "react";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ChartPieIcon, FileTextIcon, FolderIcon, GitBranchIcon } from "@/components/foundations/icons/app-icons";
-import type { Project } from "@/app/projects";
-import { contextUsageRatio, formatTokens, type ThreadUsage } from "@/app/thread-usage";
+import type { Project } from "@/app/projects/projects";
+import { contextUsageRatio, formatTokens, type ThreadUsage } from "@/app/usage/thread-usage";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { ProgressCircle } from "@/components/base/progress/progress";
 import { ChatWorkEnvironment } from "./tools/chat-work-environment";

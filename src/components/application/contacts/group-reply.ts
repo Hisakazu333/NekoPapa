@@ -1,5 +1,5 @@
 import { readUIMessageStream, type UIMessage } from "ai";
-import { createChatTransport } from "../../../app/chat-transport";
+import { createChatTransport } from "../../../app/chat/chat-transport";
 import type { GroupReply } from "./group-turn";
 import { toChatContactRequest } from "../agent-chat/chat-contact";
 

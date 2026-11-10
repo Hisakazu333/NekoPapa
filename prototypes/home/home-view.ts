@@ -1,9 +1,9 @@
-import { renderChrome, defaultPresentation } from "../../src/app/chrome";
-import { renderGlobalRail } from "../../src/app/rail-view";
-import { renderCompanionEntry } from "../../src/app/companion-view";
-import { icon } from "../../src/app/icons";
-import { escapeHtml, iconButton, itemIcon } from "../../src/app/view-shared";
-import type { WorkspaceStore } from "../../src/app/state";
+import { renderChrome, defaultPresentation } from "../../src/app/legacy-shell/chrome";
+import { renderGlobalRail } from "../../src/app/legacy-shell/rail-view";
+import { renderCompanionEntry } from "../../src/app/legacy-shell/companion-view";
+import { icon } from "../../src/app/legacy-shell/icons";
+import { escapeHtml, iconButton, itemIcon } from "../../src/app/legacy-shell/view-shared";
+import type { WorkspaceStore } from "../../src/app/legacy-shell/state";
 import type { WorkPreview, ReviewPreview } from "./demo-data";
 
 const categoryLabels = { home: "NekoPapa", chat: "对话", library: "空间", projects: "项目", tasks: "任务", tools: "工具" };

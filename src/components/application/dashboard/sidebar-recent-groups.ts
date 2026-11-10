@@ -1,5 +1,5 @@
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
-import { resolveProject, type Project } from "../../../app/projects";
+import { resolveProject, type Project } from "../../../app/projects/projects";
 
 /** A project in the sidebar with its newest workbench chats. */
 export interface RecentProjectGroup { project: Project; threads: StoredThread[]; updatedAt: number; hidden: number }

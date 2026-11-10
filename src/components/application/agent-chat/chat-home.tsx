@@ -1,6 +1,6 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { ArrowUpIcon, SparkleIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { ComposerAddMenu } from "../chat-composer/composer-add-menu";

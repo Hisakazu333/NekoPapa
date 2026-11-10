@@ -1,0 +1,7 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "desktop-tools",
+  "description": "Local screen notebook and desktop pet windows",
+  "windows": ["screen-island", "desktop-pet"],
+  "permissions": ["core:window:allow-start-dragging"]
+}

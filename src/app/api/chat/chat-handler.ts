@@ -9,9 +9,9 @@ import {
 import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
 import { groupSystemPrompt, resolveGroupContext, type GroupContext } from "./group-context";
 import type { ChatContactMetadata } from "../../../components/application/agent-chat/chat-contact";
-import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../official-companion-service";
-import { chatReplyMetadata } from "../../chat-usage";
-import { readChatModelProfile } from "../../chat-model-profile";
+import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-companion-service";
+import { chatReplyMetadata } from "../../usage/chat-usage";
+import { readChatModelProfile } from "../../models/chat-model-profile";
 import { profileProvider, resolveProvider, type Provider } from "./providers";
 import type { ChatRuntime } from "./runtime";
 

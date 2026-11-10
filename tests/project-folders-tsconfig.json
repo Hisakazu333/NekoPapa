@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/project-folders.ts", "../src/app/projects.ts", "../src/components/application/dashboard/sidebar-recent-groups.ts"]
+  "include": ["../src/app/projects/project-folders.ts", "../src/app/projects/projects.ts", "../src/components/application/dashboard/sidebar-recent-groups.ts"]
 }

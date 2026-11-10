@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
-import { APPEARANCE_THEMES, themeById, type AppearanceTheme, type ThemeMode } from "@/app/appearance-themes";
+import { APPEARANCE_THEMES, themeById, type AppearanceTheme, type ThemeMode } from "@/app/appearance/appearance-themes";
 import { Input } from "@/components/base/input/input";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { RadioCard } from "@/components/base/radio/radio-card";

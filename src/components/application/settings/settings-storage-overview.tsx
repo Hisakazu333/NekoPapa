@@ -1,5 +1,5 @@
 import { BookUserIcon, DatabaseIcon, FileLockIcon, LanguagesIcon, LayoutPanelLeftIcon, MessageCircleIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
-import { formatStorageSize, measureLocalStorage, type LocalDataCategoryId, type LocalStorageUsage } from "@/app/local-storage-usage";
+import { formatStorageSize, measureLocalStorage, type LocalDataCategoryId, type LocalStorageUsage } from "@/app/settings/local-storage-usage";
 import { Chip } from "@/components/base/badges/chip";
 import { SettingsCard, SettingsSectionLabel } from "./settings-rows";
 

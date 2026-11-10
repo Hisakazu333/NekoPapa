@@ -32,7 +32,7 @@ M0 结束时补齐实际构建命令、已采用的 SDK 版本、runtime 版本�
 | DATA-03 / P0 | DATA-02、RT-03 | 输入 outbox、事件提交 / 去重、快照补取、活动与读水位 | 接受前持久化；后台更新不抢标签；缺口补取；归档 Run 仍可达；A-RT-01、A-DATA-02、A-DATA-03 |
 | DATA-04 / P0 | DATA-01、DATA-02 | `state.ts` 的导入适配 + Rust migrations；旧 localStorage、recovery、归档 / 回收站与视图迁移 | 完整 / 部分损坏 / 重复导入保留 ID、顺序与原件；无假正文和时间；A-DATA-01 |
 | DATA-05 / P1 | DATA-03、DATA-04 | 导出 / 导入、backup manifest、清理队列及独立永久清除管理 | 单对象范围明确，恢复可核对，拒绝活跃清除，不删项目 / 外部原件；A-DATA-03、A-DATA-04 |
-| UX-01 / P0 | DATA-03、DATA-04 | `src/app/state.ts`、`controller.ts`、`view.ts` 接服务；标签 / 角色 / 分组 / 归档 / 回收站仍引用同一 ID | 现有 71 项基线逐项保留或提供等价证据；保存失败 / unbound / interrupted 可处理；A-NAV-01 |
+| UX-01 / P0 | DATA-03、DATA-04 | `src/app/legacy-shell/state.ts`、`controller.ts`、`view.ts` 接服务；标签 / 角色 / 分组 / 归档 / 回收站仍引用同一 ID | 现有 71 项基线逐项保留或提供等价证据；保存失败 / unbound / interrupted 可处理；A-NAV-01 |
 | UX-02 / P1 | UX-01 | `activity.ts`、`search.ts` 和侧栏列表；分页、手动排序 / 时间排序、数量收纳与正文检索接口 | 列表不全量读历史；收藏与置顶分开；中文 / 归档查询范围正确；A-NAV-01、A-SCALE-01 |
 
 当前导航索引已完成可恢复删除和回收站；这不代表 DATA-05 的真实资源永久清除已完成。DATA-05 / UX-02 可以在 M2 起步期间继续完善，但正式开放导出、永久清除和正文检索前须完成自身验收。不得用未实现的动作替代按钮。

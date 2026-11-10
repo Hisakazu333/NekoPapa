@@ -1,6 +1,6 @@
 //! Finds local inference servers (Ollama, LM Studio, llama.cpp, vLLM, Jan)
 //! for the 模型与 API settings page. The app names the ports and paths
-//! (src/app/local-models.ts); this only performs a plain HTTP GET against
+//! (src/app/models/local-models.ts); this only performs a plain HTTP GET against
 //! 127.0.0.1 for each, with short timeouts and a size cap, and hands the raw
 //! reply back. Nothing is started, installed or downloaded.
 

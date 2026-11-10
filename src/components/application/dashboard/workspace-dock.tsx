@@ -1,6 +1,6 @@
 import { Fragment, useRef, useState, type ComponentType, type MouseEvent, type ReactNode } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { DOCK_TILE_SIZE, dockScale } from "@/app/dock-magnification";
+import { DOCK_TILE_SIZE, dockScale } from "@/app/navigation/dock-magnification";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { cx } from "@/utils/cx";
 

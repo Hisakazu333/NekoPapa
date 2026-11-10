@@ -11,13 +11,15 @@ import { UsageSettingsPanel } from "./usage/usage-settings-panel";
 import { cx } from "@/utils/cx";
 import { AppearanceSettingsPanel } from "./nekopapa-appearance-settings";
 import { ConfigurationGroupPanel, ConnectionsSettingsPanel, HooksSettingsPanel } from "./nekopapa-configuration-settings";
+import { ScreenIslandSettings } from "./desktop-tool-settings";
+import { DesktopPetSettings } from "./desktop-pet-settings";
 import { DataSettingsPanel } from "./nekopapa-data-settings";
 import { ModelSettingsPanel } from "./nekopapa-model-settings";
 import { PluginSettingsPanel, SkillSettingsPanel, ToolSettingsPanel } from "./nekopapa-tool-settings";
 import { AboutSettingsPanel, GeneralSettingsPanel, ShortcutsSettingsPanel } from "./workspace-settings-info";
 import { settingsGroups, settingsSections, type SettingsSection } from "./workspace-settings-catalog";
 import { SettingsDraftProvider } from "./settings-draft-context";
-import { hasUnsavedSettingsDrafts, updateSettingsDraft } from "@/app/settings-draft-state";
+import { hasUnsavedSettingsDrafts, updateSettingsDraft } from "@/app/settings/settings-draft-state";
 
 export type SettingsPage = SettingsSection;
 
@@ -46,6 +48,8 @@ function SettingsPanel({ page, onClose }: {
     case "profile": return <ProfileSettingsPanel onClose={onClose} />;
     case "usage": return <UsageSettingsPanel onClose={onClose} />;
     case "appearance": return <AppearanceSettingsPanel onClose={onClose} />;
+    case "screen-island": return <ScreenIslandSettings onClose={onClose} />;
+    case "desktop": return <DesktopPetSettings onClose={onClose} />;
     case "model": return <ModelSettingsPanel onClose={onClose} />;
     case "tools": return <ToolSettingsPanel onClose={onClose} />;
     case "skills": return <SkillSettingsPanel onClose={onClose} />;

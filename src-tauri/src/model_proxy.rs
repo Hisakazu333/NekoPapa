@@ -32,7 +32,7 @@ const MAX_BODY: usize = 8 * 1024 * 1024;
 const PLAIN: [&str; 3] = ["AI_PROVIDER", "AI_BASE_URL", "CHAT_MODEL"];
 
 /// A credential variable must look like one (mirrors isCredentialName in
-/// src/app/chat-model-profile.ts), so a request cannot ask for PATH or HOME.
+/// src/app/models/chat-model-profile.ts), so a request cannot ask for PATH or HOME.
 pub fn is_credential_name(name: &str) -> bool {
     let valid = !name.is_empty()
         && name.len() <= 80

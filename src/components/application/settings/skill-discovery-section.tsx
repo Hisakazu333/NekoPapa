@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
-import { collectionSchemas, fieldDefaults } from "@/app/configuration-contract";
-import { displaySkillPath, foundSkills, savedSkillDirs, SKILL_SOURCE_LABELS, SKILL_SOURCE_ROOTS, type FoundSkill } from "@/app/skill-discovery";
-import { scanSkillFolders } from "@/app/skill-discovery-client";
+import { collectionSchemas, fieldDefaults } from "@/app/settings/configuration-contract";
+import { displaySkillPath, foundSkills, savedSkillDirs, SKILL_SOURCE_LABELS, SKILL_SOURCE_ROOTS, type FoundSkill } from "@/app/settings/skill-discovery";
+import { scanSkillFolders } from "@/app/settings/skill-discovery-client";
 import { Button } from "@/components/base/buttons/button";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { SettingsCard, SettingsSectionLabel } from "./settings-rows";

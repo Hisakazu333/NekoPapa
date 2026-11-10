@@ -1,6 +1,6 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { sankeyBandPath, sankeyLayout } from "@/app/usage-sankey-layout";
-import { formatTokens, usageFlow, type UsageRange, type UsageReply } from "@/app/usage-stats";
+import { sankeyBandPath, sankeyLayout } from "@/app/usage/usage-sankey-layout";
+import { formatTokens, usageFlow, type UsageRange, type UsageReply } from "@/app/usage/usage-stats";
 import { Select, SelectItem } from "@/components/base/select/select";
 
 const RANGES: [UsageRange, string][] = [["7d", "近 7 天"], ["30d", "近 30 天"], ["all", "全部"]];

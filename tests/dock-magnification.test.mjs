@@ -12,7 +12,7 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./dock-magnification-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  dock = await import(pathToFileURL(join(output, "dock-magnification.js")));
+  dock = await import(pathToFileURL(join(output, "navigation/dock-magnification.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

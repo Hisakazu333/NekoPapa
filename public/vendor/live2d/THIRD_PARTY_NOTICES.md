@@ -6,6 +6,8 @@ party runtime distributions, not handwritten application code.
 
 - `pixi.min.js`: PixiJS 6.5.10. MIT license, Mathew Groves and Chad Engler.
   See `PIXI-LICENSE.txt`; the original distribution's header is retained.
+- `unsafe-eval.min.js`: PixiJS 6.5.10 browser compatibility add-on, MIT.
+  From the official `@pixi/unsafe-eval@6.5.10` npm distribution. See `PIXI-LICENSE.txt`.
 - `cubism4.min.js`: pixi-live2d-display Cubism 4 browser distribution. MIT license,
   Guan. See `PIXI-LIVE2D-DISPLAY-LICENSE.txt`. It also contains the Cubism Web
   framework adapter, subject to the Live2D Open Software License agreement:

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { CopyIcon, ExternalLinkIcon, GithubIcon } from "@/components/foundations/icons/app-icons";
-import { cordisPatch, duplicateInstanceIds } from "@/app/cordis-plugins";
-import type { ConfigurationRecord } from "@/app/configuration-types";
+import { cordisPatch, duplicateInstanceIds } from "@/app/settings/cordis-plugins";
+import type { ConfigurationRecord } from "@/app/settings/configuration-types";
 import { DSH_PLUGIN_SEARCH_URL, openExternal } from "@/platform/open-external";
 import { Button } from "@/components/base/buttons/button";
 import { SettingsSectionLabel } from "./settings-rows";

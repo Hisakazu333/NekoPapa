@@ -11,7 +11,7 @@ let keys;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./send-key-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  keys = await import(pathToFileURL(join(output, "send-key.js")));
+  keys = await import(pathToFileURL(join(output, "chat/send-key.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

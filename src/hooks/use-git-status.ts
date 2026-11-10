@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { parseGitStatus, type GitStatus } from "@/app/project-workspace";
-import { projectWorkspace } from "@/app/project-workspace-client";
+import { parseGitStatus, type GitStatus } from "@/app/projects/project-workspace";
+import { projectWorkspace } from "@/app/projects/project-workspace-client";
 
 export type GitState = { kind: "loading" } | { kind: "none" } | { kind: "error"; message: string } | { kind: "ready"; status: GitStatus };
 

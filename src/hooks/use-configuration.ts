@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { ConfigurationStore } from "@/app/configuration-store";
-import { configurationKey, type ConfigurationData } from "@/app/configuration-types";
+import { ConfigurationStore } from "@/app/settings/configuration-store";
+import { configurationKey, type ConfigurationData } from "@/app/settings/configuration-types";
 
 interface ConfigurationSnapshot {
   data: ConfigurationData;

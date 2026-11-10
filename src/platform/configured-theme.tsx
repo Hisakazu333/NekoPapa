@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { applyThemeWithTransition } from "@/components/application/theme/theme-toggle";
-import { applyAppearanceAccent, normalizeAppearanceAccent, normalizeAppearanceMode, resolveAppearanceTheme } from "@/app/appearance-preferences";
-import { applyThemeColors, normalizeThemeColor, normalizeThemeId, resolveThemeColors } from "@/app/appearance-themes";
+import { applyAppearanceAccent, normalizeAppearanceAccent, normalizeAppearanceMode, resolveAppearanceTheme } from "@/app/appearance/appearance-preferences";
+import { applyThemeColors, normalizeThemeColor, normalizeThemeId, resolveThemeColors } from "@/app/appearance/appearance-themes";
 import { useConfiguration } from "@/hooks/use-configuration";
 
 /**

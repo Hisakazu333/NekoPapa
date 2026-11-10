@@ -1,7 +1,7 @@
 import { useEffect, useId, useState, type FormEvent, type ReactNode } from "react";
-import { configurationSchemas } from "@/app/configuration-contract";
-import { saveConfigurationDraft } from "@/app/configuration-draft";
-import type { ConfigurationGroup, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
+import { configurationSchemas } from "@/app/settings/configuration-contract";
+import { saveConfigurationDraft } from "@/app/settings/configuration-draft";
+import type { ConfigurationGroup, ConfigurationValue, ConfigurationValues } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { toast } from "@/components/base/toast/toast";

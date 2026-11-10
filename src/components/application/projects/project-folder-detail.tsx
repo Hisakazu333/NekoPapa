@@ -1,5 +1,5 @@
 import { GitBranchIcon } from "@/components/foundations/icons/app-icons";
-import type { ProjectFolderCheck } from "@/app/project-folder-info";
+import type { ProjectFolderCheck } from "@/app/projects/project-folder-info";
 import { cx } from "@/utils/cx";
 
 /**

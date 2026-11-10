@@ -18,7 +18,7 @@
 
 ## 云端服务接入评估（待确认）
 
-账号契约与适配位于 `src/app/desktop-account-contract.ts`、`desktop-account-api.ts`，覆盖 Java 桌面扫码启动 / 轮询、账号资料和退出，并解析业务响应与扫码状态。默认实例不提供 transport，因此不会执行 HTTP；当前没有真实登录、原生凭据存储或已确认的产品服务地址。用户已明确要求后端重构期间暂不连接，不能用模拟账号或测试回执呈现登录成功。接口来源、后续接入缺口见 [Java 人物服务](official-companion-service.md)。
+账号契约与适配位于 `src/app/account/desktop-account-contract.ts`、`desktop-account-api.ts`，覆盖 Java 桌面扫码启动 / 轮询、账号资料和退出，并解析业务响应与扫码状态。默认实例不提供 transport，因此不会执行 HTTP；当前没有真实登录、原生凭据存储或已确认的产品服务地址。用户已明确要求后端重构期间暂不连接，不能用模拟账号或测试回执呈现登录成功。接口来源、后续接入缺口见 [Java 人物服务](official-companion-service.md)。
 
 建议自定义 API 保持独立使用，官方云端作为主动选择的可选服务。公开客户端按不可信调用方设计：接口地址、客户端 ID 或随安装包分发的固定密钥均不能证明调用者可信；[RFC 8252 §8.5](https://www.rfc-editor.org/rfc/rfc8252#section-8.5) 明确指出原生客户端中的共享固定密钥不能作为保密凭据。用户凭据未来由宿主安全存储，公开云端只接受其授权范围内的短期用户凭证，不向客户端分发内部计费密钥或数据库权限。
 

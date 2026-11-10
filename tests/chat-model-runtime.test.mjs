@@ -21,12 +21,12 @@ try {
     writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+|import\s*)(["'])(\.{1,2}\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier.endsWith(".js") ? specifier : specifier + ".js"}${quote}`));
   }
   route = await import(pathToFileURL(join(output, "app/api/chat/route.js")));
-  profiles = await import(pathToFileURL(join(output, "app/chat-model-profile.js")));
-  links = await import(pathToFileURL(join(output, "app/message-links.js")));
-  address = await import(pathToFileURL(join(output, "app/browser-address.js")));
-  diffRows = await import(pathToFileURL(join(output, "app/diff-rows.js")));
-  vendors = await import(pathToFileURL(join(output, "app/model-vendors.js")));
-  blocks = await import(pathToFileURL(join(output, "app/message-blocks.js")));
+  profiles = await import(pathToFileURL(join(output, "app/models/chat-model-profile.js")));
+  links = await import(pathToFileURL(join(output, "app/chat/message-links.js")));
+  address = await import(pathToFileURL(join(output, "app/browser/browser-address.js")));
+  diffRows = await import(pathToFileURL(join(output, "app/projects/diff-rows.js")));
+  vendors = await import(pathToFileURL(join(output, "app/models/model-vendors.js")));
+  blocks = await import(pathToFileURL(join(output, "app/chat/message-blocks.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const messages = [{ id: "user-1", role: "user", parts: [{ type: "text", text: "你好" }] }];

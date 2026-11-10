@@ -13,7 +13,7 @@ import {
 } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { useLocalProfile } from "@/hooks/use-local-profile";
-import { profileIdentity } from "@/app/profile-identity";
+import { profileIdentity } from "@/app/account/profile-identity";
 import { useAccountSession } from "@/components/application/account/account-session";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { useWorkspaceSettings, type OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
@@ -21,7 +21,7 @@ import type { SettingsSection } from "@/components/application/settings/workspac
 import { useApplicationLanguage } from "@/components/application/language/application-language";
 import { Select, SelectItem } from "@/components/base/select/select";
 import { AccentColorOptions } from "@/components/application/theme/accent-color-options";
-import { normalizeAppearanceAccent, normalizeAppearanceMode, type AppearanceAccent, type AppearanceMode } from "@/app/appearance-preferences";
+import { normalizeAppearanceAccent, normalizeAppearanceMode, type AppearanceAccent, type AppearanceMode } from "@/app/appearance/appearance-preferences";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { Button } from "@/components/base/buttons/button";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";

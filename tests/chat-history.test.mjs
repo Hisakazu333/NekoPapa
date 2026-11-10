@@ -25,9 +25,9 @@ try {
     }
   }
   qualify(output);
-  history = await import(pathToFileURL(join(output, "app/chat-history-store.js")));
+  history = await import(pathToFileURL(join(output, "app/chat/chat-history-store.js")));
   storageModule = await import(pathToFileURL(join(output, "components/application/agent-chat/thread-storage.js")));
-  contactsModule = await import(pathToFileURL(join(output, "app/contacts-store.js")));
+  contactsModule = await import(pathToFileURL(join(output, "app/contacts/contacts-store.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const { ChatHistoryStore } = history;

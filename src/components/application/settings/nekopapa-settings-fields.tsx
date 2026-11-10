@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { canPickFolder, folderPickerError, pickProjectFolder } from "@/app/native-folder-picker";
-import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
+import { canPickFolder, folderPickerError, pickProjectFolder } from "@/app/projects/native-folder-picker";
+import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { NumberField } from "@/components/base/number-field/number-field";

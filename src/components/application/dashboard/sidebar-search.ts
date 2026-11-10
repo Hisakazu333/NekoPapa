@@ -1,5 +1,5 @@
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 
 export type SidebarSearchTarget =
   | { type: "page"; key: string }

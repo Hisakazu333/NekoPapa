@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/chat-history-store.ts"]
+  "include": ["../src/app/chat/chat-history-store.ts"]
 }

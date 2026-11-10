@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/state.ts", "../src/app/activity.ts", "../src/app/chrome.ts", "../src/app/sidebar-model.ts", "../src/app/tab-model.ts", "../src/app/settings-model.ts", "../src/app/settings-preferences.ts", "../src/app/settings-draft-state.ts", "../src/app/configuration-store.ts", "../src/app/local-profile.ts", "../src/app/contacts-store.ts", "../src/app/settings-usage-view.ts", "../src/app/settings-account-view.ts"]
+  "include": ["../src/app/legacy-shell/state.ts", "../src/app/legacy-shell/companion-conversation.ts", "../src/app/legacy-shell/activity.ts", "../src/app/legacy-shell/chrome.ts", "../src/app/legacy-shell/sidebar-model.ts", "../src/app/legacy-shell/tab-model.ts", "../src/app/legacy-shell/settings-model.ts", "../src/app/legacy-shell/settings-preferences.ts", "../src/app/settings/settings-draft-state.ts", "../src/app/settings/configuration-store.ts", "../src/app/account/local-profile.ts", "../src/app/contacts/contacts-store.ts", "../src/app/legacy-shell/settings-usage-view.ts", "../src/app/legacy-shell/settings-account-view.ts"]
 }

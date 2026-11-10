@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat-composer-draft";
-import { composerModelBlockReason, composerModels, type ComposerModelOption, type ComposerRuntimeModel } from "@/app/composer-model";
-import { addPageElement, type PageElement } from "@/app/browser-pick";
-import { chatModelProfile } from "@/app/chat-model-profile";
+import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat/chat-composer-draft";
+import { composerModelBlockReason, composerModels, type ComposerModelOption, type ComposerRuntimeModel } from "@/app/models/composer-model";
+import { addPageElement, type PageElement } from "@/app/browser/browser-pick";
+import { chatModelProfile } from "@/app/models/chat-model-profile";
 import { useConfiguration } from "./use-configuration";
 
 interface DraftState { draft: ComposerDraft; selectedModel?: ComposerModelOption; error?: string }

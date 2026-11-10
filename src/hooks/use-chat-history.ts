@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from "react";
-import { ChatHistoryStore } from "@/app/chat-history-store";
-import { CONTACTS_STORAGE_KEY } from "@/app/contacts-store";
+import { ChatHistoryStore } from "@/app/chat/chat-history-store";
+import { CONTACTS_STORAGE_KEY } from "@/app/contacts/contacts-store";
 import { CHAT_STORAGE_KEY, LEGACY_CHAT_STORAGE_KEY } from "@/components/application/agent-chat/thread-storage";
 
 const history = new ChatHistoryStore();

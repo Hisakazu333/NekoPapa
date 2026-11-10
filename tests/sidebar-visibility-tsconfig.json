@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/sidebar-visibility.ts"]
+  "include": ["../src/app/navigation/sidebar-visibility.ts"]
 }

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { chatToolForShortcut, type ChatTool } from "@/app/chat-tools";
+import { chatToolForShortcut, type ChatTool } from "@/app/chat/chat-tools";
 
 const platform = () => (typeof navigator === "undefined" ? "" : navigator.platform);
 

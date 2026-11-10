@@ -12,7 +12,7 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./sidebar-visibility-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  visibility = await import(pathToFileURL(join(output, "app/sidebar-visibility.js")));
+  visibility = await import(pathToFileURL(join(output, "app/navigation/sidebar-visibility.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const { readSidebarHidden, writeSidebarHidden, isSidebarToggleShortcut, sidebarToggleShortcut, SIDEBAR_HIDDEN_KEY } = visibility;

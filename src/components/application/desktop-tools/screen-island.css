@@ -1,0 +1,10 @@
+@media (prefers-reduced-motion: no-preference) {
+  .screen-island-panel {
+    animation: screen-island-reveal 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+
+@keyframes screen-island-reveal {
+  from { clip-path: circle(4% at 50% 0%); }
+  to { clip-path: circle(115% at 50% 0%); }
+}

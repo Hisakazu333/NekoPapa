@@ -1,5 +1,5 @@
 import type { StoredThread } from "./thread-storage";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 
 export interface ChatSessionSnapshot {
   id: string;

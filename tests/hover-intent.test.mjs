@@ -12,7 +12,7 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./hover-intent-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  hover = await import(pathToFileURL(join(output, "hover-intent.js")));
+  hover = await import(pathToFileURL(join(output, "navigation/hover-intent.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

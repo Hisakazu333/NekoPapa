@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/profile-activity.ts", "../src/app/profile-identity.ts", "../src/app/chat-usage.ts"]
+  "include": ["../src/app/usage/profile-activity.ts", "../src/app/account/profile-identity.ts", "../src/app/usage/chat-usage.ts"]
 }

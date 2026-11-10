@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from "react";
 import { CheckIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
-import { LOCAL_RUNTIMES, localModelRecord, readLocalRuntime, type LocalModel, type LocalRuntime, type LocalRuntimeState } from "@/app/local-models";
-import { connectionModelIds } from "@/app/model-connection-models";
-import { probeLocalRuntimes } from "@/app/local-models-check";
-import type { ConfigurationRecord } from "@/app/configuration-types";
+import { LOCAL_RUNTIMES, localModelRecord, readLocalRuntime, type LocalModel, type LocalRuntime, type LocalRuntimeState } from "@/app/models/local-models";
+import { connectionModelIds } from "@/app/models/model-connection-models";
+import { probeLocalRuntimes } from "@/app/models/local-models-check";
+import type { ConfigurationRecord } from "@/app/settings/configuration-types";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Chip } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";

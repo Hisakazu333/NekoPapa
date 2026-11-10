@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import { GROUP_CHATS_STORAGE_KEY, GroupChatStore } from "@/app/group-chat-store";
+import { GROUP_CHATS_STORAGE_KEY, GroupChatStore } from "@/app/contacts/group-chat-store";
 
 const store = new GroupChatStore();
 let subscribers = 0;

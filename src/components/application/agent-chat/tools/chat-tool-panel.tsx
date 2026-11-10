@@ -2,9 +2,9 @@ import { useCallback, useState, type ReactNode, type RefObject } from "react";
 import { GitBranchIcon } from "@/components/foundations/icons/app-icons";
 import { CHAT_TOOL_ICONS as icons } from "./chat-tool-icons";
 import type { UIMessage } from "ai";
-import { CHAT_TOOL_LABELS, CHAT_TOOLS, type ChatTool } from "@/app/chat-tools";
+import { CHAT_TOOL_LABELS, CHAT_TOOLS, type ChatTool } from "@/app/chat/chat-tools";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
-import type { Project } from "@/app/projects";
+import type { Project } from "@/app/projects/projects";
 import { ChatOutlineView } from "./chat-outline-view";
 import { ProjectChangesView } from "./project-changes-view";
 import { ProjectFilesView } from "./project-files-view";
@@ -41,7 +41,7 @@ export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, o
   else if (tool === "terminal") body = <TerminalView key={root ?? "~"} cwd={root} onActions={onActions} />;
   else if (!root) body = <NoProjectMessage what={tool === "files" ? "文件" : "Git 更改"} />;
   else if (tool === "changes") body = <ProjectChangesView key={root} root={root} onActions={onActions} onBranch={setBranch} />;
-  else body = <ProjectFilesView key={root} root={root} onActions={onActions} />;
+  else body = <ProjectFilesView key={project!.id} folders={project!.folders} onActions={onActions} />;
 
   const tabs = <SegmentedControl aria-label="切换工具" selectedKeys={[tool]} className="shrink-0"
     onSelectionChange={(keys) => { const next = Array.from(keys)[0] as ChatTool | undefined; if (next && next !== tool) onSwitch(next); }}>

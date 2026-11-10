@@ -1,7 +1,7 @@
 import { useMemo, type RefObject } from "react";
 import { ListIcon } from "@/components/foundations/icons/app-icons";
 import type { UIMessage } from "ai";
-import { chatOutline } from "@/app/chat-tools";
+import { chatOutline } from "@/app/chat/chat-tools";
 import { messageText } from "../thread-storage";
 import { ToolPanelMessage } from "./tool-panel-frame";
 

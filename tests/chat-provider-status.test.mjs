@@ -12,8 +12,8 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./chat-provider-status-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  const module = join(output, "chat-provider-status.js");
-  writeFileSync(module, readFileSync(module, "utf8").replace('"./official-companion-service"', '"./official-companion-service.js"'));
+  const module = join(output, "chat/chat-provider-status.js");
+  writeFileSync(module, readFileSync(module, "utf8").replace('"../contacts/official-companion-service"', '"../contacts/official-companion-service.js"'));
   status = await import(pathToFileURL(module));
 } finally { rmSync(output, { recursive: true, force: true }); }
 

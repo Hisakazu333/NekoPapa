@@ -1,13 +1,13 @@
 import { useCallback, useMemo } from "react";
 import { BookIcon, ContactIcon, FolderIcon, GraduationCapIcon, HouseIcon, MessageSquareTextIcon } from "@/components/foundations/icons/app-icons";
-import type { SidebarDestination } from "@/app/sidebar-pins";
+import type { SidebarDestination } from "@/app/navigation/sidebar-pins";
 import { useSidebarPins } from "@/hooks/use-sidebar-pins";
 import type { SidebarMoreEntry } from "@/components/application/dashboard/sidebar-more-menu";
 import type { WorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { settingsNavigationSections, settingsSections, type SettingsSection } from "@/components/application/settings/workspace-settings-catalog";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { StoredThread } from "./thread-storage";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { DashboardRecentConversations } from "@/components/application/dashboard/dashboard-recent-conversations";
 import { buildSidebarSearchEntries, type SidebarSearchEntry } from "@/components/application/dashboard/sidebar-search";
 import type { DashboardNavItem } from "@/components/application/dashboard/sidebar-navigation";

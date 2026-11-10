@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { browserErrorMessage, nativeBrowser, type BrowserBounds, type BrowserCommand } from "@/app/native-browser";
-import { defaultBrowserDisplay, type BrowserDisplay } from "@/app/browser-display";
-import { readPickState, type PageElement } from "@/app/browser-pick";
+import { browserErrorMessage, nativeBrowser, type BrowserBounds, type BrowserCommand } from "@/app/browser/native-browser";
+import { defaultBrowserDisplay, type BrowserDisplay } from "@/app/browser/browser-display";
+import { readPickState, type PageElement } from "@/app/browser/browser-pick";
 
 export interface ChatBrowserState {
   available: boolean;

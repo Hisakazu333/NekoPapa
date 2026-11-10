@@ -1,9 +1,9 @@
 import type { ComponentType, RefObject } from "react";
 import type { UIMessage } from "ai";
 import { BookOpenIcon, MessagesSquareIcon, NotebookPenIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { CHAT_TOOLS } from "@/app/chat-tools";
-import type { Project } from "@/app/projects";
-import type { ThreadUsage } from "@/app/thread-usage";
+import { CHAT_TOOLS } from "@/app/chat/chat-tools";
+import type { Project } from "@/app/projects/projects";
+import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { PillTab, PillTabList } from "@/components/base/tabs/pill-tab";
 import { AgentChatHistory, type AgentChatHistoryProps } from "./agent-chat-history";

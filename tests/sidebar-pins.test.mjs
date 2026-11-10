@@ -11,7 +11,7 @@ let pins;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./sidebar-pins-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  pins = await import(pathToFileURL(join(output, "sidebar-pins.js")));
+  pins = await import(pathToFileURL(join(output, "navigation/sidebar-pins.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

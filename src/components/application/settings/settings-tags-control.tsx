@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PlusIcon } from "@/components/foundations/icons/app-icons";
-import type { ConfigurationField } from "@/app/configuration-types";
+import type { ConfigurationField } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { Tag, TagGroup } from "@/components/base/tag-group/tag-group";

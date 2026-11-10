@@ -1,4 +1,4 @@
-import { keychainId, missingKeyReason, readChatModelProfile, type ChatModelProfile } from "../../chat-model-profile";
+import { keychainId, missingKeyReason, readChatModelProfile, type ChatModelProfile } from "../../models/chat-model-profile";
 import type { ChatRuntime } from "./runtime";
 
 /** What 测试连接 reports: reached or not, why, and whether the model is listed. */

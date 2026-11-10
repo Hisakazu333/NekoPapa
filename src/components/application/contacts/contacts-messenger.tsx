@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { useContacts } from "@/hooks/use-contacts";
 import { useGroupChats } from "@/hooks/use-group-chats";
-import type { GroupChat } from "@/app/group-chat-store";
+import type { GroupChat } from "@/app/contacts/group-chat-store";
 import { GroupChatDialog } from "./group-chat-dialog";
 import { GroupConversation } from "./group-conversation";
 import { GroupDeleteDialog } from "./group-delete-dialog";

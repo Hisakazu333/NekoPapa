@@ -3,7 +3,7 @@ import { useTemplateCopy } from "@/components/foundations/template-copy/template
 import {
   Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger,
 } from "@/components/base/dropdown/dropdown";
-import type { Project } from "@/app/projects";
+import type { Project } from "@/app/projects/projects";
 import { cx } from "@/utils/cx";
 
 /** "…" menu on a sidebar project row: pin, edit, remove. */

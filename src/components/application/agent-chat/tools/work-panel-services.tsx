@@ -4,8 +4,8 @@ import { StatusDot } from "@/components/base/badges/status-dot";
 import { DatabaseIcon } from "@/components/foundations/icons/app-icons";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { useConfiguration } from "@/hooks/use-configuration";
-import { probeLocalRuntimes, type LocalProbeResult } from "@/app/local-models-check";
-import { LOCAL_RUNTIMES, readLocalRuntime } from "@/app/local-models";
+import { probeLocalRuntimes, type LocalProbeResult } from "@/app/models/local-models-check";
+import { LOCAL_RUNTIMES, readLocalRuntime } from "@/app/models/local-models";
 import { WorkPanelSection } from "./work-panel-section";
 
 export function WorkPanelConnections({ onManage }: { onManage?: () => void }) {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Undo2Icon } from "@/components/foundations/icons/app-icons";
-import { contrastRatio, themeById, themeColorKeys, type ThemeMode } from "@/app/appearance-themes";
+import { contrastRatio, themeById, themeColorKeys, type ThemeMode } from "@/app/appearance/appearance-themes";
 import { Button } from "@/components/base/buttons/button";
 import { tokenHex } from "@/platform/token-color";
 import { AppearanceThemePicker } from "./appearance-theme-picker";

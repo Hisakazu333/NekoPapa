@@ -3,7 +3,7 @@ import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createGateway, type LanguageModel } from "ai";
-import { missingKeyReason, type ChatModelProfile } from "../../chat-model-profile";
+import { missingKeyReason, type ChatModelProfile } from "../../models/chat-model-profile";
 import type { ChatRuntime } from "./runtime";
 
 // Which model answers: the providers the environment variables can name

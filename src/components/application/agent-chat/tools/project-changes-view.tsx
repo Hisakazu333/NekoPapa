@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { ArrowLeftIcon, CircleCheckIcon, GitBranchIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
-import { parseGitStatus, parseUnifiedDiff, untrackedDiff, type ChangeKind, type FileDiff, type GitChange, type GitStatus } from "@/app/project-workspace";
-import { projectWorkspace } from "@/app/project-workspace-client";
+import { parseGitStatus, parseUnifiedDiff, untrackedDiff, type ChangeKind, type FileDiff, type GitChange, type GitStatus } from "@/app/projects/project-workspace";
+import { projectWorkspace } from "@/app/projects/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 import { Chip, type ChipColor } from "@/components/base/badges/chip";
 import { DiffText } from "./file-text";

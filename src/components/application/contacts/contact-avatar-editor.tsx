@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
 import { ImagePlusIcon } from "@/components/foundations/icons/app-icons";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { Button } from "@/components/base/buttons/button";
 import { AgentAppearancePreview } from "./agent-appearance-preview";
 import { CONTACT_AVATAR_ACCEPT, importContactAvatar } from "./contact-avatar-import";

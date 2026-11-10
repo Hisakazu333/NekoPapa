@@ -22,9 +22,9 @@ try {
     }
   };
   addExtensions(output);
-  activity = await import(pathToFileURL(join(output, "app/profile-activity.js")));
-  identity = await import(pathToFileURL(join(output, "app/profile-identity.js")));
-  usage = await import(pathToFileURL(join(output, "app/chat-usage.js")));
+  activity = await import(pathToFileURL(join(output, "app/usage/profile-activity.js")));
+  identity = await import(pathToFileURL(join(output, "app/account/profile-identity.js")));
+  usage = await import(pathToFileURL(join(output, "app/usage/chat-usage.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

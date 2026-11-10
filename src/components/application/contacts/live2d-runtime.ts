@@ -28,6 +28,8 @@ export function loadLive2DRuntime(): Promise<Live2DRuntime> {
   pending = (async () => {
     if (!runtimeWindow.Live2DCubismCore) await loadScript("/vendor/live2d/live2dcubismcore.min.js");
     if (!runtimeWindow.PIXI) await loadScript("/vendor/live2d/pixi.min.js");
+    // Use Pixi’s CSP-compatible uniform setters in the desktop WebView.
+    if (!runtimeWindow.PIXI?.live2d) await loadScript("/vendor/live2d/unsafe-eval.min.js");
     if (!runtimeWindow.PIXI?.live2d) await loadScript("/vendor/live2d/cubism4.min.js");
     if (!runtimeWindow.PIXI?.live2d || !runtimeWindow.Live2DCubismCore) throw new Error("Live2D 运行库未就绪。");
     runtimeWindow.PIXI.utils.skipHello();

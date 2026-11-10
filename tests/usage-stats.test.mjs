@@ -17,9 +17,9 @@ try {
     writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+["'])(\.{1,2}\/[^"']+?)(["'])/g, (_, a, path, b) => `${a}${path.endsWith(".js") ? path : `${path}.js`}${b}`));
   }
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  stats = await import(pathToFileURL(join(output, "app/usage-stats.js")));
-  sankey = await import(pathToFileURL(join(output, "app/usage-sankey-layout.js")));
-  thread = await import(pathToFileURL(join(output, "app/thread-usage.js")));
+  stats = await import(pathToFileURL(join(output, "app/usage/usage-stats.js")));
+  sankey = await import(pathToFileURL(join(output, "app/usage/usage-sankey-layout.js")));
+  thread = await import(pathToFileURL(join(output, "app/usage/thread-usage.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

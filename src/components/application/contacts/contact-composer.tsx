@@ -1,4 +1,5 @@
 import { ComposerLoader } from "@/components/application/composer-loader/composer-loader";
+import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { ArrowUpIcon, SmileIcon, StopFilledIcon } from "@/components/foundations/icons/app-icons";
 import { useSendKey } from "@/hooks/use-send-key";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -11,7 +12,7 @@ import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
 import { ProjectDirectorySelector } from "../chat-composer/project-directory-selector";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
-import type { ComposerContext } from "@/app/chat-composer-draft";
+import type { ComposerContext } from "@/app/chat/chat-composer-draft";
 
 interface ContactComposerProps {
   name: string;
@@ -21,6 +22,7 @@ interface ContactComposerProps {
   onStop: () => void;
   onConfigure: (returnFocusTarget?: HTMLElement | null) => void;
   busy: boolean;
+  activityLabel?: string;
   ready: boolean;
   composer: ChatComposerState;
   sendBlockedReason?: string;
@@ -28,7 +30,7 @@ interface ContactComposerProps {
   context?: ComposerContext;
 }
 
-export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, ready, composer, sendBlockedReason, officialCompanion, context }: ContactComposerProps) {
+export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, activityLabel, ready, composer, sendBlockedReason, officialCompanion, context }: ContactComposerProps) {
   const composing = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [emojisOpen, setEmojisOpen] = useState(false);
@@ -42,6 +44,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   // conversation context sits behind the top of the input card; the card
   // holds the text and the add / permission / model / emoji / send controls.
   return <div className="relative mx-2 mb-2 flex shrink-0 flex-col">
+    {activityLabel && <AgentThinking variant="wave" label={activityLabel} className="mx-3 mb-1 px-2 py-1" />}
     <div aria-label="对话工具栏" className="mx-3 flex min-h-9 min-w-0 items-center gap-2 rounded-t-2xl bg-background-secondary-default px-2 pb-3 pt-1 -mb-2.5">
       <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />
       {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}

@@ -2,7 +2,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import {
   PROJECTS_KEY, addFolderProject, adoptLegacyFolders, readProjects, removeProject, saveProjects, toggleProjectPinned, updateProject,
   type Project, type ProjectDraft, type ProjectList,
-} from "@/app/projects";
+} from "@/app/projects/projects";
 
 const browserStorage = {
   getItem: (key: string) => globalThis.localStorage.getItem(key),

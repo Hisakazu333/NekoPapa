@@ -7,9 +7,8 @@ import { useLocalProfile } from "@/hooks/use-local-profile";
 import { IconButton } from "@/components/base/buttons/icon-button";
 import { Button } from "@/components/base/buttons/button";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
-import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
-import type { GroupChat, GroupMessage } from "@/app/group-chat-store";
-import { officialGroupRestriction } from "@/app/group-chat-store";
+import type { GroupChat, GroupMessage } from "@/app/contacts/group-chat-store";
+import { officialGroupRestriction } from "@/app/contacts/group-chat-store";
 import { TranscriptViewport } from "../agent-chat/transcript-viewport";
 import type { useChatProvider } from "../agent-chat/use-chat-provider";
 import { ContactComposer } from "./contact-composer";
@@ -72,11 +71,11 @@ export function GroupConversation({ groupId, provider, onBack, onDelete }: { gro
         const member = group.members.find((item) => item.id === message.speakerId) ?? group.members[0];
         return <ContactMessage key={message.id} text={message.text} isUser={message.role === "user"} contact={member} userName={profile.name} at={message.at} streaming={busy && message.speakerId === speakerId && message.state === "streaming"} />;
       })}</ol>}
-      {busy && speaker && <AgentThinking variant="wave" label={`${speaker.name}正在回复`} className="mt-5" />}
       {interrupted && !restriction ? <div role="status" className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-background-full p-4"><span className="text-body-regular text-text-secondary">{outcome === "failed" ? "本轮回复失败，已保留消息。" : "本轮尚未完成，已保留现有回复。"}</span><Button size="small" variant="secondary" disabled={provider.status !== "ready" || Boolean(history.error) || Boolean(composer.modelBlockReason) || composer.draft.mode === "study"} onClick={() => { const current = groupRef.current; if (current) void run(current, unfinished.id); }}>继续本轮</Button></div> : null}
     </TranscriptViewport>
     {history.error && <p role="alert" className="px-5 py-2 text-caption-1-regular text-text-secondary">{history.error} <button className="cursor-pointer underline" onClick={history.retry}>重试保存</button></p>}
     <ContactComposer name="群聊" value={input} onChange={setInput} onSend={send} onStop={() => abortRef.current?.abort()} onConfigure={(target) => openSettings("model", target)} busy={busy} ready={provider.status === "ready"} composer={composer}
+      activityLabel={busy && speaker ? `${speaker.name}正在回复` : undefined}
       sendBlockedReason={restriction ?? history.error ?? (!history.writable ? "正在读取群聊记录，请稍候。" : !busy && unfinished ? provider.status === "ready" ? "本轮尚未完成，请先继续本轮。" : "连接模型后即可继续本轮。" : undefined)} />
   </section>;
 }

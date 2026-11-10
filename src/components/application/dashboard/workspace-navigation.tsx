@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { EllipsisIcon, MessagesSquareIcon, SearchIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
-import type { NavigationLayout } from "@/app/dock-magnification";
+import type { NavigationLayout } from "@/app/navigation/dock-magnification";
 import type { useAgentChatSidebar } from "@/components/application/agent-chat/use-agent-chat-sidebar";
 import { DashboardAccountMenu } from "./dashboard-account-menu";
 import { DashboardSidebar } from "./dashboard-sidebar";

@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { AlertDialog } from "@/components/base/modal/modal";
 import { useContacts } from "@/hooks/use-contacts";
 import { useChatHistory } from "@/hooks/use-chat-history";

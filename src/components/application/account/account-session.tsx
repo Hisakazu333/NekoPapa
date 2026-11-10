@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { parseDesktopAccountProfile, type DesktopAccountProfile } from "@/app/desktop-account-contract";
+import { parseDesktopAccountProfile, type DesktopAccountProfile } from "@/app/account/desktop-account-contract";
 
 type Availability = "checking" | "browser" | "unconfigured" | "available";
 

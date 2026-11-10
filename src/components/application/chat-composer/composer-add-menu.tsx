@@ -2,7 +2,7 @@ import { useId, useRef, useState } from "react";
 import { CheckIcon, ChevronLeftIcon, CrosshairIcon, FolderIcon, ListChecksIcon, PaperclipIcon, PlusIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { Button } from "@/components/base/buttons/button";
-import { composerArtifacts, COMPOSER_GOAL_LIMIT, validateComposerGoal, type ComposerArtifact } from "@/app/chat-composer-draft";
+import { composerArtifacts, COMPOSER_GOAL_LIMIT, validateComposerGoal, type ComposerArtifact } from "@/app/chat/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 

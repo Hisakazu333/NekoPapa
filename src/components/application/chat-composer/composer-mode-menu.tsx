@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { BookOpenIcon, BotIcon, CheckIcon, MessageCircleHeartIcon, UserCogIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
-import { composerModesForContext, selectComposerMode, type ComposerContext, type ComposerMode } from "@/app/chat-composer-draft";
+import { composerModesForContext, selectComposerMode, type ComposerContext, type ComposerMode } from "@/app/chat/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";

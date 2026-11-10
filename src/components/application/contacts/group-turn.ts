@@ -1,4 +1,4 @@
-import type { GroupChat, GroupMessage } from "../../../app/group-chat-store";
+import type { GroupChat, GroupMessage } from "../../../app/contacts/group-chat-store";
 import type { ChatContactMetadata } from "../agent-chat/chat-contact";
 
 export function pendingGroupSpeakers(group: GroupChat, turnId: string) {

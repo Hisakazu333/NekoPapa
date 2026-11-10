@@ -14,7 +14,7 @@ try {
     "--project", fileURLToPath(new URL("./skill-discovery-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   api = await import(pathToFileURL(join(output, "scripts/skill-discovery-api.js")));
-  discovery = await import(pathToFileURL(join(output, "src/app/skill-discovery.js")));
+  discovery = await import(pathToFileURL(join(output, "src/app/settings/skill-discovery.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

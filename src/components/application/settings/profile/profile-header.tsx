@@ -1,7 +1,7 @@
 import type { Ref } from "react";
 import { Link2Icon, PencilIcon } from "@/components/foundations/icons/app-icons";
-import type { LocalProfile } from "@/app/local-profile";
-import type { ProfileIdentity } from "@/app/profile-identity";
+import type { LocalProfile } from "@/app/account/local-profile";
+import type { ProfileIdentity } from "@/app/account/profile-identity";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Badge } from "@/components/base/badges/badge";
 import { Button } from "@/components/base/buttons/button";

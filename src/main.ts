@@ -1,4 +1,7 @@
 import { createElement, Fragment } from "react";
+import { desktopToolWindow, ISLAND_WINDOW, PET_WINDOW } from "@/app/desktop/desktop-tools";
+import { ScreenIsland } from "@/components/application/desktop-tools/screen-island";
+import { DesktopPetWindow } from "@/components/application/desktop-tools/desktop-pet-window";
 import { createRoot } from "react-dom/client";
 import { AgentChat } from "@/components/application/agent-chat/agent-chat";
 import "./styles/globals.css";
@@ -12,7 +15,13 @@ import { Toaster } from "@/components/base/toast/toast";
 const root = document.getElementById("app");
 if (!root) throw new Error("Application root is missing");
 
-createRoot(root).render(createElement(AccountPageProvider, null,
+const renderer = createRoot(root);
+const windowLabel = desktopToolWindow();
+if (windowLabel === ISLAND_WINDOW || windowLabel === PET_WINDOW) {
+  document.documentElement.classList.add("desktop-tool-window");
+  renderer.render(createElement(Fragment, null, createElement(ConfiguredTheme),
+    windowLabel === ISLAND_WINDOW ? createElement(ScreenIsland) : createElement(DesktopPetWindow)));
+} else renderer.render(createElement(AccountPageProvider, null,
   createElement(ApplicationLanguageProvider, null,
     createElement(WorkspaceSettingsProvider, null,
       createElement(Fragment, null,

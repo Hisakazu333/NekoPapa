@@ -1,6 +1,6 @@
-import { initialState } from "../../src/app/workspace-model";
-import { WorkspaceStore } from "../../src/app/state";
-import type { ContentKind } from "../../src/app/workspace-model";
+import { initialState } from "../../src/app/legacy-shell/workspace-model";
+import { WorkspaceStore } from "../../src/app/legacy-shell/state";
+import type { ContentKind } from "../../src/app/legacy-shell/workspace-model";
 
 export interface WorkPreview {
   id: string;

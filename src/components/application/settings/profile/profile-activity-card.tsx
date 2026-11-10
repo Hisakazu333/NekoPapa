@@ -1,7 +1,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { FolderIcon } from "@/components/foundations/icons/app-icons";
-import { profileActivity } from "@/app/profile-activity";
-import { resolveProject } from "@/app/projects";
+import { profileActivity } from "@/app/usage/profile-activity";
+import { resolveProject } from "@/app/projects/projects";
 import { useProjects } from "@/hooks/use-projects";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { ProfileHeatmap } from "./profile-heatmap";

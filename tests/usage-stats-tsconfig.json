@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/usage-stats.ts", "../src/app/usage-sankey-layout.ts", "../src/app/chat-usage.ts", "../src/app/thread-usage.ts", "../src/app/local-day.ts"]
+  "include": ["../src/app/usage/usage-stats.ts", "../src/app/usage/usage-sankey-layout.ts", "../src/app/usage/chat-usage.ts", "../src/app/usage/thread-usage.ts", "../src/app/usage/local-day.ts"]
 }

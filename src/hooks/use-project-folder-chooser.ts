@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { canPickFolder, folderPickerError, pickProjectFolder } from "@/app/native-folder-picker";
-import { checkProjectFolder } from "@/app/project-folder-check";
+import { canPickFolder, folderPickerError, pickProjectFolder } from "@/app/projects/native-folder-picker";
+import { checkProjectFolder } from "@/app/projects/project-folder-check";
 
 export interface ChosenFolder { folder?: string; error?: string }
 

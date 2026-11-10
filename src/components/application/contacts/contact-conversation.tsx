@@ -1,13 +1,12 @@
 import { useChat } from "@ai-sdk/react";
-import { createChatTransport } from "@/app/chat-transport";
+import { createChatTransport } from "@/app/chat/chat-transport";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { ChatContact } from "@/app/contacts-store";
-import { chatContactAvailability } from "@/app/chat-provider-status";
+import type { ChatContact } from "@/app/contacts/contacts-store";
+import { chatContactAvailability } from "@/app/chat/chat-provider-status";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { useChatComposer } from "@/hooks/use-chat-composer";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { Avatar } from "@/components/base/avatar/avatar";
-import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { messageText, readThreads, type StoredThread } from "../agent-chat/thread-storage";
 import { TranscriptViewport } from "../agent-chat/transcript-viewport";
@@ -113,7 +112,6 @@ export function ContactConversation({ contact, initialThread, provider, active, 
         {messages.filter((message) => message.role !== "system").map((message, index) => <ContactMessage key={message.id} text={messageText(message)} isUser={message.role === "user"}
           contact={contact} userName={profile.name} at={messageAt[message.id]} streaming={busy && index === messages.length - 1} />)}
       </ol>}
-      {showThinking && <AgentThinking variant="wave" label={`${contact.name}正在回复`} className="mt-5" />}
       {error && <div role="alert" className="mt-4 flex items-center gap-3 rounded-xl border border-separator-border bg-background-full p-3 text-body-regular text-text-secondary">
         <span>{availability.reason ?? "回复失败，消息已保留。请检查模型连接后重试。"}</span>
         <button type="button" disabled={busy || !availability.ready || modeBlocked || Boolean(composer.modelBlockReason)} className="shrink-0 cursor-pointer underline disabled:opacity-50" onClick={() => { if (!availability.ready || busy || modeBlocked || composer.modelBlockReason) return; setUpdatedAt(Date.now()); void regenerate({ body: { ...composer.requestBody, contact: toChatContactRequest(contact) } }); }}>重试回复</button>
@@ -121,6 +119,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
     </TranscriptViewport>
     {history.error && <p role="alert" className="border-t border-separator-border px-5 py-2 text-caption-1-regular text-text-secondary">{history.error} <button type="button" onClick={history.retryHistory} className="cursor-pointer underline">重试保存</button></p>}
     <ContactComposer name={contact.name} value={input} onChange={setInput} onSend={send} onStop={() => { void stop(); }}
-      onConfigure={(target) => openSettings("model", target)} busy={busy} ready={availability.ready} composer={composer} officialCompanion={contact.kind === "official"} sendBlockedReason={availability.reason} />
+      onConfigure={(target) => openSettings("model", target)} busy={busy} activityLabel={showThinking ? `${contact.name}正在回复` : undefined}
+      ready={availability.ready} composer={composer} officialCompanion={contact.kind === "official"} sendBlockedReason={availability.reason} />
   </section>;
 }

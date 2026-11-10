@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { resolveProject } from "@/app/projects";
-import { collectUsageReplies, usageOverview, type UsageSource } from "@/app/usage-stats";
+import { resolveProject } from "@/app/projects/projects";
+import { collectUsageReplies, usageOverview, type UsageSource } from "@/app/usage/usage-stats";
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";

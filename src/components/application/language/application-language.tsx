@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { TemplateCopyProvider } from "@/components/foundations/template-copy/template-copy";
-import { ApplicationLanguageStore, applicationLanguageKey, type ApplicationLanguage } from "@/app/application-language-store";
+import { ApplicationLanguageStore, applicationLanguageKey, type ApplicationLanguage } from "@/app/navigation/application-language-store";
 import { translateApplicationCopy } from "./application-language-copy";
 
 interface ApplicationLanguageState {

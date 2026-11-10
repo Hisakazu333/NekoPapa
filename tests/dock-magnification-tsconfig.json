@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/dock-magnification.ts"]
+  "include": ["../src/app/navigation/dock-magnification.ts"]
 }

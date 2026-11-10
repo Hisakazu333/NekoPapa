@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { createHoverIntent, HOVER_CLOSE_DELAY, HOVER_OPEN_DELAY } from "@/app/hover-intent";
+import { createHoverIntent, HOVER_CLOSE_DELAY, HOVER_OPEN_DELAY } from "@/app/navigation/hover-intent";
 
 /**
  * Open state for a surface that also opens on hover. Spread `hoverProps` on

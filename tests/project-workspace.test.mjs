@@ -21,8 +21,8 @@ try {
   }
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   api = await import(pathToFileURL(join(output, "scripts/project-workspace-api.js")));
-  workspace = await import(pathToFileURL(join(output, "src/app/project-workspace.js")));
-  tools = await import(pathToFileURL(join(output, "src/app/chat-tools.js")));
+  workspace = await import(pathToFileURL(join(output, "src/app/projects/project-workspace.js")));
+  tools = await import(pathToFileURL(join(output, "src/app/chat/chat-tools.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

@@ -1,6 +1,6 @@
-import { connectionModelIds } from "@/app/model-connection-models";
-import { collectionSchemas } from "@/app/configuration-contract";
-import type { ConfigurationCollection, ConfigurationData, ConfigurationRecord } from "@/app/configuration-types";
+import { connectionModelIds } from "@/app/models/model-connection-models";
+import { collectionSchemas } from "@/app/settings/configuration-contract";
+import type { ConfigurationCollection, ConfigurationData, ConfigurationRecord } from "@/app/settings/configuration-types";
 import type { ChipColor } from "@/components/base/badges/chip";
 
 /** How one saved record reads in a settings list row. */

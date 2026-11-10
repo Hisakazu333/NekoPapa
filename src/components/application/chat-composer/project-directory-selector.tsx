@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { FolderOpenIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { clearComposerProjectDirectory, selectComposerProjectDirectory } from "@/app/chat-composer-draft";
+import { clearComposerProjectDirectory, selectComposerProjectDirectory } from "@/app/chat/chat-composer-draft";
 import { Button } from "@/components/base/buttons/button";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 

@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "..", "types": ["node"] },
-  "include": ["../scripts/project-workspace-api.ts", "../src/app/project-workspace.ts", "../src/app/chat-tools.ts"]
+  "include": ["../scripts/project-workspace-api.ts", "../src/app/projects/project-workspace.ts", "../src/app/chat/chat-tools.ts"]
 }

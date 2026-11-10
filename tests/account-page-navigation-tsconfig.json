@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/account-page-navigation.ts"]
+  "include": ["../src/app/account/account-page-navigation.ts"]
 }

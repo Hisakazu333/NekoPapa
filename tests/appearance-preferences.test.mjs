@@ -12,7 +12,7 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./appearance-preferences-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), "{\"type\":\"module\"}");
-  appearance = await import(pathToFileURL(join(output, "appearance-preferences.js")));
+  appearance = await import(pathToFileURL(join(output, "appearance/appearance-preferences.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

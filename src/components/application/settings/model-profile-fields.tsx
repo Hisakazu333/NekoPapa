@@ -1,16 +1,16 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Button as AriaButton, Disclosure, DisclosurePanel } from "react-aria-components";
 import { ChevronDownIcon } from "@/components/foundations/icons/app-icons";
-import { isCredentialName, keychainRef, keySourceOf, type KeySource } from "@/app/chat-model-profile";
+import { isCredentialName, keychainRef, keySourceOf, type KeySource } from "@/app/models/chat-model-profile";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
 import { canStoreKeys, DRAFT_KEY_ID, storedModelKeys, storeModelKey } from "./model-key-store";
-import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
-import { CUSTOM_VENDOR, MODEL_VENDORS, modelVendor, vendorForEndpoint, type ModelVendor } from "@/app/model-vendors";
+import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/settings/configuration-types";
+import { CUSTOM_VENDOR, MODEL_VENDORS, modelVendor, vendorForEndpoint, type ModelVendor } from "@/app/models/model-vendors";
 import { Input } from "@/components/base/input/input";
 import { Select, SelectItem } from "@/components/base/select/select";
 import { SettingsFields } from "./nekopapa-settings-fields";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
-import { connectionModelIds } from "@/app/model-connection-models";
+import { connectionModelIds } from "@/app/models/model-connection-models";
 import { ModelSelectionFields } from "./model-selection-fields";
 import { useModelList } from "./use-model-tests";
 

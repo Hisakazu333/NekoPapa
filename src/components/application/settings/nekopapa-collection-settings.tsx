@@ -1,7 +1,7 @@
 import { useId, useRef, useState, type FormEvent } from "react";
 import { CloudIcon, CodeIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
-import { collectionSchemas, fieldDefaults } from "@/app/configuration-contract";
-import type { ConfigurationCollection, ConfigurationField, ConfigurationRecord, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
+import { collectionSchemas, fieldDefaults } from "@/app/settings/configuration-contract";
+import type { ConfigurationCollection, ConfigurationField, ConfigurationRecord, ConfigurationValue, ConfigurationValues } from "@/app/settings/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";

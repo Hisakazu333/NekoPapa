@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
-import { chatModelProfile, isCredentialName, keychainId } from "@/app/chat-model-profile";
-import type { ConfigurationRecord } from "@/app/configuration-types";
-import { chatFetch } from "@/app/desktop-chat-runtime";
+import { chatModelProfile, isCredentialName, keychainId } from "@/app/models/chat-model-profile";
+import type { ConfigurationRecord } from "@/app/settings/configuration-types";
+import { chatFetch } from "@/app/chat/desktop-chat-runtime";
 
 export interface ModelTestState { pending: boolean; ok?: boolean; message: string }
 

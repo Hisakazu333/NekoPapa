@@ -352,3 +352,11 @@ input[type="search"]::-webkit-search-cancel-button {
     translate: 250% 0;
   }
 }
+
+
+/* Native tool windows have their own surface and expose the desktop around it. */
+html.desktop-tool-window,
+html.desktop-tool-window body {
+  background: transparent;
+  overflow: hidden;
+}

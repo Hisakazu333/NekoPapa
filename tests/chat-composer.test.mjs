@@ -17,8 +17,8 @@ try {
     const path = join(output, String(name));
     if (path.endsWith(".js")) writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+)(["'])(\.{1,2}\/[^"']+?)(?<!\.js)\2/g, "$1$2$3.js$2"));
   }
-  draft = await import(pathToFileURL(join(output, "chat-composer-draft.js")));
-  model = await import(pathToFileURL(join(output, "composer-model.js")));
+  draft = await import(pathToFileURL(join(output, "chat/chat-composer-draft.js")));
+  model = await import(pathToFileURL(join(output, "models/composer-model.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const file = (name, size = 10, modified = 100, path = "") => ({ name, size, lastModified: modified, webkitRelativePath: path });

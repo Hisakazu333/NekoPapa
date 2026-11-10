@@ -1,5 +1,5 @@
-import type { DiffLine } from "@/app/project-workspace";
-import { splitRows, type ChangedLine as Changed } from "@/app/diff-rows";
+import type { DiffLine } from "@/app/projects/project-workspace";
+import { splitRows, type ChangedLine as Changed } from "@/app/projects/diff-rows";
 import { cx } from "@/utils/cx";
 
 const tone = (line: Changed | undefined) => !line ? "bg-background-secondary-default/60"

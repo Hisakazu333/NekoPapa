@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/application-language-store.ts"]
+  "include": ["../src/app/navigation/application-language-store.ts"]
 }

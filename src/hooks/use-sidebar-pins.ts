@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react";
-import { readSidebarPins, saveSidebarPins, toggleSidebarPin, type SidebarDestination } from "@/app/sidebar-pins";
+import { readSidebarPins, saveSidebarPins, toggleSidebarPin, type SidebarDestination } from "@/app/navigation/sidebar-pins";
 
 const browserStorage = {
   getItem: (key: string) => globalThis.localStorage.getItem(key),

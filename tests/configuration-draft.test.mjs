@@ -11,13 +11,13 @@ let saveConfigurationDraft, ConfigurationStore, configurationDefaults;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./configuration-draft-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  for (const name of readdirSync(output).filter((name) => name.endsWith(".js"))) {
+  for (const name of readdirSync(output, { recursive: true }).filter((name) => name.endsWith(".js"))) {
     const file = join(output, name);
-    writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+|import\s*)(["'])(\.\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier}.js${quote}`));
+    writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+|import\s*)(["'])(\.{1,2}\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier}.js${quote}`));
   }
-  ({ saveConfigurationDraft } = await import(pathToFileURL(join(output, "configuration-draft.js"))));
-  ({ ConfigurationStore } = await import(pathToFileURL(join(output, "configuration-store.js"))));
-  ({ configurationDefaults } = await import(pathToFileURL(join(output, "configuration-contract.js"))));
+  ({ saveConfigurationDraft } = await import(pathToFileURL(join(output, "settings/configuration-draft.js"))));
+  ({ ConfigurationStore } = await import(pathToFileURL(join(output, "settings/configuration-store.js"))));
+  ({ configurationDefaults } = await import(pathToFileURL(join(output, "settings/configuration-contract.js"))));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const key = "nekopapa.settings.v1";

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { CheckIcon, ShieldAlertIcon, ShieldCheckIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
-import { composerPermissions, type ComposerPermission } from "@/app/chat-composer-draft";
+import { composerPermissions, type ComposerPermission } from "@/app/chat/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";

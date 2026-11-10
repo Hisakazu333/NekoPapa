@@ -9,6 +9,7 @@ export interface Live2DModel {
     getDrawableVertices(index: number): ArrayLike<number>;
   };
   update(delta: number): void;
+  motion(group: string, index?: number, priority?: number): Promise<boolean>;
   destroy(options?: { children?: boolean; texture?: boolean; baseTexture?: boolean }): void;
 }
 

@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/sidebar-pins.ts"]
+  "include": ["../src/app/navigation/sidebar-pins.ts"]
 }

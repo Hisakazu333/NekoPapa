@@ -4,7 +4,7 @@ import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover
 import { toolbarIconButtonClass } from "@/components/application/dashboard/toolbar-icon-button";
 import {
   browserDevices, formatBrowserZoom, stepBrowserZoom, type BrowserDevice, type BrowserDisplay, type BrowserFrame,
-} from "@/app/browser-display";
+} from "@/app/browser/browser-display";
 import { cx } from "@/utils/cx";
 
 const icons: Record<BrowserDevice, typeof MonitorIcon> = {

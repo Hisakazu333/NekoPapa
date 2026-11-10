@@ -14,9 +14,9 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./browser-view-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  address = await import(pathToFileURL(join(output, "browser-address.js")));
-  display = await import(pathToFileURL(join(output, "browser-display.js")));
-  pick = await import(pathToFileURL(join(output, "browser-pick.js")));
+  address = await import(pathToFileURL(join(output, "browser/browser-address.js")));
+  display = await import(pathToFileURL(join(output, "browser/browser-display.js")));
+  pick = await import(pathToFileURL(join(output, "browser/browser-pick.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

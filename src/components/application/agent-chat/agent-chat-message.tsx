@@ -8,7 +8,7 @@ import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { cx } from "@/utils/cx";
 import { LinkedText } from "./message-links";
-import { splitMessageBlocks } from "@/app/message-blocks";
+import { splitMessageBlocks } from "@/app/chat/message-blocks";
 import { MessageCodeBlock } from "./message-code-block";
 import { MessageReasoning } from "./message-reasoning";
 

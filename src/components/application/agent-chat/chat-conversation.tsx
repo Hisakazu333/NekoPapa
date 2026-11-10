@@ -2,8 +2,7 @@ import type { RefObject } from "react";
 import type { UIMessage } from "ai";
 import { AgentMessage } from "@/components/application/agent-chat/agent-chat-message";
 import { AgentComposer } from "@/components/application/agent-chat/agent-composer";
-import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
-import type { ChatContact } from "@/app/contacts-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
@@ -11,8 +10,8 @@ import { TranscriptViewport } from "./transcript-viewport";
 import { ChatHome } from "./chat-home";
 import { messageReasoning, messageText } from "./thread-storage";
 import { ChatStatusBar } from "./chat-status-bar";
-import type { Project } from "@/app/projects";
-import type { ThreadUsage } from "@/app/thread-usage";
+import type { Project } from "@/app/projects/projects";
+import type { ThreadUsage } from "@/app/usage/thread-usage";
 
 export interface ChatConversationProps {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -90,8 +89,6 @@ export function ChatConversation({
           </div>
         ))}
 
-        {showThinking && <AgentThinking variant="wave" label="Thinking" className="px-1" />}
-
         {Boolean(error) && (
           <p role="alert" className="px-1 text-body-regular text-text-tertiary">
             Something went wrong. Check the server logs, then try again.
@@ -113,6 +110,7 @@ export function ChatConversation({
           onSubmit={() => onSubmit(input)}
           onStop={onStop}
           busy={busy}
+          activityLabel={showThinking ? "正在等待回复" : undefined}
           composer={composer}
           onConfigure={(target) => onOpenSettings("model", target)}
           officialCompanion={contact?.kind === "official"}

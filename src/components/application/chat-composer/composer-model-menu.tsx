@@ -2,7 +2,7 @@ import { useId, useState } from "react";
 import { CpuIcon, LayoutGridIcon, PlusIcon, SearchIcon, SettingsIcon, SparkleIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
-import { composerProviderTypes, filterComposerModels, type ComposerModelOption } from "@/app/composer-model";
+import { composerProviderTypes, filterComposerModels, type ComposerModelOption } from "@/app/models/composer-model";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";

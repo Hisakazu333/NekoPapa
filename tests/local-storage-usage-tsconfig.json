@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
-  "include": ["../src/app/local-storage-usage.ts"]
+  "include": ["../src/app/settings/local-storage-usage.ts"]
 }

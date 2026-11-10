@@ -1,13 +1,13 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { XIcon } from "@/components/foundations/icons/app-icons";
-import { contactAvatarColors, type ChatContact, type ContactAvatarColor, type ContactDraft, type ContactErrors, type ContactLanguage } from "@/app/contacts-store";
+import { contactAvatarColors, type ChatContact, type ContactAvatarColor, type ContactDraft, type ContactErrors, type ContactLanguage } from "@/app/contacts/contacts-store";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { Textarea } from "@/components/base/textarea/textarea";
 import { Select, SelectItem } from "@/components/base/select/select";
 import { useContacts } from "@/hooks/use-contacts";
 import { cx } from "@/utils/cx";
-import { companionCatalog, type CompanionId } from "@/app/companion-model";
+import { companionCatalog, type CompanionId } from "@/app/contacts/companion-model";
 import { AgentAppearancePreview } from "./agent-appearance-preview";
 import { ContactAvatarEditor } from "./contact-avatar-editor";
 

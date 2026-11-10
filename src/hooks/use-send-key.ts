@@ -1,5 +1,5 @@
 import { useCallback, type KeyboardEvent } from "react";
-import { normalizeSendKeyMode, sendKeyAction } from "@/app/send-key";
+import { normalizeSendKeyMode, sendKeyAction } from "@/app/chat/send-key";
 import { useConfiguration } from "@/hooks/use-configuration";
 
 /**

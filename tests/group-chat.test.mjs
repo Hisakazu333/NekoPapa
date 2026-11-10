@@ -23,7 +23,7 @@ try {
     }
   }
   extensions(output);
-  ({ GroupChatStore, parseGroupChats, officialGroupRestriction, GROUP_CHATS_STORAGE_KEY: key } = await import(pathToFileURL(join(output, "app/group-chat-store.js"))));
+  ({ GroupChatStore, parseGroupChats, officialGroupRestriction, GROUP_CHATS_STORAGE_KEY: key } = await import(pathToFileURL(join(output, "app/contacts/group-chat-store.js"))));
   ({ runGroupTurn, pendingGroupSpeakers, unfinishedGroupTurn } = await import(pathToFileURL(join(output, "components/application/contacts/group-turn.js"))));
   ({ resolveGroupContext, groupSystemPrompt } = await import(pathToFileURL(join(output, "app/api/chat/group-context.js"))));
   ({ POST } = await import(pathToFileURL(join(output, "app/api/chat/route.js"))));

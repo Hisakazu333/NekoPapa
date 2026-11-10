@@ -1,5 +1,5 @@
 import { useLayoutEffect, useRef } from "react";
-import type { ActivityLevel, ProfileActivity } from "@/app/profile-activity";
+import type { ActivityLevel, ProfileActivity } from "@/app/usage/profile-activity";
 import { cx } from "@/utils/cx";
 
 const LEVEL: Record<ActivityLevel, string> = {

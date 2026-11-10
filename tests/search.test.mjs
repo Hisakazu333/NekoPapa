@@ -14,10 +14,10 @@ try {
   writeFileSync(config, JSON.stringify({
     extends: fileURLToPath(new URL("./tsconfig.json", import.meta.url)),
     compilerOptions: { types: [] },
-    include: [fileURLToPath(new URL("../src/app/search.ts", import.meta.url))],
+    include: [fileURLToPath(new URL("../src/app/legacy-shell/search.ts", import.meta.url))],
   }));
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", config, "--outDir", output]);
-  compiled = readFileSync(join(output, "search.js"), "utf8");
+  compiled = readFileSync(join(output, "legacy-shell/search.js"), "utf8");
 } finally { rmSync(output, { recursive: true, force: true }); }
 const { rankSearchEntries } = await import(`data:text/javascript;base64,${Buffer.from(compiled).toString("base64")}`);
 

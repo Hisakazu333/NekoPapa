@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
 import { MenuIcon, MessageCircleIcon, SearchIcon, UsersIcon } from "@/components/foundations/icons/app-icons";
-import type { GroupChat } from "@/app/group-chat-store";
-import type { ChatContact } from "@/app/contacts-store";
+import type { GroupChat } from "@/app/contacts/group-chat-store";
+import type { ChatContact } from "@/app/contacts/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Button } from "@/components/base/buttons/button";
 import { IconButton } from "@/components/base/buttons/icon-button";
@@ -15,7 +15,7 @@ import { ContactSection } from "./contact-section";
 import { GroupChatMenu } from "./group-chat-menu";
 import { ContactRowMenu } from "./contact-row-menu";
 
-export type { ChatContact } from "@/app/contacts-store";
+export type { ChatContact } from "@/app/contacts/contacts-store";
 
 export interface ContactPreview {
   text: string;

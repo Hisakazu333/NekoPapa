@@ -45,6 +45,10 @@ export class Live2DPreview {
     } catch (error) { this.destroy(); throw error; }
   }
 
+  async playMotion(group: string) {
+    if (!this.reduced && !this.disposed) return await this.model?.motion(group, 0, 2);
+  }
+
   resize(width: number, height: number) {
     this.width = Math.max(1, Math.round(width));
     this.height = Math.max(1, Math.round(height));

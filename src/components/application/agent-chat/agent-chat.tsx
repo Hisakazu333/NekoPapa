@@ -3,12 +3,13 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
 import { useChat } from "@ai-sdk/react";
-import { createChatTransport } from "@/app/chat-transport";
+import { useScreenDraft } from "@/components/application/desktop-tools/use-screen-draft";
+import { createChatTransport } from "@/app/chat/chat-transport";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { WorkspaceNavigation } from "@/components/application/dashboard/workspace-navigation";
-import { normalizeNavigationLayout } from "@/app/dock-magnification";
+import { normalizeNavigationLayout } from "@/app/navigation/dock-magnification";
 import { isPendingWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { BackendPendingPage } from "@/components/application/workspace-pages/backend-pending-page";
 import { SpacePage } from "@/components/application/workspace-pages/space-page";
@@ -26,11 +27,11 @@ import { useChatComposer } from "@/hooks/use-chat-composer";
 import { useContacts } from "@/hooks/use-contacts";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { useProjects } from "@/hooks/use-projects";
-import { resolveProject } from "@/app/projects";
+import { resolveProject } from "@/app/projects/projects";
 import { WorkspaceCommandPalette } from "./workspace-command-palette";
-import { browserTabLabel } from "@/app/browser-address";
-import type { ChatContact } from "@/app/contacts-store";
-import { chatContactAvailability } from "@/app/chat-provider-status";
+import { browserTabLabel } from "@/app/browser/browser-address";
+import type { ChatContact } from "@/app/contacts/contacts-store";
+import { chatContactAvailability } from "@/app/chat/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
 import { downloadChatThreads } from "./export-chat-history";
 import { useChatWindowNavigation } from "./use-chat-window-navigation";
@@ -43,7 +44,7 @@ import { useStartupThread } from "./use-startup-thread";
 import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { ChatTitleTabs } from "./chat-title-tabs";
 import { ChatAuxiliaryPanel } from "./chat-auxiliary-panel";
-import { threadUsage } from "@/app/thread-usage";
+import { threadUsage } from "@/app/usage/thread-usage";
 import { ChatBrowserPanel } from "./chat-browser-panel";
 import { MessageLinkProvider, useMessageLinkOpener } from "./message-links";
 import { useChatToolShortcuts } from "./tools/use-chat-tool-shortcuts";
@@ -382,6 +383,10 @@ export function AgentChat({
   });
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
+  useScreenDraft(busy || !history.ready, (draft) => {
+    createChat();
+    setInput(draft);
+  });
   // 清理标签: closes the views only; saved chats stay in the sidebar under their project.
   const clearTabs = () => {
     placement.leaveBrowserTab();

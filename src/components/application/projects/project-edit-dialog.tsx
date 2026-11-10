@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FolderIcon, FolderPlusIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { PROJECT_FOLDER_MAX, projectWithFolder, type Project } from "@/app/projects";
-import { projectFolderName } from "@/app/project-folders";
+import { PROJECT_FOLDER_MAX, projectWithFolder, type Project } from "@/app/projects/projects";
+import { projectFolderName } from "@/app/projects/project-folders";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/base/modal/modal";

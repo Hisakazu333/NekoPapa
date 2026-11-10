@@ -1,6 +1,6 @@
 //! Project folder check for the desktop app. Mirrors the browser-preview
 //! endpoint in scripts/project-folder-api.ts and returns the shape read by
-//! src/app/project-folder-info.ts: it resolves the path, confirms it is a
+//! src/app/projects/project-folder-info.ts: it resolves the path, confirms it is a
 //! folder and reads its Git HEAD. It never lists files or runs commands.
 
 use serde::Serialize;

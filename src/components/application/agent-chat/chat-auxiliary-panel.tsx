@@ -1,7 +1,7 @@
 import type { RefObject } from "react";
 import type { UIMessage } from "ai";
-import type { Project } from "@/app/projects";
-import type { ThreadUsage } from "@/app/thread-usage";
+import type { Project } from "@/app/projects/projects";
+import type { ThreadUsage } from "@/app/usage/thread-usage";
 import type { AgentChatHistoryProps } from "./agent-chat-history";
 import { ChatBrowserPanel } from "./chat-browser-panel";
 import { ChatSidePanel } from "./chat-side-panel";

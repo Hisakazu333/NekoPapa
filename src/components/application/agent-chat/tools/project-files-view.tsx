@@ -3,14 +3,17 @@ import { isTauri } from "@tauri-apps/api/core";
 import type { Key } from "react-aria-components";
 import { ArrowLeftIcon, CodeIcon, CopyIcon, FileIcon, FolderIcon, LinkIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import { TreeView, TreeViewItem } from "@/components/base/tree-view/tree-view";
+import { Select, SelectItem } from "@/components/base/select/select";
 import { ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/base/context-menu/context-menu";
-import { formatBytes, type ProjectEntry, type ProjectFile, type ProjectListing } from "@/app/project-workspace";
-import { projectWorkspace } from "@/app/project-workspace-client";
+import { projectFolderName } from "@/app/projects/project-folders";
+import { formatBytes, type ProjectEntry, type ProjectFile, type ProjectListing } from "@/app/projects/project-workspace";
+import { projectWorkspace } from "@/app/projects/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 import { FileText } from "./file-text";
 import { OpenInEditorButton, openInEditor } from "./open-in-editor-button";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 import { ToolPanelMessage } from "./tool-panel-frame";
+import { toast } from "@/components/base/toast/toast";
 
 type Folder = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; listing: ProjectListing };
 type Preview = { path: string; state: { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; file: ProjectFile } };
@@ -18,10 +21,32 @@ type Preview = { path: string; state: { kind: "loading" } | { kind: "error"; mes
 const message = (error: unknown) => error instanceof Error ? error.message : "读取失败。";
 
 /**
- * 文件: the project's primary folder as an expandable tree, read on demand
- * one folder at a time; choosing a file shows it read-only with line numbers.
+ * 文件: one selected project root at a time. Each root has an independent
+ * on-demand tree, and the terminal and Git tools keep using the primary root.
  */
-export function ProjectFilesView({ root, onActions }: { root: string; onActions: (actions: React.ReactNode) => void }) {
+export function ProjectFilesView({ folders, onActions }: { folders: string[]; onActions: (actions: React.ReactNode) => void }) {
+  const [selection, setSelection] = useState<string>();
+  const root = selection && folders.includes(selection) ? selection : folders[0];
+  if (!root) return null;
+  return <>
+    <div className="flex min-w-0 shrink-0 items-center gap-2 px-2 pb-2">
+      {folders.length > 1
+        ? <Select size="sm" aria-label="项目源文件夹" selectedKey={root} className="min-w-0 flex-1"
+            triggerClassName="w-full" onSelectionChange={(key) => setSelection(key == null ? undefined : String(key))}>
+            {folders.map((folder, index) => <SelectItem key={folder} id={folder} textValue={projectFolderName(folder)}>
+              <span translate="no" title={folder} className="truncate">{projectFolderName(folder)}</span>
+              {index === 0 && <span className="ms-auto shrink-0 text-caption-1-regular text-text-secondary">主要</span>}
+            </SelectItem>)}
+          </Select>
+        : <p translate="no" title={root} className="min-w-0 flex-1 truncate text-body-2-medium text-text-secondary">{projectFolderName(root)}</p>}
+      {isTauri() && <ToolbarIconButton icon={FolderIcon} label="在文件管理器打开源文件夹"
+        onPress={() => { void openInEditor(root, "", "system").catch((error) => toast.error(message(error))); }} />}
+    </div>
+    <ProjectFileTree key={root} root={root} onActions={onActions} />
+  </>;
+}
+
+function ProjectFileTree({ root, onActions }: { root: string; onActions: (actions: React.ReactNode) => void }) {
   const [folders, setFolders] = useState<Record<string, Folder>>({});
   const [open, setOpen] = useState<Set<string>>(() => new Set([""]));
   const [preview, setPreview] = useState<Preview>();
@@ -39,8 +64,7 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
     }
   }, [root]);
 
-  // A new project starts from its top folder.
-  useEffect(() => { setFolders({}); setOpen(new Set([""])); setPreview(undefined); void load(""); }, [root, load]);
+  useEffect(() => { void load(""); }, [load]);
 
   const reload = useCallback(() => { for (const dir of open) void load(dir); }, [open, load]);
   useEffect(() => {
@@ -93,7 +117,7 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
     const path = target.current;
     if (!path) return;
     if (key === "open") { if (entries.get(path)?.kind === "dir") expand(new Set([...open, path])); else void show(path); }
-    else if (key === "editor") void openInEditor(root, path, editor);
+    else if (key === "editor") void openInEditor(root, path, editor).catch((error) => toast.error(message(error)));
     else if (key === "copy") void navigator.clipboard?.writeText(absolute(path));
     else if (key === "copy-relative") void navigator.clipboard?.writeText(path);
   };

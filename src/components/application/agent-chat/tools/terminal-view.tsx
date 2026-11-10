@@ -3,7 +3,7 @@ import { DeleteIcon, RotateCcwIcon, SquareTerminalIcon } from "@/components/foun
 import { Terminal, type ITheme } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
-import { terminalAvailable, terminalFor, type TerminalSession, type TerminalShell } from "@/app/terminal-session";
+import { terminalAvailable, terminalFor, type TerminalSession, type TerminalShell } from "@/app/projects/terminal-session";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 import { Button } from "@/components/base/buttons/button";

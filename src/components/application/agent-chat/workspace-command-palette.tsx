@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { GlobeIcon, MessageSquareTextIcon, PanelRightIcon, SquarePenIcon } from "@/components/foundations/icons/app-icons";
 import { CommandPalette, CommandPaletteItem, CommandPaletteSection } from "@/components/base/command-palette/command-palette";
-import { CHAT_TOOL_LABELS, CHAT_TOOLS, chatToolShortcut, type ChatTool } from "@/app/chat-tools";
+import { CHAT_TOOL_LABELS, CHAT_TOOLS, chatToolShortcut, type ChatTool } from "@/app/chat/chat-tools";
 import { settingsSections, type SettingsSection } from "@/components/application/settings/workspace-settings-catalog";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { CHAT_TOOL_ICONS } from "./tools/chat-tool-icons";

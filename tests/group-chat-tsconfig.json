@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "../src" },
-  "include": ["../src/app/group-chat-store.ts", "../src/components/application/contacts/group-turn.ts", "../src/components/application/contacts/group-reply.ts", "../src/app/api/chat/route.ts"]
+  "include": ["../src/app/contacts/group-chat-store.ts", "../src/components/application/contacts/group-turn.ts", "../src/components/application/contacts/group-reply.ts", "../src/app/api/chat/route.ts"]
 }

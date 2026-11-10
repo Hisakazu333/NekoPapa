@@ -17,8 +17,8 @@ try {
     writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+["'])(\.{1,2}\/[^"']+?)(["'])/g, (_, a, path, b) => `${a}${path.endsWith(".js") ? path : `${path}.js`}${b}`));
   }
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
-  folders = await import(pathToFileURL(join(output, "app/project-folders.js")));
-  projects = await import(pathToFileURL(join(output, "app/projects.js")));
+  folders = await import(pathToFileURL(join(output, "app/projects/project-folders.js")));
+  projects = await import(pathToFileURL(join(output, "app/projects/projects.js")));
   groups = await import(pathToFileURL(join(output, "components/application/dashboard/sidebar-recent-groups.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });

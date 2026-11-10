@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import { AlertDialog } from "@/components/base/modal/modal";
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
-import { resolveProject, type Project } from "@/app/projects";
+import { resolveProject, type Project } from "@/app/projects/projects";
 import { useProjects } from "@/hooks/use-projects";
 import { ProjectEditDialog } from "@/components/application/projects/project-edit-dialog";
 import { groupRecentThreads, type RecentProjectGroup } from "./sidebar-recent-groups";

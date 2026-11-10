@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext } from "react";
-import { messageLinkTarget, splitMessageLinks } from "@/app/message-links";
+import { messageLinkTarget, splitMessageLinks } from "@/app/chat/message-links";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { openExternal } from "@/platform/open-external";
 import type { ChatBrowser } from "./use-chat-browser";

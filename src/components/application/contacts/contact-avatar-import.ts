@@ -1,4 +1,4 @@
-import { isContactAvatarDataUrl } from "@/app/contact-avatar";
+import { isContactAvatarDataUrl } from "@/app/contacts/contact-avatar";
 
 export const CONTACT_AVATAR_ACCEPT = "image/png,image/jpeg,image/webp,.png,.jpg,.jpeg,.webp";
 const MAX_FILE_BYTES = 5 * 1024 * 1024;

@@ -1,5 +1,5 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": { "noEmit": false, "rootDir": "..", "types": ["node"] },
-  "include": ["../scripts/skill-discovery-api.ts", "../src/app/skill-discovery.ts"]
+  "include": ["../scripts/skill-discovery-api.ts", "../src/app/settings/skill-discovery.ts"]
 }

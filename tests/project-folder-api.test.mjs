@@ -20,7 +20,7 @@ try {
   }
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   api = await import(pathToFileURL(join(output, "scripts/project-folder-api.js")));
-  info = await import(pathToFileURL(join(output, "src/app/project-folder-info.js")));
+  info = await import(pathToFileURL(join(output, "src/app/projects/project-folder-info.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }

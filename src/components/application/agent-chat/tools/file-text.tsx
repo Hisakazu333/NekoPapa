@@ -1,4 +1,4 @@
-import type { DiffLine } from "@/app/project-workspace";
+import type { DiffLine } from "@/app/projects/project-workspace";
 import { cx } from "@/utils/cx";
 import { SplitDiffRows } from "./diff-split";
 

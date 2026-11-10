@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AnnotateIcon, FileIcon, ImageIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { composerArtifacts } from "@/app/chat-composer-draft";
+import { composerArtifacts } from "@/app/chat/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 
 export function ComposerDraftSummary({ state, disabled }: { state: ChatComposerState; disabled?: boolean }) {

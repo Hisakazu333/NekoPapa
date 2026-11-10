@@ -1,4 +1,4 @@
-import { readLocalProfile, saveLocalProfile, type LocalProfile } from "@/app/local-profile";
+import { readLocalProfile, saveLocalProfile, type LocalProfile } from "@/app/account/local-profile";
 import { useConfiguration } from "@/hooks/use-configuration";
 
 export function useLocalProfile() {

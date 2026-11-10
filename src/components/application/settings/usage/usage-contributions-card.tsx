@@ -1,5 +1,5 @@
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { formatTokens, usageHeatmap, type UsageGranularity, type UsageLevel, type UsageOverview, type UsageReply } from "@/app/usage-stats";
+import { formatTokens, usageHeatmap, type UsageGranularity, type UsageLevel, type UsageOverview, type UsageReply } from "@/app/usage/usage-stats";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
 import { cx } from "@/utils/cx";
 
