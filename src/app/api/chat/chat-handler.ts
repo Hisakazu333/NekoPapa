@@ -138,7 +138,7 @@ export function createChatHandlers(runtime: ChatRuntime) {
         // Token counts the provider reported for this reply, saved with the
         // chat history so the profile page can sum real usage.
         messageMetadata: ({ part }) => part.type === "finish"
-          ? chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label })
+          ? chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label, contextWindow: profile?.contextWindow })
           : undefined,
       }),
     });

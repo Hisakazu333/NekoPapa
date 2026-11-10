@@ -139,11 +139,24 @@ test("the composer status bar sums only the usage replies reported", () => {
     { role: "assistant", metadata: { usage: "broken" } },
     { role: "assistant", metadata: { usage: { inputTokens: 100, outputTokens: 20 }, model: "model-b" } },
   ];
-  assert.deepEqual(thread.threadUsage(messages), { totalTokens: 135, inputTokens: 110, outputTokens: 25, replies: 2, model: "model-b" });
+  assert.deepEqual(thread.threadUsage(messages), { totalTokens: 135, inputTokens: 110, outputTokens: 25, replies: 2, model: "model-b",
+    latest: { model: "model-b", usage: { inputTokens: 100, outputTokens: 20, totalTokens: 120 } } });
   assert.deepEqual(thread.threadUsage([]), { totalTokens: 0, inputTokens: 0, outputTokens: 0, replies: 0 });
   assert.equal(thread.formatTokens(1234), "1,234");
   assert.equal(thread.formatTokens(12000), "12k");
   assert.equal(thread.formatTokens(12345), "12.3k");
   assert.equal(thread.formatTokens(1230000), "1.23M");
   assert.equal(thread.formatTokens(2000000), "2M");
+});
+
+test("上下文比例只使用同一条回复记录里的窗口，兼容历史回复和只返回总数的服务", () => {
+  const oldReply = { role: "assistant", metadata: { usage: { totalTokens: 50 }, model: "old" } };
+  const reply = { role: "assistant", metadata: { usage: { totalTokens: 1000 }, model: "new", contextWindow: 4000 } };
+  const usage = thread.threadUsage([oldReply, reply, { role: "assistant" }]);
+  assert.deepEqual(usage.latest, reply.metadata);
+  assert.equal(thread.contextUsageRatio(usage.latest), 0.25);
+  assert.equal(thread.contextUsageRatio(thread.threadUsage([reply, oldReply]).latest), undefined);
+  assert.equal(thread.contextUsageRatio(thread.threadUsage([{ ...reply, metadata: { ...reply.metadata, contextWindow: "4000" } }]).latest), undefined);
+  assert.equal(thread.contextUsageRatio(thread.threadUsage([{ ...reply, metadata: { ...reply.metadata, contextWindow: 500 } }]).latest), 2);
+  assert.equal(thread.contextUsageRatio(thread.threadUsage([{ role: "assistant" }]).latest), undefined);
 });

@@ -2,7 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import { CheckIcon, EllipsisIcon, PanelRightIcon, UploadIcon } from "@/components/foundations/icons/app-icons";
+import { CheckIcon, EllipsisIcon, GlobeIcon, PanelRightIcon, UploadIcon } from "@/components/foundations/icons/app-icons";
 import { useEffect, useState } from "react";
 
 import {
@@ -13,9 +13,7 @@ import {
   DropdownTrigger,
 } from "@/components/base/dropdown/dropdown";
 import { cx } from "@/utils/cx";
-import { toolbarIconButtonClass as ACTION_BUTTON, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";
-import type { ChatTool } from "@/app/chat-tools";
-import { ChatToolButtons } from "./tools/chat-tool-buttons";
+import { ToolbarToggleButton, toolbarIconButtonClass as ACTION_BUTTON, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";
 import { ChatPluginsButton } from "./tools/chat-plugins-button";
 
 /**
@@ -39,15 +37,12 @@ export interface AgentChatActionsProps {
   disabled?: boolean;
   /** Contact-owned history is managed from the contacts workspace. */
   showThreadMenu?: boolean;
-  /** Side panel (历史 / 代码 / 资料) toggle; omitted where the surface has no panel. */
+  /** Side panel (历史 / 代码 / 资料 / 工具) toggle; omitted where the surface has no panel. */
   panelOpen?: boolean;
   onTogglePanel?: () => void;
   /** Built-in browser toggle; it shares the right-hand area with the side panel. */
   browserOpen?: boolean;
   onToggleBrowser?: () => void;
-  /** The open tool panel and its toggle; present where the surface has a right-hand area. */
-  activeTool?: ChatTool | null;
-  onToggleTool?: (tool: ChatTool) => void;
   className?: string;
 }
 
@@ -63,8 +58,6 @@ export function AgentChatActions({
   onTogglePanel,
   browserOpen = false,
   onToggleBrowser,
-  activeTool = null,
-  onToggleTool,
   className,
 }: AgentChatActionsProps) {
   const localize = useTemplateCopy();
@@ -101,8 +94,9 @@ export function AgentChatActions({
 
   return localize((
     <div className={cx("flex shrink-0 items-center gap-0.5", className)}>
-      {onToggleTool && <ChatToolButtons active={activeTool} onToggle={onToggleTool} browserOpen={browserOpen} onToggleBrowser={onToggleBrowser} />}
-      {onToggleTool && <ChatPluginsButton />}
+      {onToggleBrowser && <ToolbarToggleButton icon={GlobeIcon} isSelected={browserOpen} onChange={onToggleBrowser}
+        label={browserOpen ? "关闭浏览器" : "打开浏览器"} />}
+      {onTogglePanel && <ChatPluginsButton />}
       {/* Share and the chat menu act on the open chat, so an empty chat has neither. */}
       {!disabled && <button
         type="button"
@@ -153,7 +147,7 @@ export function AgentChatActions({
         </DropdownPopover>
       </Dropdown>}
       {onTogglePanel && <button type="button" onClick={onTogglePanel} aria-pressed={panelOpen}
-        aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料）"}
+        aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料、工具）"}
         className={cx(ACTION_BUTTON, panelOpen && "bg-background-primary-hover text-text-primary")}>
         <PanelRightIcon className={toolbarIconClass} aria-hidden />
       </button>}

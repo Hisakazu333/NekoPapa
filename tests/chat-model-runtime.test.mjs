@@ -63,6 +63,10 @@ test("模型配置只接受完整的服务地址、模型和凭据变量名", ()
   assert.equal(profiles.isCredentialName("MODEL_API_KEY"), true);
   const record = (values) => ({ id: "r1", values: { name: "本地", provider: "compatible", endpoint: "http://127.0.0.1:1234/v1", model: "m", environment: "", ...values } });
   assert.equal(profiles.chatModelProfile(record({})).profile?.model, "m");
+  assert.equal(profiles.chatModelProfile(record({ contextWindow: 128000 })).profile?.contextWindow, 128000);
+  for (const contextWindow of [0, -1, 1.5, "128000", 10000001]) {
+    assert.equal(profiles.chatModelProfile(record({ contextWindow })).profile?.contextWindow, undefined);
+  }
   assert.match(profiles.chatModelProfile(record({ environment: "MY_VAR" })).reason, /KEY、TOKEN 或 SECRET/);
   assert.match(profiles.chatModelProfile(record({ endpoint: "not a url" })).reason, /服务地址或模型标识无效/);
 });
@@ -71,15 +75,17 @@ test("所选模型配置经运行时回复：密钥取自环境变量，个性�
   const { endpoint, seen } = await fakeServer(t);
   process.env.NEKOPAPA_TEST_API_KEY = "test-value-from-env";
   t.after(() => { delete process.env.NEKOPAPA_TEST_API_KEY; });
-  const profile = { provider: "compatible", endpoint, model: "tiny-model", credential: "NEKOPAPA_TEST_API_KEY" };
+  const profile = { provider: "compatible", endpoint, model: "tiny-model", credential: "NEKOPAPA_TEST_API_KEY", contextWindow: 128000 };
   const response = await route.POST(post("/api/chat", { messages, profile, instructions: "请叫我店长。" }));
   assert.equal(response.status, 200);
   const text = await response.text();
   assert.match(text, /配置回复/);
   assert.match(text, /"totalTokens":5/);
+  assert.match(text, /"contextWindow":128000/);
   const call = seen.find((entry) => entry.path === "/v1/chat/completions");
   assert.equal(call.authorization, "Bearer test-value-from-env");
   assert.equal(call.body.model, "tiny-model");
+  assert.equal(call.body.contextWindow, undefined);
   const system = call.body.messages.find((message) => message.role === "system").content;
   assert.match(system, /请叫我店长/);
   assert.match(system, /OpenAI 兼容接口 using tiny-model/);
@@ -128,6 +134,10 @@ test("获取模型列表不需要先填模型，返回服务自己的模型；�
   const unset = await list({ list: true, profile: { provider: "compatible", endpoint, model: "", credential: "NEKOPAPA_TEST_UNSET_KEY" } });
   assert.equal(unset.ok, false);
   assert.match(unset.message, /export NEKOPAPA_TEST_UNSET_KEY=/);
+  assert.match(unset.message, /重启开发服务器/);
+  const keychain = await list({ list: true, profile: { provider: "compatible", endpoint, model: "", credential: "keychain:record-1" } });
+  assert.equal(keychain.ok, false);
+  assert.match(keychain.message, /浏览器预览读不到/);
 });
 
 test("服务商预设都是可用的模型配置，并能从服务地址认回", () => {

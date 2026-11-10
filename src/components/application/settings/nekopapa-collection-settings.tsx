@@ -59,7 +59,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
     return words.every((word) => text.includes(word));
   });
   const removed = store.removedRecord;
-  const clearDraft = useSettingsDraft(draftKey, Boolean(editor && JSON.stringify(editor.values) !== editor.base));
+  const clearDraft = useSettingsDraft(draftKey, Boolean(editor && (JSON.stringify(editor.values) !== editor.base || secret.trim())));
 
   const report = (message: string) => { setStatus(message); setErrors({}); };
   const backToList = () => {
@@ -79,7 +79,8 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
     // New model configurations take the key directly where the app can keep it safely.
     if (collection === "models") initial.keySource = canStoreKeys() ? "keychain" : "environment";
     setSecret("");
-    setEditor({ id: record?.id, values: record ? { ...record.values } : initial, base: JSON.stringify(record?.values) });
+    const values = record ? { ...record.values } : initial;
+    setEditor({ id: record?.id, values, base: JSON.stringify(values) });
   };
   const prepareStorage = () => {
     if (store.storageAvailable) return true;
@@ -119,7 +120,10 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
       return;
     }
     const before = new Set(latest.map((record) => record.id));
-    const result = store.saveRecord(collection, editor.values, editor.id);
+    const values = collection === "models" && !String(editor.values.name ?? "").trim()
+      ? { ...editor.values, name: String(editor.values.model ?? "").trim().slice(0, 72) }
+      : editor.values;
+    const result = store.saveRecord(collection, values, editor.id);
     refresh();
     if (result) {
       setErrors(result);
@@ -184,16 +188,14 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
           {status && <p role="status" className="text-body-regular text-text-secondary">{status}</p>}
           {editor ? (
             <form id={formId} onSubmit={save} noValidate className="flex flex-col gap-2">
-              <SettingsSectionLabel>{editor.id ? "编辑" : "新增"}{singular}</SettingsSectionLabel>
-              <SettingsCard>{collection === "models"
+              <SettingsSectionLabel>{editor.id ? "编辑" : "新增"}{collection === "models" ? "模型连接" : singular}</SettingsSectionLabel>
+              {collection === "models"
                 ? <ModelProfileFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId}
                   recordId={editor.id} secret={secret} onSecretChange={(next) => { setSecret(next); setErrors((current) => ({ ...current, secret: "" })); }} />
-                : <SettingsFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} />}</SettingsCard>
+                : <SettingsCard><SettingsFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} /></SettingsCard>}
             </form>
           ) : (
             <>
-              {collection === "models" && <ModelDefaults records={records} />}
-              {collection === "models" && <LocalModelsSection />}
               {view === "tools" && <PillTabList aria-label="按类型筛选" className="-mx-1 flex w-[calc(100%+8px)] overflow-x-auto px-1">
                 {toolFilters.map(([id, label]) => <PillTab key={id} variant="gray" isSelected={kind === id} onSelect={() => setKind(id)}>{label}</PillTab>)}
               </PillTabList>}
@@ -216,7 +218,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                 </div>}
                 {records.length === 0 ? (
                   <EmptyRecords title={`还没有${singular}`} description={skills ? "添加技能目录后，未来的 Agent 可以按需读取其中的说明。" : collection === "models" ? "选择服务商并填写模型后保存，即可在输入框的模型菜单中选用。" : "新增后保存在本机；执行服务尚未接入。"}
-                    action={<EmptyRecordsButton id={`${formId}-add`} onPress={add}>新增{singular}</EmptyRecordsButton>} />
+                    action={<EmptyRecordsButton id={`${formId}-add`} onPress={add}>{collection === "models" ? "添加模型连接" : `新增${singular}`}</EmptyRecordsButton>} />
                 ) : (
                   <SettingsCard>
                     {filtered.length === 0 && <p className="border-b border-separator-border py-3 pe-2.5 text-body-2-regular text-text-tertiary">没有匹配的配置，请修改搜索内容或筛选条件。</p>}
@@ -230,11 +232,13 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                           onRemove={() => { setRemoval({ id: record.id, name, base: JSON.stringify(record.values), triggerId: menuId }); setErrors({}); setStatus(""); }} />;
                       })}
                     </ul>}
-                    <NewRecordRow id={`${formId}-add`} label={`新增${singular}`} isDisabled={atLimit} onPress={add}
+                    <NewRecordRow id={`${formId}-add`} label={collection === "models" ? "添加模型连接" : `新增${singular}`} isDisabled={atLimit} onPress={add}
                       description={atLimit ? "已达到 100 份配置上限。" : skills ? "选择一个本地技能目录。" : collection === "models" ? "保存后可在“…”中测试连接，并在输入框的模型菜单中选用。" : "仅保存配置，不会连接或执行。"} />
                   </SettingsCard>
                 )}
               </section>
+              {collection === "models" && <ModelDefaults records={records} />}
+              {collection === "models" && <LocalModelsSection />}
               {skills && <SkillDiscoverySection onStatus={(message, error) => error ? setErrors({ form: message }) : report(message)} />}
               {collection === "plugins" && <CordisPatchSection records={records} onStatus={(message, error) => error ? setErrors({ form: message }) : report(message)} />}
             </>

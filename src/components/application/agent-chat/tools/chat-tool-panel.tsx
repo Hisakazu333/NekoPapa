@@ -13,18 +13,17 @@ import { NoProjectMessage, ToolPanelFrame } from "./tool-panel-frame";
 
 
 /**
- * The panel a title-bar tool opens beside the chat. 终端 / 更改 / 文件 work in
+ * The work panel's tools. 终端 / 更改 / 文件 work in
  * the chat's project, in its primary folder; 目录 lists the open chat.
  */
-export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, onClose, onSwitch }: {
+export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, onSwitch }: {
   tool: ChatTool;
   project?: Project;
   messages: UIMessage[];
   messageAt: Record<string, number>;
   scrollRef: RefObject<HTMLDivElement | null>;
-  onClose: () => void;
   /** Switches the area to another panel; each keeps its own state (the terminal keeps running). */
-  onSwitch?: (tool: ChatTool) => void;
+  onSwitch: (tool: ChatTool) => void;
 }) {
   // Views publish their own header actions (刷新, 清屏, …) and the branch.
   const [actions, setActions] = useState<{ tool: ChatTool; node: ReactNode }>();
@@ -44,7 +43,7 @@ export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, o
   else if (tool === "changes") body = <ProjectChangesView key={root} root={root} onActions={onActions} onBranch={setBranch} />;
   else body = <ProjectFilesView key={root} root={root} onActions={onActions} />;
 
-  const tabs = onSwitch && <SegmentedControl aria-label="切换面板" selectedKeys={[tool]} className="shrink-0"
+  const tabs = <SegmentedControl aria-label="切换工具" selectedKeys={[tool]} className="shrink-0"
     onSelectionChange={(keys) => { const next = Array.from(keys)[0] as ChatTool | undefined; if (next && next !== tool) onSwitch(next); }}>
     {CHAT_TOOLS.map((id) => {
       const TabIcon = icons[id];
@@ -54,8 +53,8 @@ export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, o
     })}
   </SegmentedControl>;
 
-  return <ToolPanelFrame icon={icons[tool]} title={CHAT_TOOL_LABELS[tool]} tabs={tabs} detail={detail}
-    actions={actions?.tool === tool && (tool === "terminal" || root) ? actions.node : undefined} onClose={onClose}>
+  return <ToolPanelFrame title={CHAT_TOOL_LABELS[tool]} tabs={tabs} detail={detail}
+    actions={actions?.tool === tool && (tool === "terminal" || root) ? actions.node : undefined}>
     {body}
   </ToolPanelFrame>;
 }

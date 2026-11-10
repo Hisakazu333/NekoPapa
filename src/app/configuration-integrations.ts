@@ -44,13 +44,14 @@ const name: Field = { ...text("name", "名称", "用于识别这份配置。", 7
 const environment: Field = { ...text("environment", "凭据环境变量名", "仅保存变量名（以 KEY、TOKEN 或 SECRET 结尾），不填写 API Key 或密码；本地服务可留空。", 80), format: "environment" };
 
 export const collectionSchemas: Record<ConfigurationCollection, CollectionSchema> = {
-  models: { title: "自定义 API", singular: "API 配置", description: "保存你自己的 API 服务、模型与凭据引用。在输入框的模型菜单选中后，由这份配置回复；密钥只从环境变量读取。由 API 提供方计费。", fields: [
+  models: { title: "自定义 API", singular: "API 配置", description: "保存你自己的 API 服务、模型与凭据引用。在输入框的模型菜单选中后，由这份配置回复；API Key 存在系统钥匙串，也可以从环境变量读取。由 API 提供方计费。", fields: [
     name,
     select("provider", "接口类型", "compatible", [["compatible", "OpenAI 兼容接口"], ["anthropic", "Anthropic 接口"], ["custom", "其他接口"]]),
     { ...text("endpoint", "服务地址", "接口的基础地址，例如 https://api.openai.com/v1、https://api.anthropic.com/v1 或 http://127.0.0.1:11434/v1；不包含密钥。"), required: true, format: "url" },
     { ...text("model", "模型标识", "填写提供方的实际模型 ID。", 160), required: true },
     { ...select("keySource", "密钥来源", "environment", [["keychain", "API Key"], ["environment", "环境变量"], ["none", "不需要"]]), optional: true },
     environment,
+    { key: "contextWindow", label: "上下文窗口", hint: "模型一次能处理的 Token 上限，见服务商的模型文档（例如 128000）。保存后，新回复的用量会以该上限计算占用比例；0 表示不填。", type: "number", control: "number", initial: 0, min: 0, max: 10000000, step: 1, unit: "Token", optional: true },
   ] },
   extensions: { title: "工具集成", singular: "工具配置", description: "MCP 服务与连接器配置。配置不会启动命令、安装软件或连接外部账号。", fields: [
     name,

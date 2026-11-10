@@ -86,6 +86,7 @@ macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的
 - 模型列表的 `…` 菜单在编辑 / 删除之外提供“测试连接”（`PlugIcon`），结果作为行内一行说明显示在记录下方：检查中为 `text-text-tertiary`，成功为 `text-text-secondary`，失败为 `text-text-error-primary`；只显示真实请求结果。
 - 代码面板的“在编辑器中打开”（`tools/open-in-editor-button.tsx`）是更改 / 文件面板头部的次要图标按钮，按钮名称为“用{编辑器}打开”，仅在桌面版出现；并排差异视图（`tools/diff-split.tsx`）复用统一视图的增删行背景与行号样式。
 - 工作台 coding 界面参照 BoardUI Pro AI Chat 模板的布局思路（状态栏、面板切换、附件卡片），未安装或复制其源码（本机无 Pro 授权），只用已安装的 SegmentedControl、图标与语义 token 组合：状态栏为 `text-caption-1-regular` + `text-text-tertiary`，可点按项悬停 `bg-background-secondary-hover`；文件卡片为 `rounded-xl` + `border-separator-border` + `bg-background-secondary-default`，图标底块 `bg-background-tertiary-default`。
+- 工作面板以 PillTab 切换历史、代码、资料、工具。工具用 SegmentedControl 切换目录、终端、更改和文件，共用面板关闭控件与宽度。代码页和输入框下方浮层共用环境信息。环境、上下文、连接器与本地服务器使用 React Aria 折叠区，统一采用主表面和分隔边框。上下文占用条用语义图表色区分已报告的输入、输出与未分项，输入框下方用 BoardUI ProgressCircle 与 Popover 展示同一份数据。目录序号用次级表面和可读的次级文字，整行可聚焦。图片附件的本机缩略图解码失败时回退到图标。工作台与联系人输入框复用 Composer Loader，动画跟随实际请求状态，空闲时暂停，并尊重系统减少动态效果设置。
 - 2026-11-11 通过官方 `npx -y boardui@latest add tree-view context-menu command-palette --yes` 安装 Tree View、Context Menu、Command Palette；注册表版本引用 `@remixicon/react`，已改为 `app-icons` 中的 Lucide 图标并移除该依赖；Context Menu 的 `onAction` 类型按本仓库 react-aria-components 版本做了一处类型转换（源码内注明）。消息代码卡片为 `rounded-2xl` + `border-separator-border` + `bg-background-primary-default`，标题行 36px、等宽 `text-caption-1`；思考过程为 `text-text-tertiary` 折叠行与左侧分隔线。
 - 常规页顶部为本机资料卡（参照官方 General 页的方案卡），数据页参照官方 Storage 页的总量卡与数据表。官方 `FileUpload` 会模拟上传进度，因此导入区只采用其空闲外观，状态以真实读取与校验结果为准。
 

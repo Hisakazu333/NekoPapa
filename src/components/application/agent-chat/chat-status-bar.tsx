@@ -1,7 +1,11 @@
-import type { ComponentType, ReactNode } from "react";
+import { useRef, type ComponentType, type ReactNode } from "react";
+import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ChartPieIcon, FileTextIcon, FolderIcon, GitBranchIcon } from "@/components/foundations/icons/app-icons";
 import type { Project } from "@/app/projects";
-import { formatTokens, type ThreadUsage } from "@/app/thread-usage";
+import { contextUsageRatio, formatTokens, type ThreadUsage } from "@/app/thread-usage";
+import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
+import { ProgressCircle } from "@/components/base/progress/progress";
+import { ChatWorkEnvironment } from "./tools/chat-work-environment";
 import { gitBranchLabel, useGitStatus } from "@/hooks/use-git-status";
 import { cx } from "@/utils/cx";
 
@@ -20,16 +24,23 @@ function Item({ icon: ItemIcon, children, title, onPress, className }: { icon: I
  * (ahead / behind its upstream), how many files have uncommitted changes —
  * which opens 更改 — and the tokens this conversation's replies used. All of
  * it is read from the project folder and the saved replies; nothing is
- * estimated, and a model's context window is not shown because no service
- * reports it yet.
+ * estimated. The usage item opens the work environment and its 上下文 card.
+ * A recorded context window also gives the button an occupancy ring.
  */
-export function ChatStatusBar({ project, usage, onOpenChanges }: { project?: Project; usage: ThreadUsage; onOpenChanges: () => void }) {
+export function ChatStatusBar({ project, usage, onOpenChanges }: {
+  project?: Project;
+  usage: ThreadUsage;
+  onOpenChanges: () => void;
+}) {
   const root = project?.folders[0];
   const git = useGitStatus(root);
   const status = git.kind === "ready" ? git.status : undefined;
   const sync = status && (status.ahead || status.behind) ? ` ↑${status.ahead} ↓${status.behind}` : "";
+  const trigger = useRef<HTMLButtonElement>(null);
+  const openSettings = useWorkspaceSettings();
+  const ratio = contextUsageRatio(usage.latest);
   const usageTitle = usage.replies
-    ? `本对话 ${usage.replies} 次回复共 ${usage.totalTokens.toLocaleString("en-US")} Token（输入 ${usage.inputTokens.toLocaleString("en-US")} / 输出 ${usage.outputTokens.toLocaleString("en-US")}）${usage.model ? `，最近一次由 ${usage.model} 回复` : ""}。`
+    ? `本对话 ${usage.replies} 次有用量记录的回复共 ${usage.totalTokens.toLocaleString("en-US")} Token。点按查看环境与上下文。`
     : "本对话的回复还没有记录用量；服务返回用量后显示。";
 
   return <div aria-label="对话状态" className="flex min-h-7 min-w-0 items-center gap-1 px-3 pt-1.5 text-caption-1-regular text-text-tertiary">
@@ -44,6 +55,20 @@ export function ChatStatusBar({ project, usage, onOpenChanges }: { project?: Pro
       </Item>}
     </> : <Item icon={FolderIcon}>未归入项目</Item>}
     <span className="min-w-0 flex-1" />
-    <Item icon={ChartPieIcon} title={usageTitle}>{usage.replies ? `${formatTokens(usage.totalTokens)} Token` : "未记录用量"}</Item>
+    <PopoverTrigger>
+      <button type="button" ref={trigger} title={usageTitle}
+        className="flex h-6 min-w-0 cursor-pointer items-center gap-1 rounded-md px-1.5 outline-none hover:bg-background-secondary-hover hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+        {ratio !== undefined
+          ? <ProgressCircle size="sm" value={Math.min(100, Math.round(ratio * 100))} aria-label="上下文占用" className="size-3.5" />
+          : <ChartPieIcon className="size-3.5 shrink-0" aria-hidden />}
+        <span className="min-w-0 truncate tabular-nums">{usage.replies ? `${ratio !== undefined ? `${Math.round(ratio * 100)}% · ` : ""}${formatTokens(usage.totalTokens)} Token` : "未记录用量"}</span>
+      </button>
+      <Popover placement="top end" aria-label="环境与上下文" className="w-[360px] max-w-[calc(100vw-24px)]"
+        dialogClassName="max-h-[min(70dvh,540px)] p-1">
+        {({ close }) => <ChatWorkEnvironment project={project} usage={usage}
+          onOpenChanges={() => { close(); onOpenChanges(); }}
+          onOpenSettings={(section) => { close(); openSettings(section, trigger.current); }} />}
+      </Popover>
+    </PopoverTrigger>
   </div>;
 }

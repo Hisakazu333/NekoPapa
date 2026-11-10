@@ -21,7 +21,8 @@ export function ChatOutlineView({ messages, messageAt, scrollRef }: {
   const jump = (id: string) => {
     const target = scrollRef.current?.querySelector<HTMLElement>(`[data-message-id="${CSS.escape(id)}"]`);
     if (!target) return;
-    target.scrollIntoView({ behavior: "smooth", block: "start" });
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    target.scrollIntoView({ behavior: reducedMotion ? "instant" : "smooth", block: "start" });
     target.tabIndex = -1;
     target.focus({ preventScroll: true });
   };
@@ -30,10 +31,10 @@ export function ChatOutlineView({ messages, messageAt, scrollRef }: {
   return <ol aria-label="对话目录" className="min-h-0 flex-1 overflow-auto px-2 pb-3">
     {entries.map((entry) => <li key={entry.id}>
       <button type="button" onClick={() => jump(entry.id)} title={entry.title}
-        className="flex w-full cursor-pointer items-baseline gap-2 rounded-lg px-2 py-1.5 text-start outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-        <span className="w-5 shrink-0 text-end text-caption-1-regular text-text-tertiary tabular-nums">{entry.index}</span>
-        <span className="min-w-0 flex-1 truncate text-body-2-regular text-text-primary">{entry.title}</span>
-        {messageAt[entry.id] !== undefined && <span className="shrink-0 text-caption-1-regular text-text-tertiary tabular-nums">{time.format(messageAt[entry.id])}</span>}
+        className="flex min-h-10 w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 text-start outline-none hover:bg-background-primary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+        <span className="min-w-6 shrink-0 rounded-md bg-background-secondary-default px-1 py-0.5 text-center text-caption-1-medium text-text-secondary tabular-nums">{entry.index}</span>
+        <span translate="no" className="min-w-0 flex-1 truncate text-body-2-regular text-text-primary">{entry.title}</span>
+        {messageAt[entry.id] !== undefined && <span className="shrink-0 text-caption-1-regular text-text-secondary tabular-nums">{time.format(messageAt[entry.id])}</span>}
       </button>
     </li>)}
   </ol>;

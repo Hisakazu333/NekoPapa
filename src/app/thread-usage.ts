@@ -1,4 +1,4 @@
-import { readChatUsage } from "./chat-usage";
+import { readChatUsage, type ChatReplyMetadata } from "./chat-usage";
 
 /** What one conversation's replies cost, as the providers reported it. */
 export interface ThreadUsage {
@@ -9,6 +9,12 @@ export interface ThreadUsage {
   replies: number;
   /** Model of the latest reply that named one. */
   model?: string;
+  /** Last reported usage and the model's configured window at request time. */
+  latest?: ChatReplyMetadata;
+}
+
+export function contextUsageRatio(latest: ChatReplyMetadata | undefined): number | undefined {
+  return latest?.contextWindow ? latest.usage.totalTokens / latest.contextWindow : undefined;
 }
 
 /**
@@ -25,6 +31,7 @@ export function threadUsage(messages: readonly { role: string; metadata?: unknow
     total.inputTokens += reply.usage.inputTokens ?? 0;
     total.outputTokens += reply.usage.outputTokens ?? 0;
     total.replies += 1;
+    total.latest = reply;
     if (reply.model) total.model = reply.model;
   }
   return total;

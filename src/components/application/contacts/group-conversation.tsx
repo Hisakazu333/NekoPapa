@@ -10,6 +10,7 @@ import { useWorkspaceSettings } from "@/components/application/settings/workspac
 import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import type { GroupChat, GroupMessage } from "@/app/group-chat-store";
 import { officialGroupRestriction } from "@/app/group-chat-store";
+import { TranscriptViewport } from "../agent-chat/transcript-viewport";
 import type { useChatProvider } from "../agent-chat/use-chat-provider";
 import { ContactComposer } from "./contact-composer";
 import { ContactMessage } from "./contact-message";
@@ -32,9 +33,7 @@ export function GroupConversation({ groupId, provider, onBack, onDelete }: { gro
   const [busy, setBusy] = useState(false);
   const [outcome, setOutcome] = useState<"failed" | "stopped" | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const scrollRef = useRef<HTMLDivElement>(null);
   useEffect(() => () => abortRef.current?.abort(), []);
-  useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight }); }, [stored?.messages, busy]);
   const run = async (next: GroupChat, turnId: string) => {
     if (composer.draft.mode === "study" || composer.modelBlockReason || abortRef.current || provider.status !== "ready" || officialGroupRestriction(next.members)) return;
     const abort = new AbortController();
@@ -68,14 +67,14 @@ export function GroupConversation({ groupId, provider, onBack, onDelete }: { gro
       <div className="min-w-0 flex-1"><h1 className="truncate text-headline-semibold">{group.title}</h1><p className="mt-1 truncate text-caption-1-regular text-text-tertiary">{group.members.length} 位联系人 · {group.members.map((member) => member.name).join(" → ")}</p></div>
       <GroupChatMenu title={group.title} onDelete={() => onDelete(group)} />
     </header>
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-6">
-      {group.messages.length === 0 ? <div className="flex h-full flex-col items-center justify-center gap-3 text-center"><UsersIcon className="size-14 text-text-tertiary" aria-hidden /><h2 className="text-headline-semibold">{restriction ? "历史群聊" : "一起聊聊吧"}</h2><p className="text-body-2-regular text-text-secondary">{restriction ? "记录仍然保留，请从联系人列表与官方人物单独对话。" : "发送后，成员会按上面的顺序依次回复。"}</p></div> : <ol aria-label="群聊消息" className="flex flex-col gap-5">{group.messages.map((message) => {
+    <TranscriptViewport conversationId={groupId} busy={busy} showLatest={group.messages.length > 0} className="px-5 py-6">
+      {group.messages.length === 0 ? <div className="flex flex-1 flex-col items-center justify-center gap-3 text-center"><UsersIcon className="size-14 text-text-tertiary" aria-hidden /><h2 className="text-headline-semibold">{restriction ? "历史群聊" : "一起聊聊吧"}</h2><p className="text-body-2-regular text-text-secondary">{restriction ? "记录仍然保留，请从联系人列表与官方人物单独对话。" : "发送后，成员会按上面的顺序依次回复。"}</p></div> : <ol aria-label="群聊消息" className="flex flex-col gap-5">{group.messages.map((message) => {
         const member = group.members.find((item) => item.id === message.speakerId) ?? group.members[0];
         return <ContactMessage key={message.id} text={message.text} isUser={message.role === "user"} contact={member} userName={profile.name} at={message.at} streaming={busy && message.speakerId === speakerId && message.state === "streaming"} />;
       })}</ol>}
       {busy && speaker && <AgentThinking variant="wave" label={`${speaker.name}正在回复`} className="mt-5" />}
       {interrupted && !restriction ? <div role="status" className="mt-5 flex flex-wrap items-center gap-3 rounded-xl bg-background-full p-4"><span className="text-body-regular text-text-secondary">{outcome === "failed" ? "本轮回复失败，已保留消息。" : "本轮尚未完成，已保留现有回复。"}</span><Button size="small" variant="secondary" disabled={provider.status !== "ready" || Boolean(history.error) || Boolean(composer.modelBlockReason) || composer.draft.mode === "study"} onClick={() => { const current = groupRef.current; if (current) void run(current, unfinished.id); }}>继续本轮</Button></div> : null}
-    </div>
+    </TranscriptViewport>
     {history.error && <p role="alert" className="px-5 py-2 text-caption-1-regular text-text-secondary">{history.error} <button className="cursor-pointer underline" onClick={history.retry}>重试保存</button></p>}
     <ContactComposer name="群聊" value={input} onChange={setInput} onSend={send} onStop={() => abortRef.current?.abort()} onConfigure={(target) => openSettings("model", target)} busy={busy} ready={provider.status === "ready"} composer={composer}
       sendBlockedReason={restriction ?? history.error ?? (!history.writable ? "正在读取群聊记录，请稍候。" : !busy && unfinished ? provider.status === "ready" ? "本轮尚未完成，请先继续本轮。" : "连接模型后即可继续本轮。" : undefined)} />

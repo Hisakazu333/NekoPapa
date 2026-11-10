@@ -7,14 +7,17 @@ import type { ChatContact } from "@/app/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
+import { TranscriptViewport } from "./transcript-viewport";
 import { ChatHome } from "./chat-home";
 import { messageReasoning, messageText } from "./thread-storage";
 import { ChatStatusBar } from "./chat-status-bar";
 import type { Project } from "@/app/projects";
-import { threadUsage } from "@/app/thread-usage";
+import type { ThreadUsage } from "@/app/thread-usage";
 
 export interface ChatConversationProps {
   scrollRef: RefObject<HTMLDivElement | null>;
+  conversationId: string;
+  active: boolean;
   messages: UIMessage[];
   messageAt: Record<string, number | undefined>;
   busy: boolean;
@@ -39,6 +42,7 @@ export interface ChatConversationProps {
   /** The chat's resolved project, for the status bar under the composer. */
   projectInfo?: Project;
   onOpenChanges: () => void;
+  usage: ThreadUsage;
 }
 
 /**
@@ -47,16 +51,16 @@ export interface ChatConversationProps {
  * this only lays it out.
  */
 export function ChatConversation({
-  scrollRef, messages, messageAt, busy, showThinking, error, historyError, onRetryHistory,
+  scrollRef, conversationId, active, messages, messageAt, busy, showThinking, error, historyError, onRetryHistory,
   input, onInputChange, onSubmit, onStop, composer, onOpenSettings, sendDisabled, sendBlockedReason,
-  contact, onSelectContact, onClearContact, project, onProjectChange, projectInfo, onOpenChanges,
+  contact, onSelectContact, onClearContact, project, onProjectChange, projectInfo, onOpenChanges, usage,
 }: ChatConversationProps) {
   const empty = messages.length === 0;
   return <>
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto scroll-smooth">
+    <TranscriptViewport viewportRef={scrollRef} conversationId={conversationId} busy={busy} active={active} showLatest={!empty}>
       <div className={cx(
         "mx-auto flex w-full flex-col gap-5 pb-6 pt-6",
-        empty ? "min-h-full max-w-[1000px] justify-center px-5 sm:px-10 lg:px-12" : "max-w-3xl px-4",
+        empty ? "flex-1 max-w-[1000px] justify-center px-5 sm:px-10 lg:px-12" : "max-w-3xl px-4",
       )}>
         {empty ? (
           <ChatHome
@@ -94,7 +98,7 @@ export function ChatConversation({
           </p>
         )}
       </div>
-    </div>
+    </TranscriptViewport>
 
     <div className="shrink-0 px-3 pb-3">
       <div className="mx-auto w-full max-w-3xl">
@@ -117,7 +121,7 @@ export function ChatConversation({
           disabled={sendDisabled}
           sendBlockedReason={sendBlockedReason}
         />}
-        {!empty && !contact && <ChatStatusBar project={projectInfo} usage={threadUsage(messages)} onOpenChanges={onOpenChanges} />}
+        {!empty && !contact && <ChatStatusBar project={projectInfo} usage={usage} onOpenChanges={onOpenChanges} />}
       </div>
     </div>
   </>;

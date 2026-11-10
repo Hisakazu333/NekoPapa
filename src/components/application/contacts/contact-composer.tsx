@@ -1,3 +1,4 @@
+import { ComposerLoader } from "@/components/application/composer-loader/composer-loader";
 import { ArrowUpIcon, SmileIcon, StopFilledIcon } from "@/components/foundations/icons/app-icons";
 import { useSendKey } from "@/hooks/use-send-key";
 import { useRef, useState, type KeyboardEvent } from "react";
@@ -46,17 +47,18 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
       {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}
       {blockedReason && <p role="status" title={blockedReason} className="ms-auto min-w-0 truncate text-caption-1-regular text-text-tertiary">{blockedReason}</p>}
     </div>
-    <div className="relative z-1 flex flex-col gap-1 rounded-3xl border border-border-button-default bg-background-full p-2.5 shadow-xs">
-      <ComposerDraftSummary state={composer} disabled={busy} />
-      <textarea ref={inputRef} aria-label={`给${name}发消息`} placeholder={`给${name}发消息…`} value={value}
-        onChange={(event) => onChange(event.target.value)} onKeyDown={onKeyDown}
-        onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
-        className="max-h-48 min-h-12 w-full resize-none bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={2} />
-      <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-1 sm:gap-2">
-        <ComposerAddMenu state={composer} disabled={busy} official={officialCompanion} />
-        <ComposerPermissionMenu state={composer} disabled={busy} />
-        <div className="min-w-0 flex-1" />
-        <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} official={officialCompanion} />
+    <ComposerLoader active={busy} radius={24} surface={false} className="z-1 rounded-3xl bg-background-full shadow-xs">
+      <div className="relative flex flex-col gap-1 rounded-3xl border border-border-button-default p-2.5">
+        <ComposerDraftSummary state={composer} disabled={busy} />
+        <textarea ref={inputRef} aria-label={`给${name}发消息`} placeholder={`给${name}发消息…`} value={value}
+          onChange={(event) => onChange(event.target.value)} onKeyDown={onKeyDown}
+          onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
+          className="max-h-48 min-h-12 w-full resize-none bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={2} />
+        <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-1 sm:gap-2">
+          <ComposerAddMenu state={composer} disabled={busy} official={officialCompanion} />
+          <ComposerPermissionMenu state={composer} disabled={busy} />
+          <div className="min-w-0 flex-1" />
+          <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} official={officialCompanion} />
           <Dropdown isOpen={emojisOpen} onOpenChange={setEmojisOpen}>
             <DropdownTrigger aria-label="选择表情" isDisabled={busy} className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-foreground-icon-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
               <SmileIcon className="size-5" aria-hidden />
@@ -74,10 +76,10 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
               </div>
             </DropdownPopover>
           </Dropdown>
-        {busy ? <Button variant="secondary" iconOnly leadingIcon={StopFilledIcon} aria-label="停止回复" className="rounded-full" onClick={onStop} />
-          : <Button iconOnly leadingIcon={ArrowUpIcon} aria-label="发送消息" title="发送消息" className="rounded-full disabled:bg-background-primary-disabled disabled:text-text-tertiary" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
+          {busy ? <Button variant="secondary" iconOnly leadingIcon={StopFilledIcon} aria-label="停止回复" className="rounded-full" onClick={onStop} />
+            : <Button iconOnly leadingIcon={ArrowUpIcon} aria-label="发送消息" title="发送消息" className="rounded-full disabled:bg-background-primary-disabled disabled:text-text-tertiary" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
+        </div>
       </div>
-    </div>
+    </ComposerLoader>
   </div>;
 }
-

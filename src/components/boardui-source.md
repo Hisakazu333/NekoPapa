@@ -35,6 +35,7 @@ Vite 适配保留 `src/platform/fonts.css`（字体变量）和 `scripts/boardui
 - 联系人页使用紧凑搜索列表、连续消息和矩形 textarea；各自保存当前页面中的草稿与流式状态，已打开组件保持挂载。
 - 单聊输入框采用文本在上、附件 / 权限 / 模型 / 发送控件在下的排列；模式与表情位于下层工具栏，权限按钮只管理权限策略。模型使用名称与箭头，发送 / 停止使用圆形按钮。
 - Composer 继续复用已引入的 BoardUI Dropdown 基础组件；模型面板按参考页面的 42px 供应商图标栏、紧凑模型行与圆形选中标记适配，支持快速搜索、空状态和管理模型，只读取真实配置与运行模型，不填充演示目录。本项目没有安装完整 BoardUI Pro 的 `ComposerPanel` / `ModelPicker` 源码。
+- 工作面板上下文卡参考 Pro 的 Agent Limits Card，以现有 ProgressCircle、Popover 和语义图表色实现用量摘要。输入框与附件卡参考 Composer、Composer Panel 和 Composer Attachments 的布局，复用已有应用组件。Composer Loader、Agent Thinking 与 Tree View 使用仓库中已引入的免费组件。Composer Loader 的本地适配会暂停隐藏的环绕动效。Agent Progress、Task List、Web Search 属于 Pro，相关界面等待执行层提供任务与搜索事件。
 - 模型供应商图标使用在参考页面核实的 BoardUI 静态 SVG：`/composer-panel/models/openai.svg`、`anthropic.svg`、`deepseek.svg`，打包副本位于 `public/boardui/composer-panel/models/`。附件插件图标来自 `/ai-chat/plugin-documents.svg`、`plugin-spreadsheets.svg`、`plugin-presentations.svg` 与 `plugin-codeblocks.svg`，副本位于 `public/boardui/ai-chat/`；均不代表获得完整 Pro 模板源码。
 - 工作台与自建联系人的添加菜单保留文件和文件夹、目标、计划模式，以及文档、电子表格、演示文稿和代码块输出选择。官方人物只显示文件资料入口，不提供目标、计划或插件。文件仅暂存当前草稿；Auto 路由、学习、Agent 执行、附件发送和文件生成未接入时明确阻止发送，不以普通聊天替代这些请求。权限策略和本机模型选择仍只保存前端偏好。
 - 联系人采用分组标题和现有 BoardUI disclosure 箭头展开 / 收起，平铺聊天行并保存显示偏好；群聊行和标题更多菜单复用既有 Dropdown / AlertDialog 组件完成删除确认、取消及失败重试。

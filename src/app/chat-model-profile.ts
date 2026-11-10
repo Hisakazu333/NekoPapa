@@ -1,4 +1,5 @@
 import type { ConfigurationRecord } from "./configuration-types";
+import { readContextWindow } from "./chat-usage";
 
 /**
  * A saved 设置 → 模型与 API record as the chat runtime uses it. The record
@@ -13,6 +14,7 @@ export interface ChatModelProfile {
   model: string;
   /** Environment variable holding the key, `keychain:<id>` for a key stored by the desktop app, or empty for servers that take none (Ollama, LM Studio). */
   credential: string;
+  contextWindow?: number;
 }
 
 /** Where a record's key comes from (设置 → 模型与 API → 密钥来源). */
@@ -65,8 +67,9 @@ export function readChatModelProfile(value: unknown, { requireModel = true } = {
   const endpoint = webEndpoint(text(data.endpoint, 500));
   const model = text(data.model, 160);
   const credential = text(data.credential, 80);
+  const contextWindow = readContextWindow(data.contextWindow);
   if (!PROVIDERS.has(provider) || !endpoint || (requireModel && !model) || (credential && !isCredentialName(credential) && !keychainId(credential))) return undefined;
-  return { provider: provider as ChatModelProfile["provider"], endpoint, model, credential };
+  return { provider: provider as ChatModelProfile["provider"], endpoint, model, credential, ...(contextWindow ? { contextWindow } : {}) };
 }
 
 /** The request form of a saved record, or the reason it cannot be used yet. */
@@ -74,10 +77,10 @@ export function chatModelProfile(record: ConfigurationRecord): { profile: ChatMo
   const source = keySourceOf(record);
   const variable = String(record.values.environment || "").trim();
   if (source === "environment" && variable && !isCredentialName(variable)) {
-    return { reason: `凭据环境变量名“${variable}”需要以 KEY、TOKEN 或 SECRET 结尾，请在 设置 → 模型与 API 中修改。` };
+    return { reason: "请在设置里填写以 KEY、TOKEN 或 SECRET 结尾的环境变量名，例如 MODEL_API_KEY。" };
   }
   const credential = source === "keychain" ? keychainRef(record.id) : source === "none" ? "" : variable;
-  const profile = readChatModelProfile({ provider: record.values.provider, endpoint: record.values.endpoint, model: record.values.model, credential });
+  const profile = readChatModelProfile({ provider: record.values.provider, endpoint: record.values.endpoint, model: record.values.model, credential, contextWindow: record.values.contextWindow });
   return profile ? { profile } : { reason: "这份模型配置的服务地址或模型标识无效，请在 设置 → 模型与 API 中修改。" };
 }
 
@@ -88,5 +91,7 @@ export function missingKeyReason(credential: string, desktop: boolean): string {
       ? "钥匙串中没有这份配置的 API Key，请在 设置 → 模型与 API 中编辑它并重新填写。"
       : "这份配置的 API Key 保存在桌面应用的钥匙串中，浏览器预览读不到；请在桌面应用中使用，或把密钥来源改为环境变量。";
   }
-  return `没有找到环境变量 ${credential}：在 ~/.zshrc 加入 export ${credential}=你的密钥，重启 NekoPapa 后生效；也可以把密钥来源改为“API Key”直接填写。`;
+  return desktop
+    ? `没有找到环境变量 ${credential}。把密钥来源改为“API Key”直接填写，或从已设置该变量的终端重新启动 NekoPapa。`
+    : `浏览器预览的开发服务器没有读到 ${credential}。在启动开发服务器的终端运行 export ${credential}=你的密钥，再重启开发服务器。直接粘贴 API Key 请使用桌面应用。`;
 }

@@ -5,7 +5,7 @@
  * kept; nothing is estimated.
  */
 export interface ChatUsage { inputTokens?: number; outputTokens?: number; totalTokens: number }
-export interface ChatReplyMetadata { usage: ChatUsage; model?: string; provider?: string }
+export interface ChatReplyMetadata { usage: ChatUsage; model?: string; provider?: string; contextWindow?: number }
 
 interface ReportedUsage { inputTokens?: unknown; outputTokens?: unknown; totalTokens?: unknown }
 
@@ -17,8 +17,12 @@ function label(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim().slice(0, 120) : undefined;
 }
 
+export function readContextWindow(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isInteger(value) && value > 0 && value <= 10_000_000 ? value : undefined;
+}
+
 /** Builds reply metadata, or nothing when the provider reported no token counts. */
-export function chatReplyMetadata(usage: ReportedUsage | undefined, source: { model?: unknown; provider?: unknown } = {}): ChatReplyMetadata | undefined {
+export function chatReplyMetadata(usage: ReportedUsage | undefined, source: { model?: unknown; provider?: unknown; contextWindow?: unknown } = {}): ChatReplyMetadata | undefined {
   const inputTokens = tokens(usage?.inputTokens);
   const outputTokens = tokens(usage?.outputTokens);
   const reportedTotal = tokens(usage?.totalTokens);
@@ -26,6 +30,7 @@ export function chatReplyMetadata(usage: ReportedUsage | undefined, source: { mo
   if (totalTokens === undefined) return undefined;
   const model = label(source.model);
   const provider = label(source.provider);
+  const contextWindow = readContextWindow(source.contextWindow);
   return {
     usage: {
       ...(inputTokens !== undefined ? { inputTokens } : {}),
@@ -34,13 +39,14 @@ export function chatReplyMetadata(usage: ReportedUsage | undefined, source: { mo
     },
     ...(model ? { model } : {}),
     ...(provider ? { provider } : {}),
+    ...(contextWindow ? { contextWindow } : {}),
   };
 }
 
 /** Reads usage back from stored message metadata; anything malformed is ignored. */
 export function readChatUsage(metadata: unknown): ChatReplyMetadata | undefined {
   if (!metadata || typeof metadata !== "object" || Array.isArray(metadata)) return undefined;
-  const { usage, model, provider } = metadata as Record<string, unknown>;
+  const { usage, model, provider, contextWindow } = metadata as Record<string, unknown>;
   if (!usage || typeof usage !== "object" || Array.isArray(usage)) return undefined;
-  return chatReplyMetadata(usage as ReportedUsage, { model, provider });
+  return chatReplyMetadata(usage as ReportedUsage, { model, provider, contextWindow });
 }

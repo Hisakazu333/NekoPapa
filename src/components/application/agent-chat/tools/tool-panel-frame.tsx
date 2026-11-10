@@ -1,30 +1,22 @@
 import type { ComponentType, ReactNode } from "react";
-import { FolderIcon, XIcon } from "@/components/foundations/icons/app-icons";
-import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
+import { FolderIcon } from "@/components/foundations/icons/app-icons";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
-/** The chrome shared by the 目录 / 终端 / 更改 / 文件 panels: title, detail, actions, close. */
-export function ToolPanelFrame({ icon: TitleIcon, title, tabs, detail, actions, onClose, children }: {
-  icon: Icon;
+/** Tool selector and actions within the work panel. */
+export function ToolPanelFrame({ title, tabs, detail, actions, children }: {
   title: string;
-  /** Replaces the icon and title with a switch between the sibling panels. */
-  tabs?: ReactNode;
+  tabs: ReactNode;
   /** e.g. the project and its folder. */
   detail?: ReactNode;
   actions?: ReactNode;
-  onClose: () => void;
   children: ReactNode;
 }) {
-  return <section aria-label={title} className="@container flex h-full w-full flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
-    <header className="flex shrink-0 items-center gap-2 py-2 ps-4 pe-2">
-      {tabs ?? <TitleIcon className="size-[18px] shrink-0 text-foreground-icon-secondary" aria-hidden />}
-      <div className="flex min-w-0 flex-1 items-baseline gap-2">
-        {!tabs && <h2 className="shrink-0 text-body-medium text-text-primary">{title}</h2>}
-        {detail && <span className="min-w-0 truncate text-caption-1-regular text-text-tertiary">{detail}</span>}
-      </div>
+  return <section aria-label={title} className="@container flex min-h-0 w-full flex-1 flex-col overflow-hidden border-t border-separator-border">
+    <header className="flex shrink-0 items-center gap-2 py-2">
+      {tabs}
+      <span className="min-w-0 flex-1 truncate text-caption-1-regular text-text-secondary">{detail}</span>
       {actions}
-      <ToolbarIconButton icon={XIcon} label={`关闭${title}`} onPress={onClose} />
     </header>
     <div className="flex min-h-0 flex-1 flex-col">{children}</div>
   </section>;

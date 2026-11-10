@@ -29,7 +29,6 @@ import { useProjects } from "@/hooks/use-projects";
 import { resolveProject } from "@/app/projects";
 import { WorkspaceCommandPalette } from "./workspace-command-palette";
 import { browserTabLabel } from "@/app/browser-address";
-import { CHAT_TOOL_LABELS, CHAT_TOOLS, type ChatTool } from "@/app/chat-tools";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
@@ -43,11 +42,11 @@ import { useChatTranscript } from "./use-chat-transcript";
 import { useStartupThread } from "./use-startup-thread";
 import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { ChatTitleTabs } from "./chat-title-tabs";
-import { ChatSidePanel } from "./chat-side-panel";
+import { ChatAuxiliaryPanel } from "./chat-auxiliary-panel";
+import { threadUsage } from "@/app/thread-usage";
 import { ChatBrowserPanel } from "./chat-browser-panel";
 import { MessageLinkProvider, useMessageLinkOpener } from "./message-links";
-import { ChatToolPanel } from "./tools/chat-tool-panel";
-import { useChatToolShortcuts } from "./tools/chat-tool-buttons";
+import { useChatToolShortcuts } from "./tools/use-chat-tool-shortcuts";
 import { useChatBrowser } from "./use-chat-browser";
 import { useBrowserPlacement } from "./use-browser-placement";
 import { BrowserDragLayer, useBrowserDrag } from "./use-browser-drag";
@@ -102,9 +101,8 @@ export function AgentChat({
   // The right-hand area holds either the side panel or the built-in browser;
   // the browser can also move to its own title-bar tab and be dragged back.
   const placement = useBrowserPlacement(activeId);
-  const { auxiliary, openSidePanel } = placement;
-  const activeTool = CHAT_TOOLS.find((tool) => tool === auxiliary) ?? null;
-  const toggleTool = useCallback((tool: ChatTool) => placement.toggleAuxiliary(tool), [placement.toggleAuxiliary]);
+  const { auxiliary, openWorkPanel, panelView, toggleWorkPanel } = placement;
+  const openHistory = useCallback(() => openWorkPanel("history"), [openWorkPanel]);
   const browserDrag = useBrowserDrag((zone) => zone === "tab" ? placement.moveToTab() : placement.moveToSide());
   const browserLabel = browserTabLabel(browser.url, browser.title);
   const openLink = useMessageLinkOpener(browser, placement.showBrowser);
@@ -132,6 +130,7 @@ export function AgentChat({
     transport,
   });
 
+  const usage = useMemo(() => threadUsage(messages), [messages]);
   const busy = status === "submitted" || status === "streaming";
 
   useEffect(() => {
@@ -232,10 +231,6 @@ export function AgentChat({
       return next;
     });
   }, [messages, messageAt]);
-
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages, busy]);
 
   const submit = (text: string) => {
     const trimmed = text.trim();
@@ -353,7 +348,7 @@ export function AgentChat({
   const { showAllThreads } = useChatWorkspaceNavigation({
     setNavOpen: closeNavigation,
     setPage,
-    openSidePanel,
+    openSidePanel: openHistory,
   });
   const sidebar = useAgentChatSidebar({
     setPage, setRequestedContactId, setNavOpen: closeNavigation, activeContactId: activeContact?.id, activeId,
@@ -380,7 +375,10 @@ export function AgentChat({
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
-  useChatToolShortcuts(page === "chat", toggleTool);
+  useChatToolShortcuts(page === "chat", (tool) => {
+    if (auxiliary === "panel" && panelView === tool && !placement.browserTabActive) placement.closeAuxiliary();
+    else openWorkPanel(tool);
+  });
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
   // 清理标签: closes the views only; saved chats stay in the sidebar under their project.
@@ -397,12 +395,10 @@ export function AgentChat({
     deleteDisabled: busy,
     disabled: messages.length === 0,
     showThreadMenu: !activeContact,
-    panelOpen: auxiliary === "panel",
-    onTogglePanel: () => placement.toggleAuxiliary("panel"),
+    panelOpen: auxiliary === "panel" && !placement.browserTabActive,
+    onTogglePanel: toggleWorkPanel,
     browserOpen: placement.browserShown,
     onToggleBrowser: placement.toggleBrowser,
-    activeTool,
-    onToggleTool: toggleTool,
   };
   const { workspaceHeader, windowActions } = createChatWindowChrome({
     title: workspaceTitle,
@@ -443,7 +439,7 @@ export function AgentChat({
         canClearTabs: !busy && (windowNavigation.state.ids.length > 1 || messages.length > 0),
       }}
     >
-      <WorkspaceNavigation layout={navigationLayout} sidebar={sidebar} page={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
+      <WorkspaceNavigation layout={navigationLayout} sidebar={sidebar} page={page} preferRail={page === "chat" && auxiliary === "browser"}
         sidebarHidden={sidebarVisibility.hidden} peek={sidebarPeek} navOpen={navOpen} setNavOpen={setNavOpen} contained={contained} dockPanel={dockPanel} onDockPanelChange={setDockPanel}
         onOpenSettings={() => openSettings("general")} />
 
@@ -460,30 +456,24 @@ export function AgentChat({
       </section>}
       {/* The chat stays mounted behind the browser tab, so its scroll and draft survive. */}
       <div style={{ display: placement.browserTabActive ? "none" : "flex" }} className="min-h-0 min-w-0 flex-1">
-      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openSidePanel} onClose={placement.closeAuxiliary}
-        widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : activeTool ? 0.45 : undefined}
+      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openWorkPanel} onClose={placement.closeAuxiliary}
+        widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
         mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
-        panelLabel={auxiliary === "browser" ? "浏览器" : activeTool ? CHAT_TOOL_LABELS[activeTool] : "辅助工作区"} panel={activeTool
-          ? <ChatToolPanel tool={activeTool} project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}
-            scrollRef={scrollRef} onClose={placement.closeAuxiliary} onSwitch={toggleTool} />
-          : auxiliary === "browser"
-          ? <ChatBrowserPanel browser={browser} placement="side" onClose={placement.closeAuxiliary} onMove={placement.moveToTab}
-            suspended={browserDrag.drag !== null}
-            onMovePointerDown={(event) => browserDrag.begin(event, "side", browserLabel, placement.moveToTab)} />
-          : <ChatSidePanel project={activeProject} threads={allThreads} activeId={activeId} onSelect={selectThread}
-            onNewChat={startNewChat} onRename={renameThread} onToggleUnread={toggleUnread}
-            onDelete={deleteThread} onExport={exportThreads} disabled={busy}
-            onClose={placement.closeAuxiliary} onOpenTool={toggleTool} />
+        panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={<ChatAuxiliaryPanel project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}
+          scrollRef={scrollRef} placement={placement} browser={browser} browserDrag={browserDrag} browserLabel={browserLabel}
+          history={{ threads: allThreads, activeId, onSelect: selectThread, onNewChat: startNewChat, onRename: renameThread,
+            onToggleUnread: toggleUnread, onDelete: deleteThread, onExport: exportThreads, disabled: busy }}
+          usage={usage} />
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
             {workspaceHeader}
-            <ChatConversation scrollRef={scrollRef} messages={messages} messageAt={messageAt} busy={busy}
+            <ChatConversation scrollRef={scrollRef} conversationId={activeId} active={page === "chat" && !placement.browserTabActive} messages={messages} messageAt={messageAt} busy={busy}
               showThinking={showThinking} error={error} historyError={historyError} onRetryHistory={retryHistory}
               input={input} onInputChange={setInput} onSubmit={submit} onStop={stop} composer={composer}
               onOpenSettings={openSettings} sendDisabled={!availability.ready || Boolean(composerBlockedReason)}
               sendBlockedReason={composerBlockedReason} contact={activeContact} onSelectContact={selectContact}
               onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject}
-              projectInfo={resolveProject(projects, activeProject)} onOpenChanges={() => { if (activeTool !== "changes") toggleTool("changes"); }} />
+              usage={usage} projectInfo={resolveProject(projects, activeProject)} onOpenChanges={() => openWorkPanel("changes")} />
         </div>
 
       </ChatWorkspaceSplit>
@@ -491,7 +481,7 @@ export function AgentChat({
       </div>
       <BrowserDragLayer drag={browserDrag.drag} />
       <WorkspaceCommandPalette enabled={page === "chat"} threads={allThreads} onSelectThread={selectThread} onNewChat={startNewChat}
-        onOpenTool={(tool) => { if (activeTool !== tool) toggleTool(tool); }} onToggleBrowser={placement.toggleBrowser} onTogglePanel={() => placement.toggleAuxiliary("panel")} />
+        onOpenTool={openWorkPanel} onToggleBrowser={placement.toggleBrowser} onTogglePanel={toggleWorkPanel} />
     </MacWindowFrame>
   </MessageLinkProvider>);
 }

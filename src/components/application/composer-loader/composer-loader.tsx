@@ -132,6 +132,7 @@ export function ComposerLoader({
   const rx = radius ?? box.h / 2;
   const cornerRadius = radius ?? 9999;
   const direction = reverse ? "reverse" : "normal";
+  const playState = active ? "running" : "paused";
 
   // Path units per px, for pulling each soft layer's head behind the tip.
   // Rounded-rect perimeter: straight runs plus the four corner arcs (for the
@@ -179,7 +180,7 @@ export function ComposerLoader({
           filter={blur > 0 ? `url(#${gradientId}-b${String(blur).replace(".", "_")})` : undefined}
           style={{
             opacity: opacity / copies,
-            animation: `bui-composer-loader-dash ${speed}s linear ${(phase * speed) / 100}s infinite ${direction}`,
+            animation: `bui-composer-loader-dash ${speed}s linear ${(phase * speed) / 100}s infinite ${direction} ${playState}`,
           }}
         />
       );

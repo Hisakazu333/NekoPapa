@@ -1,22 +1,22 @@
 import { useCallback, useState } from "react";
 import type { ChatTool } from "@/app/chat-tools";
 
-/** What the right-hand area shows: the side panel, the side browser or a title-bar tool. */
-export type ChatAuxiliary = "panel" | "browser" | ChatTool | null;
+type ChatAuxiliary = "panel" | "browser" | null;
+export type WorkPanelView = "history" | "code" | "study" | ChatTool;
 
 /**
  * Where the built-in browser lives: in the right-hand area beside the chat
  * (`auxiliary === "browser"`), or as its own tab in the title bar that shows
  * the page across the whole work area. There is one browser either way, so
- * moving it keeps the page. The side panel (历史 / 代码 / 资料), the side
- * browser and the title-bar tools (目录 / 终端 / 更改 / 文件) take turns in
- * the right-hand area.
+ * moving it keeps the page. The browser and the work panel share one
+ * right-hand area. The work panel remembers its view when hidden.
  *
  * `chatId` is the open chat: opening another chat (from a tab, the sidebar
  * or 新建对话) leaves the browser tab for the chat, which keeps the tab.
  */
 export function useBrowserPlacement(chatId: string) {
   const [auxiliary, setAuxiliary] = useState<ChatAuxiliary>(null);
+  const [panelView, setPanelView] = useState<WorkPanelView>("history");
   // null: no browser tab. `active`: the tab is the one shown.
   const [browserTab, setBrowserTab] = useState<{ active: boolean } | null>(null);
   const [shownChat, setShownChat] = useState(chatId);
@@ -25,15 +25,15 @@ export function useBrowserPlacement(chatId: string) {
     if (browserTab?.active) setBrowserTab({ active: false });
   }
 
-  const toggleAuxiliary = useCallback((kind: Exclude<ChatAuxiliary, null>) => {
-    // The side area belongs to the chat view, so using it shows the chat.
-    setBrowserTab((current) => current && { active: false });
-    setAuxiliary((current) => current === kind ? null : kind);
-  }, []);
-  const openSidePanel = useCallback(() => {
-    setBrowserTab((current) => current && { active: false });
+  const openWorkPanel = useCallback((view?: WorkPanelView) => {
+    setBrowserTab((current) => current?.active ? { active: false } : current);
+    if (view) setPanelView(view);
     setAuxiliary("panel");
   }, []);
+  const toggleWorkPanel = useCallback(() => {
+    if (browserTab?.active) openWorkPanel();
+    else setAuxiliary((current) => current === "panel" ? null : "panel");
+  }, [browserTab?.active, openWorkPanel]);
   const closeAuxiliary = useCallback(() => setAuxiliary(null), []);
 
   const moveToTab = useCallback(() => {
@@ -47,8 +47,8 @@ export function useBrowserPlacement(chatId: string) {
   /** The title-bar 浏览器 button: shows the browser wherever it lives, or hides it. */
   const toggleBrowser = useCallback(() => {
     if (browserTab) setBrowserTab({ active: !browserTab.active });
-    else toggleAuxiliary("browser");
-  }, [browserTab, toggleAuxiliary]);
+    else setAuxiliary((current) => current === "browser" ? null : "browser");
+  }, [browserTab]);
   const selectBrowserTab = useCallback(() => setBrowserTab({ active: true }), []);
   /** Shows the browser wherever it lives (a chat link opening in it). */
   const showBrowser = useCallback(() => {
@@ -65,8 +65,9 @@ export function useBrowserPlacement(chatId: string) {
     browserTabActive: browserTab?.active === true,
     /** The browser is on screen, in either place. */
     browserShown: auxiliary === "browser" || browserTab?.active === true,
-    toggleAuxiliary,
-    openSidePanel,
+    panelView,
+    openWorkPanel,
+    toggleWorkPanel,
     closeAuxiliary,
     toggleBrowser,
     moveToTab,

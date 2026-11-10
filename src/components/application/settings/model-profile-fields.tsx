@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { ListIcon } from "@/components/foundations/icons/app-icons";
-import { keychainRef, keySourceOf, type KeySource } from "@/app/chat-model-profile";
+import { isCredentialName, keychainRef, keySourceOf, type KeySource } from "@/app/chat-model-profile";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
 import { canStoreKeys, DRAFT_KEY_ID, storedModelKeys, storeModelKey } from "./model-key-store";
 import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
@@ -49,6 +49,7 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix, r
   const current = modelVendor(vendor);
   const environment = String(values.environment ?? "").trim();
   const source = keySourceOf({ values });
+  const desktop = canStoreKeys();
   const [stored, setStored] = useState(false);
   useEffect(() => {
     let live = true;
@@ -62,6 +63,7 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix, r
     let credential = "";
     if (source === "environment") credential = environment;
     else if (source === "keychain") {
+      if (!desktop) { modelList.fail("浏览器预览无法访问系统钥匙串。请选择环境变量，或在桌面应用中使用这份配置。"); return; }
       if (secret.trim()) {
         try { await storeModelKey(DRAFT_KEY_ID, secret); } catch (error) { modelList.fail(error instanceof Error ? error.message : "无法访问钥匙串。"); return; }
         credential = keychainRef(DRAFT_KEY_ID);
@@ -87,14 +89,15 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix, r
     if (!environment || environment === current?.env) onChange("environment", next.env);
     // Local servers take no key; a hosted vendor needs one.
     if (next.region === "local") onChange("keySource", "none");
-    else if (source === "none") onChange("keySource", canStoreKeys() ? "keychain" : "environment");
+    else if (source === "none") onChange("keySource", desktop ? "keychain" : "environment");
     const name = String(values.name ?? "").trim();
     if (!name || name === current?.label) onChange("name", next.label);
   };
 
   const byKey = (key: string) => fields.find((field) => field.key === key);
-  const envHint = environment
-    ? `仅保存变量名，不填写密钥。在 ~/.zshrc 加入 export ${environment}=你的密钥，重启 NekoPapa 后生效。`
+  const envHint = isCredentialName(environment)
+    ? desktop ? "填写变量名后，从已设置该变量的终端启动 NekoPapa。"
+      : `只填变量名。在启动开发服务器的终端运行 export ${environment}=你的密钥，再重启开发服务器。`
     : current?.region === "local" ? "本机服务通常不需要密钥，可留空。" : byKey("environment")?.hint;
   const upper = ["name", "provider", "endpoint"].map(byKey).filter((field): field is ConfigurationField => Boolean(field));
   const credential = byKey("environment");
@@ -113,11 +116,12 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix, r
     </SettingsRow>
     <SettingsFields fields={upper} values={values} errors={errors} onChange={change} prefix={prefix} />
     <KeySourceRow prefix={prefix} value={source} onChange={(next) => { change("keySource", next); }} />
-    {source === "keychain" && <KeyRow prefix={prefix} secret={secret} stored={stored} error={errors.secret}
+    {source === "keychain" && desktop && <KeyRow prefix={prefix} secret={secret} stored={stored} error={errors.secret}
       onChange={(next) => { onSecretChange(next); modelList.clear(); }} />}
     {source === "environment" && credential && <SettingsFields fields={[{ ...credential, hint: envHint ?? "" }]} values={values} errors={errors} onChange={change} prefix={prefix} />}
     <ModelRow prefix={prefix} value={String(values.model ?? "")} error={errors.model} hint={byKey("model")?.hint}
       list={modelList.state} onFetch={() => void fetchModels()} onChange={(next) => onChange("model", next)} />
+    {byKey("contextWindow") && <SettingsFields fields={[byKey("contextWindow")!]} values={values} errors={errors} onChange={change} prefix={prefix} />}
   </>;
 }
 
@@ -155,9 +159,10 @@ function ModelRow({ prefix, value, error, hint, list, onFetch, onChange }: {
 
 function KeySourceRow({ prefix, value, onChange }: { prefix: string; value: KeySource; onChange: (value: KeySource) => void }) {
   const desktop = canStoreKeys();
-  const description = value === "keychain"
-    ? desktop ? "直接填写服务商给你的 API Key，保存后存入系统钥匙串，不写入设置或备份。" : "直接填写 API Key 需要桌面应用（保存到系统钥匙串）；浏览器预览请用环境变量。"
-    : value === "environment" ? "从启动 NekoPapa 的环境变量读取密钥，适合已在 ~/.zshrc 中设置过的变量。" : "本机服务（Ollama、LM Studio 等）通常不需要密钥。";
+  const description = value === "none" ? "本机服务（Ollama、LM Studio 等）通常不需要密钥。"
+    : !desktop ? "浏览器预览由开发服务器读取环境变量。直接粘贴 API Key 请使用桌面应用，密钥会存入系统钥匙串。"
+    : value === "keychain" ? "直接填写服务商给你的 API Key，保存后存入系统钥匙串，不写入设置或备份。"
+    : "从启动 NekoPapa 的终端环境读取密钥。";
   return <SettingsRow label="密钥来源" description={description} labelId={`${prefix}-key-source-label`} descriptionId={`${prefix}-key-source-description`}>
     <SegmentedControl selectedKeys={[value]} className="shrink-0" aria-labelledby={`${prefix}-key-source-label`} aria-describedby={`${prefix}-key-source-description`}
       onSelectionChange={(keys) => { const next = Array.from(keys)[0]; if (typeof next === "string") onChange(next as KeySource); }}>

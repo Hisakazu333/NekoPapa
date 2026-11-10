@@ -10,6 +10,7 @@ import { Avatar } from "@/components/base/avatar/avatar";
 import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { messageText, readThreads, type StoredThread } from "../agent-chat/thread-storage";
+import { TranscriptViewport } from "../agent-chat/transcript-viewport";
 import type { useChatProvider } from "../agent-chat/use-chat-provider";
 import { ContactComposer } from "./contact-composer";
 import { ContactMessage } from "./contact-message";
@@ -45,7 +46,6 @@ export function ContactConversation({ contact, initialThread, provider, active, 
   const composer = useChatComposer(contact.id, { model: provider.model, provider: provider.label ?? provider.provider });
   const [updatedAt, setUpdatedAt] = useState(initial.updatedAt);
   const [messageAt, setMessageAt] = useState(initial.messageAt);
-  const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
   const availability = chatContactAvailability(provider, contact, composer.usesProfile);
   const draftBlockedReason = contact.kind === "official" ? composer.draftBlockReason : composer.blockReason;
@@ -94,10 +94,6 @@ export function ContactConversation({ contact, initialThread, provider, active, 
     onPreview(contact.id, { text: lastText ? `${last?.role === "user" ? "我：" : ""}${lastText}` : "", updatedAt, busy });
   }, [contact.id, lastText, last?.role, updatedAt, busy, onPreview]);
 
-  useEffect(() => {
-    if (active) scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight });
-  }, [messages, busy, active]);
-
   const send = () => {
     if (!input.trim() || modeBlocked || busy || !availability.ready) return;
     setUpdatedAt(Date.now());
@@ -108,8 +104,8 @@ export function ContactConversation({ contact, initialThread, provider, active, 
   return <section aria-label={`与${contact.name}的聊天`} className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-background-secondary-default">
     <ContactConversationHeader contact={contact} onBack={onBack} onOpenProfile={onOpenProfile} onStartGroup={onStartGroup} onDelete={onDelete}
       transcript={messages.filter((message) => message.role !== "system").map((message) => `${message.role === "user" ? profile.name : contact.name}：${messageText(message)}`).join("\n\n")} />
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-6 sm:px-6">
-      {messages.length === 0 ? <div className="flex h-full min-h-28 flex-col items-center justify-center gap-3 text-text-tertiary">
+    <TranscriptViewport conversationId={initial.id} busy={busy} active={active} showLatest={messages.length > 0} className="px-4 py-6 sm:px-6">
+      {messages.length === 0 ? <div className="flex min-h-28 flex-1 flex-col items-center justify-center gap-3 text-text-tertiary">
         <Avatar size="lg" src={contact.avatar} initials={Array.from(contact.name).slice(-1).join("")} alt="" color={contact.avatarColor ?? "neutral"} className="mb-5 size-20 text-3xl" />
         <p className="text-headline-semibold text-text-primary">和{contact.name}聊聊吧</p>
         <p className="text-caption-1-regular">聊天记录保存在当前浏览器</p>
@@ -122,7 +118,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
         <span>{availability.reason ?? "回复失败，消息已保留。请检查模型连接后重试。"}</span>
         <button type="button" disabled={busy || !availability.ready || modeBlocked || Boolean(composer.modelBlockReason)} className="shrink-0 cursor-pointer underline disabled:opacity-50" onClick={() => { if (!availability.ready || busy || modeBlocked || composer.modelBlockReason) return; setUpdatedAt(Date.now()); void regenerate({ body: { ...composer.requestBody, contact: toChatContactRequest(contact) } }); }}>重试回复</button>
       </div>}
-    </div>
+    </TranscriptViewport>
     {history.error && <p role="alert" className="border-t border-separator-border px-5 py-2 text-caption-1-regular text-text-secondary">{history.error} <button type="button" onClick={history.retryHistory} className="cursor-pointer underline">重试保存</button></p>}
     <ContactComposer name={contact.name} value={input} onChange={setInput} onSend={send} onStop={() => { void stop(); }}
       onConfigure={(target) => openSettings("model", target)} busy={busy} ready={availability.ready} composer={composer} officialCompanion={contact.kind === "official"} sendBlockedReason={availability.reason} />

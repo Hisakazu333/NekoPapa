@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { AnnotateIcon, FileIcon, ImageIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { composerArtifacts } from "@/app/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -7,7 +7,7 @@ export function ComposerDraftSummary({ state, disabled }: { state: ChatComposerS
   const { draft } = state;
   return <>
     {(draft.attachments.length > 0 || draft.pageElements.length > 0 || draft.goal || draft.planning || draft.artifact) && <div aria-label="聊天草稿选项" className="flex max-h-32 flex-wrap gap-2 overflow-y-auto px-1 pt-1">
-      {draft.attachments.map((file) => <FileCard key={file.id} name={file.name} path={file.path} size={file.size} disabled={disabled}
+      {draft.attachments.map((file) => <FileCard key={file.id} file={file.file} name={file.name} path={file.path} size={file.size} disabled={disabled}
         onRemove={() => state.setDraft((previous) => ({ ...previous, attachments: previous.attachments.filter((item) => item.id !== file.id) }))} />)}
       {draft.pageElements.map((element) => <Chip key={element.id} label={`移除网页元素${element.selector || element.tag}`} disabled={disabled} onRemove={() => state.setDraft((previous) => ({ ...previous, pageElements: previous.pageElements.filter((item) => item.id !== element.id) }))}>
         <AnnotateIcon className="size-3.5 shrink-0" aria-hidden />
@@ -33,15 +33,42 @@ function Chip({ children, label, onRemove, disabled }: { children: ReactNode; la
 
 const IMAGE = /\.(png|jpe?g|gif|webp|svg|avif|heic)$/i;
 
-/** A selected file as a small card: type icon, name, extension and size. */
-function FileCard({ name, path, size, onRemove, disabled }: { name: string; path: string; size: number; onRemove: () => void; disabled?: boolean }) {
-  const TypeIcon = IMAGE.test(name) ? ImageIcon : FileIcon;
+/** Data URLs also work with the desktop window's image CSP. */
+function useImagePreview(file: File, image: boolean) {
+  const [url, setUrl] = useState<string>();
+  useEffect(() => {
+    if (!image) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") setUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+    return () => {
+      reader.onload = null;
+      if (reader.readyState === FileReader.LOADING) reader.abort();
+    };
+  }, [file, image]);
+  return url;
+}
+
+/**
+ * A selected file as a small card (after BoardUI's Composer Attachments):
+ * an image shows its own thumbnail, other files a type icon; then the name,
+ * extension and size. The preview is read from the picked file in memory.
+ */
+function FileCard({ file, name, path, size, onRemove, disabled }: { file: File; name: string; path: string; size: number; onRemove: () => void; disabled?: boolean }) {
+  const image = IMAGE.test(name) || file.type.startsWith("image/");
+  const preview = useImagePreview(file, image);
+  const [failed, setFailed] = useState(false);
+  const TypeIcon = image ? ImageIcon : FileIcon;
   const extension = /\.([^.]+)$/.exec(name)?.[1]?.toUpperCase();
   const kb = Math.max(1, Math.ceil(size / 1024));
   return <span title={path} className="relative flex w-52 max-w-full items-center gap-2 rounded-xl border border-separator-border bg-background-secondary-default py-1.5 ps-1.5 pe-7">
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background-tertiary-default text-foreground-icon-secondary"><TypeIcon className="size-4" aria-hidden /></span>
+    <span className="flex size-8 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-background-tertiary-default text-foreground-icon-secondary">
+      {preview && !failed ? <img src={preview} alt="" className="size-full object-cover" onError={() => setFailed(true)} /> : <TypeIcon className="size-4" aria-hidden />}
+    </span>
     <span className="flex min-w-0 flex-col">
-      <span className="truncate text-caption-1-medium text-text-primary">{name}</span>
+      <span translate="no" className="truncate text-caption-1-medium text-text-primary">{name}</span>
       <span className="truncate text-caption-1-regular text-text-tertiary">{extension ? `${extension} · ` : ""}{kb >= 1024 ? `${(kb / 1024).toFixed(1)} MB` : `${kb} KB`}</span>
     </span>
     <button type="button" aria-label={`移除附件${name}`} disabled={disabled} onClick={onRemove}

@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUpIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
+import { ArrowUpIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -122,7 +122,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
         <div className="chat-home__toolbar">
           <div className="chat-home__toolbar-group">
             <ComposerModeMenu state={composer} context={selectedContact?.kind ?? "workspace"} className="chat-home__toolbar-button" />
-            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" onClick={fillIdea}><WandSparklesIcon aria-hidden /></button>
+            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" title="填入灵感提示" onClick={fillIdea}><CompassIcon aria-hidden /></button>
             <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><PlugIcon aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
