@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "..", "types": ["node"] },
+  "include": ["../scripts/local-models-api.ts", "../src/app/local-models.ts"]
+}

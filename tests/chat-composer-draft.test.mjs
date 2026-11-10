@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, writeFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -11,6 +11,11 @@ let domain;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./chat-composer-draft-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
+  // Node needs the .js on relative imports that tsc leaves bare.
+  for (const name of readdirSync(output, { recursive: true })) {
+    const path = join(output, String(name));
+    if (path.endsWith(".js")) writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+)(["'])(\.{1,2}\/[^"']+?)(?<!\.js)\2/g, "$1$2$3.js$2"));
+  }
   domain = await import(pathToFileURL(join(output, "app/chat-composer-draft.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
@@ -30,7 +35,7 @@ test("每个输入区拥有独立空草稿，修改文件、目标和产物不�
   first.goal = "理解课程";
   first.planning = true;
   first.artifact = "document";
-  assert.deepEqual(second, { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
+  assert.deepEqual(second, { attachments: [], pageElements: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
 });
 
 test("添加文件保留原File内容、稳定ID和文件夹路径，移除时其他文件身份不变", async () => {

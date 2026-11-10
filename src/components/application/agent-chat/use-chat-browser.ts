@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { browserErrorMessage, nativeBrowser, type BrowserBounds, type BrowserCommand } from "@/app/native-browser";
+import { defaultBrowserDisplay, type BrowserDisplay } from "@/app/browser-display";
+import { readPickState, type PageElement } from "@/app/browser-pick";
 
 export interface ChatBrowserState {
   available: boolean;
@@ -8,13 +10,21 @@ export interface ChatBrowserState {
   title?: string;
   loading: boolean;
   error?: string;
+  /** The element picker is running in the page. */
+  picking: boolean;
 }
 
 export interface ChatBrowser extends ChatBrowserState {
-  open: (url: string, bounds: BrowserBounds) => void;
+  /** Device width / zoom; kept for the session like the page itself. */
+  display: BrowserDisplay;
+  setDisplay: (display: BrowserDisplay) => void;
+  /** Opens `url` in `bounds`, then applies `zoom` to the new page view. */
+  open: (url: string, bounds: BrowserBounds, zoom: number) => void;
   run: (command: BrowserCommand) => void;
   openWindow: (url: string) => void;
   clearError: () => void;
+  /** Starts or stops picking an element in the page. */
+  togglePick: () => void;
 }
 
 /**
@@ -24,13 +34,19 @@ export interface ChatBrowser extends ChatBrowserState {
  * window goes away, and a view left over from a previous load is closed on
  * mount so it can never float over the app unattended.
  */
-export function useChatBrowser(): ChatBrowser {
+const PICK_POLL_MS = 250;
+
+/** `onPick` receives an element picked in the page (validated in browser-pick.ts). */
+export function useChatBrowser(onPick: (element: Omit<PageElement, "id">) => void): ChatBrowser {
   const available = nativeBrowser.available();
-  const [state, setState] = useState<Omit<ChatBrowserState, "available">>({ loading: false });
+  const [state, setState] = useState<Omit<ChatBrowserState, "available">>({ loading: false, picking: false });
+  const onPickRef = useRef(onPick);
+  onPickRef.current = onPick;
+  const [display, setDisplay] = useState<BrowserDisplay>(defaultBrowserDisplay);
   const mounted = useRef(true);
 
   const fail = useCallback((error: unknown) => {
-    if (mounted.current) setState((current) => ({ ...current, loading: false, error: browserErrorMessage(error) }));
+    if (mounted.current) setState((current) => ({ ...current, loading: false, picking: false, error: browserErrorMessage(error) }));
   }, []);
 
   useEffect(() => {
@@ -56,9 +72,10 @@ export function useChatBrowser(): ChatBrowser {
     };
   }, [available]);
 
-  const open = useCallback((url: string, bounds: BrowserBounds) => {
+  const open = useCallback((url: string, bounds: BrowserBounds, zoom: number) => {
     setState((current) => ({ ...current, url, title: undefined, loading: true, error: undefined }));
-    nativeBrowser.open(url, bounds).catch(fail);
+    // A view created by this call starts at 100%; apply the zoom once it exists.
+    nativeBrowser.open(url, bounds).then(() => nativeBrowser.setZoom(zoom)).catch(fail);
   }, [fail]);
   const run = useCallback((command: BrowserCommand) => { nativeBrowser.command(command).catch(fail); }, [fail]);
   const openWindow = useCallback((url: string) => {
@@ -66,6 +83,34 @@ export function useChatBrowser(): ChatBrowser {
     else window.open(url, "_blank", "noopener,noreferrer");
   }, [available, fail]);
   const clearError = useCallback(() => setState((current) => ({ ...current, error: undefined })), []);
+  const stateRef = useRef(state);
+  stateRef.current = state;
+  const togglePick = useCallback(() => {
+    const current = stateRef.current;
+    if (!available || !current.url) return;
+    const picking = !current.picking;
+    setState((latest) => ({ ...latest, picking, error: undefined }));
+    nativeBrowser.pick(picking).catch(fail);
+  }, [available, fail]);
 
-  return { available, ...state, open, run, openWindow, clearError };
+  // While picking, ask the page for its result a few times a second. A new
+  // page drops the picker, which reads as "gone" and ends picking.
+  useEffect(() => {
+    if (!state.picking) return;
+    let stopped = false;
+    const timer = window.setInterval(() => {
+      nativeBrowser.pickResult().then((json) => {
+        if (stopped) return;
+        const result = readPickState(json);
+        if (result.kind === "pending") return;
+        if (result.kind === "picked") onPickRef.current(result.element);
+        setState((current) => ({ ...current, picking: false }));
+      }, (error: unknown) => {
+        if (!stopped) setState((current) => ({ ...current, picking: false, error: browserErrorMessage(error) }));
+      });
+    }, PICK_POLL_MS);
+    return () => { stopped = true; window.clearInterval(timer); };
+  }, [state.picking]);
+
+  return { available, ...state, display, setDisplay, open, run, openWindow, clearError, togglePick };
 }

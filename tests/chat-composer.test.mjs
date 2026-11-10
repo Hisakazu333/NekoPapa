@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -12,6 +12,11 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./chat-composer-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
+  // Node needs the .js on relative imports that tsc leaves bare.
+  for (const name of readdirSync(output, { recursive: true })) {
+    const path = join(output, String(name));
+    if (path.endsWith(".js")) writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+)(["'])(\.{1,2}\/[^"']+?)(?<!\.js)\2/g, "$1$2$3.js$2"));
+  }
   draft = await import(pathToFileURL(join(output, "chat-composer-draft.js")));
   model = await import(pathToFileURL(join(output, "composer-model.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }

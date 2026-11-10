@@ -25,6 +25,7 @@ export { DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./si
 import { cx } from "@/utils/cx";
 import { filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
 import { DashboardSidebarSearchResults } from "./dashboard-sidebar-search-results";
+import { useSidebarCollapse } from "./use-sidebar-collapse";
 
 /**
  * Figma sources:
@@ -54,6 +55,7 @@ export function DashboardSidebar({
   searchEntries = [],
   onSearchSelect,
   more,
+  preferRail = false,
 }: {
   /** Rendered inside the mobile drawer: always expanded, close button instead of collapse. */
   mobile?: boolean;
@@ -77,10 +79,12 @@ export function DashboardSidebar({
   onSearchSelect?: (entry: SidebarSearchEntry) => boolean | void;
   /** Codex-style "更多" panel of secondary destinations with pin toggles. */
   more?: { entries: SidebarMoreEntry[]; notice?: string; onTogglePin: (id: string) => void };
+  /** Fold to the icon rail while this holds (the built-in browser is open). */
+  preferRail?: boolean;
   className?: string;
 } = {}) {
   const localize = useTemplateCopy();
-  const [collapsedState, setCollapsed] = useState(false);
+  const [collapsedState, setCollapsed] = useSidebarCollapse(preferRail, !mobile);
   const [searchActive, setSearchActive] = useState(false);
   const [query, setQuery] = useState("");
   const [activeSearchIndex, setActiveSearchIndex] = useState(0);

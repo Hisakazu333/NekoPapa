@@ -14,6 +14,7 @@ import { BackendPendingPage } from "@/components/application/workspace-pages/bac
 import { SpacePage } from "@/components/application/workspace-pages/space-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
+import { useSidebarVisibility } from "@/components/application/dashboard/use-sidebar-visibility";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ContactsMessenger } from "@/components/application/contacts/contacts-messenger";
 import { reconcileContactThread, sameContactThread } from "@/components/application/contacts/contact-thread-sync";
@@ -24,6 +25,7 @@ import { useContacts } from "@/hooks/use-contacts";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { useProjects } from "@/hooks/use-projects";
 import { resolveProject } from "@/app/projects";
+import { browserTabLabel } from "@/app/browser-address";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
@@ -40,6 +42,8 @@ import { ChatTitleTabs } from "./chat-title-tabs";
 import { ChatSidePanel } from "./chat-side-panel";
 import { ChatBrowserPanel } from "./chat-browser-panel";
 import { useChatBrowser } from "./use-chat-browser";
+import { useBrowserPlacement } from "./use-browser-placement";
+import { BrowserDragLayer, useBrowserDrag } from "./use-browser-drag";
 import { chatTabEntries } from "./chat-workspace-tabs";
 import { toChatContactRequest } from "./chat-contact";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
@@ -49,6 +53,8 @@ import {
 } from "./thread-storage";
 
 const ENDPOINT = "/api/chat";
+/** Beside the browser the chat keeps room for a one-line greeting and composer row; below that the browser overlays it. */
+const BROWSER_CHAT_MIN_WIDTH = 480;
 
 
 export function AgentChat({
@@ -65,13 +71,9 @@ export function AgentChat({
   const probe = useChatProvider(ENDPOINT);
   const [input, setInput] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  const sidebarVisibility = useSidebarVisibility();
   const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
-  // The right-hand area holds either the side panel or the built-in browser.
-  const [auxiliary, setAuxiliary] = useState<"panel" | "browser" | null>(null);
-  const toggleAuxiliary = (kind: "panel" | "browser") => setAuxiliary((current) => current === kind ? null : kind);
-  const openSidePanel = useCallback(() => setAuxiliary("panel"), []);
-  const browser = useChatBrowser();
   const history = useChatHistory();
   const { contacts, deletedIds } = useContacts();
   const [selectedContact, setSelectedContact] = useState<ChatContact>();
@@ -82,6 +84,14 @@ export function AgentChat({
   // would differ between server and client and break hydration.
   const [activeId, setActiveId] = useState("");
   const composer = useChatComposer(activeId, { model: probe.model, provider: probe.label ?? probe.provider }, activeContact?.kind ?? "workspace");
+  // Elements picked in the built-in browser join the open chat's draft.
+  const browser = useChatBrowser(composer.addPageElement);
+  // The right-hand area holds either the side panel or the built-in browser;
+  // the browser can also move to its own title-bar tab and be dragged back.
+  const placement = useBrowserPlacement(activeId);
+  const { auxiliary, openSidePanel } = placement;
+  const browserDrag = useBrowserDrag((zone) => zone === "tab" ? placement.moveToTab() : placement.moveToSide());
+  const browserLabel = browserTabLabel(browser.url, browser.title);
   const composerBlockedReason = (activeContact?.kind === "official" ? composer.draftBlockReason : composer.blockReason) ?? availability.reason;
   /** Stamped on send, so render never calls Date.now(). */
   const [activeUpdatedAt, setActiveUpdatedAt] = useState(0);
@@ -354,6 +364,8 @@ export function AgentChat({
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
+  // 新建对话 from the title bar leaves the browser tab for the new chat.
+  const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
   const chatActions = {
     transcript,
     onExport: exportThreads,
@@ -363,9 +375,9 @@ export function AgentChat({
     disabled: messages.length === 0,
     showThreadMenu: !activeContact,
     panelOpen: auxiliary === "panel",
-    onTogglePanel: () => toggleAuxiliary("panel"),
-    browserOpen: auxiliary === "browser",
-    onToggleBrowser: () => toggleAuxiliary("browser"),
+    onTogglePanel: () => placement.toggleAuxiliary("panel"),
+    browserOpen: placement.browserShown,
+    onToggleBrowser: placement.toggleBrowser,
   };
   const { workspaceHeader, windowActions } = createChatWindowChrome({
     title: workspaceTitle,
@@ -376,7 +388,14 @@ export function AgentChat({
     windowToolbar,
     nativeWindow,
     actions: chatActions,
-    tabs: <ChatTitleTabs activeId={activeId} busy={busy} nativeWindow={nativeWindow} onSelect={windowNavigation.select} onClose={windowNavigation.close}
+    tabs: <ChatTitleTabs activeId={activeId} busy={busy} nativeWindow={nativeWindow} onClose={windowNavigation.close}
+      onCreate={createChat}
+      onSelect={(id) => { placement.leaveBrowserTab(); windowNavigation.select(id); }}
+      dropTarget={browserDrag.drag?.from === "side" && (browserDrag.drag.over === "tab" ? "over" : true)}
+      browserTab={placement.browserTab ? {
+        title: browserLabel, active: placement.browserTabActive, loading: browser.loading && Boolean(browser.url), onSelect: placement.selectBrowserTab, onClose: placement.closeBrowserTab,
+        onPointerDown: (event) => browserDrag.begin(event, "tab", browserLabel, placement.selectBrowserTab),
+      } : undefined}
       tabs={chatTabEntries(windowNavigation.state, { activeId, activeTitle: workspaceTitle, threads: allThreads, sessionOf: (id) => sessionMemory.current.getSession(id) })} />,
   });
 
@@ -385,15 +404,18 @@ export function AgentChat({
       contained={contained}
       className={className}
       titlebarContent={windowActions}
+      sidebarToggle={{ hidden: sidebarVisibility.hidden, onToggle: sidebarVisibility.toggle, shortcut: sidebarVisibility.shortcut }}
       toolbarNavigation={{
         onBack: windowNavigation.back,
         onForward: windowNavigation.forward,
-        onCreate: windowNavigation.create,
+        onCreate: createChat,
+        createInTabs: windowToolbar,
         canGoBack: windowNavigation.canGoBack,
         canGoForward: windowNavigation.canGoForward,
       }}
     >
-      <DashboardSidebar {...sidebar} selected={page} className="hidden lg:flex" />
+      <DashboardSidebar {...sidebar} selected={page} preferRail={page === "chat" && auxiliary === "browser"}
+        className={sidebarVisibility.hidden ? "hidden" : "hidden lg:flex"} />
 
       {/* The Pro template pushes the workspace across; this is the plain overlay drawer. */}
       <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
@@ -406,14 +428,24 @@ export function AgentChat({
       {isPendingWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={() => setNavOpen(true)} />}
       {page === "space" && <SpacePage onNavigate={() => setNavOpen(true)} />}
       <div hidden={page !== "chat"} style={{ display: page === "chat" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
-      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openSidePanel} onClose={() => setAuxiliary(null)}
+      {placement.browserTabActive && <section aria-label="浏览器" className="flex min-h-0 min-w-0 flex-1">
+        <ChatBrowserPanel browser={browser} placement="tab" onClose={placement.closeBrowserTab} onMove={placement.moveToSide}
+          suspended={browserDrag.drag !== null}
+          onMovePointerDown={(event) => browserDrag.begin(event, "tab", browserLabel, placement.moveToSide)} />
+      </section>}
+      {/* The chat stays mounted behind the browser tab, so its scroll and draft survive. */}
+      <div style={{ display: placement.browserTabActive ? "none" : "flex" }} className="min-h-0 min-w-0 flex-1">
+      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openSidePanel} onClose={placement.closeAuxiliary}
         widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
+        mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
         panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={auxiliary === "browser"
-          ? <ChatBrowserPanel browser={browser} onClose={() => setAuxiliary(null)} />
+          ? <ChatBrowserPanel browser={browser} placement="side" onClose={placement.closeAuxiliary} onMove={placement.moveToTab}
+            suspended={browserDrag.drag !== null}
+            onMovePointerDown={(event) => browserDrag.begin(event, "side", browserLabel, placement.moveToTab)} />
           : <ChatSidePanel project={activeProject} threads={allThreads} activeId={activeId} onSelect={selectThread}
             onNewChat={startNewChat} onRename={renameThread} onToggleUnread={toggleUnread}
             onDelete={deleteThread} onExport={exportThreads} disabled={busy}
-            onClose={() => setAuxiliary(null)} />
+            onClose={placement.closeAuxiliary} />
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
             {workspaceHeader}
@@ -427,6 +459,8 @@ export function AgentChat({
 
       </ChatWorkspaceSplit>
       </div>
+      </div>
+      <BrowserDragLayer drag={browserDrag.drag} />
     </MacWindowFrame>
   ));
 }

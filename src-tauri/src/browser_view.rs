@@ -138,6 +138,50 @@ pub async fn browser_command<R: Runtime>(app: AppHandle<R>, command: String) -> 
     .map_err(|e| e.to_string())
 }
 
+/// Page zoom: below 1 the page lays out wider (as ⌘− in Safari), which is how
+/// the device modes give a page a laptop or desktop width in a narrow area.
+#[tauri::command]
+pub async fn browser_set_zoom<R: Runtime>(app: AppHandle<R>, zoom: f64) -> Result<(), String> {
+    if !zoom.is_finite() || !(0.25..=3.0).contains(&zoom) {
+        return Err("缩放比例超出范围。".to_string());
+    }
+    match browser(&app) {
+        Some(view) => view.set_zoom(zoom).map_err(|e| e.to_string()),
+        None => Ok(()),
+    }
+}
+
+const PICK_SCRIPT: &str = include_str!("browser_pick.js");
+const PICK_STOP: &str = "window.__nekoPapaPick?.stop()";
+const PICK_TAKE: &str = "(() => { try { return window.__nekoPapaPick ? window.__nekoPapaPick.take() : null } catch (_) { return null } })()";
+
+/// Starts or stops the element picker (browser_pick.js) in the open page.
+#[tauri::command]
+pub async fn browser_pick<R: Runtime>(app: AppHandle<R>, active: bool) -> Result<(), String> {
+    let view = browser(&app).ok_or("浏览器还没有打开网页。")?;
+    if active {
+        let _ = view.set_focus();
+    }
+    view.eval(if active { PICK_SCRIPT } else { PICK_STOP }).map_err(|e| e.to_string())
+}
+
+/// Reads the picker's state as JSON text: `{"pending":true}`, a picked
+/// element, `{"cancelled":true}`, or `null` once the picker is gone (for
+/// example the page navigated). The app validates it; it is page content.
+#[tauri::command]
+pub async fn browser_pick_result<R: Runtime>(app: AppHandle<R>) -> Result<String, String> {
+    let view = browser(&app).ok_or("浏览器还没有打开网页。")?;
+    let (tx, rx) = std::sync::mpsc::channel();
+    view.eval_with_callback(PICK_TAKE, move |json| {
+        let _ = tx.send(json);
+    })
+    .map_err(|e| e.to_string())?;
+    tauri::async_runtime::spawn_blocking(move || rx.recv_timeout(std::time::Duration::from_secs(2)))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|_| "网页没有响应。".to_string())
+}
+
 #[tauri::command]
 pub async fn browser_close<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
     match browser(&app) {

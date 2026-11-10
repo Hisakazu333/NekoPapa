@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat-composer-draft";
 import { composerModelBlockReason, composerModels, type ComposerRuntimeModel } from "@/app/composer-model";
+import { addPageElement, type PageElement } from "@/app/browser-pick";
 import { useConfiguration } from "./use-configuration";
 
 interface DraftState { draft: ComposerDraft; selectedModel?: string; error?: string }
@@ -34,6 +35,11 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     addFiles: (files: File[]) => update((previous) => {
       const result = addComposerFiles(previous.draft.attachments, files);
       return { ...previous, draft: { ...previous.draft, attachments: result.attachments }, error: result.errors.join(" ") || undefined };
+    }),
+    /** Attaches an element picked in the built-in browser. */
+    addPageElement: (element: Omit<PageElement, "id">) => update((previous) => {
+      const result = addPageElement(previous.draft.pageElements, element, crypto.randomUUID());
+      return { ...previous, draft: { ...previous.draft, pageElements: result.elements }, error: result.error };
     }),
     clearError: () => update((previous) => ({ ...previous, error: undefined })),
     prepareText: (text: string) => buildComposerText(text, state.draft),

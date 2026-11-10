@@ -117,6 +117,13 @@ html {
   color-scheme: light;
   background-color: var(--color-background-full);
 }
+/* An app window, not a document: no rubber-band bounce that drags the whole
+ * workspace around at the scroll edges (macOS WebKit). Scrolling inside lists
+ * and the chat is unaffected. */
+html,
+body {
+  overscroll-behavior: none;
+}
 html.dark {
   color-scheme: dark;
 }
@@ -330,3 +337,18 @@ input[type="search"]::-webkit-search-cancel-button {
   }
 }
 
+
+/* Progress (components/base/progress): the indeterminate bar's band of
+ * light, 40% of the track wide, sweeping from fully off the start edge to
+ * fully off the end. RTL runs it in reverse. Copied from the official
+ * BoardUI globals, which `boardui add progress` does not merge into an
+ * existing file. */
+@keyframes bui-progress-sweep {
+  from {
+    translate: -100% 0;
+  }
+
+  to {
+    translate: 250% 0;
+  }
+}

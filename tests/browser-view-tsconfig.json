@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
+  "include": ["../src/app/browser-address.ts", "../src/app/browser-display.ts", "../src/app/browser-pick.ts"]
+}

@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { isTauri } from "@tauri-apps/api/core";
-import { RiArrowLeftLine, RiArrowRightLine, RiAddLine } from "@remixicon/react";
+import { RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSideBarLine } from "@remixicon/react";
 import { ToolbarIconButton } from "./toolbar-icon-button";
 import { cx } from "@/utils/cx";
 
@@ -14,6 +14,7 @@ export function MacWindowFrame({
   className,
   titlebarContent,
   toolbarNavigation,
+  sidebarToggle,
 }: {
   children: ReactNode;
   contained?: boolean;
@@ -25,17 +26,28 @@ export function MacWindowFrame({
     onCreate: () => void;
     canGoBack?: boolean;
     canGoForward?: boolean;
+    /** The open-chat tabs carry 新建对话 at their end (browser-style), so it is not repeated here. */
+    createInTabs?: boolean;
   };
+  /** Hides or shows the desktop sidebar; only shown where that sidebar exists (lg and up). */
+  sidebarToggle?: { hidden: boolean; onToggle: () => void; shortcut: string };
 }) {
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
   const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", height, className);
 
   const navigation = toolbarNavigation && (
     <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
+      {sidebarToggle && <>
+        <ToolbarIconButton icon={RiSideBarLine} label={sidebarToggle.hidden ? "显示侧栏" : "隐藏侧栏"} onPress={sidebarToggle.onToggle}
+          shortcut={sidebarToggle.shortcut} className="hidden lg:inline-flex" />
+        <span aria-hidden className="mx-1 hidden h-4 w-px bg-separator-border lg:block" />
+      </>}
       <ToolbarIconButton icon={RiArrowLeftLine} label="返回" onPress={toolbarNavigation.onBack} isDisabled={!toolbarNavigation.canGoBack} />
       <ToolbarIconButton icon={RiArrowRightLine} label="前进" onPress={toolbarNavigation.onForward} isDisabled={!toolbarNavigation.canGoForward} />
-      <span aria-hidden className="mx-1 h-4 w-px bg-separator-border" />
-      <ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={toolbarNavigation.onCreate} />
+      {!toolbarNavigation.createInTabs && <>
+        <span aria-hidden className="mx-1 h-4 w-px bg-separator-border" />
+        <ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={toolbarNavigation.onCreate} />
+      </>}
     </div>
   );
   if (contained) return <div className={frameClass}>{children}</div>;

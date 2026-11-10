@@ -1,3 +1,5 @@
+import { pageElementText, type PageElement } from "./browser-pick";
+
 /** Frontend draft only. Files stay in memory; selecting an output never runs a tool. */
 export interface ComposerAttachment {
   id: string;
@@ -14,6 +16,8 @@ export type ComposerContext = "workspace" | "custom" | "official";
 export type ComposerPermission = "ask" | "read" | "auto";
 export interface ComposerDraft {
   attachments: ComposerAttachment[];
+  /** Elements picked in the built-in browser; sent as text with the message. */
+  pageElements: PageElement[];
   /** Browser-safe project folder label; the host resolves a real path later. */
   projectDirectory: string;
   goal: string;
@@ -68,7 +72,7 @@ export const COMPOSER_TOTAL_MAX_BYTES = 25 * 1024 * 1024;
 /** `workspaceMode` is General → 新建对话 → 默认模式; contacts always start in chat. */
 export function createComposerDraft(context: ComposerContext = "custom", workspaceMode: ComposerMode = "auto"): ComposerDraft {
   const allowed = composerModesForContext(context).some((mode) => mode.id === workspaceMode);
-  return { attachments: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? (allowed ? workspaceMode : "auto") : "chat", permission: "ask" };
+  return { attachments: [], pageElements: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? (allowed ? workspaceMode : "auto") : "chat", permission: "ask" };
 }
 
 export function projectDirectoryFromFiles(files: readonly Pick<File, "webkitRelativePath">[]): string {
@@ -133,5 +137,6 @@ export function buildComposerText(input: string, draft: ComposerDraft): string {
   if (draft.projectDirectory) parts.push(`项目目录：${draft.projectDirectory}`);
   if (draft.goal) parts.push(`本次目标：${draft.goal}`);
   if (draft.planning) parts.push("请先给出分步计划，说明需要澄清的问题，暂不执行操作。");
+  for (const element of draft.pageElements ?? []) parts.push(pageElementText(element));
   return parts.filter(Boolean).join("\n\n");
 }

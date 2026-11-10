@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { Button as AriaButton } from "react-aria-components";
 import { Tooltip, TooltipTrigger } from "@/components/base/tooltip/tooltip";
+import { Kbd } from "@/components/base/kbd/kbd";
 import { cx } from "@/utils/cx";
 import { directionalIconClass } from "@/utils/directional-icon";
 
@@ -22,19 +23,22 @@ export const toolbarIconClass = "size-[18px] shrink-0";
 
 type IconComponent = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
-/** Toolbar icon button with the BoardUI tooltip naming its action. */
-export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = false }: {
+/** Toolbar icon button with the BoardUI tooltip naming its action, and its shortcut when it has one. */
+export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = false, shortcut, className }: {
   icon: IconComponent;
   label: string;
   onPress: () => void;
   isDisabled?: boolean;
+  /** Shown beside the label in the tooltip, e.g. "⌘B". */
+  shortcut?: string;
+  className?: string;
 }) {
   return (
     <TooltipTrigger>
-      <AriaButton aria-label={label} onPress={onPress} isDisabled={isDisabled} className={toolbarIconButtonClass}>
+      <AriaButton aria-label={label} onPress={onPress} isDisabled={isDisabled} className={cx(toolbarIconButtonClass, className)}>
         <Icon className={cx(toolbarIconClass, directionalIconClass(Icon))} aria-hidden />
       </AriaButton>
-      <Tooltip placement="bottom">{label}</Tooltip>
+      <Tooltip placement="bottom">{shortcut ? <span className="flex items-center gap-2">{label}<Kbd>{shortcut}</Kbd></span> : label}</Tooltip>
     </TooltipTrigger>
   );
 }

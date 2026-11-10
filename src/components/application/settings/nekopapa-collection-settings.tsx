@@ -12,6 +12,7 @@ import { presentRecord } from "./settings-record-presentation";
 import { EmptyRecords, EmptyRecordsButton, NewRecordRow, RecordRow } from "./settings-record-rows";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
 import { useSettingsDraft } from "./settings-draft-context";
+import { LocalModelsSection } from "./local-models-section";
 
 type Collection = ConfigurationCollection;
 /** Extensions are shown as two pages: MCP / connectors, and skills. */
@@ -161,6 +162,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
           ) : (
             <>
               {collection === "models" && <ModelDefaults records={records} />}
+              {collection === "models" && <LocalModelsSection />}
               {view === "tools" && <PillTabList aria-label="按类型筛选" className="-mx-1 flex w-[calc(100%+8px)] overflow-x-auto px-1">
                 {toolFilters.map(([id, label]) => <PillTab key={id} variant="gray" isSelected={kind === id} onSelect={() => setKind(id)}>{label}</PillTab>)}
               </PillTabList>}

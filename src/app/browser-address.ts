@@ -51,3 +51,13 @@ export function displayBrowserAddress(url: string): string {
     return url;
   }
 }
+
+/** A short name for the open page: its title, else its host, else 浏览器. */
+export function browserTabLabel(url: string | undefined, title: string | undefined): string {
+  if (title?.trim()) return title.trim();
+  try {
+    return url ? new URL(url).hostname || "浏览器" : "浏览器";
+  } catch {
+    return "浏览器";
+  }
+}

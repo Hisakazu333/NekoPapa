@@ -1,4 +1,5 @@
 mod browser_view;
+mod local_models;
 mod project_folder;
 
 pub fn run() {
@@ -10,10 +11,14 @@ pub fn run() {
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
             project_folder::inspect_project_folder,
+            local_models::probe_local_models,
             browser_view::browser_open,
             browser_view::browser_set_bounds,
             browser_view::browser_set_visible,
             browser_view::browser_command,
+            browser_view::browser_set_zoom,
+            browser_view::browser_pick,
+            browser_view::browser_pick_result,
             browser_view::browser_close,
             browser_view::browser_open_window,
         ])

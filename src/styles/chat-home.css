@@ -286,7 +286,19 @@
   height: 13px;
 }
 
+/* Narrow column: the cat sits above the greeting rather than beside a
+   two-line one. */
+@container (max-width: 420px) {
+  .chat-home__greeting { flex-direction: column; gap: 0.3em; }
+}
+
 @container (max-width: 560px) {
+  /* Keep the toolbar on one row beside the browser: tighter spacing, and the
+     project / contact labels truncate before anything wraps. */
+  .chat-home__toolbar { flex-wrap: nowrap; gap: 4px; }
+  .chat-home__toolbar-group { min-width: 0; }
+  .chat-home__toolbar-button { min-width: 0; padding-inline: 5px; }
+  .chat-home__toolbar-button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .chat-home__composer { padding: 18px 14px 12px; border-radius: 23px; }
   .chat-home__textarea { min-height: 108px; font-size: 16px; }
   .chat-home__toolbar { padding-inline: 10px; border-radius: 0 0 23px 23px; }

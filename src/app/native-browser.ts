@@ -15,6 +15,9 @@ export const nativeBrowser = {
   setBounds: (bounds: BrowserBounds) => invoke<void>("browser_set_bounds", { bounds }),
   setVisible: (visible: boolean) => invoke<void>("browser_set_visible", { visible }),
   command: (command: BrowserCommand) => invoke<void>("browser_command", { command }),
+  setZoom: (zoom: number) => invoke<void>("browser_set_zoom", { zoom }),
+  pick: (active: boolean) => invoke<void>("browser_pick", { active }),
+  pickResult: () => invoke<string>("browser_pick_result"),
   close: () => invoke<void>("browser_close"),
   openWindow: (url: string) => invoke<void>("browser_open_window", { url }),
   /** Navigation and title updates from the native view. Returns the unsubscribe. */

@@ -28,7 +28,7 @@ export const integrationConfiguration: readonly ConfigurationSchema[] = [
       toggle("sound", "播放提示音", "快照成功时播放。"),
     ] },
   ] },
-  { id: "browser", effect: "runtime", scope: "浏览器默认值 · 内置浏览器与自动化服务尚未接入，没有浏览数据或密码记录。", blocks: [
+  { id: "browser", effect: "runtime", scope: "浏览器默认值 · 标题栏的内置浏览器已可使用，但还不读取这些默认值；自动化服务尚未接入，没有浏览数据或密码记录。", blocks: [
     { title: "链接与浏览", fields: [
       select("webTarget", "网页链接打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "", "select"),
       select("localTarget", "本地开发地址打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "", "select"),
