@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useState } from "react";
-import { ArrowLeftIcon, ChevronRightIcon, FileIcon, FolderIcon, FolderOpenIcon, LinkIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { isTauri } from "@tauri-apps/api/core";
+import type { Key } from "react-aria-components";
+import { ArrowLeftIcon, CodeIcon, CopyIcon, FileIcon, FolderIcon, LinkIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
+import { TreeView, TreeViewItem } from "@/components/base/tree-view/tree-view";
+import { ContextMenu, ContextMenuItem, ContextMenuSeparator, ContextMenuTrigger } from "@/components/base/context-menu/context-menu";
 import { formatBytes, type ProjectEntry, type ProjectFile, type ProjectListing } from "@/app/project-workspace";
 import { projectWorkspace } from "@/app/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
-import { SpinnerGlyph } from "@/components/base/spinner/spinner";
-import { cx } from "@/utils/cx";
 import { FileText } from "./file-text";
-import { OpenInEditorButton } from "./open-in-editor-button";
+import { OpenInEditorButton, openInEditor } from "./open-in-editor-button";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 import { ToolPanelMessage } from "./tool-panel-frame";
 
@@ -23,6 +25,9 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
   const [folders, setFolders] = useState<Record<string, Folder>>({});
   const [open, setOpen] = useState<Set<string>>(() => new Set([""]));
   const [preview, setPreview] = useState<Preview>();
+  const { external: editor } = useEditorPreferences();
+  /** The row a right-click landed on; the menu acts on it. */
+  const target = useRef<string | undefined>(undefined);
 
   const load = useCallback(async (dir: string) => {
     setFolders((current) => ({ ...current, [dir]: { kind: "loading" } }));
@@ -42,12 +47,6 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
     onActions(<ToolbarIconButton icon={RefreshCwIcon} label="刷新文件" onPress={reload} />);
   }, [onActions, reload]);
 
-  const toggle = (dir: string) => {
-    const next = new Set(open);
-    if (next.has(dir)) next.delete(dir);
-    else { next.add(dir); if (!folders[dir] || folders[dir].kind === "error") void load(dir); }
-    setOpen(next);
-  };
   const show = async (path: string) => {
     setPreview({ path, state: { kind: "loading" } });
     try {
@@ -64,37 +63,60 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
   if (top.kind === "error") return <ToolPanelMessage tone="error" title="无法读取项目文件夹" detail={top.message} />;
   if (top.listing.entries.length === 0) return <ToolPanelMessage title="文件夹是空的" />;
 
-  const rows = (dir: string, depth: number): React.ReactNode => {
+  const entries = new Map<string, ProjectEntry>();
+  // A folder not read yet holds one placeholder row, so it shows a disclosure
+  // arrow; expanding it reads the folder and the real rows replace it.
+  const items = (dir: string): React.ReactNode => {
     const folder = folders[dir];
-    if (!folder || folder.kind === "loading") return depth > 0 && <li className="flex items-center gap-2 py-1 text-caption-1-regular text-text-tertiary" style={{ paddingInlineStart: depth * 16 + 28 }}><SpinnerGlyph size="xs" />读取中</li>;
-    if (folder.kind === "error") return <li role="alert" className="py-1 text-caption-1-regular text-text-error-primary" style={{ paddingInlineStart: depth * 16 + 28 }}>{folder.message}</li>;
+    if (!folder || folder.kind === "loading") return <TreeViewItem id={`${dir}\0loading`} label="读取中…" icon={null} isDisabled />;
+    if (folder.kind === "error") return <TreeViewItem id={`${dir}\0error`} label={folder.message} icon={null} isDisabled />;
     return <>
-      {folder.listing.entries.map((entry) => <EntryRow key={entry.path} entry={entry} depth={depth} expanded={open.has(entry.path)}
-        onToggle={() => toggle(entry.path)} onOpen={() => void show(entry.path)}>
-        {entry.kind === "dir" && open.has(entry.path) && <ul>{rows(entry.path, depth + 1)}</ul>}
-      </EntryRow>)}
-      {folder.listing.truncated && <li className="py-1 text-caption-1-regular text-text-tertiary" style={{ paddingInlineStart: depth * 16 + 28 }}>只显示前 2000 项。</li>}
+      {folder.listing.entries.map((entry) => {
+        entries.set(entry.path, entry);
+        return <TreeViewItem key={entry.path} id={entry.path} label={entry.name}
+          icon={entry.kind === "link" ? LinkIcon : undefined}
+          trailingContent={entry.kind === "file" ? <span className="tabular-nums">{formatBytes(entry.size)}</span> : undefined}>
+          {entry.kind === "dir" ? items(entry.path) : null}
+        </TreeViewItem>;
+      })}
+      {folder.listing.truncated && <TreeViewItem id={`${dir}\0truncated`} label="只显示前 2000 项。" icon={null} isDisabled />}
     </>;
   };
-  return <ul aria-label="项目文件" className="min-h-0 flex-1 overflow-auto px-2 pb-3">{rows("", 0)}</ul>;
-}
+  const tree = items("");
+  const expand = (keys: Set<Key>) => {
+    const next = new Set([...keys].map(String));
+    for (const dir of next) if (!open.has(dir) && (!folders[dir] || folders[dir].kind === "error")) void load(dir);
+    setOpen(next);
+  };
+  const absolute = (path: string) => `${root.replace(/\/+$/, "")}/${path}`;
+  const act = (key: Key) => {
+    const path = target.current;
+    if (!path) return;
+    if (key === "open") { if (entries.get(path)?.kind === "dir") expand(new Set([...open, path])); else void show(path); }
+    else if (key === "editor") void openInEditor(root, path, editor);
+    else if (key === "copy") void navigator.clipboard?.writeText(absolute(path));
+    else if (key === "copy-relative") void navigator.clipboard?.writeText(path);
+  };
 
-function EntryRow({ entry, depth, expanded, onToggle, onOpen, children }: {
-  entry: ProjectEntry; depth: number; expanded: boolean; onToggle: () => void; onOpen: () => void; children?: React.ReactNode;
-}) {
-  const dir = entry.kind === "dir";
-  const Icon = dir ? (expanded ? FolderOpenIcon : FolderIcon) : entry.kind === "link" ? LinkIcon : FileIcon;
-  return <li>
-    <button type="button" onClick={dir ? onToggle : onOpen} aria-expanded={dir ? expanded : undefined} title={entry.path}
-      className="flex h-7 w-full cursor-pointer items-center gap-1.5 rounded-lg pe-2 text-start outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring"
-      style={{ paddingInlineStart: depth * 16 + 4 }}>
-      <ChevronRightIcon className={cx("size-4 shrink-0 text-foreground-icon-tertiary transition-transform", !dir && "invisible", expanded && "rotate-90")} aria-hidden />
-      <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />
-      <span translate="no" className="min-w-0 flex-1 truncate text-body-2-regular text-text-primary">{entry.name}</span>
-      {entry.kind === "file" && <span className="shrink-0 text-caption-1-regular text-text-tertiary tabular-nums">{formatBytes(entry.size)}</span>}
-    </button>
-    {children}
-  </li>;
+  return <div className="min-h-0 flex-1 overflow-auto px-2 pb-3" onContextMenuCapture={(event) => {
+    const row = (event.target as Element).closest?.("[role=row][data-key]");
+    target.current = row?.getAttribute("data-key") ?? undefined;
+  }}>
+    <ContextMenuTrigger>
+      <TreeView aria-label="项目文件" size="sm" selectionMode="none" className="rounded-none border-0 bg-transparent p-0"
+        expandedKeys={open} onExpandedChange={expand}
+        onAction={(key) => { const entry = entries.get(String(key)); if (entry && entry.kind !== "dir") void show(entry.path); }}>
+        {tree}
+      </TreeView>
+      <ContextMenu aria-label="文件操作" onAction={act}>
+        <ContextMenuItem id="open" icon={FileIcon}>打开</ContextMenuItem>
+        {isTauri() && <ContextMenuItem id="editor" icon={CodeIcon}>在编辑器中打开</ContextMenuItem>}
+        <ContextMenuSeparator />
+        <ContextMenuItem id="copy" icon={CopyIcon}>复制路径</ContextMenuItem>
+        <ContextMenuItem id="copy-relative" icon={CopyIcon}>复制相对路径</ContextMenuItem>
+      </ContextMenu>
+    </ContextMenuTrigger>
+  </div>;
 }
 
 function FilePreview({ root, preview, onBack }: { root: string; preview: Preview; onBack: () => void }) {

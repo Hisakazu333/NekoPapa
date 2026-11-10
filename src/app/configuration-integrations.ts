@@ -49,6 +49,7 @@ export const collectionSchemas: Record<ConfigurationCollection, CollectionSchema
     select("provider", "接口类型", "compatible", [["compatible", "OpenAI 兼容接口"], ["anthropic", "Anthropic 接口"], ["custom", "其他接口"]]),
     { ...text("endpoint", "服务地址", "接口的基础地址，例如 https://api.openai.com/v1、https://api.anthropic.com/v1 或 http://127.0.0.1:11434/v1；不包含密钥。"), required: true, format: "url" },
     { ...text("model", "模型标识", "填写提供方的实际模型 ID。", 160), required: true },
+    { ...select("keySource", "密钥来源", "environment", [["keychain", "API Key"], ["environment", "环境变量"], ["none", "不需要"]]), optional: true },
     environment,
   ] },
   extensions: { title: "工具集成", singular: "工具配置", description: "MCP 服务与连接器配置。配置不会启动命令、安装软件或连接外部账号。", fields: [

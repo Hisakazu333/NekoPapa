@@ -8,6 +8,9 @@ import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { cx } from "@/utils/cx";
 import { LinkedText } from "./message-links";
+import { splitMessageBlocks } from "@/app/message-blocks";
+import { MessageCodeBlock } from "./message-code-block";
+import { MessageReasoning } from "./message-reasoning";
 
 /**
  * One turn in the transcript.
@@ -28,11 +31,13 @@ export interface AgentMessageProps {
   streaming?: boolean;
   /** When the message first appeared, for the hover timestamp. */
   at?: number;
+  /** Reasoning the provider streamed before the answer, if any. */
+  reasoning?: string;
 }
 
-export function AgentMessage({ role, text, streaming = false, at }: AgentMessageProps) {
+export function AgentMessage({ role, text, streaming = false, at, reasoning = "" }: AgentMessageProps) {
   const localize = useTemplateCopy();
-  if (!text) return null;
+  if (!text && !reasoning.trim()) return null;
 
   if (role === "user") {
     return localize((
@@ -44,10 +49,21 @@ export function AgentMessage({ role, text, streaming = false, at }: AgentMessage
 
   return localize((
     <div className="group/message flex flex-col gap-1 px-1">
-      <StreamedText text={text} />
+      <MessageReasoning text={reasoning} streaming={streaming && !text} />
+      <ReplyBlocks text={text} />
       <MessageActions text={text} at={at} hidden={streaming} />
     </div>
   ));
+}
+
+/** Prose as streamed paragraphs; fenced code as code cards. */
+function ReplyBlocks({ text }: { text: string }) {
+  const blocks = useMemo(() => splitMessageBlocks(text), [text]);
+  return <div className="flex flex-col gap-3">
+    {blocks.map((block, index) => block.kind === "code"
+      ? <MessageCodeBlock key={index} lang={block.lang} code={block.code} complete={block.complete} />
+      : <StreamedText key={index} text={block.text} />)}
+  </div>;
 }
 
 /**

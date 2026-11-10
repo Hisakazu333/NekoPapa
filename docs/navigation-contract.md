@@ -725,3 +725,40 @@
 - 结构：新增 `chat-model-profile.ts`、`chat-transport.ts`、`desktop-chat-runtime.ts`、`message-links.ts`、`diff-rows.ts`、`use-model-tests.ts`、`use-editor-preferences.ts` 等；行数最大为 `agent-chat.tsx` 494 行，新增与修改文件均在 500 行档。
 - 验证：`npm run test` 517/517（新增 `chat-model-runtime.test.mjs` 7 项，用本机假 OpenAI 兼容服务验证 Authorization 来自环境变量、指令进入系统提示、用量写入、测试连接各状态、链接拆分、地址显示与并排差异），`npm run build`、`git diff --check`、`cargo check`、`cargo test`（14 项）与 `npm run desktop:build -- --debug` 通过。开发服务器 `localhost:1495`：不可达地址的测试连接返回“无法连接服务…”，GET 探测正常；快捷键页显示 13 项；模型与 API 页正常渲染。
 - 未验证：桌面安装包中用真实 Key 或本机模型的端到端聊天；桌面版“在编辑器中打开”与终端 Shell 切换的点测。群聊回复仍使用默认模型且不带自定义指令。
+
+### Auto 模式可发送与默认模型（2026-11-11）
+
+- 用户反馈工作台输入框无法发送：默认模式 Auto 被“等待自动模式路由服务接入”阻止，且没有选中模型。学习与 Agent 尚未接入，Auto 唯一可路由的目标就是聊天，因此 Auto 不再阻止发送，按聊天回复（`composerDraftBlockReason`），菜单说明改为“学习与 Agent 接入前按聊天回复”；学习、Agent、附件与输出形式的阻止不变。
+- 模型菜单：聊天服务没有自带模型时，默认选中 设置 → 模型与 API 中第一条可用配置（`use-chat-composer.ts`）；手动选择后以手动为准。没有任何可用模型时，`chatContactAvailability` 返回“还没有可用的模型：在 设置 → 模型与 API 添加模型配置，或为聊天服务设置 AI_API_KEY 环境变量。”，检查中显示“正在检查聊天服务…”，不再只禁用按钮而不说明。
+- 验证：`npm run test` 517/517（更新 Auto 与可用性断言），`npm run build`、`git diff --check` 通过。
+
+### 参照 AI Chat 模板的 coding 界面：状态栏、面板切换与文件卡片（2026-11-11）
+
+- 用户要求参照 BoardUI Pro 的 AI Chat 模板做出效果。本机没有 Pro 授权，未安装或复制模板源码；用已安装组件与真实数据做出其中现在可用的部分：输入框下方状态栏（项目、分支与领先 / 落后、未提交文件数并可打开更改面板、本对话 Token 合计），目录 / 终端 / 更改 / 文件面板标题处的切换控件，以及输入框中的文件卡片。
+- 结构：新增 `src/hooks/use-git-status.ts`（工作面板“环境”与状态栏共用，替换 `chat-environment.tsx` 内的重复读取）、`src/app/thread-usage.ts`（按助手消息 metadata 汇总用量，不估算）、`agent-chat/chat-status-bar.tsx`；`ToolPanelFrame` 新增 `tabs`，`ChatToolPanel` 新增 `onSwitch`。`agent-chat.tsx` 495 行，仍在 500 行档。
+- 未做（需要 Agent 运行时）：任务进度与执行日志（Agent Progress / Task List）、网页搜索来源（Web Search）、计划模式提问（Questionnaire）、上下文窗口占比（Agent Limits Card，需要服务提供窗口大小）。
+- 验证：`npm run test` 520/520（`usage-stats.test.mjs` 新增用量汇总与格式化场景），`npm run build`、`git diff --check` 通过。浏览器 `localhost:1495`：`⌘J` 打开终端面板，标题处显示四个图标的切换控件，点“文件”切换到文件面板。
+- 未验证：状态栏与文件卡片的实际显示（隔离服务器没有可用模型，无法产生对话消息；未选择文件）；桌面窗口。
+
+### 标题栏精简（2026-11-11）
+
+- 用户要求：面板内已能切换，标题栏只保留浏览器、插件和工作面板。移除标题栏的目录 / 终端 / 更改 / 文件按钮（`ChatToolButtons` 只剩浏览器，`AgentChatActions` 去掉 `activeTool`）；四个面板从“工作面板 → 代码”的工具列表（新增“目录”一项）或原快捷键打开，打开后用面板标题处的切换控件切换。
+- 验证：`npm run test` 520/520、`npm run check` 通过；浏览器 `localhost:1495` 标题栏右侧只显示浏览器、插件与工作面板三个按钮。
+
+### 自定义 API 表单：服务地址、服务商预设与模型列表（2026-11-11）
+
+- 用户反馈“自定义 API 不好用，很多模型厂家用不了”。根因：`nekopapa-collection-settings.tsx` 的 `editorFields()` 对所有集合都按 `transport` 过滤，模型配置没有 `transport`，“服务地址”被隐藏，记录无法填写完整；改为只对工具集成（`view === "tools"`）过滤。
+- 新增服务商预设 `src/app/model-vendors.ts`（22 个公开接口地址与惯用 Key 变量名，另有“自定义”），表单组件 `model-profile-fields.tsx` 选择后填入接口类型、地址与变量名；服务商由地址认回（`vendorForEndpoint`），不新增存储字段，备份与旧记录格式不变。凭据变量名改为明文输入框（`nekopapa-settings-fields.tsx` 不再对 environment 使用 password 类型）。
+- 模型列表：`/api/model-test` 支持 `{ profile, list: true }`（`readChatModelProfile` 新增 `requireModel` 选项，列表时可不填模型），与测试连接共用 `{地址}/models` 请求，返回排序后的模型 ID（最多 1000 个）；404 说明“服务没有提供模型列表”，缺少环境变量时给出 `~/.zshrc` 设置方法。桌面版沿用 `desktop-chat-runtime.ts` 的同一路由。空状态与保存提示改为当前实际行为。
+- 验证：`npm run test` 520/520（`chat-model-runtime.test.mjs` 新增列表模式 / 404 / 未设置变量与预设校验两项），`npm run build`、`git diff --check` 通过。独立预览 `localhost:1496`（与用户数据隔离的源）：新增表单显示服务地址；选择 Ollama 填入名称、`http://127.0.0.1:11434/v1` 与空变量名；选择 Google Gemini 填入地址与 `GEMINI_API_KEY` 并显示 `~/.zshrc` 提示；“获取模型列表”在变量未设置时显示原因；接口直接请求 Ollama 未运行时返回“无法连接服务…”；取消后未保存任何记录，空状态显示新说明。
+- 未验证：真实厂商 Key 下的模型列表与聊天（未设置 Key，也不代填）；桌面安装包中的获取模型列表。各厂商 `/models` 是否开放以其服务为准，不提供时可手动填写模型标识。
+
+### Coding 组件第一批：树形文件、右键菜单、命令面板、代码卡片与思考过程（2026-11-11）
+
+- 用户反馈标题栏少了入口、coding 组件做得太少，要求把 Pro coding 组件照着做出来。标题栏恢复“目录”按钮（打开工具面板，面板内切换终端 / 更改 / 文件；任一工具面板打开时显示选中）。
+- 官方安装免费组件 Tree View、Context Menu、Command Palette（图标改为 Lucide，移除注册表带入的 `@remixicon/react`）。文件面板改用 Tree View 并加右键菜单；新增 `⇧⌘P` / `Ctrl+Shift+P` 命令面板，快捷键页同步为 14 项。
+- 回复渲染：代码围栏 → 代码卡片（`message-blocks.ts` 解析，含未闭合围栏）；推理模型的思考过程可折叠显示。模型配置的兼容接口改用官方 `@ai-sdk/openai-compatible@3.0.80`（锁定版本，读取 `reasoning_content` 并请求流式用量），Anthropic 不变；发往服务前移除历史消息中的 reasoning 部分。
+- 自定义 API 表单（由另一会话完成）：服务地址字段恢复显示，22 个服务商预设与“获取模型列表”。浏览器 `localhost:1495` 选择 DeepSeek 后自动填入名称、地址与 `DEEPSEEK_API_KEY`，随后取消，未保存记录。
+- 验证：`npm run test` 522/522（`chat-model-runtime.test.mjs` 新增思考过程流出与不回传、代码围栏拆分两项），`npm run build`、`git diff --check` 通过；浏览器中 `⇧⌘P` 打开命令面板并从中打开 设置 → 模型与 API。`agent-chat.tsx` 498 行，接近 500 行档，下次改动前先拆出标题栏 / 面板组装。
+- 未验证：文件树与右键菜单的浏览器点测（隔离服务器未设项目）；代码卡片与思考过程的实际显示（需要可用模型）；桌面窗口。
+- 尚未做（下一批）：更改面板的增删行统计（需宿主新增 `git diff --numstat`）、对话输入框 / 输入面板的 Pro 样式重做、智能体额度（上下文环）、智能体任务进度、任务列表、网页搜索、计划提问、智能体创建器、多智能体聊天、AI 图像生成；其中任务进度、任务列表、网页搜索、计划提问依赖 Agent 工具调用数据。

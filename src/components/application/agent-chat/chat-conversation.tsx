@@ -8,7 +8,10 @@ import type { OpenWorkspaceSettings } from "@/components/application/settings/wo
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { ChatHome } from "./chat-home";
-import { messageText } from "./thread-storage";
+import { messageReasoning, messageText } from "./thread-storage";
+import { ChatStatusBar } from "./chat-status-bar";
+import type { Project } from "@/app/projects";
+import { threadUsage } from "@/app/thread-usage";
 
 export interface ChatConversationProps {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -33,6 +36,9 @@ export interface ChatConversationProps {
   onClearContact: () => void;
   project?: string;
   onProjectChange: (projectId: string | undefined) => void;
+  /** The chat's resolved project, for the status bar under the composer. */
+  projectInfo?: Project;
+  onOpenChanges: () => void;
 }
 
 /**
@@ -43,7 +49,7 @@ export interface ChatConversationProps {
 export function ChatConversation({
   scrollRef, messages, messageAt, busy, showThinking, error, historyError, onRetryHistory,
   input, onInputChange, onSubmit, onStop, composer, onOpenSettings, sendDisabled, sendBlockedReason,
-  contact, onSelectContact, onClearContact, project, onProjectChange,
+  contact, onSelectContact, onClearContact, project, onProjectChange, projectInfo, onOpenChanges,
 }: ChatConversationProps) {
   const empty = messages.length === 0;
   return <>
@@ -73,6 +79,7 @@ export function ChatConversation({
             <AgentMessage
               role={message.role}
               text={messageText(message)}
+              reasoning={message.role === "assistant" ? messageReasoning(message) : undefined}
               streaming={busy && index === messages.length - 1}
               at={messageAt[message.id]}
             />
@@ -110,6 +117,7 @@ export function ChatConversation({
           disabled={sendDisabled}
           sendBlockedReason={sendBlockedReason}
         />}
+        {!empty && !contact && <ChatStatusBar project={projectInfo} usage={threadUsage(messages)} onOpenChanges={onOpenChanges} />}
       </div>
     </div>
   </>;

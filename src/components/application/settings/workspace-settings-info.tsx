@@ -18,6 +18,7 @@ function shortcutList(sendKey: unknown) {
   const modEnter = sendKey === "mod-enter";
   return [
     { keys: "⌘L / Ctrl+K", action: "快速搜索", description: "搜索会话内容、联系人名称和设置分类。" },
+    { keys: "⇧⌘P / Ctrl+Shift+P", action: "命令面板", description: "搜索并执行新建对话、打开面板、浏览器、最近对话和常用设置。" },
     { keys: "⌘B / Ctrl+B", action: "隐藏或显示侧栏", description: "完全隐藏桌面侧栏，再按一次恢复；也可以点标题栏左侧的侧栏按钮。" },
     { keys: modEnter ? "⌘ / Ctrl + Enter" : "Enter", action: "发送消息", description: "在聊天输入框中发送；需要可用的模型连接。可在“常规”中更改。" },
     { keys: modEnter ? "Enter" : "Shift + Enter", action: "插入换行", description: "在聊天输入框中继续编写多行消息。" },

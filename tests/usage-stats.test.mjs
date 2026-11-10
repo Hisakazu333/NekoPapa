@@ -9,6 +9,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const output = mkdtempSync(join(tmpdir(), "nekopapa-usage-"));
 let stats;
 let sankey;
+let thread;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./usage-stats-tsconfig.json", import.meta.url)), "--outDir", output]);
   const walk = (dir) => readdirSync(dir).flatMap((name) => statSync(join(dir, name)).isDirectory() ? walk(join(dir, name)) : [join(dir, name)]);
@@ -18,6 +19,7 @@ try {
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   stats = await import(pathToFileURL(join(output, "app/usage-stats.js")));
   sankey = await import(pathToFileURL(join(output, "app/usage-sankey-layout.js")));
+  thread = await import(pathToFileURL(join(output, "app/thread-usage.js")));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }
@@ -127,4 +129,21 @@ test("桑基布局：节点高度按 Token 比例并留间距，每条带在两�
 
 test("紧凑格式用 K / M / B", () => {
   assert.deepEqual([0, 999, 1000, 1250, 98_765, 123_456, 4_500_000, 7_200_000_000].map(stats.formatTokens), ["0", "999", "1K", "1.3K", "98.8K", "123K", "4.5M", "7.2B"]);
+});
+
+test("the composer status bar sums only the usage replies reported", () => {
+  const messages = [
+    { role: "user", metadata: { usage: { totalTokens: 999 } } },
+    { role: "assistant", metadata: { usage: { inputTokens: 10, outputTokens: 5, totalTokens: 15 }, model: "model-a" } },
+    { role: "assistant" },
+    { role: "assistant", metadata: { usage: "broken" } },
+    { role: "assistant", metadata: { usage: { inputTokens: 100, outputTokens: 20 }, model: "model-b" } },
+  ];
+  assert.deepEqual(thread.threadUsage(messages), { totalTokens: 135, inputTokens: 110, outputTokens: 25, replies: 2, model: "model-b" });
+  assert.deepEqual(thread.threadUsage([]), { totalTokens: 0, inputTokens: 0, outputTokens: 0, replies: 0 });
+  assert.equal(thread.formatTokens(1234), "1,234");
+  assert.equal(thread.formatTokens(12000), "12k");
+  assert.equal(thread.formatTokens(12345), "12.3k");
+  assert.equal(thread.formatTokens(1230000), "1.23M");
+  assert.equal(thread.formatTokens(2000000), "2M");
 });

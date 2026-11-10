@@ -16,6 +16,7 @@ import { LocalModelsSection } from "./local-models-section";
 import { SkillDiscoverySection } from "./skill-discovery-section";
 import { CordisPatchSection } from "./cordis-patch-section";
 import { useModelTests } from "./use-model-tests";
+import { ModelProfileFields } from "./model-profile-fields";
 
 type Collection = ConfigurationCollection;
 /** Extensions are shown as two pages: MCP / connectors, and skills. */
@@ -119,7 +120,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
       return;
     }
     backToList();
-    report("配置已保存到本机；执行与连接测试尚未接入。");
+    report(collection === "models" ? "配置已保存到本机，可在“…”中测试连接，并在输入框的模型菜单中选用。" : "配置已保存到本机；执行服务尚未接入。");
   };
   const remove = () => {
     if (!removal || !prepareStorage()) return;
@@ -161,7 +162,9 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
           {editor ? (
             <form id={formId} onSubmit={save} noValidate className="flex flex-col gap-2">
               <SettingsSectionLabel>{editor.id ? "编辑" : "新增"}{singular}</SettingsSectionLabel>
-              <SettingsCard><SettingsFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} /></SettingsCard>
+              <SettingsCard>{collection === "models"
+                ? <ModelProfileFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} />
+                : <SettingsFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} />}</SettingsCard>
             </form>
           ) : (
             <>
@@ -188,7 +191,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                   </div>
                 </div>}
                 {records.length === 0 ? (
-                  <EmptyRecords title={`还没有${singular}`} description={skills ? "添加技能目录后，未来的 Agent 可以按需读取其中的说明。" : "新增后保存在本机；连接测试与执行服务尚未接入。"}
+                  <EmptyRecords title={`还没有${singular}`} description={skills ? "添加技能目录后，未来的 Agent 可以按需读取其中的说明。" : collection === "models" ? "选择服务商并填写模型后保存，即可在输入框的模型菜单中选用。" : "新增后保存在本机；执行服务尚未接入。"}
                     action={<EmptyRecordsButton id={`${formId}-add`} onPress={add}>新增{singular}</EmptyRecordsButton>} />
                 ) : (
                   <SettingsCard>
@@ -230,6 +233,8 @@ function editorFields(fields: readonly ConfigurationField[], view: CollectionVie
     return fields.filter((field) => ["name", "command"].includes(field.key))
       .map((field) => field.key === "command" ? { ...field, label: "技能目录", hint: "包含 SKILL.md 的目录路径。保存时不会读取或执行。", control: "directory" as const, required: true, placeholder: "~/.claude/skills/名称" } : field);
   }
+  // Only tools switch between a local command and an HTTP endpoint; models always need their endpoint.
+  if (view !== "tools") return [...fields];
   return fields.filter((field) => values?.transport === "http" ? field.key !== "command" : field.key !== "endpoint")
     .map((field) => view === "tools" && field.key === "kind" ? { ...field, options: field.options?.filter(([id]) => id !== "skill") } : field);
 }

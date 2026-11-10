@@ -36,6 +36,11 @@ export function messageText(message: UIMessage) {
   return message.parts.filter((part) => part.type === "text").map((part) => part.text).join("");
 }
 
+/** Reasoning parts the provider streamed, joined; empty for models that send none. */
+export function messageReasoning(message: UIMessage) {
+  return message.parts.filter((part) => part.type === "reasoning").map((part) => part.text).join("\n");
+}
+
 export function newThreadId() {
   return globalThis.crypto?.randomUUID?.() ?? `t-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }

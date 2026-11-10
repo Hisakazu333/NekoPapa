@@ -117,7 +117,9 @@ export function createChatHandlers(runtime: ChatRuntime) {
     const result = streamText({
       model: provider.model,
       system: systemPrompt(provider, contact, group, instructions),
-      messages: await convertToModelMessages(validated.data),
+      // Earlier replies' reasoning stays on screen but is not sent back:
+      // providers such as DeepSeek reject it in the input.
+      messages: await convertToModelMessages(validated.data.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") }))),
       // Providers emit text in uneven bursts, and a burst of twenty words lands
       // as one repaint — which is what makes streamed text look like it stutters.
       // Releasing whole words on a steady tick turns that into an even flow, and
@@ -131,6 +133,8 @@ export function createChatHandlers(runtime: ChatRuntime) {
     return createUIMessageStreamResponse({
       stream: toUIMessageStream({
         stream: result.stream,
+        // Reasoning models' thinking shows folded above the answer.
+        sendReasoning: true,
         // Token counts the provider reported for this reply, saved with the
         // chat history so the profile page can sum real usage.
         messageMetadata: ({ part }) => part.type === "finish"

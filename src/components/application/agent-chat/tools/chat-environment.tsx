@@ -1,11 +1,9 @@
-import { useEffect, useState, type ComponentType, type ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { ChartPieIcon, ChevronRightIcon, FileTextIcon, FolderIcon, GitBranchIcon, MonitorIcon } from "@/components/foundations/icons/app-icons";
-import { parseGitStatus, type GitStatus } from "@/app/project-workspace";
-import { projectWorkspace } from "@/app/project-workspace-client";
+import { gitBranchLabel, useGitStatus } from "@/hooks/use-git-status";
 import type { Project } from "@/app/projects";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
-type Git = { kind: "loading" } | { kind: "none" } | { kind: "error"; message: string } | { kind: "ready"; status: GitStatus };
 
 function Row({ icon: RowIcon, label, value, onPress }: { icon: Icon; label: ReactNode; value?: ReactNode; onPress?: () => void }) {
   const content = <>
@@ -23,27 +21,13 @@ function Row({ icon: RowIcon, label, value, onPress }: { icon: Icon; label: Reac
 /**
  * 环境: where the open chat works — this computer, the project's primary
  * folder, its Git branch and how many files have uncommitted changes (which
- * opens 更改). Context usage needs the chat service, so it says so.
+ * opens 更改). Usage of the open chat is in the composer status bar.
  */
 export function ChatEnvironment({ project, onOpenChanges }: { project?: Project; onOpenChanges?: () => void }) {
   const root = project?.folders[0];
-  const [git, setGit] = useState<Git>({ kind: "loading" });
-
-  useEffect(() => {
-    if (!root) return;
-    let live = true;
-    const load = () => projectWorkspace.status(root).then(
-      (result) => { if (live) setGit(result.repo ? { kind: "ready", status: parseGitStatus(result.output) } : { kind: "none" }); },
-      (error: unknown) => { if (live) setGit({ kind: "error", message: error instanceof Error ? error.message : "读取失败。" }); },
-    );
-    setGit({ kind: "loading" });
-    void load();
-    window.addEventListener("focus", load);
-    return () => { live = false; window.removeEventListener("focus", load); };
-  }, [root]);
-
+  const git = useGitStatus(root);
   const status = git.kind === "ready" ? git.status : undefined;
-  const branch = status ? (status.detached ? "分离的 HEAD" : status.branch ?? "—") : git.kind === "none" ? "不是 Git 仓库" : git.kind === "error" ? "无法读取" : "读取中…";
+  const branch = gitBranchLabel(git);
   const sync = status && (status.ahead || status.behind) ? ` · ↑${status.ahead} ↓${status.behind}` : "";
 
   return <section aria-label="环境" className="flex flex-col gap-1 rounded-2xl bg-background-primary-default p-2">
@@ -57,7 +41,7 @@ export function ChatEnvironment({ project, onOpenChanges }: { project?: Project;
           {status && <Row icon={FileTextIcon} label="更改" value={status.changes.length === 0 ? "没有未提交的更改" : `${status.changes.length} 个文件`} onPress={onOpenChanges} />}
         </>
         : <Row icon={FolderIcon} label="未归入项目" value="在输入框或侧栏选择项目" />}
-      <Row icon={ChartPieIcon} label="上下文" value="聊天服务接入后显示用量" />
+      <Row icon={ChartPieIcon} label="上下文" value="本对话用量见输入框下方" />
     </ul>
   </section>;
 }

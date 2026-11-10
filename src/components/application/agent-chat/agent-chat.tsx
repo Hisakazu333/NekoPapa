@@ -27,6 +27,7 @@ import { useContacts } from "@/hooks/use-contacts";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { useProjects } from "@/hooks/use-projects";
 import { resolveProject } from "@/app/projects";
+import { WorkspaceCommandPalette } from "./workspace-command-palette";
 import { browserTabLabel } from "@/app/browser-address";
 import { CHAT_TOOL_LABELS, CHAT_TOOLS, type ChatTool } from "@/app/chat-tools";
 import type { ChatContact } from "@/app/contacts-store";
@@ -464,7 +465,7 @@ export function AgentChat({
         mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
         panelLabel={auxiliary === "browser" ? "浏览器" : activeTool ? CHAT_TOOL_LABELS[activeTool] : "辅助工作区"} panel={activeTool
           ? <ChatToolPanel tool={activeTool} project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}
-            scrollRef={scrollRef} onClose={placement.closeAuxiliary} />
+            scrollRef={scrollRef} onClose={placement.closeAuxiliary} onSwitch={toggleTool} />
           : auxiliary === "browser"
           ? <ChatBrowserPanel browser={browser} placement="side" onClose={placement.closeAuxiliary} onMove={placement.moveToTab}
             suspended={browserDrag.drag !== null}
@@ -481,13 +482,16 @@ export function AgentChat({
               input={input} onInputChange={setInput} onSubmit={submit} onStop={stop} composer={composer}
               onOpenSettings={openSettings} sendDisabled={!availability.ready || Boolean(composerBlockedReason)}
               sendBlockedReason={composerBlockedReason} contact={activeContact} onSelectContact={selectContact}
-              onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject} />
+              onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject}
+              projectInfo={resolveProject(projects, activeProject)} onOpenChanges={() => { if (activeTool !== "changes") toggleTool("changes"); }} />
         </div>
 
       </ChatWorkspaceSplit>
       </div>
       </div>
       <BrowserDragLayer drag={browserDrag.drag} />
+      <WorkspaceCommandPalette enabled={page === "chat"} threads={allThreads} onSelectThread={selectThread} onNewChat={startNewChat}
+        onOpenTool={(tool) => { if (activeTool !== tool) toggleTool(tool); }} onToggleBrowser={placement.toggleBrowser} onTogglePanel={() => placement.toggleAuxiliary("panel")} />
     </MacWindowFrame>
   </MessageLinkProvider>);
 }

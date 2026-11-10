@@ -45,7 +45,7 @@ export interface AgentChatActionsProps {
   /** Built-in browser toggle; it shares the right-hand area with the side panel. */
   browserOpen?: boolean;
   onToggleBrowser?: () => void;
-  /** Title-bar tools (目录 / 终端 / 更改 / 文件); omitted where the surface has no right-hand area. */
+  /** The open tool panel and its toggle; present where the surface has a right-hand area. */
   activeTool?: ChatTool | null;
   onToggleTool?: (tool: ChatTool) => void;
   className?: string;

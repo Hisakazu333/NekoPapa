@@ -1,14 +1,15 @@
 import { useEffect, useRef } from "react";
-import { FileTextIcon, FolderIcon, GlobeIcon, ListIcon, SquareTerminalIcon } from "@/components/foundations/icons/app-icons";
-import { CHAT_TOOL_LABELS, chatToolForShortcut, chatToolShortcut, type ChatTool } from "@/app/chat-tools";
+import { GlobeIcon, ListIcon } from "@/components/foundations/icons/app-icons";
+import { CHAT_TOOLS, chatToolForShortcut, type ChatTool } from "@/app/chat-tools";
 import { ToolbarToggleButton } from "@/components/application/dashboard/toolbar-icon-button";
 
 const platform = () => (typeof navigator === "undefined" ? "" : navigator.platform);
-const icons = { outline: ListIcon, terminal: SquareTerminalIcon, changes: FileTextIcon, files: FolderIcon } as const;
 
 /**
- * The title-bar tool toggles, in order 目录 · 终端 · 更改 · 浏览器 · 文件.
- * Each opens its panel in the right-hand area or closes it again.
+ * The title bar keeps 目录 and 浏览器. 目录 opens the tool panel, whose header
+ * switches to 终端 / 更改 / 文件, so it shows as on while any of them is open
+ * and closes whichever is shown. They also open from 工作面板 → 代码 and their
+ * shortcuts.
  */
 export function ChatToolButtons({ active, onToggle, browserOpen, onToggleBrowser }: {
   active: ChatTool | null;
@@ -16,15 +17,12 @@ export function ChatToolButtons({ active, onToggle, browserOpen, onToggleBrowser
   browserOpen?: boolean;
   onToggleBrowser?: () => void;
 }) {
-  const toggle = (tool: ChatTool) => <ToolbarToggleButton key={tool} icon={icons[tool]} isSelected={active === tool} onChange={() => onToggle(tool)}
-    label={`${active === tool ? "关闭" : "打开"}${CHAT_TOOL_LABELS[tool]}`} shortcut={chatToolShortcut(tool, platform())} />;
+  const open = active !== null && CHAT_TOOLS.includes(active);
   return <>
-    {toggle("outline")}
-    {toggle("terminal")}
-    {toggle("changes")}
+    <ToolbarToggleButton icon={ListIcon} isSelected={open} onChange={() => onToggle(active ?? "outline")}
+      label={open ? "关闭目录与工具面板" : "打开目录"} />
     {onToggleBrowser && <ToolbarToggleButton icon={GlobeIcon} isSelected={browserOpen === true} onChange={onToggleBrowser}
       label={browserOpen ? "关闭浏览器" : "打开浏览器"} />}
-    {toggle("files")}
   </>;
 }
 

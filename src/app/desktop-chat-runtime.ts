@@ -1,5 +1,6 @@
 import { Channel, invoke, isTauri } from "@tauri-apps/api/core";
 import type { ChatRuntime } from "./api/chat/runtime";
+import { keychainId } from "./chat-model-profile";
 
 /**
  * The chat endpoint in the desktop app. The installed app has no server, so
@@ -15,7 +16,7 @@ type ModelEvent =
   | { kind: "end" }
   | { kind: "error"; message: string };
 
-interface ChatEnvironment { plain: Record<string, string>; keys: Record<string, string> }
+interface ChatEnvironment { plain: Record<string, string>; keys: Record<string, string>; secrets: string[] }
 
 const stand = (name: string, prefix = "") => `${prefix}{{nekopapa-env:${name}}}`;
 let nextId = 1;
@@ -59,7 +60,12 @@ async function desktopRuntime(credentials: string[]): Promise<ChatRuntime> {
   const { PROVIDER_KEY_VARIABLES } = await import("./api/chat/providers");
   const env = await invoke<ChatEnvironment>("chat_environment", { names: [...PROVIDER_KEY_VARIABLES, ...credentials] });
   const key = (name: string) => name in env.keys ? stand(name, env.keys[name]) : undefined;
-  return { env: (name) => env.plain[name] ?? key(name), credential: key, fetch: hostFetch };
+  // A key typed in settings stays in the keychain; the host fills this stand-in.
+  const stored = (name: string) => {
+    const id = keychainId(name);
+    return id === undefined ? key(name) : env.secrets.includes(id) ? `{{nekopapa-secret:${id}}}` : undefined;
+  };
+  return { env: (name) => env.plain[name] ?? key(name), credential: stored, desktop: true, fetch: hostFetch };
 }
 
 const credentialOf = (body: unknown) => {

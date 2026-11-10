@@ -43,7 +43,9 @@ test("官方服务使用自己的状态，不受自定义模型是否配置影�
   assert.equal(chatContactAvailability(probe).ready, false);
   assert.deepEqual(chatContactAvailability(probe, official), { ready: true, reason: undefined });
   // A saved 模型与 API profile answers without the runtime's own key; official companions still need their service.
+  assert.match(chatContactAvailability(probe, custom).reason, /设置 → 模型与 API/);
   assert.equal(chatContactAvailability(probe, custom, true).ready, true);
+  assert.equal(chatContactAvailability(probe, custom, true).reason, undefined);
   assert.equal(chatContactAvailability(probe, undefined, true).ready, true);
   assert.deepEqual(chatContactAvailability(parseChatProviderProbe({ configured: false }), official, true).ready, false);
   assert.equal(probe.officialCompanions.reason, null);
@@ -53,4 +55,5 @@ test("检查连接时官方人物保留草稿并明确等待状态", () => {
   const probe = { ...parseChatProviderProbe(null), status: "checking" };
   assert.deepEqual(chatContactAvailability(probe, official), { ready: false, reason: "正在检查官方人物服务连接…" });
   assert.equal(chatContactAvailability(probe, custom).ready, false);
+  assert.equal(chatContactAvailability(probe, custom).reason, "正在检查聊天服务…");
 });

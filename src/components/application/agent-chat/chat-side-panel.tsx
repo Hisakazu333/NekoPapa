@@ -1,5 +1,5 @@
 import { useState, type ComponentType } from "react";
-import { BookOpenIcon, FileTextIcon, FolderIcon, GitBranchIcon, MessagesSquareIcon, NotebookPenIcon, SquareTerminalIcon, XIcon } from "@/components/foundations/icons/app-icons";
+import { BookOpenIcon, FileTextIcon, FolderIcon, GitBranchIcon, ListIcon, MessagesSquareIcon, NotebookPenIcon, SquareTerminalIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { CHAT_TOOL_LABELS, type ChatTool } from "@/app/chat-tools";
 import { resolveProject } from "@/app/projects";
 import { useProjects } from "@/hooks/use-projects";
@@ -14,6 +14,7 @@ const CODE_TOOLS: { tool: ChatTool; icon: Icon; description: string }[] = [
   { tool: "changes", icon: FileTextIcon, description: "项目主要文件夹里未提交的 Git 更改与差异。" },
   { tool: "files", icon: FolderIcon, description: "浏览项目文件，只读预览文本内容。" },
   { tool: "terminal", icon: SquareTerminalIcon, description: "在项目文件夹中打开本机 shell（桌面应用）。" },
+  { tool: "outline", icon: ListIcon, description: "本对话中你发送的每条消息，点击跳转。" },
 ];
 const TABS: { id: PanelTab; label: string }[] = [{ id: "history", label: "历史" }, { id: "code", label: "代码" }, { id: "study", label: "资料" }];
 

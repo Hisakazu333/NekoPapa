@@ -22,6 +22,8 @@ use std::time::{Duration, Instant};
 use tauri::ipc::Channel;
 
 const MARK_OPEN: &str = "{{nekopapa-env:";
+/// A key typed in settings and kept in the keychain (credential_store.rs).
+const MARK_SECRET: &str = "{{nekopapa-secret:";
 const MARK_CLOSE: &str = "}}";
 const PREFIX_CHARS: usize = 8;
 const SHELL_TIMEOUT: Duration = Duration::from_secs(4);
@@ -97,24 +99,43 @@ fn value(name: &str) -> Option<&'static str> {
 /// prefix is the one `chat_environment` showed the window, so a header
 /// built from it ("Bearer sk-ant-a{{…}}") becomes exactly "Bearer <key>".
 fn fill_keys(text: &str) -> Result<String, String> {
-    fill_keys_with(text, value)
+    fill_keys_with(text, value, |id| crate::credential_store::secret(id))
 }
 
-fn fill_keys_with<'a>(text: &str, lookup: impl Fn(&str) -> Option<&'a str>) -> Result<String, String> {
+fn fill_keys_with<'a>(
+    text: &str,
+    lookup: impl Fn(&str) -> Option<&'a str>,
+    secret: impl Fn(&str) -> Option<String>,
+) -> Result<String, String> {
     let mut out = String::new();
     let mut rest = text;
-    while let Some(start) = rest.find(MARK_OPEN) {
-        let after = &rest[start + MARK_OPEN.len()..];
+    loop {
+        let env = rest.find(MARK_OPEN);
+        let stored = rest.find(MARK_SECRET);
+        let (start, mark) = match (env, stored) {
+            (Some(a), Some(b)) if b < a => (b, MARK_SECRET),
+            (Some(a), _) => (a, MARK_OPEN),
+            (None, Some(b)) => (b, MARK_SECRET),
+            (None, None) => break,
+        };
+        let after = &rest[start + mark.len()..];
         let end = after.find(MARK_CLOSE).ok_or("凭据占位符格式无效。")?;
         let name = &after[..end];
-        if !is_credential_name(name) {
-            return Err(format!("{name} 不是凭据环境变量名。"));
-        }
-        let key = lookup(name).ok_or(format!("没有找到环境变量 {name}。"))?;
+        let key = if mark == MARK_SECRET {
+            if !crate::credential_store::is_secret_id(name) {
+                return Err("密钥编号无效。".into());
+            }
+            secret(name).ok_or("钥匙串中没有这份配置的 API Key，请在 设置 → 模型与 API 中重新填写。")?
+        } else {
+            if !is_credential_name(name) {
+                return Err(format!("{name} 不是凭据环境变量名。"));
+            }
+            lookup(name).ok_or(format!("没有找到环境变量 {name}。"))?.to_string()
+        };
         let prefix: String = key.chars().take(PREFIX_CHARS).collect();
         let before = &rest[..start];
         out.push_str(before.strip_suffix(prefix.as_str()).unwrap_or(before));
-        out.push_str(key);
+        out.push_str(&key);
         rest = &after[end + MARK_CLOSE.len()..];
     }
     out.push_str(rest);
@@ -127,6 +148,8 @@ pub struct ChatEnvironment {
     plain: HashMap<String, String>,
     /// Credential variables that are set, with their first characters only.
     keys: HashMap<String, String>,
+    /// `keychain:<id>` references whose key is stored.
+    secrets: Vec<String>,
 }
 
 /// What the environment provider needs to resolve itself in the window.
@@ -138,6 +161,13 @@ pub async fn chat_environment(names: Vec<String>) -> Result<ChatEnvironment, Str
         for name in PLAIN {
             if let Some(v) = value(name) {
                 result.plain.insert(name.into(), v.into());
+            }
+        }
+        for name in &names {
+            if let Some(id) = name.strip_prefix("keychain:") {
+                if crate::credential_store::is_secret_id(id) && crate::credential_store::secret(id).is_some() {
+                    result.secrets.push(id.to_string());
+                }
             }
         }
         for name in names.iter().filter(|n| is_credential_name(n)) {
@@ -250,12 +280,16 @@ mod tests {
     #[test]
     fn fills_keys_where_the_stand_ins_were() {
         let lookup = |name: &str| (name == "AI_API_KEY").then_some("sk-ant-secret-value");
-        assert_eq!(fill_keys_with("Bearer sk-ant-s{{nekopapa-env:AI_API_KEY}}", lookup).unwrap(), "Bearer sk-ant-secret-value");
-        assert_eq!(fill_keys_with("{{nekopapa-env:AI_API_KEY}}", lookup).unwrap(), "sk-ant-secret-value");
-        assert_eq!(fill_keys_with("no stand-in", lookup).unwrap(), "no stand-in");
-        assert!(fill_keys_with("{{nekopapa-env:PATH}}", lookup).is_err());
-        assert!(fill_keys_with("{{nekopapa-env:OTHER_KEY}}", lookup).is_err());
-        assert!(fill_keys_with("{{nekopapa-env:AI_API_KEY", lookup).is_err());
+        let secret = |id: &str| (id == "r1").then(|| "sk-typed-in-settings".to_string());
+        assert_eq!(fill_keys_with("Bearer sk-ant-s{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(), "Bearer sk-ant-secret-value");
+        assert_eq!(fill_keys_with("{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(), "sk-ant-secret-value");
+        assert_eq!(fill_keys_with("no stand-in", lookup, secret).unwrap(), "no stand-in");
+        assert!(fill_keys_with("{{nekopapa-env:PATH}}", lookup, secret).is_err());
+        assert!(fill_keys_with("{{nekopapa-env:OTHER_KEY}}", lookup, secret).is_err());
+        assert!(fill_keys_with("{{nekopapa-env:AI_API_KEY", lookup, secret).is_err());
+        assert_eq!(fill_keys_with("Bearer {{nekopapa-secret:r1}}", lookup, secret).unwrap(), "Bearer sk-typed-in-settings");
+        assert!(fill_keys_with("{{nekopapa-secret:r2}}", lookup, secret).is_err());
+        assert!(fill_keys_with("{{nekopapa-secret:../x}}", lookup, secret).is_err());
     }
 
     #[test]

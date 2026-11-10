@@ -19,8 +19,12 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     setStates((all) => ({ ...all, [scope]: change(all[scope] ?? fresh()) }));
   };
   const models = composerModels(data.collections.models, runtime);
-  const selected = models.find((option) => option.id === (state.selectedModel ?? "runtime"));
-  const modelBlockReason = composerModelBlockReason(state.selectedModel, models, data.collections.models);
+  // Without a runtime provider, the first usable saved profile answers until another is picked.
+  const fallback = models.find((option) => option.runtime)?.id
+    ?? models.find((option) => !option.runtime && !composerModelBlockReason(option.id, models, data.collections.models))?.id;
+  const selectedId = state.selectedModel ?? fallback;
+  const selected = models.find((option) => option.id === selectedId);
+  const modelBlockReason = composerModelBlockReason(selectedId, models, data.collections.models);
   // What every send adds to the request: the saved profile the picker chose
   // (else the runtime's own provider answers) and 设置 → 个性化's instructions.
   const record = selected && !selected.runtime ? data.collections.models.find((entry) => entry.id === selected.id) : undefined;
@@ -33,7 +37,7 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     error: state.error,
     models,
     selected,
-    selectedModelId: state.selectedModel ?? (selected ? "runtime" : undefined),
+    selectedModelId: selectedId,
     modelBlockReason,
     draftBlockReason,
     blockReason: draftBlockReason ?? modelBlockReason,

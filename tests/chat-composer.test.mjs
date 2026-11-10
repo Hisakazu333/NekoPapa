@@ -132,7 +132,7 @@ test("workbench uses one Agent mode for general tasks and Coding while contacts 
   assert.deepEqual(draft.modesForWorkspace().map((entry) => entry.id), ["auto", "chat", "study", "agent"]);
   const autoMode = draft.modesForWorkspace().find((entry) => entry.id === "auto");
   assert.equal(autoMode.label, "Auto");
-  assert.equal(autoMode.description, "根据任务选择聊天、学习或 Agent");
+  assert.equal(autoMode.description, "学习与 Agent 接入前按聊天回复");
   const agentMode = draft.modesForWorkspace().find((entry) => entry.id === "agent");
   assert.equal(agentMode.label, "Agent");
   assert.equal(agentMode.description, "处理通用任务与编程项目");
@@ -145,7 +145,7 @@ test("workbench uses one Agent mode for general tasks and Coding while contacts 
 test("unconnected execution modes block ordinary chat without modifying message intent or selected files", () => {
   const selected = draft.addComposerFiles([], [file("project.ts")]).attachments;
   const state = { ...draft.createComposerDraft(), attachments: selected, goal: "修复项目", planning: true, permission: "read" };
-  for (const [mode, service] of [["auto", /自动模式路由服务接入/], ["study", /学习服务接入/], ["agent", /通用任务与 Coding 执行服务接入/]]) {
+  for (const [mode, service] of [["auto", /附件发送尚未接入/], ["study", /学习服务接入/], ["agent", /通用任务与 Coding 执行服务接入/]]) {
     state.mode = mode;
     const before = structuredClone({ ...state, attachments: state.attachments.map(({ file, ...metadata }) => metadata) });
     assert.match(draft.composerDraftBlockReason(state), service);
@@ -168,12 +168,13 @@ test("automatic task routing and automatic tool permission remain independent ch
   state.permission = "auto";
   assert.equal(state.mode, "chat");
   assert.equal(draft.composerDraftBlockReason(state), undefined);
+  // Until study and Agent exist, Auto answers as chat, so it sends like chat does.
   state.mode = "auto";
   assert.equal(state.permission, "auto");
-  assert.match(draft.composerDraftBlockReason(state), /自动模式路由服务接入/);
+  assert.equal(draft.composerDraftBlockReason(state), undefined);
   state.permission = "read";
   assert.equal(state.mode, "auto");
-  assert.match(draft.composerDraftBlockReason(state), /自动模式路由服务接入/);
+  assert.equal(draft.composerDraftBlockReason(state), undefined);
   state.mode = "chat";
   assert.equal(state.permission, "read");
   assert.equal(draft.composerDraftBlockReason(state), undefined);

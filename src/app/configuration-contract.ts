@@ -31,7 +31,7 @@ export function validateFields(fields: readonly ConfigurationField[], input: unk
   for (const key of Object.keys(input)) if (!fields.some((field) => field.key === key)) errors[key] = "含有不支持的字段。";
   for (const field of fields) {
     const raw = input[field.key];
-    if (raw === undefined && !complete) continue;
+    if (raw === undefined && (!complete || field.optional)) continue;
     if (field.type === "boolean") {
       if (typeof raw !== "boolean") errors[field.key] = "请选择开启或关闭。";
       else values[field.key] = raw;

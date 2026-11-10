@@ -24,6 +24,8 @@ export interface ConfigurationField {
   /** Empty-state hint inside text and directory inputs. */
   placeholder?: string;
   required?: boolean;
+  /** Added after records were first saved: a record without it reads as `initial`. */
+  optional?: boolean;
   format?: "url" | "environment" | "branch" | "host" | "accent" | "color";
 }
 export interface ConfigurationBlock {

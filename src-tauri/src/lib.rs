@@ -2,6 +2,7 @@ mod browser_view;
 mod editor_open;
 mod external_link;
 mod local_models;
+mod credential_store;
 mod model_proxy;
 mod project_folder;
 mod project_workspace;
@@ -46,6 +47,9 @@ pub fn run() {
             browser_view::browser_open_window,
             // Desktop chat runtime: model requests with keys filled in on this side.
             model_proxy::chat_environment,
+            credential_store::credential_set,
+            credential_store::credential_delete,
+            credential_store::credential_has,
             model_proxy::model_fetch,
             model_proxy::model_fetch_cancel,
         ])

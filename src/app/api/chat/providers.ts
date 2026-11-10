@@ -1,8 +1,9 @@
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createOpenAI } from "@ai-sdk/openai";
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { createGateway, type LanguageModel } from "ai";
-import type { ChatModelProfile } from "../../chat-model-profile";
+import { missingKeyReason, type ChatModelProfile } from "../../chat-model-profile";
 import type { ChatRuntime } from "./runtime";
 
 // Which model answers: the providers the environment variables can name
@@ -220,7 +221,13 @@ const PROFILE_LABELS: Record<ChatModelProfile["provider"], string> = { compatibl
  */
 export function profileProvider(profile: ChatModelProfile, runtime: ChatRuntime): Resolution {
   const apiKey = profile.credential ? runtime.credential(profile.credential) : "none";
-  if (!apiKey) return { provider: null, reason: `没有找到环境变量 ${profile.credential}。请在启动 NekoPapa 的环境中设置它，或在 设置 → 模型与 API 中修改变量名。` };
+  if (!apiKey) return { provider: null, reason: missingKeyReason(profile.credential, Boolean(runtime.desktop)) };
   const id: ProviderId = profile.provider === "anthropic" ? "anthropic" : "custom";
-  return { provider: { id, label: PROFILE_LABELS[profile.provider], modelId: profile.model, model: buildModel(id, apiKey, profile.model, profile.endpoint, runtime.fetch) } };
+  // Compatible servers go through the OpenAI-compatible provider, which also
+  // reads the reasoning DeepSeek, Qwen and other thinking models stream
+  // (`reasoning_content`) and asks for usage on streamed replies.
+  const model = id === "anthropic"
+    ? buildModel(id, apiKey, profile.model, profile.endpoint, runtime.fetch)
+    : createOpenAICompatible({ name: "nekopapa-profile", baseURL: profile.endpoint, apiKey, fetch: runtime.fetch, includeUsage: true }).chatModel(profile.model);
+  return { provider: { id, label: PROFILE_LABELS[profile.provider], modelId: profile.model, model } };
 }

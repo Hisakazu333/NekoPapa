@@ -6,6 +6,11 @@ import { useEditorPreferences, type ExternalEditor } from "@/hooks/use-editor-pr
 
 const EDITOR_NAMES: Record<ExternalEditor, string> = { system: "默认应用", vscode: "VS Code", cursor: "Cursor", zed: "Zed", jetbrains: "JetBrains IDE", xcode: "Xcode" };
 
+/** Asks the desktop host to open a project file; rejects with the host's reason. */
+export function openInEditor(root: string, path: string, editor: ExternalEditor): Promise<unknown> {
+  return invoke("open_in_editor", { root, path, editor });
+}
+
 /**
  * Opens a project file in 设置 → 编辑器与终端 → 外部编辑器, through the desktop
  * host (src-tauri/src/editor_open.rs). The browser preview cannot start
@@ -17,7 +22,7 @@ export function OpenInEditorButton({ root, path }: { root: string; path: string 
   if (!isTauri()) return null;
   const open = () => {
     setProblem(undefined);
-    invoke("open_in_editor", { root, path, editor: external })
+    openInEditor(root, path, external)
       .catch((error: unknown) => setProblem(typeof error === "string" ? error : "无法打开文件。"));
   };
   return <>

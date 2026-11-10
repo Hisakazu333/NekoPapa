@@ -28,7 +28,7 @@ export interface ComposerDraft {
 }
 
 export const composerModes: { id: ComposerMode; label: string; description: string }[] = [
-  { id: "auto", label: "Auto", description: "根据任务选择聊天、学习或 Agent" },
+  { id: "auto", label: "Auto", description: "学习与 Agent 接入前按聊天回复" },
   { id: "chat", label: "聊天", description: "日常交流与休息陪伴" },
   { id: "study", label: "学习", description: "课程、编程与专业知识学习" },
   { id: "agent", label: "Agent", description: "处理通用任务与编程项目" },
@@ -124,7 +124,8 @@ export function validateComposerGoal(value: string) {
 }
 
 export function composerDraftBlockReason(draft: ComposerDraft): string | undefined {
-  if (draft.mode === "auto") return "Auto 模式已选好，等待自动模式路由服务接入。";
+  // Chat is the only connected mode, so Auto routes every message there
+  // until study and Agent execution exist; it never claims to have picked them.
   if (draft.mode === "study") return "学习模式已选好，等待学习服务接入。";
   if (draft.mode === "agent") return "Agent 模式已选好，等待通用任务与 Coding 执行服务接入。";
   if (draft.attachments.length) return "文件已选好，附件发送尚未接入。移除附件后可继续文字聊天。";

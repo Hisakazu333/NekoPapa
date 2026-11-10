@@ -90,7 +90,7 @@ function SettingsFieldRow({ field, id, value, error, onChange }: {
   }
   if (control === "tags") return row(<TagsControl field={field} id={id} value={text} aria={aria} onChange={onChange} />, true);
   return row(<Input id={id} name={field.key} value={text} onChange={onChange} size="small" className="w-60 shrink-0"
-    type={field.format === "environment" ? "password" : "text"} autoComplete="off" maxLength={field.maxLength}
+    type="text" spellCheck="false" placeholder={field.placeholder} autoComplete="off" maxLength={field.maxLength}
     isRequired={field.required} validationBehavior="aria" isInvalid={Boolean(error)} {...aria} />);
 }
 

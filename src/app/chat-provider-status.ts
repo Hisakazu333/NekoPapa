@@ -25,9 +25,14 @@ export function parseChatProviderProbe(value: unknown): ChatProviderProbe {
   };
 }
 
+export const CHAT_UNCONFIGURED_REASON = "还没有可用的模型：在 设置 → 模型与 API 添加模型配置，或为聊天服务设置 AI_API_KEY 环境变量。";
+
 /** `usesProfile`: a saved 模型与 API profile answers, whether or not the runtime has its own key. */
 export function chatContactAvailability(probe: ChatProviderProbe, contact?: { kind: "official" | "custom" }, usesProfile = false) {
-  if (contact?.kind !== "official") return { ready: usesProfile || probe.status === "ready", reason: undefined };
+  if (contact?.kind !== "official") {
+    const ready = usesProfile || probe.status === "ready";
+    return { ready, reason: ready ? undefined : probe.status === "checking" ? "正在检查聊天服务…" : CHAT_UNCONFIGURED_REASON };
+  }
   return {
     ready: probe.officialCompanions.configured,
     reason: probe.officialCompanions.configured ? undefined : probe.status === "checking"

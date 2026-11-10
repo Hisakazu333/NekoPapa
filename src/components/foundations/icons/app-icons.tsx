@@ -1,9 +1,9 @@
 import type { ComponentType, SVGProps } from "react";
 import {
-  ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Bell, Book, BookOpen, BookUser, Bot, Camera,
+  ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Bell, Book, BookOpen, BookUser, Bot, Brain, Camera,
   ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert,
   CircleCheck, CircleHelp, CircleStop, Cloud, CloudUpload, Code, Compass, Contact, Copy, Cpu,
-  Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
+  Command, CornerDownLeft, Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
   FileLock, FileText, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
   GraduationCap, History, House, Image, ImagePlus, Info, Keyboard, Languages, Laptop, Layers,
   LayoutGrid, LayoutPanelLeft, Library, Lightbulb, Link, Link2, List, ListChecks, LogIn,
@@ -73,7 +73,10 @@ export const BotIcon = outline(Bot);
 export const CameraIcon = outline(Camera);
 export const ChartColumnIcon = outline(ChartColumn);
 export const ChartPieIcon = outline(ChartPie);
+export const BrainIcon = outline(Brain);
 export const CheckIcon = outline(Check);
+export const CommandIcon = outline(Command);
+export const CornerDownLeftIcon = outline(CornerDownLeft);
 export const ChevronDownIcon = outline(ChevronDown);
 export const ChevronLeftIcon = outline(ChevronLeft);
 export const ChevronRightIcon = outline(ChevronRight);
