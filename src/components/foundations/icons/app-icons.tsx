@@ -12,7 +12,7 @@ import {
   NotebookPen, Palette, PanelLeft, PanelLeftClose, PanelLeftOpen, PanelRight, PanelTop,
   Paperclip, Pencil, PencilLine, Pin, PinOff, Plug, Plus, Puzzle, RectangleHorizontal,
   RefreshCw, RotateCcw, Search, Settings, Settings2, ShieldAlert, ShieldCheck,
-  ShieldEllipsis, ShieldUser, Smartphone, Smile, Sparkle, Square, SquarePen, SquareTerminal,
+  ScanLine, ShieldEllipsis, ShieldUser, Smartphone, Smile, Sparkle, Square, SquarePen, SquareTerminal,
   StickyNote, Sun, Tablet, Terminal, Trash2, Undo2, Upload, User, UserCog, UserPlus, Users,
   Volume2, VolumeX, WandSparkles, Webhook, Wrench, X,
   type LucideIcon, type LucideProps,
@@ -165,6 +165,7 @@ export const ShieldAlertIcon = outline(ShieldAlert);
 export const ShieldCheckIcon = outline(ShieldCheck);
 export const ShieldEllipsisIcon = outline(ShieldEllipsis);
 export const ShieldUserIcon = outline(ShieldUser);
+export const ScanLineIcon = outline(ScanLine);
 export const SmartphoneIcon = outline(Smartphone);
 export const SmileIcon = outline(Smile);
 export const SparkleIcon = outline(Sparkle);

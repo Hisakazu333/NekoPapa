@@ -95,8 +95,7 @@ export interface AuthCardProps {
   footnote?: ReactNode;
   /**
    * NekoPapa addition: replaces the email form, the providers and the mode
-   * switch with the host's own sign-in step, for flows that are not email and
-   * password (NekoPapa signs in by device authorization in the browser).
+   * switch with the host's sign-in or registration form.
    */
   form?: ReactNode;
   /** Fires with the form's own FormData; wire it to your auth library. */

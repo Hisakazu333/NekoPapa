@@ -11,12 +11,12 @@ import { workspacePageContent } from "./workspace-page-content";
  * or its assets are not provided). The page states why plainly and lists the
  * planned capabilities as plans; it creates no data.
  */
-export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspacePage; onNavigate: () => void }) {
+export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspacePage; onNavigate?: () => void }) {
   const { title, icon: Icon, intro, statusTitle, status, planned } = workspacePageContent[page];
   const headingId = `${page}-planned-heading`;
   return <section aria-label={title} className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
     <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
-      <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />
+      {onNavigate && <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />}
       <span className="text-body-medium text-text-primary">{title}</span>
     </header>
     <div className="min-h-0 flex-1 overflow-y-auto">

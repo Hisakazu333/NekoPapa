@@ -231,3 +231,17 @@ test("密钥来源：钥匙串中的 API Key 只以记录编号引用，浏览�
   assert.equal(response.status, 503);
   assert.match((await response.json()).message, /钥匙串.*浏览器预览读不到/);
 });
+
+
+test("selected model is sent with the connection's credential and its own known context", () => {
+  const saved = { id: "shared", values: { provider: "compatible", endpoint: "https://provider.example/v1",
+    model: "first", keySource: "keychain", additionalModels: "second", contextWindow: 128000 } };
+  const first = profiles.chatModelProfile(saved).profile;
+  const second = profiles.chatModelProfile(saved, "second").profile;
+  assert.equal(first.contextWindow, 128000);
+  assert.equal(second.model, "second");
+  assert.equal(second.endpoint, first.endpoint);
+  assert.equal(second.credential, first.credential);
+  assert.equal(second.contextWindow, undefined);
+  assert.match(profiles.chatModelProfile(saved, "removed").reason, /已从这份配置中移除/);
+});

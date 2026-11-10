@@ -1,4 +1,5 @@
 import type { ConfigurationRecord } from "./configuration-types";
+import { connectionModelIds } from "./model-connection-models";
 import { chatModelProfile } from "./chat-model-profile";
 
 export interface ComposerModelOption {
@@ -7,6 +8,7 @@ export interface ComposerModelOption {
   model: string;
   provider: string;
   runtime: boolean;
+  connectionId?: string;
 }
 export interface ComposerRuntimeModel { model?: string | null; provider?: string | null }
 
@@ -20,10 +22,12 @@ export function composerModels(records: readonly ConfigurationRecord[], runtime:
     id: "runtime", name: runtime.model, model: runtime.model, provider: runtime.provider || "当前服务", runtime: true,
   }] : [];
   for (const record of records) {
-    const model = String(record.values.model || "").trim();
-    if (!model) continue;
-    result.push({ id: record.id, name: String(record.values.name || model), model,
-      provider: providerNames[String(record.values.provider)] || "其他接口", runtime: false });
+    const ids = connectionModelIds(record.values);
+    for (const [index, model] of ids.entries()) {
+      result.push({ id: index === 0 ? record.id : `${record.id}:${model}`, connectionId: record.id,
+        name: ids.length === 1 ? String(record.values.name || model) : model, model,
+        provider: providerNames[String(record.values.provider)] || "其他接口", runtime: false });
+    }
   }
   return result;
 }
@@ -37,6 +41,7 @@ export function filterComposerModels(options: readonly ComposerModelOption[], qu
 /** A saved profile answers through the chat runtime; one that cannot (removed, invalid) blocks sending. */
 export function composerModelBlockReason(selectedId: string | undefined, options: readonly ComposerModelOption[], records: readonly ConfigurationRecord[] = []) {
   if (!selectedId || selectedId === "runtime") return undefined;
-  const record = options.some((option) => option.id === selectedId) ? records.find((entry) => entry.id === selectedId) : undefined;
-  return record ? chatModelProfile(record).reason : "所选模型配置已移除，请重新选择。";
+  const option = options.find((item) => item.id === selectedId);
+  const record = records.find((entry) => entry.id === (option?.connectionId ?? option?.id));
+  return option && record ? chatModelProfile(record, option.model).reason : "所选模型配置已移除，请重新选择。";
 }

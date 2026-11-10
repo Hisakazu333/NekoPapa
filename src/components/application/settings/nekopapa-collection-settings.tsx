@@ -26,7 +26,7 @@ interface Editor { id?: string; values: ConfigurationValues; base: string }
 interface Removal { id: string; name: string; base: string; triggerId: string }
 
 const searchKeys: Record<Collection, string[]> = {
-  models: ["name", "provider", "model", "endpoint"], extensions: ["name", "kind", "transport", "command", "endpoint"], plugins: ["name", "module", "instanceId"],
+  models: ["name", "provider", "model", "additionalModels", "endpoint"], extensions: ["name", "kind", "transport", "command", "endpoint"], plugins: ["name", "module", "instanceId"],
   connections: ["name", "host", "username"], hooks: ["name", "event", "command"],
 };
 const toolFilters = [["all", "全部"], ["mcp", "MCP 服务"], ["connector", "连接器"]] as const;
@@ -273,7 +273,7 @@ function ModelDefaults({ records }: { records: ConfigurationRecord[] }) {
   return <section className="flex flex-col gap-2" aria-label="默认模型">
     <SettingsSectionLabel>默认模型</SettingsSectionLabel>
     <SettingsCard>
-      <SettingsRow label="通用 Agent" description="在 Agent 设置中选择；聊天服务尚未读取这些配置。">
+      <SettingsRow label="通用 Agent" description="在 Agent 设置中选择连接及其默认模型。工作台聊天可在输入框中选模型。">
         <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><CloudIcon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.agent?.modelId)}</span></span>
       </SettingsRow>
       <SettingsRow label="Coding Agent" description="在 Coding 设置中选择；Coding 执行层接入后使用。">

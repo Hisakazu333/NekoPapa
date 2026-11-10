@@ -61,13 +61,13 @@ export function RecentConversationRow({ thread, actions, nested = false }: { thr
 
   return localize(<div className={cx(
     "group/recent relative flex min-w-0 items-center rounded-2lg transition-colors",
-    active || menuOpen ? "bg-background-secondary-hover" : "hover:bg-background-secondary-hover/60",
+    active || menuOpen ? "bg-background-tertiary-hover" : "hover:bg-background-primary-hover",
   )}>
     <button type="button" onClick={() => onSelect(thread)} disabled={disabled}
       aria-label={`打开对话：${title}`} aria-current={active ? "true" : undefined}
       title={`${title}${preview ? ` · ${preview}` : ""}`}
       className={cx(
-        "flex min-w-0 flex-1 cursor-pointer items-center gap-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-2lg text-start outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:cursor-not-allowed disabled:opacity-50",
         nested ? "px-2 py-1.5" : "p-2",
         collapsed ? "w-9 justify-center" : "w-full",
       )}>
@@ -81,7 +81,7 @@ export function RecentConversationRow({ thread, actions, nested = false }: { thr
           "min-w-0 flex-1 truncate text-body-2-medium", active ? "text-text-primary" : "text-text-secondary",
         )}>{title}</span>
         <time dateTime={readableDate} className={cx(
-          "shrink-0 rounded-md bg-background-tertiary-default px-1.5 py-0.5 text-caption-1-medium text-text-tertiary transition-opacity",
+          "shrink-0 rounded-md bg-background-secondary-default px-1.5 py-0.5 text-caption-1-medium text-text-primary/80 transition-opacity",
           "group-hover/recent:opacity-0 group-focus-within/recent:opacity-0", menuOpen && "opacity-0",
         )}>{recentAge(thread.updatedAt, now)}</time>
       </Collapsible>

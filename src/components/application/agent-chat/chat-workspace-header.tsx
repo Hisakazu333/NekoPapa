@@ -8,7 +8,7 @@ export interface ChatWorkspaceHeaderProps extends AgentChatActionsProps {
   title: string;
   titleRef: Ref<HTMLElement>;
   navOpen: boolean;
-  onToggleNavigation: () => void;
+  onToggleNavigation?: () => void;
   frosted: boolean;
   workspaceLabel?: string;
   showActions?: boolean;
@@ -23,7 +23,7 @@ export interface ChatWorkspaceHeaderProps extends AgentChatActionsProps {
 export function ChatWorkspaceHeader({
   title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", showActions = true, compact = false, ...actions
 }: ChatWorkspaceHeaderProps) {
-  if (compact) return (
+  if (compact) return onToggleNavigation ? (
     <IconButton
       icon={navOpen ? XIcon : MenuIcon}
       size="small"
@@ -31,7 +31,7 @@ export function ChatWorkspaceHeader({
       onClick={onToggleNavigation}
       className="absolute start-3 top-3 z-10 lg:hidden"
     />
-  );
+  ) : null;
   return (
     <header
       className={cx(
@@ -41,13 +41,13 @@ export function ChatWorkspaceHeader({
           : "border-transparent",
       )}
     >
-      <IconButton
+      {onToggleNavigation && <IconButton
         icon={navOpen ? XIcon : MenuIcon}
         size="small"
         aria-label={navOpen ? "关闭导航" : "打开导航"}
         onClick={onToggleNavigation}
         className="lg:hidden"
-      />
+      />}
       <nav ref={titleRef} aria-label="当前位置" className="min-w-0 shrink">
         <ol className="flex min-w-0 items-center gap-2 text-body-medium sm:gap-3">
           <li className="flex shrink-0 items-center gap-2 text-text-tertiary">

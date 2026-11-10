@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUpIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
+import { ArrowUpIcon, SparkleIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -111,7 +111,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
               <ComposerPermissionMenu state={composer} />
             </div>
             <div className="chat-home__send-actions">
-              <ComposerModelMenu state={composer} onConfigure={(target) => onOpenSettings("model", target)} official={official} />
+              {!official && <ComposerModelMenu state={composer} onConfigure={(target) => onOpenSettings("model", target)} />}
               <button type="submit" className="chat-home__send-button" disabled={!canSend} aria-label="发送消息" title={sendBlockedReason ?? (disabled ? "连接模型后即可发送" : "发送消息")}>
                 <ArrowUpIcon aria-hidden />
               </button>
@@ -122,7 +122,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
         <div className="chat-home__toolbar">
           <div className="chat-home__toolbar-group">
             <ComposerModeMenu state={composer} context={selectedContact?.kind ?? "workspace"} className="chat-home__toolbar-button" />
-            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" title="填入灵感提示" onClick={fillIdea}><CompassIcon aria-hidden /></button>
+            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" title="填入灵感提示" onClick={fillIdea}><SparkleIcon aria-hidden /></button>
             <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><PlugIcon aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
@@ -156,7 +156,8 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
       {disabled && (
         <p id={`${inputId}-connection`} role="status" className="chat-home__connection">
           {sendBlockedReason ?? "连接模型后即可发送，你可以先写下想法。"}
-          {!sendBlockedReason && <button type="button" onClick={() => onOpenSettings("model")}><SearchIcon aria-hidden />配置模型</button>}
+          {official && <button type="button" onClick={onClearContact}>返回工作台对话</button>}
+          {!official && !composer.usesProfile && <button type="button" onClick={() => onOpenSettings("model")}><SearchIcon aria-hidden />配置模型</button>}
         </p>
       )}
     </section>

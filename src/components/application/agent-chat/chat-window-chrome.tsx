@@ -16,7 +16,7 @@ export function createChatWindowChrome({
   title: string;
   titleRef: Ref<HTMLElement>;
   navOpen: boolean;
-  onToggleNavigation: () => void;
+  onToggleNavigation?: () => void;
   hasMessages: boolean;
   windowToolbar: boolean;
   nativeWindow: boolean;

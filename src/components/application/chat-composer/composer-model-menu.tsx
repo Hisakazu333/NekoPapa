@@ -7,12 +7,11 @@ import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";
 
-export function ComposerModelMenu({ state, onConfigure, disabled, className, official = false }: {
+export function ComposerModelMenu({ state, onConfigure, disabled, className }: {
   state: ChatComposerState;
   onConfigure: (returnFocusTarget?: HTMLElement | null) => void;
   disabled?: boolean;
   className?: string;
-  official?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -47,12 +46,12 @@ export function ComposerModelMenu({ state, onConfigure, disabled, className, off
     onConfigure(document.getElementById(triggerId));
   };
   const status = state.modelBlockReason
-    || (official ? "官方服务未接入，模型选择不影响调用。" : state.selected?.runtime ? "当前使用运行服务提供的模型。" : state.selected ? "使用你在 设置 → 模型与 API 保存的配置回复。" : "未选择模型。" );
+    || (state.selected?.runtime ? "当前使用运行服务提供的模型。" : state.selected ? "使用你在 设置 → 模型与 API 保存的配置回复。" : "未选择模型。" );
 
   return <Dropdown isOpen={open} onOpenChange={close}>
     <DropdownTrigger id={triggerId} aria-label="选择聊天模型" aria-description={status} isDisabled={disabled}
       className={cx(COMPOSER_MENU_TRIGGER, "max-w-[220px] justify-center gap-0.5 rounded-xl bg-background-primary-default py-1.5 pe-1 ps-2 hover:bg-background-primary-hover", className)}>
-      <span className="truncate">{state.selected?.name || (state.selectedModelId ? "重新选择模型" : "选择模型")}</span>
+      <span className="truncate">{state.selected?.name || (state.modelBlockReason ? "重新选择模型" : "选择模型")}</span>
       <ChevronDownSmall className="size-4 shrink-0 text-text-tertiary" aria-hidden />
     </DropdownTrigger>
     <DropdownPopover aria-label="选择聊天模型" placement="top end" className="w-[360px]" dialogClassName="overflow-hidden overscroll-contain">

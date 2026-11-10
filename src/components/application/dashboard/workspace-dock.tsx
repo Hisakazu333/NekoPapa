@@ -13,7 +13,7 @@ export interface DockEntry {
   /** Opens a panel above the dock instead of navigating (对话, 搜索, 更多). */
   panel?: { content: (close: () => void) => ReactNode; className?: string };
   /** A tile that brings its own control (the account avatar and its menu). */
-  element?: ReactNode;
+  renderControl?: (open: boolean, onOpenChange: (open: boolean) => void) => ReactNode;
 }
 
 const reducedMotion = () => typeof window !== "undefined"
@@ -91,13 +91,13 @@ export function WorkspaceDock({ groups, openPanel, onPanelChange }: {
       {groups.filter((group) => group.length).map((group, index) => <Fragment key={group[0].key}>
         {index > 0 && <span aria-hidden className="mx-1 mb-2 h-6 w-px shrink-0 self-end bg-separator-border" />}
         {group.map((entry) => {
-          const size = DOCK_TILE_SIZE * (scales[entry.key] ?? 1);
+          const size = DOCK_TILE_SIZE * (openPanel ? 1 : (scales[entry.key] ?? 1));
           const open = openPanel === entry.key;
           const Icon = entry.icon;
-          if (entry.element) return <div key={entry.key} ref={keep(entry.key)} style={{ width: size, height: size }}
+          if (entry.renderControl) return <div key={entry.key} ref={keep(entry.key)} style={{ width: size, height: size }}
             className="group relative flex shrink-0 items-center justify-center transition-[width,height] duration-150 ease-out motion-reduce:transition-none">
-            {entry.element}
-            <TileLabel label={entry.label} hidden={false} />
+            {entry.renderControl(open, (next) => setPanel(entry.key, next))}
+            <TileLabel label={entry.label} hidden={open} />
           </div>;
           const tile = <AriaButton key={entry.key} ref={keep(entry.key)} aria-label={entry.label}
             aria-current={entry.selected ? "page" : undefined} onPress={entry.panel ? undefined : entry.onSelect}

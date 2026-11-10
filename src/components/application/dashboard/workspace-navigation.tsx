@@ -32,8 +32,7 @@ function useDockSearchShortcut(enabled: boolean, open: () => void) {
  * the left sidebar (with its hover peek when hidden, and the narrow-window
  * drawer), or the bottom dock. The dock carries the sidebar's pages and
  * opens 对话, 搜索 and 更多 as panels above itself; the account avatar opens
- * the account menu, and 设置 opens settings. Pages that offer a menu button
- * on narrow windows still open the drawer.
+ * the account menu, and 设置 opens settings. The drawer belongs to sidebar layout.
  */
 export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebarHidden, peek, navOpen, setNavOpen, contained, dockPanel, onDockPanelChange, onOpenSettings }: {
   layout: NavigationLayout;
@@ -60,11 +59,10 @@ export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebar
       <SidebarPeek peek={peek}>
         {(close) => <DashboardSidebar mobile {...sidebar} selected={page} onClose={close} className="flex" />}
       </SidebarPeek>
+      <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
+        <DashboardSidebar mobile {...sidebar} selected={page} onClose={() => setNavOpen(false)} className="flex" />
+      </DashboardSidebarDrawer>
     </>}
-    {/* The Pro template pushes the workspace across; this is the plain overlay drawer. */}
-    <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
-      <DashboardSidebar mobile {...sidebar} selected={page} onClose={() => setNavOpen(false)} className="flex" />
-    </DashboardSidebarDrawer>
     {dock && <WorkspaceDock openPanel={dockPanel} onPanelChange={onDockPanelChange} groups={[
       [
         ...sidebar.items.map((item) => ({ key: item.key, label: item.label, icon: item.icon, selected: page === item.key, onSelect: () => item.onSelect?.() })),
@@ -87,7 +85,7 @@ export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebar
         } },
       ],
       [
-        { key: "account", label: "账号", element: <DashboardAccountMenu collapsed placement="top" offset={16} /> },
+        { key: "account", label: "账号", renderControl: (open, onOpenChange) => <DashboardAccountMenu collapsed placement="top" offset={14} dockState={{ open, onOpenChange }} /> },
         { key: "settings", label: "设置", icon: SettingsIcon, onSelect: onOpenSettings },
       ],
     ]} />}

@@ -13,8 +13,8 @@ import {
 } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { useLocalProfile } from "@/hooks/use-local-profile";
-import { profileInitials } from "@/app/profile-identity";
-import { desktopAccountApi } from "@/app/desktop-account-api";
+import { profileIdentity } from "@/app/profile-identity";
+import { useAccountSession } from "@/components/application/account/account-session";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { useWorkspaceSettings, type OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { SettingsSection } from "@/components/application/settings/workspace-settings-catalog";
@@ -65,12 +65,14 @@ export function DashboardAccountMenu({
   onOpenSettings,
   placement = "end bottom",
   offset,
+  dockState,
 }: {
   collapsed?: boolean;
   onOpenSettings?: OpenWorkspaceSettings;
   /** Beside the sidebar by default; the bottom dock opens it above itself. */
   placement?: "end bottom" | "top";
   offset?: number;
+  dockState?: { open: boolean; onOpenChange: (open: boolean) => void };
 }) {
   const localize = useTemplateCopy();
   const { profile } = useLocalProfile();
@@ -78,13 +80,16 @@ export function DashboardAccountMenu({
   const openAccountPage = useAccountPageNavigation();
   const { language, setLanguage } = useApplicationLanguage();
   const { store, data, storageAvailable, notice, refresh } = useConfiguration();
-  const [open, setOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const open = dockState?.open ?? menuOpen;
+  const setOpen = dockState?.onOpenChange ?? setMenuOpen;
   const [languageError, setLanguageError] = useState<string>();
   const [appearanceError, setAppearanceError] = useState("");
   const container = useRef<HTMLDivElement>(null);
-  const initials = profileInitials(profile.name);
+  const account = useAccountSession();
+  const identity = profileIdentity(profile, account.profile);
   const settingsShortcut = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform) ? "⌘," : "Ctrl+,";
-  const accountStatus = desktopAccountApi.availability.kind === "disabled" ? "登录暂未开放" : "未登录";
+  const accountStatus = account.profile ? "已登录" : account.availability === "available" ? "未登录" : "未连接";
   const showSettings = (section: AccountSettingsSection) => {
     setOpen(false);
     // Pass the persistent trigger; the menu's temporary item may own focus.
@@ -114,27 +119,29 @@ export function DashboardAccountMenu({
   const appearanceAccent = normalizeAppearanceAccent(data.groups.appearance.accent);
 
   return localize((
-    <div ref={container} className="w-full">
+    <div ref={container} className={cx("w-full", dockState && "flex h-full items-center justify-center")}>
       <Dropdown isOpen={open} onOpenChange={setOpen}>
         <DropdownTrigger
-          aria-label={`账号与本机资料：${profile.name}`}
+          aria-label={`账号与本机资料：${identity.name}`}
           className={cx(
             "flex items-center overflow-hidden border-2 border-transparent hover:border-border-button-hover",
             "transition-[width,background-color,border-color,padding] duration-300 ease-in-out",
             "focus-visible:ring-offset-2",
-            collapsed
-              ? "size-9 justify-start rounded-full bg-transparent p-0"
+            dockState
+              ? cx("size-full justify-center rounded-xl p-0 hover:bg-background-secondary-hover hover:border-transparent focus-visible:ring-inset", open && "bg-background-tertiary-hover")
+              : collapsed
+              ? "size-9 justify-center rounded-full bg-transparent p-0"
               : "w-full justify-between rounded-xl bg-background-tertiary-default py-2 pe-4 ps-2.5",
           )}
         >
-          <span className="flex min-w-0 items-center gap-2">
-            <Avatar size="md" color="blue" initials={initials} alt={profile.name} />
+          <span className={cx("flex min-w-0 items-center", !collapsed && "gap-2")}>
+            <Avatar size="md" color="blue" initials={identity.initials} alt={identity.name} />
             <span className={cx(
               "flex min-w-0 flex-col items-start overflow-hidden transition-[max-width,opacity,filter] duration-300 ease-in-out",
               collapsed ? "max-w-0 opacity-0 blur-[3px]" : "max-w-40 opacity-100 blur-0",
             )}>
-              <span className="w-full truncate text-body-medium text-text-primary">{profile.name}</span>
-              <span className="whitespace-nowrap text-body-regular text-text-secondary">本机资料 · 未登录</span>
+              <span className="w-full truncate text-body-medium text-text-primary" translate="no">{identity.name}</span>
+              <span className="whitespace-nowrap text-body-regular text-text-secondary">{account.profile ? "NekoPapa 账号 · 已登录" : "本机资料 · 未登录"}</span>
             </span>
           </span>
           {!collapsed && (
@@ -156,7 +163,7 @@ export function DashboardAccountMenu({
           <DropdownGroup>
             <DropdownItem onSelect={showLogin}>
               <LogInIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-              <span className="flex-1">登录 NekoPapa</span>
+              <span className="flex-1">{account.profile ? "账号详情" : "登录 NekoPapa"}</span>
               <span className="text-caption-1-regular text-text-tertiary">{accountStatus}</span>
             </DropdownItem>
             <AccountAction icon={UserIcon} label="本机资料" onSelect={() => showSettings("profile")} />

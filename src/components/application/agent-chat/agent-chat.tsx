@@ -83,6 +83,7 @@ export function AgentChat({
   const sidebarVisibility = useSidebarVisibility();
   const configuration = useConfiguration().data;
   const navigationLayout = normalizeNavigationLayout(configuration.groups.appearance.navigation);
+  const openNavigation = navigationLayout === "sidebar" ? () => setNavOpen(true) : undefined;
   const sidebarPeek = useSidebarPeek(navigationLayout === "sidebar" && sidebarVisibility.hidden && !contained);
   const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
@@ -404,7 +405,7 @@ export function AgentChat({
     title: workspaceTitle,
     titleRef,
     navOpen,
-    onToggleNavigation: () => setNavOpen((open) => !open),
+    onToggleNavigation: openNavigation,
     hasMessages: messages.length > 0,
     windowToolbar,
     nativeWindow,
@@ -444,10 +445,10 @@ export function AgentChat({
         onOpenSettings={() => openSettings("general")} />
 
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
-        <ContactsMessenger onNavigate={() => setNavOpen(true)} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />
+        <ContactsMessenger onNavigate={openNavigation} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />
       </div>
-      {isPendingWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={() => setNavOpen(true)} />}
-      {page === "space" && <SpacePage onNavigate={() => setNavOpen(true)} />}
+      {isPendingWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={openNavigation} />}
+      {page === "space" && <SpacePage onNavigate={openNavigation} />}
       <div hidden={page !== "chat"} style={{ display: page === "chat" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
       {placement.browserTabActive && <section aria-label="浏览器" className="flex min-h-0 min-w-0 flex-1">
         <ChatBrowserPanel browser={browser} placement="tab" onClose={placement.closeBrowserTab} onMove={placement.moveToSide}

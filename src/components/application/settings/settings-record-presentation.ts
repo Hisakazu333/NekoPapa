@@ -1,3 +1,4 @@
+import { connectionModelIds } from "@/app/model-connection-models";
 import { collectionSchemas } from "@/app/configuration-contract";
 import type { ConfigurationCollection, ConfigurationData, ConfigurationRecord } from "@/app/configuration-types";
 import type { ChipColor } from "@/components/base/badges/chip";
@@ -17,9 +18,10 @@ export function presentRecord(collection: ConfigurationCollection, record: Confi
   const option = (key: string) => fields.find((field) => field.key === key)?.options?.find(([id]) => id === record.values[key])?.[1] ?? "";
   const initial = Array.from(value("name").trim())[0]?.toLocaleUpperCase() ?? "?";
   if (collection === "models") {
+    const modelCount = connectionModelIds(record.values).length;
     const role = groups.agent?.modelId === record.id ? "通用 Agent 默认" : groups.coding?.modelId === record.id ? "Coding 默认" : "";
     return {
-      initial, color: "blue", chips: [option("provider"), ...(role ? ["默认使用"] : [])],
+      initial, color: "blue", chips: [option("provider"), ...(modelCount > 1 ? [`${modelCount} 个模型`] : []), ...(role ? ["默认使用"] : [])],
       summary: `${value("model")} · ${endpointHost(value("endpoint"))}`,
       detail: [role || "未设为默认", value("keySource") === "keychain" ? "API Key 在钥匙串" : value("keySource") === "none" ? "不需要密钥" : value("environment") && `环境变量 ${value("environment")}`].filter(Boolean).join(" · "),
     };

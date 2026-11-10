@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { chatModelProfile, isCredentialName, keychainId } from "@/app/chat-model-profile";
 import type { ConfigurationRecord } from "@/app/configuration-types";
 import { chatFetch } from "@/app/desktop-chat-runtime";
@@ -38,24 +38,31 @@ export interface ModelListState { pending: boolean; ok?: boolean; message: strin
  */
 export function useModelList() {
   const [state, setState] = useState<ModelListState | null>(null);
-  /** `credential`: an environment variable, `keychain:<id>`, or empty for servers that take no key. */
-  const list = async (values: { provider: unknown; endpoint: unknown; credential: string }) => {
-    const profile = { provider: String(values.provider || ""), endpoint: String(values.endpoint || "").trim(), model: "", credential: values.credential };
-    if (!profile.endpoint) { setState({ pending: false, ok: false, message: "请先填写服务地址。", models: [] }); return; }
-    if (profile.credential && !isCredentialName(profile.credential) && !keychainId(profile.credential)) {
-      setState({ pending: false, ok: false, message: `凭据环境变量名“${profile.credential}”需要以 KEY、TOKEN 或 SECRET 结尾。`, models: [] });
+  const request = useRef(0);
+  const list = async (values: { provider: unknown; endpoint: unknown }, getCredential: () => Promise<string>) => {
+    const current = ++request.current;
+    const set = (next: ModelListState) => { if (current === request.current) setState(next); };
+    const fail = (message: string) => set({ pending: false, ok: false, message, models: [] });
+    const endpoint = String(values.endpoint || "").trim();
+    if (!endpoint) { fail("请先填写服务地址。"); return; }
+    set({ pending: true, message: "正在连接服务并获取模型…", models: [] });
+    let credential: string;
+    try { credential = await getCredential(); }
+    catch (error) { fail(error instanceof Error ? error.message : "无法读取密钥配置。"); return; }
+    if (current !== request.current) return;
+    if (credential && !isCredentialName(credential) && !keychainId(credential)) {
+      fail("请填写以 KEY、TOKEN 或 SECRET 结尾的环境变量名，例如 MODEL_API_KEY。");
       return;
     }
-    setState({ pending: true, message: "正在获取模型列表…", models: [] });
+    const profile = { provider: String(values.provider || ""), endpoint, model: "", credential };
     try {
       const response = await chatFetch("/api/model-test", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ profile, list: true }) });
       const data = await response.json().catch(() => null) as { ok?: unknown; message?: unknown; models?: unknown } | null;
       const models = Array.isArray(data?.models) ? data.models.filter((id): id is string => typeof id === "string") : [];
-      setState({ pending: false, ok: response.ok && data?.ok === true, message: typeof data?.message === "string" ? data.message : `获取失败（HTTP ${response.status}）。`, models });
+      set({ pending: false, ok: response.ok && data?.ok === true, message: typeof data?.message === "string" ? data.message : `获取失败（HTTP ${response.status}）。`, models });
     } catch {
-      setState({ pending: false, ok: false, message: "无法获取：聊天运行时没有响应。", models: [] });
+      fail("无法获取：聊天运行时没有响应。");
     }
   };
-  const fail = (message: string) => setState({ pending: false, ok: false, message, models: [] });
-  return { state, list, fail, clear: () => setState(null) };
+  return { state, list, clear: () => { request.current += 1; setState(null); } };
 }

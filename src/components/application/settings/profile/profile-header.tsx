@@ -43,7 +43,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
             className="size-20 text-title-1-semibold ring-4 ring-background-full"
           />
           <Button ref={editRef} variant="secondary" size="small" leadingIcon={PencilIcon} onClick={onEdit}>
-            编辑资料
+            {signedIn ? "编辑本机资料" : "编辑资料"}
           </Button>
         </div>
         <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
@@ -53,7 +53,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
             : <Badge>{signedIn ? "NekoPapa 账号" : "本机资料"}</Badge>}
         </div>
         <p className="mt-0.5 text-body-regular text-text-secondary">
-          {identity.handle ?? "未登录 · 名称和介绍只保存在此设备"}
+          {identity.handle ?? (signedIn ? "已登录" : "未登录 · 名称和介绍只保存在此设备")}
         </p>
         {biography
           ? <p className="mt-3 whitespace-pre-wrap break-words text-body-regular text-text-primary">{biography}</p>

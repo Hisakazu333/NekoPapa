@@ -26,7 +26,7 @@ function CategoryButton({ id, selected, onSelect, compact = false }: { id: Space
  * list on the right (BoardUI Table, PillTab, Input). No data source is
  * connected yet: search is disabled and every list shows its empty state.
  */
-export function SpacePage({ onNavigate }: { onNavigate: () => void }) {
+export function SpacePage({ onNavigate }: { onNavigate?: () => void }) {
   const [category, setCategory] = useState<SpaceCategory>("all");
   const [scope, setScope] = useState<SpaceScope>("recent");
   const { label } = spaceCategories[category];
@@ -45,7 +45,7 @@ export function SpacePage({ onNavigate }: { onNavigate: () => void }) {
 
     <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
-        <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />
+        {onNavigate && <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />}
         <span className="text-body-medium text-text-primary md:hidden">空间</span>
       </header>
       <nav aria-label="分类" className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">

@@ -15,7 +15,7 @@ import { ContactConversation } from "./contact-conversation";
 import { contactPreviews, findContactThread } from "./contact-conversations";
 import { ContactsWorkspace, type ChatContact, type ContactPreview } from "./contacts-workspace";
 
-export function ContactsMessenger({ onNavigate, provider, requestedContactId, onContactOpened }: { onNavigate: () => void; provider: ReturnType<typeof useChatProvider>; requestedContactId?: string; onContactOpened?: () => void }) {
+export function ContactsMessenger({ onNavigate, provider, requestedContactId, onContactOpened }: { onNavigate?: () => void; provider: ReturnType<typeof useChatProvider>; requestedContactId?: string; onContactOpened?: () => void }) {
   const history = useChatHistory();
   const { contacts, deletedIds } = useContacts();
   const groupHistory = useGroupChats();

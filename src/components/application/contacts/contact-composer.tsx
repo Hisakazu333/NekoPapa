@@ -45,7 +45,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
     <div aria-label="对话工具栏" className="mx-3 flex min-h-9 min-w-0 items-center gap-2 rounded-t-2xl bg-background-secondary-default px-2 pb-3 pt-1 -mb-2.5">
       <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />
       {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}
-      {blockedReason && <p role="status" title={blockedReason} className="ms-auto min-w-0 truncate text-caption-1-regular text-text-tertiary">{blockedReason}</p>}
+      {blockedReason && <p role="status" title={blockedReason} className="ms-auto min-w-0 text-end text-caption-1-regular text-text-secondary">{blockedReason}</p>}
     </div>
     <ComposerLoader active={busy} radius={24} surface={false} className="z-1 rounded-3xl bg-background-full shadow-xs">
       <div className="relative flex flex-col gap-1 rounded-3xl border border-border-button-default p-2.5">
@@ -58,7 +58,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
           <ComposerAddMenu state={composer} disabled={busy} official={officialCompanion} />
           <ComposerPermissionMenu state={composer} disabled={busy} />
           <div className="min-w-0 flex-1" />
-          <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} official={officialCompanion} />
+          {!officialCompanion && <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} />}
           <Dropdown isOpen={emojisOpen} onOpenChange={setEmojisOpen}>
             <DropdownTrigger aria-label="选择表情" isDisabled={busy} className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-foreground-icon-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
               <SmileIcon className="size-5" aria-hidden />

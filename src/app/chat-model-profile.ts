@@ -1,4 +1,5 @@
 import type { ConfigurationRecord } from "./configuration-types";
+import { connectionModelIds } from "./model-connection-models";
 import { readContextWindow } from "./chat-usage";
 
 /**
@@ -73,14 +74,18 @@ export function readChatModelProfile(value: unknown, { requireModel = true } = {
 }
 
 /** The request form of a saved record, or the reason it cannot be used yet. */
-export function chatModelProfile(record: ConfigurationRecord): { profile: ChatModelProfile; reason?: undefined } | { profile?: undefined; reason: string } {
+export function chatModelProfile(record: ConfigurationRecord, model = String(record.values.model ?? "").trim()): { profile: ChatModelProfile; reason?: undefined } | { profile?: undefined; reason: string } {
   const source = keySourceOf(record);
   const variable = String(record.values.environment || "").trim();
   if (source === "environment" && variable && !isCredentialName(variable)) {
     return { reason: "请在设置里填写以 KEY、TOKEN 或 SECRET 结尾的环境变量名，例如 MODEL_API_KEY。" };
   }
   const credential = source === "keychain" ? keychainRef(record.id) : source === "none" ? "" : variable;
-  const profile = readChatModelProfile({ provider: record.values.provider, endpoint: record.values.endpoint, model: record.values.model, credential, contextWindow: record.values.contextWindow });
+  if (!connectionModelIds(record.values).includes(model)) return { reason: "所选模型已从这份配置中移除，请重新选择。" };
+  const profile = readChatModelProfile({
+    provider: record.values.provider, endpoint: record.values.endpoint, model, credential,
+    contextWindow: model === record.values.model ? record.values.contextWindow : undefined,
+  });
   return profile ? { profile } : { reason: "这份模型配置的服务地址或模型标识无效，请在 设置 → 模型与 API 中修改。" };
 }
 

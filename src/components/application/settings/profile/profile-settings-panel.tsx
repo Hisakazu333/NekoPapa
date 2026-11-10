@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { profileIdentity } from "@/app/profile-identity";
+import { useAccountSession } from "@/components/application/account/account-session";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { Button } from "@/components/base/buttons/button";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
@@ -17,6 +18,7 @@ import { ProfileHeader } from "./profile-header";
  */
 export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
   const { profile } = useLocalProfile();
+  const account = useAccountSession();
   const openAccountPage = useAccountPageNavigation();
   const settingsOpener = useSettingsOpener();
   const [editing, setEditing] = useState(false);
@@ -43,7 +45,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
     <>
       <ModalBody>
         <div className="flex flex-col gap-6">
-          <ProfileHeader identity={profileIdentity(profile)} profile={profile} onEdit={() => setEditing(true)} editRef={editButton} />
+          <ProfileHeader identity={profileIdentity(profile, account.profile)} profile={profile} onEdit={() => setEditing(true)} editRef={editButton} />
           <ProfileAccountCard onOpenLogin={openLogin} />
           <ProfileActivityCard />
         </div>

@@ -320,3 +320,18 @@ test("模型配置的密钥来源：旧记录按环境变量读取，新值只�
   assert.equal(restored.data.collections.models.length, 2);
   assert.doesNotMatch(JSON.stringify(restored.data), /sk-should-never-be-stored/);
 });
+
+
+test("one model connection round-trips multiple IDs under its original credential identity", () => {
+  const storage = memory();
+  const store = new ConfigurationStore(storage);
+  assert.equal(store.saveRecord("models", { ...model(), keySource: "keychain", additionalModels: "model-b\nmodel-c\ntest-model\nmodel-b" }), undefined);
+  const [saved] = store.data.collections.models;
+  const restored = new ConfigurationStore(storage).data.collections.models;
+  assert.deepEqual(restored, [saved]);
+  assert.equal(saved.values.additionalModels, "model-b\nmodel-c");
+  assert.equal(saved.values.model, "test-model");
+  assert.equal(saved.values.keySource, "keychain");
+  assert.ok(store.saveRecord("models", { ...saved.values, additionalModels: "a".repeat(161) }, saved.id)?.model);
+  assert.equal(store.data.collections.models[0].values.additionalModels, "model-b\nmodel-c");
+});

@@ -4,6 +4,7 @@ import { codingConfiguration } from "./configuration-coding";
 import { developmentConfiguration } from "./configuration-development";
 import { workspaceConfiguration } from "./configuration-workspace";
 import { configurationCollections } from "./configuration-types";
+import { MODELS_PER_CONNECTION, validModelId } from "./model-connection-models";
 import { validateCordisPlugin } from "./cordis-plugins";
 import type { ConfigurationData, ConfigurationValues, ConfigurationField, ConfigurationRecord, ValidationResult } from "./configuration-types";
 
@@ -75,6 +76,15 @@ export function validateFields(fields: readonly ConfigurationField[], input: unk
 export function validateRecord(collection: keyof ConfigurationData["collections"], input: unknown): ValidationResult<ConfigurationValues> {
   const result = validateFields(collectionSchemas[collection].fields, input, true);
   if (!result.ok) return result;
+  if (collection === "models") {
+    const primary = String(result.value.model);
+    const extra = String(result.value.additionalModels).split("\n").map((id) => id.trim()).filter(Boolean);
+    if (!validModelId(primary)) return { ok: false, errors: { model: "请填写有效的模型 ID。" } };
+    const models = [...new Set(extra)].filter((id) => id !== primary);
+    if (models.some((id) => !validModelId(id))) return { ok: false, errors: { model: "每个模型 ID 最多 160 个字符，且不能含控制字符。" } };
+    if (models.length >= MODELS_PER_CONNECTION) return { ok: false, errors: { model: `每份连接最多保存 ${MODELS_PER_CONNECTION} 个模型。` } };
+    result.value.additionalModels = models.join("\n");
+  }
   if (collection === "plugins") return validateCordisPlugin(result);
   if (collection === "extensions") {
     const remote = result.value.transport === "http";

@@ -1,3 +1,4 @@
+mod account_auth;
 mod browser_view;
 mod editor_open;
 mod external_link;
@@ -16,9 +17,17 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         // Terminal panel sessions (pseudo-terminals running the login shell).
         .manage(terminal::Terminals::default())
+        .manage(account_auth::AccountAuth::default())
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
+            account_auth::account_snapshot,
+            account_auth::account_send_code,
+            account_auth::account_sign_in,
+            account_auth::device::account_device_start,
+            account_auth::device::account_device_poll,
+            account_auth::account_cancel,
+            account_auth::account_logout,
             project_folder::inspect_project_folder,
             local_models::probe_local_models,
             // Read-only project views for the files and changes panels.

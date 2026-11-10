@@ -5,6 +5,7 @@ import {
   restoreAccountPageFocusTarget,
   type AccountPageNavigation,
 } from "@/app/account-page-navigation";
+import { AccountSessionProvider } from "./account-session";
 import { AccountLoginPage } from "./account-login-page";
 
 interface AccountPageActions {
@@ -73,12 +74,12 @@ export function AccountPageProvider({ children }: { children: ReactNode }) {
   }, [close, loginOpen]);
 
   return (
-    <AccountPageContext.Provider value={actions}>
+    <AccountSessionProvider><AccountPageContext.Provider value={actions}>
       <div aria-hidden={loginOpen || undefined} inert={loginOpen || undefined} className="h-full min-h-0">
         {children}
       </div>
       {loginOpen && <AccountLoginPage onBack={close} />}
-    </AccountPageContext.Provider>
+    </AccountPageContext.Provider></AccountSessionProvider>
   );
 }
 

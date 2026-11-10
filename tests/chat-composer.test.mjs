@@ -210,3 +210,15 @@ test("a saved model profile answers; an invalid or removed one blocks instead of
   assert.match(model.composerModelBlockReason("removed", options, records), /已移除/);
   assert.equal(model.composerModelBlockReason(undefined, options, records), undefined);
 });
+
+
+test("a connection contributes each configured model without duplicating the API profile", () => {
+  const records = [{ id: "shared", values: { name: "共享连接", model: "first", additionalModels: "second\nthird",
+    provider: "compatible", endpoint: "https://provider.example/v1", keySource: "keychain" } }];
+  const options = model.composerModels(records, {});
+  assert.deepEqual(options.map(({ model, connectionId }) => [model, connectionId]),
+    [["first", "shared"], ["second", "shared"], ["third", "shared"]]);
+  assert.equal(model.composerModelBlockReason(options[1].id, options, records), undefined);
+  const remaining = [{ ...records[0], values: { ...records[0].values, additionalModels: "third" } }];
+  assert.match(model.composerModelBlockReason(options[1].id, model.composerModels(remaining, {}), remaining), /已移除/);
+});

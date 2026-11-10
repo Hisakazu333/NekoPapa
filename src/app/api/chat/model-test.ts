@@ -70,7 +70,7 @@ export async function listModelProfile(profile: ChatModelProfile, runtime: ChatR
   const models = [...new Set(fetched.ids)].sort((a, b) => a.localeCompare(b)).slice(0, MAX_MODELS);
   if (!models.length) return { ok: true, message: "已连接服务，但它没有返回模型列表，请手动填写模型标识。", models };
   const more = fetched.ids.length > MAX_MODELS ? `（只显示前 ${MAX_MODELS} 个）` : "";
-  return { ok: true, message: `服务提供 ${models.length} 个模型${more}，选择一个即可。`, models };
+  return { ok: true, message: `服务提供 ${models.length} 个模型${more}，可勾选要添加的模型。`, models };
 }
 
 /** POST /api/model-test with `{ profile }`, or `{ profile, list: true }` to list models before one is chosen. */

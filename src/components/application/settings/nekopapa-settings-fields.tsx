@@ -26,21 +26,23 @@ interface SettingsFieldsProps {
   errors: Record<string, string>;
   onChange: (key: string, value: ConfigurationValue) => void;
   prefix: string;
+  stacked?: boolean;
 }
 
 /** Compact white select trigger used by the official settings rows. */
 const SELECT_TRIGGER = "h-8 w-auto gap-1 rounded-lg px-2 py-1.5";
 
-export function SettingsFields({ fields, values, errors, onChange, prefix }: SettingsFieldsProps) {
+export function SettingsFields({ fields, values, errors, onChange, prefix, stacked }: SettingsFieldsProps) {
   return <>{fields.map((field) => <SettingsFieldRow key={field.key} field={field} id={`${prefix}-${field.key}`}
-    value={values[field.key]} error={errors[field.key]} onChange={(next) => onChange(field.key, next)} />)}</>;
+    value={values[field.key]} error={errors[field.key]} stacked={stacked} onChange={(next) => onChange(field.key, next)} />)}</>;
 }
 
-function SettingsFieldRow({ field, id, value, error, onChange }: {
+function SettingsFieldRow({ field, id, value, error, onChange, stacked: stackedRow = false }: {
   field: ConfigurationField;
   id: string;
   value: ConfigurationValue | undefined;
   error?: string;
+  stacked?: boolean;
   onChange: (value: ConfigurationValue) => void;
 }) {
   const control = field.control ?? defaultControl(field);
@@ -50,7 +52,7 @@ function SettingsFieldRow({ field, id, value, error, onChange }: {
   const optionHint = field.optionHints?.[text];
   const description = [field.hint, optionHint].filter(Boolean).join(" ");
   const aria = { "aria-labelledby": labelId, "aria-describedby": description || error ? descriptionId : undefined };
-  const row = (children: React.ReactNode, stacked = false) => <SettingsRow label={field.label} description={description}
+  const row = (children: React.ReactNode, stacked = stackedRow) => <SettingsRow label={field.label} description={description}
     error={error} labelId={labelId} descriptionId={descriptionId} stacked={stacked}>{children}</SettingsRow>;
 
   if (control === "switch") {
@@ -89,7 +91,7 @@ function SettingsFieldRow({ field, id, value, error, onChange }: {
       isRequired={field.required} validationBehavior="aria" isInvalid={Boolean(error)} {...aria} />, true);
   }
   if (control === "tags") return row(<TagsControl field={field} id={id} value={text} aria={aria} onChange={onChange} />, true);
-  return row(<Input id={id} name={field.key} value={text} onChange={onChange} size="small" className="w-60 shrink-0"
+  return row(<Input id={id} name={field.key} value={text} onChange={onChange} size="small" className={stackedRow ? "w-full" : "w-60 shrink-0"}
     type="text" spellCheck="false" placeholder={field.placeholder} autoComplete="off" maxLength={field.maxLength}
     isRequired={field.required} validationBehavior="aria" isInvalid={Boolean(error)} {...aria} />);
 }
