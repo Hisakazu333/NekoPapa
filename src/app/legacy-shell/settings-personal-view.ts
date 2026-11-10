@@ -1,6 +1,6 @@
 import { icon } from "./icons";
 import { escapeHtml } from "./view-shared";
-import { companionById } from "../contacts/companion-model";
+import { companionById } from "../contacts/companion-catalog";
 import { renderCompanionAvatar } from "./companion-view";
 import { settingsShortcuts } from "./settings-model";
 import type { WorkspaceStore } from "./state";

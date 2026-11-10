@@ -1,7 +1,7 @@
 import { defaultPinnedFeatures } from "./feature-model";
 import type { FeatureId } from "./feature-model";
-import { defaultCompanionId } from "../contacts/companion-model";
-import type { CompanionId } from "../contacts/companion-model";
+import { defaultCompanionId } from "../contacts/companion-catalog";
+import type { CompanionId } from "../contacts/companion-catalog";
 import { defaultSidebarPreferences } from "./sidebar-query";
 import type { SidebarPreferences } from "./sidebar-query";
 

@@ -3,7 +3,7 @@ import { sessionStatusLabels } from "./activity";
 import { escapeHtml, iconButton, itemIcon } from "./view-shared";
 import { isSession } from "./state";
 import type { WorkspaceStore, WorkspaceItem } from "./state";
-import { companionName } from "../contacts/companion-model";
+import { companionName } from "../contacts/companion-catalog";
 import type { SettingsNavigation } from "./settings-model";
 
 // Window presentation is temporary; full view never changes the saved sidebar layout.

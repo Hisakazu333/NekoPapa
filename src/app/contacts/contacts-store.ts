@@ -1,4 +1,4 @@
-import { companionById, companionCatalog, type CompanionId } from "./companion-model";
+import { companionById, companionCatalog, type CompanionId } from "./companion-catalog";
 import { isContactAvatarDataUrl } from "./contact-avatar";
 
 export const CONTACTS_STORAGE_KEY = "nekopapa.contacts.v1";

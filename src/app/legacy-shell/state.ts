@@ -2,7 +2,7 @@ import { WorkspacePersistence } from "./workspace-storage";
 import { activitySections } from "./activity";
 import { featureById, maxPinnedFeatures } from "./feature-model";
 import type { FeatureId } from "./feature-model";
-import { companionById } from "../contacts/companion-model";
+import { companionById } from "../contacts/companion-catalog";
 import { normalizeSidebarPreferences } from "./sidebar-query";
 import { contentSnapshot, detachGroup, restoreContent, canDeleteContent } from "./workspace-lifecycle";
 import type { RestoreResult } from "./workspace-lifecycle";

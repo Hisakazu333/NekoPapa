@@ -4,7 +4,7 @@ import type { FeatureDefinition } from "./feature-model";
 import { icon } from "./icons";
 import { escapeHtml, iconButton } from "./view-shared";
 import type { WorkspaceStore } from "./state";
-import { companionById } from "../contacts/companion-model";
+import { companionById } from "../contacts/companion-catalog";
 import { renderCompanionAvatar } from "./companion-view";
 
 export function renderFeatureRail(store: WorkspaceStore): string {

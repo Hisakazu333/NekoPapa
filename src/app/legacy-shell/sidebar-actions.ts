@@ -1,4 +1,4 @@
-import { companionName } from "../contacts/companion-model";
+import { companionName } from "../contacts/companion-catalog";
 import { sidebarListLimits } from "./sidebar-query";
 import type { SidebarPreferences } from "./sidebar-query";
 import type { WorkspaceStore } from "./state";

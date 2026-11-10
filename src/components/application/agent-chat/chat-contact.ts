@@ -1,4 +1,4 @@
-import { companionById, type CompanionId } from "../../../app/contacts/companion-model";
+import { companionById, type CompanionId } from "../../../app/contacts/companion-catalog";
 import { isContactAvatarDataUrl } from "../../../app/contacts/contact-avatar";
 
 /** Serializable local contact identity. Requests strip imported picture data. */

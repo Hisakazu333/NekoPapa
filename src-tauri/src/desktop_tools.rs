@@ -37,22 +37,40 @@ unsafe extern "C" {
 }
 
 #[cfg(target_os = "macos")]
-fn position<R: Runtime>(app: &AppHandle<R>, expanded: bool) -> Result<(), String> {
+async fn position<R: Runtime>(
+    app: &AppHandle<R>,
+    expanded: bool,
+    show: bool,
+) -> Result<(), String> {
     let window = app.get_webview_window(ISLAND).ok_or("灵动岛窗口已关闭。")?;
     let for_ui = window.clone();
+    let (sender, mut receiver) = tauri::async_runtime::channel(1);
     window
         .run_on_main_thread(move || {
-            if let Ok(handle) = for_ui.ns_window() {
-                let (width, height) = if expanded {
-                    (442.0, 620.0)
-                } else {
-                    (174.0, 38.0)
-                };
-                // AppKit takes screen points, so mixed Retina displays do not skew the anchor.
-                unsafe { neko_position_island(handle, width, height) };
-            }
+            let result = for_ui
+                .ns_window()
+                .map_err(|_| "无法定位灵动岛窗口。")
+                .and_then(|handle| {
+                    let (width, height) = if expanded {
+                        (442.0, 620.0)
+                    } else {
+                        (174.0, 38.0)
+                    };
+                    // AppKit takes screen points, so mixed Retina displays do not skew the anchor.
+                    unsafe { neko_position_island(handle, width, height) };
+                    if show {
+                        for_ui.show().map_err(|_| "无法显示灵动岛。")?;
+                    }
+                    Ok(())
+                });
+            let _ = sender.try_send(result);
         })
-        .map_err(|_| "无法定位灵动岛窗口。".into())
+        .map_err(|_| "无法定位灵动岛窗口。")?;
+    receiver
+        .recv()
+        .await
+        .ok_or("灵动岛窗口定位中断。")?
+        .map_err(str::to_owned)
 }
 
 #[tauri::command]
@@ -79,13 +97,14 @@ pub async fn desktop_island_open<R: Runtime>(
                 .build()
                 .map_err(|_| "无法创建灵动岛窗口。")?
         };
-        window.show().map_err(|_| "无法显示灵动岛。")?;
         position(
             &app,
             window
                 .inner_size()
                 .is_ok_and(|size| size.width as f64 / window.scale_factor().unwrap_or(1.0) > 200.0),
+            true,
         )
+        .await
     }
     #[cfg(not(target_os = "macos"))]
     {
@@ -102,7 +121,7 @@ pub async fn desktop_island_expand<R: Runtime>(
 ) -> Result<(), String> {
     allowed(&view, &[ISLAND])?;
     #[cfg(target_os = "macos")]
-    return position(&app, expanded);
+    return position(&app, expanded, false).await;
     #[cfg(not(target_os = "macos"))]
     {
         let _ = (app, expanded);

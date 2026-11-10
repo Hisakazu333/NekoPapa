@@ -2,7 +2,7 @@ import { defaultPresentation } from "./chrome";
 import { conversationForCompanion } from "./companion-conversation";
 import { FeatureActions } from "./feature-actions";
 import { CompanionActions } from "./companion-actions";
-import { companionById } from "../contacts/companion-model";
+import { companionById } from "../contacts/companion-catalog";
 import { contentMenu } from "./chrome-actions";
 import { TabPicker } from "./tab-picker";
 import { SidebarActions } from "./sidebar-actions";

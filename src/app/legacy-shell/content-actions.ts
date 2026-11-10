@@ -11,7 +11,7 @@ import { settingsCatalog } from "./settings-model";
 import type { SettingsSection } from "./settings-model";
 import type { NoticeActions } from "./shell-notice";
 import type { ShellOverlays, MenuEntry, MenuPoint, MenuOptions } from "./overlays";
-import { companionCatalog, companionName } from "../contacts/companion-model";
+import { companionCatalog, companionName } from "../contacts/companion-catalog";
 
 interface SearchEntry { id: string; title: string; icon: IconName; subtitle: string; group: boolean; companionId?: string; settingsSection?: SettingsSection }
 interface ActionsHost {

@@ -52,3 +52,8 @@ Vite 适配保留 `src/platform/fonts.css`（字体变量）和 `scripts/boardui
 聊天正文使用浏览器本机存储，读取失败阻止覆盖、保存失败可重试；这不代表已获得数据库或完成原生多窗口验证。Vite 静态构建产物本身不包含 API 服务器，Tauri 安装包仍需常驻服务接入与独立验收。云账号认证、Live2D、Coding 执行层和工具执行尚未接入。DeepTutor 仅完成独立后端候选评估，没有安装、运行或接入。
 
 当前操作见 [导航职责](../../docs/navigation-map.md)，设置范围见 [设置清单](../../docs/settings-map.md)，教育方向见 [个人自学规划](../../docs/self-learning-plan.md)。
+
+### 屏幕取材与聊天组件核对
+
+- 项目多源目录使用已引入的官方 Tree View、Context Menu 和 Select。Agent Thinking 移到输入区上方；Composer Loader 保留真实请求状态。灵动岛与桌宠设置复用已有 BoardUI 基础控件，原生屏幕动效由 macOS 宿主绘制。
+- [官方组件目录](https://www.boardui.com/zh-hans/components)中的 Agent Limits Card、Agent Progress、Composer、Composer Attachments、Composer Panel、Task List、Web Search 和 AI Chat / AI Image Generation 模板为 Pro，当前未安装这些 Pro 源码。可用的上下文和输入流程用仓库内组件组成；Agent 任务进度、搜索结果和图像生成没有可消费的真实事件或接口，页面不显示演示结果。

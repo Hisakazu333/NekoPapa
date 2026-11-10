@@ -8,7 +8,7 @@
 
 ## 当前实现
 
-- `src/app/contacts/companion-model.ts` 与对应 JavaScript 目录提供五位官方人物的公开展示资料；稳定 ID 保持 `lumia`、`rinne`、`iori`、`shiori`、`tsumugi`。
+- `src/app/contacts/companion-catalog.ts`提供五位官方人物的公开展示资料；稳定 ID 保持 `lumia`、`rinne`、`iori`、`shiori`、`tsumugi`。
 - `src/app/api/chat/contact-prompt.ts` 只组装普通工作台和自建联系人的通用模型提示词。官方人物资料不能传入该函数生成本地人设。
 - `/api/chat` 的 GET 响应单独提供 `officialCompanions.configured` 与 `reason`，区别于通用模型的 `configured`。当前官方人物服务为未接入，即使开发服务器已经配置模型密钥也不会变为可用。
 - 官方人物 POST 请求先检查身份、客户端系统消息和群聊限制；合法的单人请求当前返回 `503 official_companion_unavailable`。不会向通用模型发送公开简介，也不会生成替代人物回复。
@@ -23,6 +23,10 @@
 `src-tauri/src/account_auth.rs` 在本机桌面主窗口运行账号请求。部署者设置 `NEKOPAPA_ACCOUNT_API_URL` 为受信任的 Java 服务基础地址，可在构建时配置或从启动进程环境读取。需要 HTTPS，本地联调可用回环 HTTP。账号 HTTP 请求拒绝跳转，服务端 Token 只保留在原生进程内；收到登录凭据后以授权请求读取 profile，只交给界面昵称、NekoID、套餐和云点余额。退出时调用服务端 logout。会话在退出应用后丢弃，WebView 重载可读取当前进程的状态。浏览器预览和未配置服务的桌面版只展示真实的不可用状态。
 
 本轮未验证部署地址、短信送达、手机端扫码或桌面端版本门禁，也未修改 Java 后端。下节的源码核查为历史记录。
+
+## 桌宠的账号模型
+
+桌面端复用已认证的账号会话读取 `GET /api/app/companion/roster`，默认跟随 `isCurrent` 同伴。官方模型由 `/live2d/download-url` 提供发布描述与签名地址，下载后检查大小、SHA-256 和模型入口。私人模型用名册提供的已授权下载地址。签名 URL 和 Token 留在宿主，打开桌宠不会改变账号当前同伴。上传由用户明确选择 ZIP，宿主校验后调用 `POST /api/app/companion/custom-roles/model-file`，再由 `POST /api/app/companion/custom-roles` 创建私人角色并绑定模型。账号配额、灰度与模型发布状态仍由 Java 决定。当前仅验证了客户端及本地测试，未连接正式账号服务。
 
 ## Java 源码核查结果（2026-11-08，尚未接入）
 

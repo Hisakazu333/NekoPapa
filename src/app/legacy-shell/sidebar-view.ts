@@ -6,7 +6,7 @@ import { activitySections, sessionStatusLabels } from "./activity";
 import type { ActivityEntry } from "./activity";
 import { conversationSections, workbenchEntries } from "./sidebar-model";
 import { renderCompanionEntry } from "./companion-view";
-import { companionName } from "../contacts/companion-model";
+import { companionName } from "../contacts/companion-catalog";
 import { sidebarSlice } from "./sidebar-query";
 
 function listRows<T>(items: T[], key: string, store: WorkspaceStore, expandedLists: ReadonlySet<string>, id: (entry: T) => string, render: (entry: T) => string): string {

@@ -1,5 +1,5 @@
 import { icon } from "./icons";
-import { companionCatalog, companionName } from "../contacts/companion-model";
+import { companionCatalog, companionName } from "../contacts/companion-catalog";
 import { renderCompanionAvatar } from "./companion-view";
 import { featureCatalog, maxPinnedFeatures } from "./feature-model";
 import { sidebarListLimits } from "./sidebar-query";

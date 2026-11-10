@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 /**
  * Bridge to the desktop host's built-in browser (src-tauri/src/browser_view.rs):
@@ -22,7 +23,6 @@ export const nativeBrowser = {
   openWindow: (url: string) => invoke<void>("browser_open_window", { url }),
   /** Navigation and title updates from the native view. Returns the unsubscribe. */
   async onState(handler: (state: BrowserStateEvent) => void): Promise<() => void> {
-    const { listen } = await import("@tauri-apps/api/event");
     return listen<BrowserStateEvent>("browser://state", (event) => handler(event.payload));
   },
 };

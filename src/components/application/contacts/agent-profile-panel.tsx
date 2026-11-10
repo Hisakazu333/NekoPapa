@@ -7,7 +7,7 @@ import { Textarea } from "@/components/base/textarea/textarea";
 import { Select, SelectItem } from "@/components/base/select/select";
 import { useContacts } from "@/hooks/use-contacts";
 import { cx } from "@/utils/cx";
-import { companionCatalog, type CompanionId } from "@/app/contacts/companion-model";
+import { companionCatalog, type CompanionId } from "@/app/contacts/companion-catalog";
 import { AgentAppearancePreview } from "./agent-appearance-preview";
 import { ContactAvatarEditor } from "./contact-avatar-editor";
 

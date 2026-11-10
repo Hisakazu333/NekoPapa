@@ -55,9 +55,11 @@ pub struct CaptureGate(std::sync::Mutex<()>);
 mod mac {
     use super::*;
     use std::{
-        ffi::{c_char, CStr, CString},
+        ffi::{c_char, c_void, CStr, CString},
         os::unix::ffi::OsStrExt,
         process::Command,
+        sync::mpsc,
+        time::Duration,
     };
 
     unsafe extern "C" {
@@ -65,10 +67,33 @@ mod mac {
         fn neko_recognize_text(file: *const c_char) -> *mut c_char;
         fn neko_capture_preview(file: *const c_char) -> *mut c_char;
         fn neko_free_text(text: *mut c_char);
+        fn neko_animate_screen_capture(
+            dark: bool,
+            complete: extern "C" fn(*mut c_void),
+            context: *mut c_void,
+        );
     }
 
     pub fn permission(request: bool) -> bool {
         unsafe { neko_can_capture(request) }
+    }
+
+    pub fn reveal<R: Runtime>(window: &tauri::WebviewWindow<R>, dark: bool) -> Result<(), String> {
+        extern "C" fn done(context: *mut c_void) {
+            // AppKit returns this sender exactly once, after ordering out the panel.
+            let sender = unsafe { Box::from_raw(context.cast::<mpsc::Sender<()>>()) };
+            let _ = sender.send(());
+        }
+        let (sender, receiver) = mpsc::channel();
+        window
+            .run_on_main_thread(move || {
+                let context = Box::into_raw(Box::new(sender)).cast::<c_void>();
+                unsafe { neko_animate_screen_capture(dark, done, context) };
+            })
+            .map_err(|_| "无法播放截屏动效。")?;
+        receiver
+            .recv_timeout(Duration::from_secs(3))
+            .map_err(|_| "截屏动效未正常结束，请重试。".into())
     }
 
     fn read_image(
@@ -91,9 +116,6 @@ mod mac {
     }
 
     pub fn capture(cache: &Path) -> Result<ScreenResult, String> {
-        if !permission(true) {
-            return Ok(ScreenResult::PermissionRequired);
-        }
         fs::create_dir_all(cache).map_err(|_| "无法准备截图临时目录。")?;
         let temporary = tempfile::Builder::new()
             .prefix("capture-")
@@ -211,6 +233,8 @@ pub async fn screen_permission_settings<R: Runtime>(view: Webview<R>) -> Result<
 pub async fn screen_select_text<R: Runtime>(
     app: AppHandle<R>,
     view: Webview<R>,
+    animate: bool,
+    dark: bool,
 ) -> Result<ScreenResult, String> {
     allowed(&view, &[ISLAND])?;
     #[cfg(target_os = "macos")]
@@ -227,15 +251,21 @@ pub async fn screen_select_text<R: Runtime>(
                 .0
                 .try_lock()
                 .map_err(|_| "已经在截取屏幕，请先完成或取消。")?;
-            let island = task_app.get_webview_window(ISLAND);
-            if let Some(ref window) = island {
-                let _ = window.hide();
+            if !mac::permission(true) {
+                return Ok(ScreenResult::PermissionRequired);
             }
-            let result = mac::capture(&cache);
-            if let Some(window) = island {
-                let _ = window.show();
-                let _ = window.set_focus();
-            }
+            let window = task_app
+                .get_webview_window(ISLAND)
+                .ok_or("灵动岛已关闭。")?;
+            window.hide().map_err(|_| "无法隐藏灵动岛，请重试。")?;
+            let result = (|| {
+                if animate {
+                    mac::reveal(&window, dark)?;
+                }
+                mac::capture(&cache)
+            })();
+            let _ = window.show();
+            let _ = window.set_focus();
             result
         })
         .await
@@ -243,7 +273,7 @@ pub async fn screen_select_text<R: Runtime>(
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = app;
+        let _ = (app, animate, dark);
         Err("截屏识字需要 macOS。".into())
     }
 }
@@ -269,9 +299,13 @@ pub async fn screen_note_save<R: Runtime>(
 pub async fn screen_notes_open<R: Runtime>(
     app: AppHandle<R>,
     view: Webview<R>,
+    kind: Option<NoteKind>,
 ) -> Result<(), String> {
     allowed(&view, &["main", ISLAND])?;
-    let root = note_directory(&app)?;
+    let mut root = note_directory(&app)?;
+    if let Some(kind) = kind {
+        root.push(kind.folder());
+    }
     fs::create_dir_all(&root).map_err(|_| "无法创建屏幕笔记目录。")?;
     #[cfg(target_os = "macos")]
     return std::process::Command::new("/usr/bin/open")

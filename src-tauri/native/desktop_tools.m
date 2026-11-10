@@ -3,6 +3,7 @@
 #import <ImageIO/ImageIO.h>
 #import <Vision/Vision.h>
 #include <string.h>
+#import "notch_screen.h"
 
 bool neko_can_capture(bool request) {
     if (@available(macOS 10.15, *)) {
@@ -68,20 +69,10 @@ char *neko_capture_preview(const char *file) {
 void neko_position_island(void *handle, double width, double height) {
     @autoreleasepool {
         NSWindow *window = (__bridge NSWindow *)handle;
-        NSScreen *screen = [NSScreen screens].firstObject;
-        CGFloat notch = 0;
-        if (@available(macOS 12.0, *)) {
-            for (NSScreen *candidate in [NSScreen screens]) {
-                if (candidate.safeAreaInsets.top > 0) {
-                    screen = candidate;
-                    notch = candidate.safeAreaInsets.top;
-                    break;
-                }
-            }
-        }
+        NSScreen *screen = neko_notch_screen();
         if (!screen) return;
         NSRect frame = screen.frame;
-        CGFloat top = MIN(NSMaxY(screen.visibleFrame), NSMaxY(frame) - notch);
+        CGFloat top = neko_notch_top(screen);
         [window setFrame:NSMakeRect(NSMidX(frame) - width / 2, top - height, width, height) display:YES];
     }
 }

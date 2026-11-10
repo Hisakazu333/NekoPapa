@@ -1,6 +1,6 @@
-import { companionById } from "../contacts/companion-model";
+import { companionById } from "../contacts/companion-catalog";
 import { conversationForCompanion } from "./companion-conversation";
-import type { CompanionDefinition } from "../contacts/companion-model";
+import type { CompanionDefinition } from "../contacts/companion-catalog";
 import type { WorkspaceStore } from "./state";
 import { escapeHtml } from "./view-shared";
 import { icon } from "./icons";

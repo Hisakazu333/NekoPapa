@@ -36,6 +36,6 @@
 
 官网当前没有独立的头像切片；所选资源是现成的方形人物插画变体。旧 OS 组件中的 `/art/lumia-companion.webp` 仅有代码引用，对应文件已经不存在，不能用作客户端资源。
 
-人物目录由 `src/app/contacts/companion-model.ts` 定义，头像展示由 `companion-view.ts` / `companion.css` 共用。当前选择保存为 `selectedCompanionId`，普通会话拥有独立的 `companionId`；重载、归档和恢复不把历史会话改成新选人物。
+人物目录由 `src/app/contacts/companion-catalog.ts` 定义，头像展示由 `companion-view.ts` / `companion.css` 共用。当前选择保存为 `selectedCompanionId`，普通会话拥有独立的 `companionId`；重载、归档和恢复不把历史会话改成新选人物。
 
 原画资源与 Live2D 运行资产是不同层；头像和选择入口可用不代表已接入人物模型、角色提示词或 Live2D。

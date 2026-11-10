@@ -1,4 +1,4 @@
-import { companionById } from "../../contacts/companion-model";
+import { companionById } from "../../contacts/companion-catalog";
 import { parseChatContact, type ChatContactMetadata } from "../../../components/application/agent-chat/chat-contact";
 
 export function resolveChatContact(value: unknown): ChatContactMetadata | undefined {

@@ -1,4 +1,4 @@
-import { companionCatalog } from "../contacts/companion-model";
+import { companionCatalog } from "../contacts/companion-catalog";
 import { renderCompanionAvatar } from "./companion-view";
 import type { WorkspaceStore } from "./state";
 import type { ShellOverlays } from "./overlays";

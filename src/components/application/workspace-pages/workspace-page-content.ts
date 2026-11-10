@@ -36,8 +36,8 @@ export const workspacePageContent: Record<PendingWorkspacePage, WorkspacePageCon
   cabin: {
     title: "小屋", icon: HouseIcon,
     intro: "同伴的 Live2D 房间：在这里看看 TA、和 TA 互动，再一起开始聊天。",
-    statusTitle: "Live2D 模型尚未提供",
-    status: "客户端已包含 Live2D 运行库，但还没有可用的人物模型。模型提供后再开放小屋，当前不会加载或显示任何人物模型。",
+    statusTitle: "小屋场景尚未开放",
+    status: "房间场景与布置尚未接入。想在桌面陪伴，可以前往设置 → 智能与工具 → Live2D 桌宠。",
     planned: [
       { icon: HouseIcon, title: "人物房间", description: "选择同伴，在房间里显示 TA 的 Live2D 模型与待机动作。" },
       { icon: MessageCircleIcon, title: "互动与聊天", description: "点击、触摸会有反应，可以从小屋直接进入和 TA 的单聊。" },

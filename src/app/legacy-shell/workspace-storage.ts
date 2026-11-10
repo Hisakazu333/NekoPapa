@@ -2,7 +2,7 @@ import { STORAGE_KEY, normalizeItem, initialState, systemItems, unique, stringLi
 import type { WorkspaceStorage, ShellState, GroupKind, NavigationMode } from "./workspace-model";
 import { removeLegacySamples } from "./workspace-migration";
 import { normalizePinnedFeatures } from "./feature-model";
-import { normalizeSelectedCompanion } from "../contacts/companion-model";
+import { normalizeSelectedCompanion } from "../contacts/companion-catalog";
 import { normalizeSidebarPreferences } from "./sidebar-query";
 import { isGroup, isItem, readArchives, readTrash, hasRecordDamage } from "./workspace-records";
 

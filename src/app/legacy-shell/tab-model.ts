@@ -1,4 +1,4 @@
-import { companionName } from "../contacts/companion-model";
+import { companionName } from "../contacts/companion-catalog";
 import type { ShellState, WorkspaceItem } from "./workspace-model";
 
 export interface OpenedTabEntry {

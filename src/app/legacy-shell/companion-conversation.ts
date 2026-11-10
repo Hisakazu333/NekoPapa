@@ -1,5 +1,5 @@
 import type { ShellState, WorkspaceItem } from "./workspace-model";
-import type { CompanionId } from "../contacts/companion-model";
+import type { CompanionId } from "../contacts/companion-catalog";
 
 export function conversationForCompanion(state: ShellState, id: CompanionId = state.selectedCompanionId): WorkspaceItem | undefined {
   const conversations = state.items.filter((item) => item.kind === "conversation" && item.companionId === id);

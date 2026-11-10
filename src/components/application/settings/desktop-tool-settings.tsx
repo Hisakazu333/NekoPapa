@@ -49,7 +49,7 @@ export function ScreenIslandSettings({ onClose }: { onClose: () => void }) {
   return <DesktopToolPanel onClose={onClose}>
     <SettingsSectionLabel>屏幕取材</SettingsSectionLabel>
     <SettingsCard>
-      <SettingsRow label="灵动岛" description="在屏幕顶端中央打开取材入口。有刘海时贴在刘海下方，其他屏幕贴在菜单栏下方。">
+      <SettingsRow label="灵动岛" description="在屏幕顶端打开小岛。点「截取屏幕」直接框选，截图完成后才打开编辑。">
         <Button size="small" leadingIcon={CameraIcon} disabled={!available || pending} onClick={() => void run(desktopTools.island)}>打开灵动岛</Button>
       </SettingsRow>
       <SettingsRow label="屏幕录制权限" description={info?.screenPermission ? "可以手动框选屏幕。识别在本机完成。" : "首次框选时由 macOS 询问。可以在系统设置里查看权限。"}>

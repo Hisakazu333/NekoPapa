@@ -30,7 +30,12 @@ SQLite 不是引擎 transcript 的第二份权威。Coding 的消息表、活动
 
 ## 应用数据目录
 
-由 Tauri 宿主解析平台应用数据目录，并传给 Node，禁止以运行时 cwd 推断。当前 application identifier 为 `app.nekopapa.desktop`。首个 macOS 验证目标类似 `~/Library/Application Support/app.nekopapa.desktop/`，以实际 Tauri resolver 返回值为准，不把示例绝对路径写死到服务。
+由 Tauri 宿主解析平台应用数据目录，禁止以运行时 cwd 推断。当前 application identifier 为 `app.nekopapa.desktop`。首个 macOS 验证目标类似 `~/Library/Application Support/app.nekopapa.desktop/`，以实际 Tauri resolver 返回值为准，不把示例绝对路径写死到服务。
+
+
+当前桌面工具使用 `<appData>/DesktopTools/`。灵动岛把用户确认的 Markdown 写入 `ScreenNotebook/Study/` 或 `ScreenNotebook/Code/`；原始截图只放在本次操作的缓存临时目录，结束后删除，预览仅留在窗口内存。桌宠的 `pet-model.json` 只保存本机入口文件路径；账号模型归账号服务，宿主按需下载并解包到临时目录，关闭桌宠或退出账号后释放。项目文件留在各源文件夹。
+
+以下是 Session / Run 存储的计划目录；这部分尚未迁移。
 
 ```text
 <appData>/

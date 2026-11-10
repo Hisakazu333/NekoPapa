@@ -19,7 +19,7 @@ try {
     files.set(name, path);
     writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+|import\s*)(["'])(\.{1,2}\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier.endsWith(".js") ? specifier : specifier + ".js"}${quote}`));
   }
-  for (const name of ["state", "activity", "chrome", "feature-model", "sidebar-model", "companion-model", "companion-conversation", "contacts-store", "sidebar-query", "tab-model", "settings-model", "settings-preferences", "settings-draft-state", "configuration-store", "configuration-contract", "configuration-types", "cordis-plugins", "local-profile", "cloud-account-contract", "settings-usage-view", "settings-account-view"]) {
+  for (const name of ["state", "activity", "chrome", "feature-model", "sidebar-model", "companion-catalog", "companion-conversation", "contacts-store", "sidebar-query", "tab-model", "settings-model", "settings-preferences", "settings-draft-state", "configuration-store", "configuration-contract", "configuration-types", "cordis-plugins", "local-profile", "cloud-account-contract", "settings-usage-view", "settings-account-view"]) {
     const path = files.get(name);
     if (!path) throw new Error(`Missing test module: ${name}`);
     modules[name] = await import(pathToFileURL(path));
@@ -30,7 +30,7 @@ export const activityModule = modules.activity;
 export const chromeModule = modules.chrome;
 export const featuresModule = modules["feature-model"];
 export const sidebarModule = modules["sidebar-model"];
-export const companionsModule = modules["companion-model"];
+export const companionsModule = modules["companion-catalog"];
 export const contactsStoreModule = modules["contacts-store"];
 export const sidebarQueryModule = modules["sidebar-query"];
 export const tabModule = modules["tab-model"];

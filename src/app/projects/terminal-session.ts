@@ -1,4 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 /**
  * The terminal panel's shell session (src-tauri/src/terminal.rs). One session
@@ -32,7 +33,6 @@ const byId = new Map<number, { push(data: string): void; end(): void }>();
 /** One pair of app-wide event listeners routes output to the session it belongs to. */
 function route() {
   routing ??= (async () => {
-    const { listen } = await import("@tauri-apps/api/event");
     await listen<{ id: number; data: string }>("terminal://output", ({ payload }) => byId.get(payload.id)?.push(payload.data));
     await listen<{ id: number }>("terminal://exit", ({ payload }) => byId.get(payload.id)?.end());
   })();
