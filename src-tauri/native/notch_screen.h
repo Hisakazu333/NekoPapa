@@ -11,7 +11,9 @@ static inline NSScreen *neko_notch_screen(void) {
 }
 
 static inline CGFloat neko_notch_top(NSScreen *screen) {
-    CGFloat inset = 0;
-    if (@available(macOS 12.0, *)) inset = screen.safeAreaInsets.top;
-    return MIN(NSMaxY(screen.visibleFrame), NSMaxY(screen.frame) - inset);
+    if (@available(macOS 12.0, *)) {
+        CGFloat inset = screen.safeAreaInsets.top;
+        if (inset > 0) return NSMaxY(screen.frame) - inset;
+    }
+    return NSMaxY(screen.visibleFrame);
 }

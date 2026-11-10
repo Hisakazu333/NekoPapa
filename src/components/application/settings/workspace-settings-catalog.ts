@@ -15,7 +15,7 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   profile: { label: "个人资料", title: "个人资料", description: "你的身份、NekoPapa 账号和本机活跃记录。", icon: UserIcon },
   usage: { label: "消耗统计", title: "消耗统计", description: "本机记录的 Token 用量、活跃日与流向。", icon: ChartColumnIcon },
   appearance: { label: "外观", title: "外观偏好", description: "选择当前工作区的主题模式。", icon: PaletteIcon },
-  "screen-island": { label: "灵动岛", title: "灵动岛与屏幕取材", description: "框选屏幕，在本机识字，保存学习笔记和代码草稿。", icon: CameraIcon },
+  "screen-island": { label: "屏幕取材", title: "屏幕取材", description: "框选屏幕，在本机识字，保存学习笔记和代码草稿。", icon: CameraIcon },
   model: { label: "模型与 API", title: "模型与自定义 API", description: "管理本机模型连接配置。", icon: CpuIcon },
   agent: { label: "Agent", title: "Agent 默认值", description: "保存新运行的模型、回复和权限偏好。", icon: BotIcon },
   personalization: { label: "个性化", title: "个性化与记忆", description: "保存自定义指令与未来的记忆策略。", icon: WandSparklesIcon },

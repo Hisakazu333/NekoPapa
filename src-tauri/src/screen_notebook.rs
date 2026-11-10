@@ -35,6 +35,7 @@ impl NoteKind {
 pub struct NotebookInfo {
     directory: String,
     screen_permission: bool,
+    capture_enabled: bool,
 }
 
 #[derive(Serialize)]
@@ -211,7 +212,24 @@ pub async fn screen_notebook_info<R: Runtime>(
     Ok(NotebookInfo {
         directory: note_directory(&app)?.to_string_lossy().into(),
         screen_permission,
+        capture_enabled: app.get_webview_window(ISLAND).is_some(),
     })
+}
+
+#[tauri::command]
+pub async fn screen_capture_feedback<R: Runtime>(
+    app: AppHandle<R>,
+    view: Webview<R>,
+    message: String,
+) -> Result<(), String> {
+    use tauri_plugin_dialog::{DialogExt, MessageDialogKind};
+    allowed(&view, &[ISLAND])?;
+    app.dialog()
+        .message(message.chars().take(240).collect::<String>())
+        .title("屏幕取材")
+        .kind(MessageDialogKind::Warning)
+        .show(|_| {});
+    Ok(())
 }
 
 #[tauri::command]
@@ -252,21 +270,18 @@ pub async fn screen_select_text<R: Runtime>(
                 .try_lock()
                 .map_err(|_| "已经在截取屏幕，请先完成或取消。")?;
             if !mac::permission(true) {
+                // The system may already be showing its own permission dialog.
+                // Notify the workbench without opening a second native modal.
+                let _ = task_app.emit_to("main", "screen-notebook:permission-required", ());
                 return Ok(ScreenResult::PermissionRequired);
             }
             let window = task_app
                 .get_webview_window(ISLAND)
                 .ok_or("灵动岛已关闭。")?;
-            window.hide().map_err(|_| "无法隐藏灵动岛，请重试。")?;
-            let result = (|| {
-                if animate {
-                    mac::reveal(&window, dark)?;
-                }
-                mac::capture(&cache)
-            })();
-            let _ = window.show();
-            let _ = window.set_focus();
-            result
+            if animate {
+                mac::reveal(&window, dark)?;
+            }
+            mac::capture(&cache)
         })
         .await
         .map_err(|_| "截屏任务中断。")?

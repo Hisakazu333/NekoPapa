@@ -3,12 +3,17 @@ fn main() {
         for source in [
             "desktop_tools.m",
             "screen_capture_motion.m",
+            "screen_island_handle.m",
             "notch_screen.h",
         ] {
             println!("cargo:rerun-if-changed=native/{source}");
         }
         cc::Build::new()
-            .files(["native/desktop_tools.m", "native/screen_capture_motion.m"])
+            .files([
+                "native/desktop_tools.m",
+                "native/screen_capture_motion.m",
+                "native/screen_island_handle.m",
+            ])
             .flag("-fobjc-arc")
             .compile("desktop_tools");
         for framework in ["AppKit", "CoreGraphics", "ImageIO", "QuartzCore", "Vision"] {

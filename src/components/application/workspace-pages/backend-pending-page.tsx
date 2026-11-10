@@ -52,7 +52,8 @@ export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspac
             <Button size="small" variant="secondary" leadingIcon={FolderOpenIcon}
               onClick={() => void desktopTools.openNotes("study").catch((error) => toast.error(desktopToolError(error)))}>打开笔记</Button>
             <Button size="small" leadingIcon={CameraIcon}
-              onClick={() => void desktopTools.island().catch((error) => toast.error(desktopToolError(error)))}>屏幕取材</Button>
+              onClick={() => void desktopTools.island().then(() => toast.info("在刘海附近停半秒，再把出现的把手往下拖。"))
+                .catch((error) => toast.error(desktopToolError(error)))}>启用屏幕取材</Button>
           </div>
         </section>}
         {page === "cabin" && <Button size="small" variant="secondary" className="self-center"

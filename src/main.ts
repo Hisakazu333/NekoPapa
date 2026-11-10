@@ -1,6 +1,7 @@
 import { createElement, Fragment } from "react";
 import { desktopToolWindow, ISLAND_WINDOW, PET_WINDOW } from "@/app/desktop/desktop-tools";
 import { ScreenIsland } from "@/components/application/desktop-tools/screen-island";
+import { ScreenCapturePermissionNotice } from "@/components/application/desktop-tools/screen-capture-permission-notice";
 import { DesktopPetWindow } from "@/components/application/desktop-tools/desktop-pet-window";
 import { createRoot } from "react-dom/client";
 import { AgentChat } from "@/components/application/agent-chat/agent-chat";
@@ -27,4 +28,5 @@ if (windowLabel === ISLAND_WINDOW || windowLabel === PET_WINDOW) {
       createElement(Fragment, null,
         createElement(ConfiguredTheme),
         createElement(AgentChat),
+        createElement(ScreenCapturePermissionNotice),
         createElement(Toaster, { "aria-label": "通知", closeLabel: "关闭通知" }))))));

@@ -47,6 +47,7 @@ pub fn run() {
             desktop_pet::desktop_pet_open,
             desktop_pet::desktop_pet_model,
             screen_notebook::screen_notebook_info,
+            screen_notebook::screen_capture_feedback,
             screen_notebook::screen_select_text,
             screen_notebook::screen_permission_settings,
             screen_notebook::screen_note_save,

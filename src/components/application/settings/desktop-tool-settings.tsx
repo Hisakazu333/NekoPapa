@@ -3,7 +3,7 @@ import { Button } from "@/components/base/buttons/button";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
 import { CameraIcon, FolderOpenIcon } from "@/components/foundations/icons/app-icons";
-import { desktopToolError, desktopTools, desktopToolsAvailable, type NotebookInfo } from "@/app/desktop/desktop-tools";
+import { desktopToolError, desktopTools, desktopToolsAvailable, ISLAND_WINDOW, type NotebookInfo } from "@/app/desktop/desktop-tools";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
 
 export function DesktopToolPanel({ onClose, children }: { onClose: () => void; children: ReactNode }) {
@@ -49,10 +49,18 @@ export function ScreenIslandSettings({ onClose }: { onClose: () => void }) {
   return <DesktopToolPanel onClose={onClose}>
     <SettingsSectionLabel>屏幕取材</SettingsSectionLabel>
     <SettingsCard>
-      <SettingsRow label="灵动岛" description="在屏幕顶端打开小岛。点「截取屏幕」直接框选，截图完成后才打开编辑。">
-        <Button size="small" leadingIcon={CameraIcon} disabled={!available || pending} onClick={() => void run(desktopTools.island)}>打开灵动岛</Button>
+      <SettingsRow label="刘海取材手势" description="鼠标在刘海附近停半秒，出现「下拉取材」后按住向下拖，松手后框选屏幕。移开鼠标会收起把手。">
+        <Button size="small" leadingIcon={CameraIcon} variant={info?.captureEnabled ? "secondary" : "primary"} disabled={!available || pending}
+          onClick={() => void run(async () => {
+            if (info?.captureEnabled) await desktopTools.close(ISLAND_WINDOW);
+            else await desktopTools.island();
+            setInfo(await desktopTools.notebook());
+          })}>{info?.captureEnabled ? "停用取材手势" : "启用取材手势"}</Button>
       </SettingsRow>
-      <SettingsRow label="屏幕录制权限" description={info?.screenPermission ? "可以手动框选屏幕。识别在本机完成。" : "首次框选时由 macOS 询问。可以在系统设置里查看权限。"}>
+      <SettingsRow label="屏幕录制权限" description={info?.screenPermission
+        ? "当前运行的 NekoPapa 已获得录屏权限。识别在本机完成。"
+        : info ? "当前运行的 NekoPapa 尚未取得录屏权限。若系统开关已打开，请完全退出并重新打开你使用的 NekoPapa。"
+          : "录屏权限由 macOS 系统设置管理。"}>
         <Button size="small" variant="secondary" disabled={!available || pending} onClick={() => void run(desktopTools.permissionSettings)}>系统设置</Button>
       </SettingsRow>
     </SettingsCard>

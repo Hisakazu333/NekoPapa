@@ -2,7 +2,8 @@
 #import <QuartzCore/QuartzCore.h>
 #import "notch_screen.h"
 
-static const CFTimeInterval RevealDuration = 0.62;
+// Match the workbench's light/dark circular reveal timing and easing.
+static const CFTimeInterval RevealDuration = 0.82;
 
 void neko_animate_screen_capture(bool dark, void (*complete)(void *), void *context) {
     @autoreleasepool {
@@ -44,15 +45,12 @@ void neko_animate_screen_capture(bool dark, void (*complete)(void *), void *cont
         wave.startPoint = CGPointMake(0.5, 0.5);
         wave.endPoint = CGPointMake(1, 0.5);
         NSColor *surfaceTint = dark ? NSColor.whiteColor : NSColor.blackColor;
-        NSColor *accent = NSColor.selectedControlColor;
-        if (@available(macOS 10.14, *)) accent = NSColor.controlAccentColor;
         wave.colors = @[
-            (__bridge id)[surfaceTint colorWithAlphaComponent:0.16].CGColor,
-            (__bridge id)[surfaceTint colorWithAlphaComponent:0.14].CGColor,
-            (__bridge id)[accent colorWithAlphaComponent:0.44].CGColor,
-            (__bridge id)[accent colorWithAlphaComponent:0.0].CGColor
+            (__bridge id)[surfaceTint colorWithAlphaComponent:0.30].CGColor,
+            (__bridge id)[surfaceTint colorWithAlphaComponent:0.26].CGColor,
+            (__bridge id)[surfaceTint colorWithAlphaComponent:0.0].CGColor
         ];
-        wave.locations = @[@0.0, @0.80, @0.96, @1.0];
+        wave.locations = @[@0.0, @0.86, @1.0];
         wave.opacity = 0;
         [surface addSublayer:wave];
 
@@ -63,7 +61,7 @@ void neko_animate_screen_capture(bool dark, void (*complete)(void *), void *cont
         reveal.timingFunction = [CAMediaTimingFunction functionWithControlPoints:0.16 :1.0 :0.3 :1.0];
         CAKeyframeAnimation *fade = [CAKeyframeAnimation animationWithKeyPath:@"opacity"];
         fade.values = @[@0.0, @1.0, @1.0, @0.0];
-        fade.keyTimes = @[@0.0, @0.10, @0.65, @1.0];
+        fade.keyTimes = @[@0.0, @0.08, @0.74, @1.0];
         fade.duration = RevealDuration;
         CAAnimationGroup *group = [CAAnimationGroup animation];
         group.animations = @[reveal, fade];
