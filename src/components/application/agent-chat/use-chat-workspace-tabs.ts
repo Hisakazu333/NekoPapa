@@ -6,6 +6,7 @@ import {
   navigateChatWorkspaceTabs,
   nextChatWorkspaceTabAfterClose,
   openChatWorkspaceTab,
+  resetChatWorkspaceTabs,
 } from "./chat-workspace-tabs";
 
 export function useChatWorkspaceTabs({
@@ -83,6 +84,18 @@ export function useChatWorkspaceTabs({
     return id === state.activeId ? nextId || undefined : undefined;
   }, [state]);
 
+  /** Closes every tab and starts one new chat; returns how many tabs closed, or 0 when it could not. */
+  const closeAll = useCallback(() => {
+    if (busy) return 0;
+    beforeSwitch();
+    const freshId = createSession();
+    if (!freshId) return 0;
+    const closed = state.ids.length;
+    setState(resetChatWorkspaceTabs(freshId));
+    enterWorkspace();
+    return closed;
+  }, [beforeSwitch, busy, createSession, enterWorkspace, state.ids.length]);
+
   const back = useCallback(() => navigate("back"), [navigate]);
   const forward = useCallback(() => navigate("forward"), [navigate]);
 
@@ -92,6 +105,7 @@ export function useChatWorkspaceTabs({
     select,
     create,
     close,
+    closeAll,
     remove,
     back,
     forward,

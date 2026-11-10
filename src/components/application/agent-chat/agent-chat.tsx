@@ -15,7 +15,8 @@ import { SpacePage } from "@/components/application/workspace-pages/space-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
 import { useSidebarVisibility } from "@/components/application/dashboard/use-sidebar-visibility";
-import { SidebarPeek } from "@/components/application/dashboard/sidebar-peek";
+import { toast } from "@/components/base/toast/toast";
+import { SidebarPeek, useSidebarPeek } from "@/components/application/dashboard/sidebar-peek";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ContactsMessenger } from "@/components/application/contacts/contacts-messenger";
 import { reconcileContactThread, sameContactThread } from "@/components/application/contacts/contact-thread-sync";
@@ -76,6 +77,7 @@ export function AgentChat({
   const [input, setInput] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const sidebarVisibility = useSidebarVisibility();
+  const sidebarPeek = useSidebarPeek(sidebarVisibility.hidden && !contained);
   const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
   const history = useChatHistory();
@@ -373,6 +375,12 @@ export function AgentChat({
   useChatToolShortcuts(page === "chat", toggleTool);
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
+  // 清理标签: closes the views only; saved chats stay in the sidebar under their project.
+  const clearTabs = () => {
+    placement.leaveBrowserTab();
+    const closed = windowNavigation.closeAll();
+    if (closed > 0) toast.success(`已关闭 ${closed} 个标签`, { description: "用过的对话仍保留在侧栏对应的项目中。" });
+  };
   const chatActions = {
     transcript,
     onExport: exportThreads,
@@ -413,7 +421,8 @@ export function AgentChat({
       contained={contained}
       className={className}
       titlebarContent={windowActions}
-      sidebarToggle={{ hidden: sidebarVisibility.hidden, onToggle: sidebarVisibility.toggle, shortcut: sidebarVisibility.shortcut }}
+      sidebarToggle={{ hidden: sidebarVisibility.hidden, shortcut: sidebarVisibility.shortcut, onHoverChange: sidebarPeek.hover,
+        onToggle: () => { sidebarPeek.setOpen(false); sidebarVisibility.toggle(); } }}
       toolbarNavigation={{
         onBack: windowNavigation.back,
         onForward: windowNavigation.forward,
@@ -421,12 +430,14 @@ export function AgentChat({
         createInTabs: windowToolbar,
         canGoBack: windowNavigation.canGoBack,
         canGoForward: windowNavigation.canGoForward,
+        onClearTabs: windowToolbar ? clearTabs : undefined,
+        canClearTabs: !busy && (windowNavigation.state.ids.length > 1 || messages.length > 0),
       }}
     >
       {/* The browser and the tool panels (目录 / 终端 / 更改 / 文件) all fold the sidebar to its rail for room. */}
       <DashboardSidebar {...sidebar} selected={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
         className={sidebarVisibility.hidden ? "hidden" : "hidden lg:flex"} />
-      <SidebarPeek enabled={sidebarVisibility.hidden && !contained}>
+      <SidebarPeek peek={sidebarPeek}>
         {(close) => <DashboardSidebar mobile {...sidebar} selected={page} onClose={close} className="flex" />}
       </SidebarPeek>
 

@@ -62,3 +62,10 @@ test("the active chat always has a tab, even before the open effect runs", () =>
   assert.equal(entries[1].title, "正在写");
   assert.deepEqual(tabs.chatTabEntries(tabs.emptyChatWorkspaceTabs(), { activeId: "", activeTitle: "", threads: [], sessionOf: () => undefined }), []);
 });
+
+test("清理标签只留下一个新对话，历史从它重新开始", () => {
+  const state = tabs.resetChatWorkspaceTabs("fresh");
+  assert.deepEqual(state, { ids: ["fresh"], activeId: "fresh", history: ["fresh"], historyIndex: 0 });
+  assert.deepEqual(tabs.navigateChatWorkspaceTabs(state, "back"), state);
+  assert.deepEqual(tabs.openChatWorkspaceTab(state, "a").ids, ["fresh", "a"]);
+});

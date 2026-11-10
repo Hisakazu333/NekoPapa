@@ -13,6 +13,8 @@ import { EmptyRecords, EmptyRecordsButton, NewRecordRow, RecordRow } from "./set
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
 import { useSettingsDraft } from "./settings-draft-context";
 import { LocalModelsSection } from "./local-models-section";
+import { SkillDiscoverySection } from "./skill-discovery-section";
+import { CordisPatchSection } from "./cordis-patch-section";
 
 type Collection = ConfigurationCollection;
 /** Extensions are shown as two pages: MCP / connectors, and skills. */
@@ -21,7 +23,7 @@ interface Editor { id?: string; values: ConfigurationValues; base: string }
 interface Removal { id: string; name: string; base: string; triggerId: string }
 
 const searchKeys: Record<Collection, string[]> = {
-  models: ["name", "provider", "model", "endpoint"], extensions: ["name", "kind", "transport", "command", "endpoint"],
+  models: ["name", "provider", "model", "endpoint"], extensions: ["name", "kind", "transport", "command", "endpoint"], plugins: ["name", "module", "instanceId"],
   connections: ["name", "host", "username"], hooks: ["name", "event", "command"],
 };
 const toolFilters = [["all", "全部"], ["mcp", "MCP 服务"], ["connector", "连接器"]] as const;
@@ -203,6 +205,8 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                   </SettingsCard>
                 )}
               </section>
+              {skills && <SkillDiscoverySection onStatus={(message, error) => error ? setErrors({ form: message }) : report(message)} />}
+              {collection === "plugins" && <CordisPatchSection records={records} onStatus={(message, error) => error ? setErrors({ form: message }) : report(message)} />}
             </>
           )}
         </div>

@@ -32,6 +32,14 @@ export function presentRecord(collection: ConfigurationCollection, record: Confi
       detail: skill ? "已保存目录 · 技能加载尚未接入" : "已保存配置 · 工具运行时尚未接入",
     };
   }
+  if (collection === "plugins") {
+    const id = value("instanceId");
+    return {
+      initial, color: "blue", chips: [option("source"), ...(record.values.enabled === false ? ["已停用"] : [])],
+      summary: value("module"),
+      detail: [id && `实例 ID ${id}`, "插件加载尚未接入"].filter(Boolean).join(" · "),
+    };
+  }
   if (collection === "connections") {
     return {
       initial, color: "lime", chips: ["SSH"],

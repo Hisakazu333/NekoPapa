@@ -3,6 +3,7 @@ import { parseColor, type Key } from "react-aria-components";
 import { APPEARANCE_ACCENTS, type AppearanceAccent } from "@/app/appearance-preferences";
 import { ColorWell } from "@/components/base/color-picker/color-picker";
 import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
+import { tokenHex } from "@/platform/token-color";
 import { cx } from "@/utils/cx";
 
 export interface AccentColorOptionsProps {
@@ -26,7 +27,12 @@ export function AccentColorOptions({
     green: "#6f7b63", blue: "#597fa7", purple: "#8771a3", orange: "#a8754f",
   };
   const presetId = APPEARANCE_ACCENTS.some(({ id }) => id === value) ? value as keyof typeof presetHex : undefined;
-  const currentHex = presetId ? presetHex[presetId] : value;
+  // "theme" (跟随主题) has no fixed colour: the well shows the accent the
+  // theme paints right now. Anything parseColor would reject falls back to
+  // green instead of throwing during render (which blanked the whole app).
+  const currentHex = presetId ? presetHex[presetId]
+    : /^#[\da-f]{6}$/i.test(value) ? value
+    : value === "theme" ? tokenHex("accent-500") ?? presetHex.green : presetHex.green;
   const select = (keys: Set<Key> | "all") => {
     if (keys === "all") return;
     const selected = Array.from(keys)[0];

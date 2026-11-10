@@ -3,7 +3,7 @@ import type { CloudQuotaSnapshot } from "./cloud-account-contract";
 export type ConfigurationGroup = "general" | "privacy" | "profile" | "appearance" | "voice" | "agent" | "personalization" | "desktop" | "computer" | "history" | "screenshots" | "browser" | "coding" | "permissions" | "context" | "editor" | "review" | "git" | "worktrees";
 export type ConfigurationValue = string | boolean | number;
 export type ConfigurationValues = Record<string, ConfigurationValue>;
-export type ConfigurationCollection = "models" | "extensions" | "connections" | "hooks";
+export type ConfigurationCollection = "models" | "extensions" | "plugins" | "connections" | "hooks";
 export type ConfigurationControl = "input" | "textarea" | "select" | "segmented" | "switch" | "number" | "slider" | "directory" | "tags";
 export interface ConfigurationField {
   key: string;
@@ -60,4 +60,4 @@ export interface ConfigurationStorage { getItem(key: string): string | null; set
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; errors: Record<string, string> };
 
 export const configurationKey = "nekopapa.settings.v1";
-export const configurationCollections: ConfigurationCollection[] = ["models", "extensions", "connections", "hooks"];
+export const configurationCollections: ConfigurationCollection[] = ["models", "extensions", "plugins", "connections", "hooks"];

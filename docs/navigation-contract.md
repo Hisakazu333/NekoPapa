@@ -614,3 +614,53 @@
 - 测试：新增 `tests/hover-intent.test.mjs`（4 项）；`tests/appearance-themes.test.mjs` 增加预设编号与明暗方向、浅色主题替换白色表面 2 项。`npm run test` **499 / 499**，`npm run build` 通过，`npm run desktop:build -- --debug` 通过，`git diff --check` 通过。本轮没有 Rust 改动。
 - 浏览器 `localhost:1495`：悬停“更多”约 0.5s 内打开、移开后关闭；悬停后点击保持打开；移入面板不关闭、移出后关闭。隐藏侧栏后左缘悬停浮出侧栏、移开收回，恢复显示侧栏。打开终端 / 更改时侧栏宽度 280 → 60，关闭后回到 280。插件弹层显示空状态与两个设置入口。外观页主题卡片组存在，深色模式下背景 / 前景胶囊显示 `#161616` / `#f2f4f8`（用户在 1495 上选择的 Oxocarbon）。
 - 未验证：主题卡片网格与色块胶囊的视觉截图（验证时用户正在面板中操作，未打断）；ColorPicker 拖动修改颜色；桌面窗口中的悬停浮出与主题。
+
+### 快速搜索点按、账号菜单位置、邮件入口与技能扫描（2026-11-10）
+
+- 快速搜索：点按“快速搜索”没有反应（只有快捷键可用）。原因是 React 19 在打开搜索的点击中同步执行副作用，外部点击监听立刻收到同一次点击并关闭搜索；改为下一任务再挂监听，并忽略已离开页面的触发节点。
+- 账号菜单：原先向上展开且高度接近整个窗口，盖住交通灯。改为在侧栏右侧展开、底边对齐账号按钮、最高到标题栏下方，并去掉重复的资料头部和“工作区”设置入口。
+- 邮件：侧栏收起按钮左侧新增“邮件”按钮，只说明邮件服务尚未接入。
+- 技能：新增本机技能扫描（Rust 命令 `scan_skill_folders` 与开发服务器 `/api/skills/scan`），用户确认后才写入技能记录。`hostCall` 从 `project-workspace-client.ts` 导出供两处共用。
+- 网页与桌面外观不同：浏览器预览 `localhost:1495` 与桌面 WebView 各有独立的本机存储；1495 上保存的是验证期间选择的 Oxocarbon，且预览面板按应用主题报告深色，因此网页偏黑，桌面按 macOS 浅色显示。两者代码路径相同。
+- 测试：新增 `tests/skill-discovery.test.mjs`（3 项）与 Rust `skill_discovery::tests`（1 项）。`npm run test` **502 / 502**，`npm run build` 通过，`cargo check` 通过，`cargo test` 10 项通过，`npm run desktop:build -- --debug` 通过，`git diff --check` 通过。
+- 未验证：账号菜单新位置、邮件弹层、快速搜索点按与技能扫描列表的浏览器截图（用户正在面板中操作，未打断）；桌面窗口中的这些交互。
+
+### 标题栏关闭全部标签、侧栏按钮悬停浮出（2026-11-10）
+
+- 标题栏“前进”右侧新增垃圾桶按钮：关闭全部标签并回到一个新对话，已保存的对话不删除、仍按项目留在侧栏；单个空白对话或回复中禁用。新增 `resetChatWorkspaceTabs` 与 `closeAll`。
+- 侧栏隐藏时，标题栏侧栏按钮也能悬停浮出侧栏（与左缘热区共用 `useSidebarPeek`，停留 300ms 打开、离开 300ms 收回），点击按钮常驻显示。`ToolbarIconButton` 新增 `onHoverChange`。
+- 测试：`tests/chat-workspace-tabs.test.mjs` 新增 1 项。`npm run test` **503 / 503**，`npm run build` 通过，`npm run desktop:build -- --debug` 通过，`git diff --check` 通过。
+- 浏览器 `localhost:1495`：垃圾桶按钮在单个空白对话时为禁用。用户面板宽 692px（低于 lg），侧栏按钮按设计隐藏，未调整用户窗口，悬停浮出未在浏览器验证；桌面窗口未验证。
+
+### 设置移入账号菜单、登录页返回按钮、GitHub 插件搜索（2026-11-10）
+
+- 侧栏底部的“设置”按钮移入账号菜单（本机资料之后，附 `⌘,` / `Ctrl+,`）；快捷键行为不变。
+- 登录页在 macOS 桌面窗口中，“返回工作区”与交通灯重叠：顶栏改为 40px、左侧留出 88px，空白处设 `data-tauri-drag-region`。
+- “插件与工具”弹层新增“在 GitHub 搜索 DeepSeek Harness 插件”，打开 GitHub 仓库搜索；新增 Rust 命令 `open_external_url`（仅 http(s)，地址作为单个参数交给系统打开程序）与 `src/platform/open-external.ts`。
+- 验证：`npm run test` **503 / 503**，`npm run build` 通过，`cargo check` 通过，`cargo test` 10 项通过，`npm run desktop:build -- --debug` 通过，`git diff --check` 通过。浏览器 `localhost:1495`：弹层显示 GitHub 按钮与两个设置入口，侧栏不再有独立设置按钮。
+- 未验证：桌面窗口中登录页按钮位置、系统浏览器实际打开 GitHub、账号菜单中的“设置”项点按（面板宽 692px，侧栏位于抽屉，未打断用户）。
+
+### 插件弹层区分 dsh 插件与技能 / MCP（2026-11-10）
+
+- 原弹层把 GitHub 插件搜索放在 MCP / 技能列表中，容易误读为技能就是 dsh 插件。按官方 README：dsh 插件是导出 `apply(ctx)` 的 TS / JS 模块，经 Cordis 配置加载；技能是 SKILL.md 说明文件，MCP 是外部服务协议。弹层改为两块分别说明；GitHub 按钮文字缩短为“在 GitHub 搜索插件”（完整说明在悬停提示与无障碍名称中）。
+- 验证见本轮命令输出：`npm run test`、`npm run build`、`npm run desktop:build -- --debug`、`git diff --check`。
+
+### 账号菜单黑屏修复、设置新增 Cordis 插件（2026-11-10）
+
+- 黑屏：浏览器预览中点账号按钮后整页变黑。原因是账号菜单“偏好”里的强调色控件只认预设和 HEX，保存值为“跟随主题”（`theme`）时 `parseColor("theme")` 在渲染中抛错，整个应用被卸载；桌面版保存的不是该值，所以正常。`accent-color-options.tsx` 改为显示主题当前的强调色，无法解析的值回退为绿色，不再抛错。
+- 设置 → 开发新增“Cordis 插件”页（`plugins` 集合，`src/app/cordis-plugins.ts` 负责字段、校验与补丁生成，`cordis-patch-section.tsx` 显示补丁预览、复制与 GitHub 搜索）。“插件与工具”弹层的 dsh 部分新增“Cordis 插件”按钮进入该页。只保存配置条目，不加载插件。
+- 测试：新增 `tests/cordis-plugins.test.mjs`（3 项），`tests/configuration.test.mjs` 默认集合断言加入 `plugins`。
+- 浏览器 `localhost:1495`（1400×860 模拟视口，测试后已恢复）：点账号按钮菜单正常展开、强调色色块显示主题色；设置 → 开发 → Cordis 插件空状态、相对路径报错、保存后列表与补丁预览正确；测试条目已删除，`plugins` 为空。
+- 未验证：桌面窗口中的该页与复制到剪贴板；GitHub 按钮在系统浏览器实际打开。
+
+### 登录页返回按钮下移（2026-11-10）
+
+- 用户反馈 macOS 桌面登录页的“返回工作区”贴着窗口顶边、与交通灯挤在一行，显得太靠上。改为顶部 40px 只作可拖动标题栏，按钮放在下方 48px 一行、与页面左边距（16px / 24px）对齐；非 macOS 窗口不变。
+- 设置分类数随“Cordis 插件”更新为 29。
+- 验证：`npm run test`、`npm run build`、`npm run desktop:build -- --debug`、`git diff --check`；桌面窗口中的实际位置需在重新打开应用后确认。
+
+### 主题改为下拉选择、扩充到 46 套（2026-11-10）
+
+- 用户反馈主题卡片全部平铺占满设置页，且数量偏少。“主题”首行改为“配色方案”选择器（`appearance-theme-picker.tsx`）：只显示当前主题，点按打开带搜索的滚动列表，选中后关闭并滚动定位到当前项。
+- 新增 27 套开源配色（Nightfox、Iceberg、PaperColor、Flexoki、Edge、Modus、Selenized、Bluloco、Zenbones、Alabaster、Palenight、Moonlight、Horizon、Cobalt2、Synthwave '84、Shades of Purple、Zenburn、Sonokai、Melange、Mellow、Snazzy、Oceanic Next、Spacegray、Panda、Embark、Andromeda、Bamboo），共 46 套；现有测试逐一校验正文对比度 ≥ 4.5:1 与浅 / 深方向。
+- 浏览器 `localhost:1495`：设置页主题只占一行；列表打开时定位到当前 Oxocarbon，搜索 “night” 过滤为 4 项。选中后关闭弹层的点按因用户同时操作面板未完成验证；桌面窗口未验证。

@@ -1,7 +1,9 @@
 mod browser_view;
+mod external_link;
 mod local_models;
 mod project_folder;
 mod project_workspace;
+mod skill_discovery;
 mod terminal;
 
 pub fn run() {
@@ -21,6 +23,10 @@ pub fn run() {
             project_workspace::project_read_file,
             project_workspace::project_git_status,
             project_workspace::project_git_diff,
+            // 设置 → 技能: lists skill folders already on this computer.
+            skill_discovery::scan_skill_folders,
+            // Links that leave the app open in the system browser.
+            external_link::open_external_url,
             terminal::terminal_open,
             terminal::terminal_write,
             terminal::terminal_resize,

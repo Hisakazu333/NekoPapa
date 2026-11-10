@@ -1,3 +1,4 @@
+import { cordisPluginFields } from "./cordis-plugins";
 import type { ConfigurationSchema, ConfigurationField as Field, ConfigurationCollection } from "./configuration-types";
 
 const text = (key: string, label: string, hint = "", maxLength = 500): Field => ({ key, label, hint, type: "text", control: "input", initial: "", maxLength });
@@ -58,6 +59,7 @@ export const collectionSchemas: Record<ConfigurationCollection, CollectionSchema
     { ...text("endpoint", "服务地址", "HTTP 服务使用；不填写密码或令牌。"), format: "url" },
     environment,
   ] },
+  plugins: { title: "Cordis 插件", singular: "插件配置", description: "DeepSeek Harness 插件是导出 apply(ctx) 的 TypeScript / JavaScript 模块，由 Cordis 配置加载。这里只保存配置条目；执行层接入前不会安装、导入或运行插件。", fields: cordisPluginFields },
   connections: { title: "设备与 SSH", singular: "设备配置", description: "保存远程设备连接信息。当前没有远程执行服务，不会建立 SSH 连接。", fields: [
     name,
     { ...text("host", "主机地址", "主机名、IPv4 或 IPv6 地址，不包含协议。", 253), required: true, format: "host" },

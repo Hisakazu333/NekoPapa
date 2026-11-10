@@ -12,7 +12,7 @@ try {
     const path = join(output, name);
     writeFileSync(path, readFileSync(path, "utf8").replace(/(from\s+|import\s*)(["'])(\.\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier.endsWith(".js") ? specifier : specifier + ".js"}${quote}`));
   }
-  for (const name of ["state", "activity", "chrome", "feature-model", "sidebar-model", "companion-model", "contacts-store", "sidebar-query", "tab-model", "settings-model", "settings-preferences", "settings-draft-state", "configuration-store", "configuration-contract", "configuration-types", "local-profile", "cloud-account-contract", "settings-usage-view", "settings-account-view"]) {
+  for (const name of ["state", "activity", "chrome", "feature-model", "sidebar-model", "companion-model", "contacts-store", "sidebar-query", "tab-model", "settings-model", "settings-preferences", "settings-draft-state", "configuration-store", "configuration-contract", "configuration-types", "cordis-plugins", "local-profile", "cloud-account-contract", "settings-usage-view", "settings-account-view"]) {
     if (readdirSync(output).includes(`${name}.js`)) modules[name] = await import(pathToFileURL(join(output, `${name}.js`)));
   }
 } finally { rmSync(output, { recursive: true, force: true }); }
@@ -31,6 +31,7 @@ export const settingsDraftStateModule = modules["settings-draft-state"];
 export const configurationStoreModule = modules["configuration-store"];
 export const configurationContractModule = modules["configuration-contract"];
 export const configurationTypesModule = modules["configuration-types"];
+export const cordisPluginsModule = modules["cordis-plugins"];
 export const localProfileModule = modules["local-profile"];
 export const cloudAccountContractModule = modules["cloud-account-contract"];
 export const settingsUsageViewModule = modules["settings-usage-view"];

@@ -4,6 +4,8 @@ import { desktopAccountApi } from "@/app/desktop-account-api";
 import { AuthCard, AuthMediaCarousel } from "@/components/application/auth/auth-card";
 import { Button } from "@/components/base/buttons/button";
 import { StatusDot } from "@/components/base/badges/status-dot";
+import { isMacTauriWindow } from "@/components/application/dashboard/mac-window-frame";
+import { cx } from "@/utils/cx";
 
 const COMPANIONS = [
   { src: "/characters/lumia-avatar.jpg", alt: "" },
@@ -21,6 +23,9 @@ export function AccountLoginPage({ onBack }: { onBack: () => void }) {
   const pageRef = useRef<HTMLElement>(null);
   const connection = desktopAccountApi.availability;
   const closed = connection.kind === "disabled";
+  // The page covers the window, title bar included: on macOS the back button
+  // starts after the traffic lights, and the empty bar still drags the window.
+  const macWindow = isMacTauriWindow();
 
   useEffect(() => {
     pageRef.current?.focus();
@@ -33,7 +38,11 @@ export function AccountLoginPage({ onBack }: { onBack: () => void }) {
       aria-label="登录 NekoPapa"
       className="fixed inset-0 z-[120] flex min-h-0 flex-col bg-background-full text-text-primary outline-none"
     >
-      <header className="flex h-14 shrink-0 items-center px-4 sm:px-6">
+      {/* macOS: the 40px title bar stays an empty drag strip for the traffic
+          lights; the back button sits on its own row below it. */}
+      {macWindow && <div data-tauri-drag-region aria-hidden className="h-10 shrink-0" />}
+      <header data-tauri-drag-region={macWindow || undefined}
+        className={cx("flex h-14 shrink-0 items-center px-4 sm:px-6", macWindow && "h-12")}>
         <Button variant="ghost" size="small" leadingIcon={RiArrowLeftLine} onClick={onBack}>
           返回工作区
         </Button>

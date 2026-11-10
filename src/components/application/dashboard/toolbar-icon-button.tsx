@@ -24,10 +24,12 @@ export const toolbarIconClass = "size-[18px] shrink-0";
 type IconComponent = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
 /** Toolbar icon button with the BoardUI tooltip naming its action, and its shortcut when it has one. */
-export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = false, shortcut, className }: {
+export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = false, shortcut, className, onHoverChange }: {
   icon: IconComponent;
   label: string;
   onPress: () => void;
+  /** Pointer resting on / leaving the button, for hover-intent surfaces (e.g. the sidebar peek). */
+  onHoverChange?: (inside: boolean, pointerType: string) => void;
   isDisabled?: boolean;
   /** Shown beside the label in the tooltip, e.g. "⌘B". */
   shortcut?: string;
@@ -35,7 +37,9 @@ export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = fal
 }) {
   return (
     <TooltipTrigger>
-      <AriaButton aria-label={label} onPress={onPress} isDisabled={isDisabled} className={cx(toolbarIconButtonClass, className)}>
+      <AriaButton aria-label={label} onPress={onPress} isDisabled={isDisabled} className={cx(toolbarIconButtonClass, className)}
+        onHoverStart={onHoverChange && ((event) => onHoverChange(true, event.pointerType))}
+        onHoverEnd={onHoverChange && ((event) => onHoverChange(false, event.pointerType))}>
         <Icon className={cx(toolbarIconClass, directionalIconClass(Icon))} aria-hidden />
       </AriaButton>
       <Tooltip placement="bottom">{shortcut ? <span className="flex items-center gap-2">{label}<Kbd>{shortcut}</Kbd></span> : label}</Tooltip>

@@ -3,13 +3,14 @@ import { readGitOutput, readListing, readProjectFile, type GitOutput, type Proje
 
 const UNAVAILABLE = "当前页面不能读取本机文件夹。请在 NekoPapa 桌面应用或本地开发服务器中打开。";
 
-async function call<T>(command: string, route: string, args: Record<string, string>, read: (value: unknown) => T): Promise<T> {
+/** One host request: a desktop command, or the dev server route in the browser preview. */
+export async function hostCall<T>(command: string, route: string, args: Record<string, string>, read: (value: unknown) => T): Promise<T> {
   if (isTauri()) {
     try { return read(await invoke(command, args)); } catch (error) { throw new Error(typeof error === "string" ? error : error instanceof Error ? error.message : "读取失败。"); }
   }
   let response: Response;
   try {
-    response = await fetch(`/api/project-workspace/${route}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(args) });
+    response = await fetch(`/api/${route}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(args) });
   } catch {
     throw new Error(UNAVAILABLE);
   }
@@ -25,8 +26,8 @@ async function call<T>(command: string, route: string, args: Record<string, stri
  * to show.
  */
 export const projectWorkspace = {
-  list: (root: string, dir: string): Promise<ProjectListing> => call("project_list_dir", "list", { root, dir }, readListing),
-  read: (root: string, path: string): Promise<ProjectFile> => call("project_read_file", "read", { root, path }, readProjectFile),
-  status: (root: string): Promise<GitOutput> => call("project_git_status", "git-status", { root }, readGitOutput),
-  diff: (root: string, path: string): Promise<GitOutput> => call("project_git_diff", "git-diff", { root, path }, readGitOutput),
+  list: (root: string, dir: string): Promise<ProjectListing> => hostCall("project_list_dir", "project-workspace/list", { root, dir }, readListing),
+  read: (root: string, path: string): Promise<ProjectFile> => hostCall("project_read_file", "project-workspace/read", { root, path }, readProjectFile),
+  status: (root: string): Promise<GitOutput> => hostCall("project_git_status", "project-workspace/git-status", { root }, readGitOutput),
+  diff: (root: string, path: string): Promise<GitOutput> => hostCall("project_git_diff", "project-workspace/git-diff", { root, path }, readGitOutput),
 };

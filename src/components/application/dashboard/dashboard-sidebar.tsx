@@ -21,6 +21,7 @@ import { Kbd } from "@/components/base/kbd/kbd";
 import { Collapsible, NavRows, DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./sidebar-navigation";
 import { SidebarResizeFrame } from "./sidebar-resize-frame";
 import { SidebarMoreMenu, type SidebarMoreEntry } from "./sidebar-more-menu";
+import { SidebarMailButton } from "./sidebar-mail-button";
 export { DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./sidebar-navigation";
 import { cx } from "@/utils/cx";
 import { filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
@@ -139,12 +140,19 @@ export function DashboardSidebar({
 
     const onOutsideClick = (event: MouseEvent) => {
       const target = event.target;
-      if (target instanceof Node && searchFieldRef.current?.contains(target)) return;
+      // The click that opened search replaced its trigger with the field, so
+      // it reaches here from a node no longer in the page: not an outside click.
+      if (target instanceof Node && (!target.isConnected || searchFieldRef.current?.contains(target))) return;
       deactivateSearch(false);
     };
 
-    document.addEventListener("click", onOutsideClick);
-    return () => document.removeEventListener("click", onOutsideClick);
+    // Listen from the next task: React flushes this effect during the opening
+    // click, which would otherwise close search as soon as it opened.
+    const timer = window.setTimeout(() => document.addEventListener("click", onOutsideClick));
+    return () => {
+      window.clearTimeout(timer);
+      document.removeEventListener("click", onOutsideClick);
+    };
   }, [deactivateSearch, searchActive]);
 
   useEffect(() => {
@@ -281,6 +289,8 @@ export function DashboardSidebar({
               <RiCloseLine className="size-5" aria-hidden />
             </button>
           ) : (
+            <div className={cx("flex items-center gap-1", collapsed && "flex-col")}>
+            {!collapsed && <SidebarMailButton />}
             <button
               type="button"
               aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -299,6 +309,7 @@ export function DashboardSidebar({
                 aria-hidden
               />
             </button>
+            </div>
           )}
         </div>
 

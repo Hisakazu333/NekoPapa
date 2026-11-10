@@ -2,13 +2,13 @@ import {
   RiBarChartBoxLine, RiBookOpenLine, RiCameraLine, RiChatHistoryLine, RiCodeLine,
   RiComputerLine, RiCpuLine, RiDatabase2Line, RiGitBranchLine, RiGitMergeLine,
   RiGlobalLine, RiInformationLine, RiKeyboardLine, RiMagicLine, RiMicLine,
-  RiPaletteLine, RiPuzzle2Line, RiRobot2Line, RiSettings6Line, RiShieldCheckLine,
+  RiPaletteLine, RiPlugLine, RiPuzzle2Line, RiRobot2Line, RiSettings6Line, RiShieldCheckLine,
   RiShieldKeyholeLine, RiShieldUserLine, RiStackLine, RiTerminalBoxLine,
   RiTerminalWindowLine, RiToolsLine, RiUserLine, RiWebhookLine,
 } from "@remixicon/react";
 import type { ConfigurationGroup } from "@/app/configuration-types";
 
-export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage";
+export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "plugins" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage";
 
 interface SettingsSectionEntry {
   label: string;
@@ -39,6 +39,7 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   permissions: { label: "权限规则", title: "权限规则", description: "Coding 会话的权限模式、命令、文件与网络规则。", icon: RiShieldKeyholeLine },
   context: { label: "上下文与指令", title: "上下文与指令", description: "项目指令、文件范围和上下文压缩。", icon: RiStackLine },
   skills: { label: "技能", title: "技能", description: "管理 Agent 可以按需读取的本地技能目录。", icon: RiPuzzle2Line },
+  plugins: { label: "Cordis 插件", title: "Cordis 插件", description: "DeepSeek Harness 插件模块与 Cordis 配置条目；执行层接入前不会加载。", icon: RiPlugLine },
   editor: { label: "编辑器与终端", title: "编辑器与终端", description: "外部编辑器、差异视图和终端偏好。", icon: RiTerminalWindowLine },
   hooks: { label: "生命周期钩子", title: "生命周期钩子", description: "管理未来运行服务的事件与命令配置。", icon: RiWebhookLine },
   review: { label: "代码审查", title: "代码审查", description: "保存代码审查与安全审查的默认配置。", icon: RiShieldCheckLine },
@@ -52,7 +53,7 @@ export const settingsGroups: readonly { label: string; sections: readonly Settin
   { label: "工作区", sections: ["general", "profile", "usage", "appearance", "data", "privacy"] },
   { label: "智能与工具", sections: ["model", "agent", "personalization", "voice", "tools"] },
   { label: "桌面与设备", sections: ["desktop", "computer", "history", "screenshots", "browser", "connections"] },
-  { label: "开发", sections: ["coding", "permissions", "context", "skills", "hooks", "editor", "review", "git", "worktrees"] },
+  { label: "开发", sections: ["coding", "permissions", "context", "skills", "plugins", "hooks", "editor", "review", "git", "worktrees"] },
   { label: "应用", sections: ["shortcuts", "about"] },
 ];
 

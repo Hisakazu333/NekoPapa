@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { isTauri } from "@tauri-apps/api/core";
-import { RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiSideBarLine } from "@remixicon/react";
+import { RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiDeleteBin6Line, RiSideBarLine } from "@remixicon/react";
 import { ToolbarIconButton } from "./toolbar-icon-button";
 import { cx } from "@/utils/cx";
 
@@ -28,9 +28,12 @@ export function MacWindowFrame({
     canGoForward?: boolean;
     /** The open-chat tabs carry 新建对话 at their end (browser-style), so it is not repeated here. */
     createInTabs?: boolean;
+    /** 清理标签: close every tab and start one new chat; omitted where there are no tabs. */
+    onClearTabs?: () => void;
+    canClearTabs?: boolean;
   };
   /** Hides or shows the desktop sidebar; only shown where that sidebar exists (lg and up). */
-  sidebarToggle?: { hidden: boolean; onToggle: () => void; shortcut: string };
+  sidebarToggle?: { hidden: boolean; onToggle: () => void; shortcut: string; onHoverChange?: (inside: boolean, pointerType: string) => void };
 }) {
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
   const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", height, className);
@@ -39,11 +42,13 @@ export function MacWindowFrame({
     <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
       {sidebarToggle && <>
         <ToolbarIconButton icon={RiSideBarLine} label={sidebarToggle.hidden ? "显示侧栏" : "隐藏侧栏"} onPress={sidebarToggle.onToggle}
-          shortcut={sidebarToggle.shortcut} className="hidden lg:inline-flex" />
+          shortcut={sidebarToggle.shortcut} className="hidden lg:inline-flex" onHoverChange={sidebarToggle.onHoverChange} />
         <span aria-hidden className="mx-1 hidden h-4 w-px bg-separator-border lg:block" />
       </>}
       <ToolbarIconButton icon={RiArrowLeftLine} label="返回" onPress={toolbarNavigation.onBack} isDisabled={!toolbarNavigation.canGoBack} />
       <ToolbarIconButton icon={RiArrowRightLine} label="前进" onPress={toolbarNavigation.onForward} isDisabled={!toolbarNavigation.canGoForward} />
+      {toolbarNavigation.onClearTabs && <ToolbarIconButton icon={RiDeleteBin6Line} label="关闭全部标签，回到新对话（对话仍保留在侧栏）"
+        onPress={toolbarNavigation.onClearTabs} isDisabled={!toolbarNavigation.canClearTabs} />}
       {!toolbarNavigation.createInTabs && <>
         <span aria-hidden className="mx-1 h-4 w-px bg-separator-border" />
         <ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={toolbarNavigation.onCreate} />

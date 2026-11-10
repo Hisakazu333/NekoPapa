@@ -13,7 +13,7 @@ import { AppearanceSettingsPanel } from "./nekopapa-appearance-settings";
 import { ConfigurationGroupPanel, ConnectionsSettingsPanel, HooksSettingsPanel } from "./nekopapa-configuration-settings";
 import { DataSettingsPanel } from "./nekopapa-data-settings";
 import { ModelSettingsPanel } from "./nekopapa-model-settings";
-import { SkillSettingsPanel, ToolSettingsPanel } from "./nekopapa-tool-settings";
+import { PluginSettingsPanel, SkillSettingsPanel, ToolSettingsPanel } from "./nekopapa-tool-settings";
 import { AboutSettingsPanel, GeneralSettingsPanel, ShortcutsSettingsPanel } from "./workspace-settings-info";
 import { settingsGroups, settingsSections, type SettingsSection } from "./workspace-settings-catalog";
 import { SettingsDraftProvider } from "./settings-draft-context";
@@ -49,6 +49,7 @@ function SettingsPanel({ page, onClose }: {
     case "model": return <ModelSettingsPanel onClose={onClose} />;
     case "tools": return <ToolSettingsPanel onClose={onClose} />;
     case "skills": return <SkillSettingsPanel onClose={onClose} />;
+    case "plugins": return <PluginSettingsPanel onClose={onClose} />;
     case "data": return <DataSettingsPanel onClose={onClose} />;
     case "connections": return <ConnectionsSettingsPanel onClose={onClose} />;
     case "hooks": return <HooksSettingsPanel onClose={onClose} />;

@@ -15,7 +15,7 @@ test("设置默认值无生产样例、无在线连接，与工作台键独立",
   const storage = memory();
   storage.entries.set("nekopapa.workspace.v1", "保留的工作台");
   const store = new ConfigurationStore(storage);
-  assert.deepEqual(store.data.collections, { models: [], extensions: [], connections: [], hooks: [] });
+  assert.deepEqual(store.data.collections, { models: [], extensions: [], plugins: [], connections: [], hooks: [] });
   assert.equal(store.data.groups.usage, undefined);
   assert.equal(store.data.groups.agent.modelSource, "custom");
   assert.equal(store.data.groups.computer.enabled, false);

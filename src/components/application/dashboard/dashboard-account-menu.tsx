@@ -1,8 +1,6 @@
 import { useRef, useState } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import {
-  RiCpuLine,
-  RiDatabase2Line,
   RiFeedbackLine,
   RiGlobalLine,
   RiLoginBoxLine,
@@ -11,9 +9,10 @@ import {
   RiSunLine,
   RiMoonLine,
   RiQuestionLine,
-  RiToolsLine,
+  RiSettings3Line,
   RiUserLine,
 } from "@remixicon/react";
+import { Kbd } from "@/components/base/kbd/kbd";
 import { Avatar } from "@/components/base/avatar/avatar";
 import {
   Dropdown,
@@ -90,6 +89,7 @@ export function DashboardAccountMenu({
   const [appearanceError, setAppearanceError] = useState("");
   const container = useRef<HTMLDivElement>(null);
   const initials = profileInitials(profile.name);
+  const settingsShortcut = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform) ? "⌘," : "Ctrl+,";
   const accountStatus = desktopAccountApi.availability.kind === "disabled" ? "登录暂未开放" : "未登录";
   const showSettings = (section: AccountSettingsSection) => {
     setOpen(false);
@@ -149,29 +149,28 @@ export function DashboardAccountMenu({
             </span>
           )}
         </DropdownTrigger>
+        {/* Opens beside the sidebar, bottom edges aligned, and never taller
+            than the window below the title bar — so it cannot cover the
+            traffic lights or the toolbar. The profile header is not repeated:
+            the trigger already shows it. */}
         <DropdownPopover
           aria-label="账号菜单"
-          placement="top start"
-          offset={8}
-          className="max-h-[calc(100dvh-32px)] overflow-y-auto"
+          placement="end bottom"
+          offset={collapsed ? 20 : 24}
+          className="max-h-[calc(100dvh-72px)] w-[280px] overflow-y-auto"
         >
-          <div className="flex items-center gap-2 px-2 py-1">
-            <Avatar size="md" color="blue" initials={initials} alt={profile.name} />
-            <div className="min-w-0">
-              <p className="truncate text-body-medium text-text-primary">{profile.name}</p>
-              <p className="text-body-regular text-text-secondary">本机资料</p>
-            </div>
-          </div>
-          <DropdownDivider />
-          <DropdownGroup label="账号">
-            <AccountAction icon={RiLoginBoxLine} label="登录 NekoPapa" onSelect={showLogin} />
+          <DropdownGroup>
+            <DropdownItem onSelect={showLogin}>
+              <RiLoginBoxLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+              <span className="flex-1">登录 NekoPapa</span>
+              <span className="text-caption-1-regular text-text-tertiary">{accountStatus}</span>
+            </DropdownItem>
             <AccountAction icon={RiUserLine} label="本机资料" onSelect={() => showSettings("profile")} />
-          </DropdownGroup>
-          <DropdownDivider />
-          <DropdownGroup label="工作区">
-            <AccountAction icon={RiCpuLine} label="模型与 API" onSelect={() => showSettings("model")} />
-            <AccountAction icon={RiToolsLine} label="MCP 与连接器" onSelect={() => showSettings("tools")} />
-            <AccountAction icon={RiDatabase2Line} label="数据与备份" onSelect={() => showSettings("data")} />
+            <DropdownItem onSelect={() => showSettings("general")}>
+              <RiSettings3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+              <span className="flex-1">设置</span>
+              <Kbd>{settingsShortcut}</Kbd>
+            </DropdownItem>
           </DropdownGroup>
           <DropdownDivider />
           <DropdownGroup label="偏好">
@@ -220,14 +219,10 @@ export function DashboardAccountMenu({
             {languageError && <p role="alert" className="px-2 py-1 text-body-2-regular text-text-error-primary">{languageError}</p>}
           </DropdownGroup>
           <DropdownDivider />
-          <DropdownGroup label="支持">
+          <DropdownGroup>
             <HelpLink href="https://github.com/Hisakazu333/NekoPapa#readme" icon={RiQuestionLine}>帮助文档</HelpLink>
             <HelpLink href="https://github.com/Hisakazu333/NekoPapa/issues" icon={RiFeedbackLine}>反馈问题</HelpLink>
           </DropdownGroup>
-          <DropdownDivider />
-          <div className="flex justify-between gap-2 px-2 py-1 text-caption-1-medium text-text-tertiary">
-            <span>NekoPapa</span><span>{accountStatus}</span>
-          </div>
         </DropdownPopover>
       </Dropdown>
     </div>

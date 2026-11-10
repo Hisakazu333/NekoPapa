@@ -4,6 +4,7 @@ import { codingConfiguration } from "./configuration-coding";
 import { developmentConfiguration } from "./configuration-development";
 import { workspaceConfiguration } from "./configuration-workspace";
 import { configurationCollections } from "./configuration-types";
+import { validateCordisPlugin } from "./cordis-plugins";
 import type { ConfigurationData, ConfigurationValues, ConfigurationField, ConfigurationRecord, ValidationResult } from "./configuration-types";
 
 export const configurationSchemas = [...workspaceConfiguration, ...personalConfiguration, ...integrationConfiguration, ...codingConfiguration, ...developmentConfiguration];
@@ -13,7 +14,7 @@ export function configurationDefaults(): ConfigurationData {
   return {
     version: 1,
     groups: Object.fromEntries(configurationSchemas.map((schema) => [schema.id, fieldDefaults(schema.blocks.flatMap((block) => block.fields))])) as ConfigurationData["groups"],
-    collections: { models: [], extensions: [], connections: [], hooks: [] },
+    collections: { models: [], extensions: [], plugins: [], connections: [], hooks: [] },
   };
 }
 
@@ -74,6 +75,7 @@ export function validateFields(fields: readonly ConfigurationField[], input: unk
 export function validateRecord(collection: keyof ConfigurationData["collections"], input: unknown): ValidationResult<ConfigurationValues> {
   const result = validateFields(collectionSchemas[collection].fields, input, true);
   if (!result.ok) return result;
+  if (collection === "plugins") return validateCordisPlugin(result);
   if (collection === "extensions") {
     const remote = result.value.transport === "http";
     if (result.value.kind === "skill" && remote) return { ok: false, errors: { transport: "技能使用本地目录。" } };

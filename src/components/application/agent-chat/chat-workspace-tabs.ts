@@ -58,6 +58,15 @@ export function closeChatWorkspaceTab(state: ChatWorkspaceTabsState, id: string)
   return { ids, activeId, history, historyIndex };
 }
 
+/**
+ * 清理标签: every open tab closes and one fresh chat remains, with history
+ * starting again from it. Closing a tab only closes the view — saved chats
+ * stay in the sidebar under their project.
+ */
+export function resetChatWorkspaceTabs(freshId: string): ChatWorkspaceTabsState {
+  return { ids: [freshId], activeId: freshId, history: [freshId], historyIndex: 0 };
+}
+
 export interface ChatTabSource { id: string; title?: string | null; contact?: { name: string } }
 export interface ChatTabEntry { id: string; title: string; unread: boolean }
 
