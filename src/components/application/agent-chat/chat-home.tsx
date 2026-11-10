@@ -23,6 +23,7 @@ import { HomeProjectMenu } from "./home-project-menu";
 import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
 import { useSendKey } from "@/hooks/use-send-key";
+import { homeGreeting } from "./chat-home-greeting";
 import "@/styles/chat-home.css";
 
 const modes = [
@@ -62,19 +63,13 @@ export interface ChatHomeProps {
   onProjectChange: (projectId: string | undefined) => void;
 }
 
-function greeting() {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "早上好。";
-  if (hour >= 12 && hour < 18) return "下午好。";
-  return "晚上好。";
-}
 
 export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlockedReason, onOpenSettings, onSelectContact, onClearContact, selectedContact, composer, project, onProjectChange }: ChatHomeProps) {
   const titleId = useId();
   const inputId = useId();
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const composing = useRef(false);
-  const [salutation] = useState(greeting);
+  const [salutation] = useState(() => homeGreeting(new Date().getHours(), Math.random()));
   const [ideaIndex, setIdeaIndex] = useState(0);
   const canSend = !disabled && value.trim().length > 0;
   const official = selectedContact?.kind === "official";

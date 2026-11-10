@@ -18,8 +18,8 @@ export function panelWidthLimits(containerWidth: number, mainMinimum = MIN_CHAT_
 }
 
 /** Keep the preferred width separate, so a temporary narrow window cannot erase it. */
-export function fitPanelWidth(containerWidth: number, preferred: number | null, mainMinimum = MIN_CHAT_WIDTH): number {
+export function fitPanelWidth(containerWidth: number, preferred: number | null, mainMinimum = MIN_CHAT_WIDTH, defaultRatio = 0.4): number {
   const limits = panelWidthLimits(containerWidth, mainMinimum);
-  const requested = preferred !== null && Number.isFinite(preferred) ? preferred : containerWidth * 0.4;
+  const requested = preferred !== null && Number.isFinite(preferred) ? preferred : containerWidth * defaultRatio;
   return Math.min(limits.max, Math.max(limits.min, requested));
 }

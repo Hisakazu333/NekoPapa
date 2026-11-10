@@ -5,8 +5,6 @@ import { resolveProject } from "@/app/projects";
 import { useProjects } from "@/hooks/use-projects";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { ProfileHeatmap } from "./profile-heatmap";
-import { RiArrowRightSLine } from "@remixicon/react";
-import { useWorkspaceSettings } from "../workspace-settings";
 
 function StatTile({ label, value, unit, note }: { label: string; value: number; unit?: string; note?: ReactNode }) {
   return (
@@ -31,7 +29,6 @@ export function ProfileActivityCard() {
   // The page shows a snapshot; reopening settings picks up a new day.
   const [now] = useState(() => Date.now());
   const { projects } = useProjects();
-  const openSettings = useWorkspaceSettings();
   const activity = useMemo(
     () => profileActivity(history.threads, now, { projectKey: (value) => resolveProject(projects, value)?.id }),
     [history.threads, now, projects],
@@ -58,14 +55,6 @@ export function ProfileActivityCard() {
             </div>
             <ProfileHeatmap activity={activity} />
             {empty && <p className="px-1 text-body-2-regular text-text-tertiary">发送第一条消息后，这里会记录你的活跃日。</p>}
-            <button type="button" onClick={() => openSettings("usage")}
-              className="flex cursor-pointer items-center justify-between gap-3 rounded-2xl bg-background-secondary-default px-4 py-3 text-start outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-              <span className="flex flex-col">
-                <span className="text-body-medium text-text-primary">Token 消耗</span>
-                <span className="text-body-2-regular text-text-secondary">用量、活跃日与流向在“消耗统计”中查看</span>
-              </span>
-              <RiArrowRightSLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-            </button>
             {activity.projects.length > 0 && <div className="flex flex-col gap-1.5">
               <p className="px-1 text-body-2-medium text-text-secondary">常用项目</p>
               <ul className="flex flex-col rounded-2xl bg-background-secondary-default ps-3">

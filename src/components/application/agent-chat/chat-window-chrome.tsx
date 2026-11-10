@@ -11,6 +11,7 @@ export function createChatWindowChrome({
   windowToolbar,
   nativeWindow,
   actions,
+  tabs,
 }: {
   title: string;
   titleRef: Ref<HTMLElement>;
@@ -20,6 +21,8 @@ export function createChatWindowChrome({
   windowToolbar: boolean;
   nativeWindow: boolean;
   actions: Omit<AgentChatActionsProps, "className">;
+  /** Open-chat tabs for the title bar; they fill the space the drag spacer used to. */
+  tabs?: ReactNode;
 }): { workspaceHeader: ReactNode; windowActions?: ReactNode } {
   const workspaceHeader = (
     <ChatWorkspaceHeader
@@ -34,7 +37,7 @@ export function createChatWindowChrome({
   );
   const windowActions = windowToolbar ? (
     <>
-      <div data-tauri-drag-region={nativeWindow ? "" : undefined} className="h-full min-w-4 flex-1" />
+      {tabs ?? <div data-tauri-drag-region={nativeWindow ? "" : undefined} className="h-full min-w-4 flex-1" />}
       <AgentChatActions {...actions} />
     </>
   ) : undefined;

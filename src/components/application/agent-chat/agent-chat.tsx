@@ -7,17 +7,13 @@ import { DefaultChatTransport } from "ai";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { AgentChatHistory } from "@/components/application/agent-chat/agent-chat-history";
-import { AgentMessage } from "@/components/application/agent-chat/agent-chat-message";
-import { AgentComposer } from "@/components/application/agent-chat/agent-composer";
-import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { DashboardSidebar } from "@/components/application/dashboard/dashboard-sidebar";
 import { DashboardSidebarDrawer } from "@/components/application/dashboard/dashboard-sidebar-drawer";
-import { isBackendWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
+import { isPendingWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { BackendPendingPage } from "@/components/application/workspace-pages/backend-pending-page";
+import { SpacePage } from "@/components/application/workspace-pages/space-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
-import { cx } from "@/utils/cx";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ContactsMessenger } from "@/components/application/contacts/contacts-messenger";
 import { reconcileContactThread, sameContactThread } from "@/components/application/contacts/contact-thread-sync";
@@ -35,15 +31,20 @@ import { downloadChatThreads } from "./export-chat-history";
 import { useChatWindowNavigation } from "./use-chat-window-navigation";
 import { createChatWindowChrome } from "./chat-window-chrome";
 
-import { ChatHome } from "./chat-home";
+import { ChatConversation } from "./chat-conversation";
 import { useChatProvider } from "./use-chat-provider";
 import { useChatTranscript } from "./use-chat-transcript";
 import { useStartupThread } from "./use-startup-thread";
 import { ChatWorkspaceSplit } from "./chat-workspace-split";
+import { ChatTitleTabs } from "./chat-title-tabs";
+import { ChatSidePanel } from "./chat-side-panel";
+import { ChatBrowserPanel } from "./chat-browser-panel";
+import { useChatBrowser } from "./use-chat-browser";
+import { chatTabEntries } from "./chat-workspace-tabs";
 import { toChatContactRequest } from "./chat-contact";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
 import {
-  deriveTitle, messageText, newThreadId, orderThreads, readThreads,
+  deriveTitle, newThreadId, orderThreads, readThreads,
   type StoredThread,
 } from "./thread-storage";
 
@@ -66,7 +67,11 @@ export function AgentChat({
   const [navOpen, setNavOpen] = useState(false);
   const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
-  const [panelOpen, setPanelOpen] = useState(false);
+  // The right-hand area holds either the side panel or the built-in browser.
+  const [auxiliary, setAuxiliary] = useState<"panel" | "browser" | null>(null);
+  const toggleAuxiliary = (kind: "panel" | "browser") => setAuxiliary((current) => current === kind ? null : kind);
+  const openSidePanel = useCallback(() => setAuxiliary("panel"), []);
+  const browser = useChatBrowser();
   const history = useChatHistory();
   const { contacts, deletedIds } = useContacts();
   const [selectedContact, setSelectedContact] = useState<ChatContact>();
@@ -322,7 +327,7 @@ export function AgentChat({
   const { showAllThreads } = useChatWorkspaceNavigation({
     setNavOpen,
     setPage,
-    setPanelOpen,
+    openSidePanel,
   });
   const sidebar = useAgentChatSidebar({
     setPage, setRequestedContactId, setNavOpen, activeContactId: activeContact?.id, activeId,
@@ -357,6 +362,10 @@ export function AgentChat({
     deleteDisabled: busy,
     disabled: messages.length === 0,
     showThreadMenu: !activeContact,
+    panelOpen: auxiliary === "panel",
+    onTogglePanel: () => toggleAuxiliary("panel"),
+    browserOpen: auxiliary === "browser",
+    onToggleBrowser: () => toggleAuxiliary("browser"),
   };
   const { workspaceHeader, windowActions } = createChatWindowChrome({
     title: workspaceTitle,
@@ -367,6 +376,8 @@ export function AgentChat({
     windowToolbar,
     nativeWindow,
     actions: chatActions,
+    tabs: <ChatTitleTabs activeId={activeId} busy={busy} nativeWindow={nativeWindow} onSelect={windowNavigation.select} onClose={windowNavigation.close}
+      tabs={chatTabEntries(windowNavigation.state, { activeId, activeTitle: workspaceTitle, threads: allThreads, sessionOf: (id) => sessionMemory.current.getSession(id) })} />,
   });
 
   return localize((
@@ -392,92 +403,26 @@ export function AgentChat({
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
         <ContactsMessenger onNavigate={() => setNavOpen(true)} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />
       </div>
-      {isBackendWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={() => setNavOpen(true)} />}
+      {isPendingWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={() => setNavOpen(true)} />}
+      {page === "space" && <SpacePage onNavigate={() => setNavOpen(true)} />}
       <div hidden={page !== "chat"} style={{ display: page === "chat" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
-      <ChatWorkspaceSplit panelOpen={panelOpen} onOpen={() => setPanelOpen(true)} onClose={() => setPanelOpen(false)} panel={
-        <AgentChatHistory threads={allThreads} activeId={activeId} onSelect={selectThread}
-          onNewChat={startNewChat} onRename={renameThread} onToggleUnread={toggleUnread}
-          onDelete={deleteThread} onExport={exportThreads} disabled={busy}
-          onClose={() => setPanelOpen(false)} className="w-full" />
+      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openSidePanel} onClose={() => setAuxiliary(null)}
+        widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
+        panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={auxiliary === "browser"
+          ? <ChatBrowserPanel browser={browser} onClose={() => setAuxiliary(null)} />
+          : <ChatSidePanel project={activeProject} threads={allThreads} activeId={activeId} onSelect={selectThread}
+            onNewChat={startNewChat} onRename={renameThread} onToggleUnread={toggleUnread}
+            onDelete={deleteThread} onExport={exportThreads} disabled={busy}
+            onClose={() => setAuxiliary(null)} />
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
             {workspaceHeader}
-            <>
-                <div
-                  ref={scrollRef}
-                  className="min-h-0 flex-1 overflow-y-auto scroll-smooth"
-                >
-                  <div
-                    className={cx(
-                      "mx-auto flex w-full flex-col gap-5 pb-6 pt-6",
-                      messages.length === 0
-                        ? "min-h-full max-w-[1000px] justify-center px-5 sm:px-10 lg:px-12"
-                        : "max-w-3xl px-4",
-                    )}
-                  >
-                    {messages.length === 0 ? (
-                      <ChatHome
-                        value={input}
-                        onValueChange={setInput}
-                        onSubmit={(text) => submit(text ?? input)}
-                        disabled={!availability.ready || Boolean(composerBlockedReason)}
-                        sendBlockedReason={composerBlockedReason}
-                        onOpenSettings={openSettings}
-                        onSelectContact={selectContact}
-                        onClearContact={clearContact}
-                        selectedContact={activeContact}
-                        composer={composer}
-                        project={activeProject}
-                        onProjectChange={setActiveProject}
-                      />
-                    ) : (
-                      messages.map((message, index) => (
-                        <AgentMessage
-                          key={message.id}
-                          role={message.role}
-                          text={messageText(message)}
-                          streaming={busy && index === messages.length - 1}
-                          at={messageAt[message.id]}
-                        />
-                      ))
-                    )}
-
-                    {showThinking && (
-                      <AgentThinking variant="wave" label="Thinking" className="px-1" />
-                    )}
-
-                    {error && (
-                      <p role="alert" className="px-1 text-body-regular text-text-tertiary">
-                        Something went wrong. Check the server logs, then try again.
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="shrink-0 px-3 pb-3">
-                  <div className="mx-auto w-full max-w-3xl">
-                    {historyError && (
-                      <p role="alert" className="mb-2 text-body-2-medium text-text-secondary">
-                        {historyError} <button type="button" className="underline" onClick={retryHistory}>重试</button>
-                      </p>
-                    )}
-                    {messages.length > 0 && <AgentComposer
-                      value={input}
-                      onValueChange={setInput}
-                      onSubmit={() => submit(input)}
-                      onStop={stop}
-                      busy={busy}
-                      composer={composer}
-                      onConfigure={(target) => openSettings("model", target)}
-                      officialCompanion={activeContact?.kind === "official"}
-                      context={activeContact?.kind ?? "workspace"}
-                      name={activeContact?.name ?? "NekoPapa"}
-                      disabled={!availability.ready || Boolean(composerBlockedReason)}
-                      sendBlockedReason={composerBlockedReason}
-                    />}
-                  </div>
-                </div>
-            </>
+            <ChatConversation scrollRef={scrollRef} messages={messages} messageAt={messageAt} busy={busy}
+              showThinking={showThinking} error={error} historyError={historyError} onRetryHistory={retryHistory}
+              input={input} onInputChange={setInput} onSubmit={submit} onStop={stop} composer={composer}
+              onOpenSettings={openSettings} sendDisabled={!availability.ready || Boolean(composerBlockedReason)}
+              sendBlockedReason={composerBlockedReason} contact={activeContact} onSelectContact={selectContact}
+              onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject} />
         </div>
 
       </ChatWorkspaceSplit>

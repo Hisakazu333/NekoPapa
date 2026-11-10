@@ -1,3 +1,4 @@
+mod browser_view;
 mod project_folder;
 
 pub fn run() {
@@ -6,7 +7,16 @@ pub fn run() {
         // picker so the app receives the full path (see capabilities/main.json).
         .plugin(tauri_plugin_dialog::init())
         // Confirms a chosen or typed folder exists and reads its Git branch.
-        .invoke_handler(tauri::generate_handler![project_folder::inspect_project_folder])
+        // Built-in browser: a native child webview over the chat's browser area.
+        .invoke_handler(tauri::generate_handler![
+            project_folder::inspect_project_folder,
+            browser_view::browser_open,
+            browser_view::browser_set_bounds,
+            browser_view::browser_set_visible,
+            browser_view::browser_command,
+            browser_view::browser_close,
+            browser_view::browser_open_window,
+        ])
         .run(tauri::generate_context!())
         .expect("failed to run NekoPapa");
 }

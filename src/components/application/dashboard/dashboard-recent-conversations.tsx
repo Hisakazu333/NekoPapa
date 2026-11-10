@@ -8,7 +8,6 @@ import { ProjectEditDialog } from "@/components/application/projects/project-edi
 import { groupRecentThreads, type RecentProjectGroup } from "./sidebar-recent-groups";
 import { RecentConversationRow, type RowActions } from "./recent-conversation-row";
 import { AddProjectFolderButton, ProjectFolderGroup } from "./sidebar-project-folders";
-import { Collapsible } from "./sidebar-navigation";
 
 /** Re-renders once a minute so age badges stay current without reading the clock during render. */
 function useMinuteClock() {
@@ -20,11 +19,17 @@ function useMinuteClock() {
   return now;
 }
 
+/**
+ * Expanded: the 对话 label and its "+". Collapsed: a short rule under the
+ * icon column, so the project icons read as their own group below 更多 (a
+ * zero-width label would wrap one character per line and leave a blank block).
+ */
 function SectionHeading({ label, collapsed, action }: { label: string; collapsed: boolean; action?: ReactNode }) {
-  return <Collapsible collapsed={collapsed} className="justify-between gap-2 px-2">
-    <span className="py-1 text-body-2-medium text-text-tertiary">{label}</span>
+  if (collapsed) return <span aria-hidden className="mx-2 mb-2.5 block h-px w-5 bg-separator-border" />;
+  return <div className="flex min-w-0 items-center justify-between gap-2 px-2">
+    <span className="whitespace-nowrap py-1 text-body-2-medium text-text-tertiary">{label}</span>
     {action}
-  </Collapsible>;
+  </div>;
 }
 
 /**

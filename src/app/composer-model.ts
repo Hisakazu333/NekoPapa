@@ -10,6 +10,8 @@ export interface ComposerModelOption {
 export interface ComposerRuntimeModel { model?: string | null; provider?: string | null }
 
 const providerNames: Record<string, string> = { compatible: "OpenAI 兼容接口", anthropic: "Anthropic", custom: "其他接口" };
+/** Every provider type a model profile can use, in the order the model picker lists them. */
+export const composerProviderTypes: readonly string[] = Object.values(providerNames);
 
 /** Use configured records, never a decorative catalog of provider model names. */
 export function composerModels(records: readonly ConfigurationRecord[], runtime: ComposerRuntimeModel): ComposerModelOption[] {

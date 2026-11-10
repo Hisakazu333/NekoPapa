@@ -1,0 +1,8 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/components/application" },
+  "include": [
+    "../src/components/application/agent-chat/chat-home-greeting.ts",
+    "../src/components/application/language/application-language-copy.ts"
+  ]
+}

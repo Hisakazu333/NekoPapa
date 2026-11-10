@@ -6,6 +6,8 @@
 npx -y boardui@latest add agent-chat --yes --overwrite
 ```
 
+2026-11-10 用官方命令 `npx -y boardui@latest add table --yes` 安装 Table（免费组件，`base/table/table.tsx`），用于“空间”列表；安装器跳过已存在的 `globals.css`，表格样式按注册表原文放在 `src/styles/table.css` 并由 `globals.css` 导入。
+
 2026-11-10 用官方命令安装 Auth Card（免费组件）：
 
 ```bash

@@ -16,19 +16,25 @@ interface ChatWorkspaceSplitProps {
   resizeLabel?: string;
   /** Space required by the main content before the side panel becomes an overlay. */
   mainMinWidth?: number;
+  /** Panel width before the user drags it, as a share of the split. */
+  defaultRatio?: number;
+  /** Different panels in the same split remember their own dragged width. */
+  widthKey?: string;
 }
 
 /** Owns only the workspace geometry; panel content and visibility stay with its caller. */
-export function ChatWorkspaceSplit({ children, panel, panelOpen, onClose, onOpen, panelId = "chat-auxiliary-workspace", panelLabel = "辅助工作区", resizeLabel = "调整辅助工作区宽度", mainMinWidth = MIN_CHAT_WIDTH }: ChatWorkspaceSplitProps) {
+export function ChatWorkspaceSplit({ children, panel, panelOpen, onClose, onOpen, panelId = "chat-auxiliary-workspace", panelLabel = "辅助工作区", resizeLabel = "调整辅助工作区宽度", mainMinWidth = MIN_CHAT_WIDTH, defaultRatio, widthKey = "panel" }: ChatWorkspaceSplitProps) {
   const rootRef = useRef<HTMLDivElement>(null);
   const panelRef = useRef<HTMLDivElement>(null);
   const separatorRef = useRef<HTMLDivElement>(null);
   const openRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef(onClose);
   const [size, setSize] = useState({ container: 0, viewport: 0 });
-  const [preferredWidth, setPreferredWidth] = useState<number | null>(null);
+  const [preferredWidths, setPreferredWidths] = useState<Record<string, number | null>>({});
+  const preferredWidth = preferredWidths[widthKey] ?? null;
+  const setPreferredWidth = (width: number | null) => setPreferredWidths((current) => ({ ...current, [widthKey]: width }));
   const overlay = workspaceUsesOverlay(size.container, size.viewport, mainMinWidth);
-  const panelWidth = fitPanelWidth(size.container, preferredWidth, mainMinWidth);
+  const panelWidth = fitPanelWidth(size.container, preferredWidth, mainMinWidth, defaultRatio);
   const limits = panelWidthLimits(size.container, mainMinWidth);
 
   useEffect(() => { closeRef.current = onClose; }, [onClose]);

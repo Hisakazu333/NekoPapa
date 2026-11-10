@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { RiBook2Line, RiChatAiLine, RiContactsLine, RiGraduationCapLine } from "@remixicon/react";
+import { RiBook2Line, RiChatAiLine, RiContactsLine, RiFolder5Line, RiGraduationCapLine, RiHome4Line } from "@remixicon/react";
 import type { SidebarDestination } from "@/app/sidebar-pins";
 import { useSidebarPins } from "@/hooks/use-sidebar-pins";
 import type { SidebarMoreEntry } from "@/components/application/dashboard/sidebar-more-menu";
@@ -36,7 +36,9 @@ export function useAgentChatSidebar({
   const { pins, toggle, notice } = useSidebarPins();
   // Secondary pages offered by "更多"; pinned ones also appear in the main navigation.
   const destinations: Record<SidebarDestination, Omit<DashboardNavItem, "key">> = useMemo(() => ({
+    space: { label: "空间", icon: RiFolder5Line, href: "#space", onSelect: () => { setPage("space"); setNavOpen(false); } },
     knowledge: { label: "知识库", icon: RiBook2Line, href: "#knowledge", onSelect: () => { setPage("knowledge"); setNavOpen(false); } },
+    cabin: { label: "小屋", icon: RiHome4Line, href: "#cabin", onSelect: () => { setPage("cabin"); setNavOpen(false); } },
   }), [setNavOpen, setPage]);
   const items: DashboardNavItem[] = useMemo(() => [
     { key: "chat", label: "工作台", icon: RiChatAiLine, href: "/", onSelect: () => { setPage("chat"); setNavOpen(false); } },

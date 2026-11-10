@@ -22,7 +22,7 @@ const memory = (initial = {}) => {
 };
 
 test("“更多”只提供知识库，默认不固定；固定与取消固定在重载后保持", () => {
-  assert.deepEqual([...pins.sidebarDestinations], ["knowledge"]);
+  assert.deepEqual([...pins.sidebarDestinations], ["space", "knowledge", "cabin"]);
   const storage = memory();
   assert.deepEqual(pins.readSidebarPins(storage), []);
   let next = pins.toggleSidebarPin([], "knowledge");

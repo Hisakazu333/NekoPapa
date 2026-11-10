@@ -70,7 +70,7 @@ export function AgentChatHistory({
   const localize = useTemplateCopy();
   return localize((
     <aside
-      aria-label="Chat history"
+      aria-label="对话历史"
       className={cx(
         // A card of its own beside the chat rather than a panel within it, the
         // way the Pro template seats its code panel: same surface and radius as
@@ -88,17 +88,17 @@ export function AgentChatHistory({
         className="flex w-full cursor-pointer items-center gap-2 rounded-2lg px-2 py-2 text-body-medium text-text-primary transition-colors hover:bg-background-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
         <RiAddLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-        New chat
+        新对话
       </button>
       {onClose && <button type="button" onClick={onClose} aria-label="关闭辅助工作区" className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-background-secondary-hover"><RiCloseLine className="size-5" aria-hidden /></button>}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto [scrollbar-width:none]">
-        <p className="px-2 pb-1 text-body-2-medium text-text-tertiary">Recent</p>
+        <p className="px-2 pb-1 text-body-2-medium text-text-tertiary">最近</p>
 
         {threads.length === 0 ? (
           <p className="px-2 text-body-2-regular text-text-tertiary">
-            Chats you start show up here.
+            聊天后会显示在这里。
           </p>
         ) : (
           threads.map((thread) => (
@@ -131,7 +131,7 @@ function RailFooter({
 }) {
   const localize = useTemplateCopy();
   const count = threads.length;
-  const label = count === 0 ? "No chats to export" : `Export ${count} chats`;
+  const label = count === 0 ? "没有可导出的对话" : `导出 ${count} 段对话`;
   return localize((
     <div className="mt-auto flex items-center gap-1 border-t border-separator-border pt-3 pe-1">
       <div className="flex min-w-0 flex-1 items-center gap-2 rounded-2lg px-1 py-1">
@@ -140,7 +140,7 @@ function RailFooter({
           alt=""
           className="size-6 shrink-0 rounded-full object-contain"
         />
-        <span className="min-w-0 flex-1 truncate text-body-2-medium text-text-primary">Local chats</span>
+        <span className="min-w-0 flex-1 truncate text-body-2-medium text-text-primary">本机对话</span>
       </div>
       <button
         type="button"
@@ -207,7 +207,7 @@ function ThreadRow({
     return localize((
       <div className="rounded-2lg bg-background-secondary-hover px-2 py-1.5">
         <label className="sr-only" htmlFor={`rename-${thread.id}`}>
-          Rename chat
+          重命名对话
         </label>
         <input
           id={`rename-${thread.id}`}
@@ -244,7 +244,7 @@ function ThreadRow({
       >
         {thread.unread && (
           <span
-            aria-label="Unread"
+            aria-label="未读"
             className="size-1.5 shrink-0 rounded-full bg-button-primary"
           />
         )}
@@ -335,7 +335,7 @@ function RowMenu({
   return localize((
     <Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
       <DropdownTrigger
-        aria-label={`More actions for ${title}`}
+        aria-label={`更多操作：${title}`}
         className={cx(
           "inline-flex size-6 shrink-0 items-center justify-center rounded-md",
           "text-foreground-icon-secondary transition-colors duration-150 ease",
@@ -347,21 +347,21 @@ function RowMenu({
       </DropdownTrigger>
 
       <DropdownPopover
-        aria-label={`More actions for ${title}`}
+        aria-label={`更多操作：${title}`}
         placement="bottom end"
         className="w-[190px] p-2"
       >
         <DropdownGroup>
           <DropdownItem onSelect={choose(onRename)} className="px-2 py-1.5">
-            <span className="truncate text-body-medium whitespace-nowrap text-text-primary">Rename</span>
+            <span className="truncate text-body-medium whitespace-nowrap text-text-primary">重命名</span>
           </DropdownItem>
           <DropdownItem onSelect={choose(onToggleUnread)} className="px-2 py-1.5">
             <span className="truncate text-body-medium whitespace-nowrap text-text-primary">
-              Mark as unread
+              标为未读
             </span>
           </DropdownItem>
           <DropdownItem disabled={deleteDisabled} onSelect={choose(onDelete)} className="px-2 py-1.5">
-            <span className="truncate text-body-medium whitespace-nowrap text-text-error-primary">Delete</span>
+            <span className="truncate text-body-medium whitespace-nowrap text-text-error-primary">删除</span>
           </DropdownItem>
         </DropdownGroup>
       </DropdownPopover>

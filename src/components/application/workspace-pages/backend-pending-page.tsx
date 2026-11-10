@@ -2,17 +2,17 @@ import { RiMenuLine } from "@remixicon/react";
 import { Chip } from "@/components/base/badges/chip";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
-import type { BackendWorkspacePage } from "@/components/application/dashboard/workspace-page";
+import type { PendingWorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { SettingsCard, SettingsSectionLabel } from "@/components/application/settings/settings-rows";
 import { workspacePageContent } from "./workspace-page-content";
 
 /**
- * Sidebar page whose service lives in the NekoBuddy backend. The client does
- * not connect to that backend yet, so the page states it plainly and lists
- * the planned capabilities as plans; it creates no data.
+ * Sidebar page that cannot work yet (its NekoBuddy backend is not connected,
+ * or its assets are not provided). The page states why plainly and lists the
+ * planned capabilities as plans; it creates no data.
  */
-export function BackendPendingPage({ page, onNavigate }: { page: BackendWorkspacePage; onNavigate: () => void }) {
-  const { title, icon: Icon, intro, status, planned } = workspacePageContent[page];
+export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspacePage; onNavigate: () => void }) {
+  const { title, icon: Icon, intro, statusTitle, status, planned } = workspacePageContent[page];
   const headingId = `${page}-planned-heading`;
   return <section aria-label={title} className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
     <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
@@ -32,7 +32,7 @@ export function BackendPendingPage({ page, onNavigate }: { page: BackendWorkspac
         <div role="status" className="flex items-start gap-3 rounded-2xl border border-separator-border bg-background-primary-default p-3">
           <StatusDot color="yellow" className="mt-1" />
           <div className="flex min-w-0 flex-col gap-0.5">
-            <p className="text-body-medium text-text-primary">NekoBuddy 后端未连接</p>
+            <p className="text-body-medium text-text-primary">{statusTitle}</p>
             <p className="text-body-2-regular text-text-secondary">{status}</p>
           </div>
         </div>

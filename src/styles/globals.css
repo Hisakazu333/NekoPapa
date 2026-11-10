@@ -2,6 +2,7 @@
 @import "./theme.css";
 @import "./appearance-accent.css";
 @import "./typography.css";
+@import "./table.css";
 
 /* ---------------------------------------------------------------------------
  * Dark mode strategy

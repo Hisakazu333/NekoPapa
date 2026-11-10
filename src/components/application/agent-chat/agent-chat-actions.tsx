@@ -2,7 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import { RiCheckLine, RiMoreFill, RiUploadLine } from "@remixicon/react";
+import { RiCheckLine, RiGlobalLine, RiLayoutRightLine, RiMoreFill, RiUploadLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 
 import {
@@ -35,6 +35,12 @@ export interface AgentChatActionsProps {
   disabled?: boolean;
   /** Contact-owned history is managed from the contacts workspace. */
   showThreadMenu?: boolean;
+  /** Side panel (历史 / 代码 / 资料) toggle; omitted where the surface has no panel. */
+  panelOpen?: boolean;
+  onTogglePanel?: () => void;
+  /** Built-in browser toggle; it shares the right-hand area with the side panel. */
+  browserOpen?: boolean;
+  onToggleBrowser?: () => void;
   className?: string;
 }
 
@@ -46,6 +52,10 @@ export function AgentChatActions({
   deleteDisabled = false,
   disabled = false,
   showThreadMenu = true,
+  panelOpen = false,
+  onTogglePanel,
+  browserOpen = false,
+  onToggleBrowser,
   className,
 }: AgentChatActionsProps) {
   const localize = useTemplateCopy();
@@ -86,8 +96,8 @@ export function AgentChatActions({
         type="button"
         onClick={share}
         disabled={disabled}
-        aria-label={shared ? "Transcript copied" : "Share chat"}
-        title={shared ? "Transcript copied" : "Share chat"}
+        aria-label={shared ? "已复制对话文本" : "分享对话"}
+        title={shared ? "已复制对话文本" : "分享对话（复制为文本）"}
         className={ACTION_BUTTON}
       >
         {shared ? (
@@ -99,7 +109,7 @@ export function AgentChatActions({
 
       {showThreadMenu && <Dropdown isOpen={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownTrigger
-          aria-label="More actions for this chat"
+          aria-label="对话的更多操作"
           isDisabled={disabled}
           className={cx(ACTION_BUTTON, menuOpen && "bg-background-primary-hover text-text-primary")}
         >
@@ -107,29 +117,39 @@ export function AgentChatActions({
         </DropdownTrigger>
 
         <DropdownPopover
-          aria-label="More actions for this chat"
+          aria-label="对话的更多操作"
           placement="bottom end"
           className="w-[190px] p-2"
         >
           <DropdownGroup>
             <DropdownItem onSelect={choose(onExport)} className="px-2 py-1.5">
               <span className="truncate text-body-medium whitespace-nowrap text-text-primary">
-                Export chats
+                导出对话
               </span>
             </DropdownItem>
             <DropdownItem onSelect={choose(onToggleUnread)} className="px-2 py-1.5">
               <span className="truncate text-body-medium whitespace-nowrap text-text-primary">
-                Mark as unread
+                标为未读
               </span>
             </DropdownItem>
             <DropdownItem disabled={deleteDisabled} onSelect={choose(onDelete)} className="px-2 py-1.5">
               <span className="truncate text-body-medium whitespace-nowrap text-text-error-primary">
-                Delete chat
+                删除对话
               </span>
             </DropdownItem>
           </DropdownGroup>
         </DropdownPopover>
       </Dropdown>}
+      {onToggleBrowser && <button type="button" onClick={onToggleBrowser} aria-pressed={browserOpen}
+        aria-controls="chat-auxiliary-workspace" aria-label={browserOpen ? "关闭浏览器" : "打开浏览器"} title={browserOpen ? "关闭浏览器" : "打开浏览器"}
+        className={cx(ACTION_BUTTON, browserOpen && "bg-background-primary-hover text-text-primary")}>
+        <RiGlobalLine className={toolbarIconClass} aria-hidden />
+      </button>}
+      {onTogglePanel && <button type="button" onClick={onTogglePanel} aria-pressed={panelOpen}
+        aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料）"}
+        className={cx(ACTION_BUTTON, panelOpen && "bg-background-primary-hover text-text-primary")}>
+        <RiLayoutRightLine className={toolbarIconClass} aria-hidden />
+      </button>}
     </div>
   ));
 }

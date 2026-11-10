@@ -57,3 +57,30 @@ export function closeChatWorkspaceTab(state: ChatWorkspaceTabsState, id: string)
   const historyIndex = history.lastIndexOf(activeId);
   return { ids, activeId, history, historyIndex };
 }
+
+export interface ChatTabSource { id: string; title?: string | null; contact?: { name: string } }
+export interface ChatTabEntry { id: string; title: string; unread: boolean }
+
+/**
+ * Title-bar tabs for the open chats, in opening order. A tab stays only while
+ * its chat still exists: the active chat, a saved chat, or one kept in this
+ * window's session memory. A deleted chat drops out instead of becoming a
+ * tab that leads nowhere. Contact chats are titled with the contact's name.
+ */
+export function chatTabEntries(state: ChatWorkspaceTabsState, {
+  activeId, activeTitle, threads, sessionOf,
+}: {
+  activeId: string;
+  activeTitle: string;
+  threads: readonly (ChatTabSource & { unread?: boolean })[];
+  sessionOf: (id: string) => ChatTabSource | undefined;
+}): ChatTabEntry[] {
+  const ids = state.ids.includes(activeId) || !activeId ? state.ids : [...state.ids, activeId];
+  return ids.flatMap((id) => {
+    if (id === activeId) return [{ id, title: activeTitle, unread: false }];
+    const source = threads.find((thread) => thread.id === id) ?? sessionOf(id);
+    if (!source) return [];
+    const unread = "unread" in source && source.unread === true;
+    return [{ id, title: source.contact?.name ?? (source.title?.trim() || "新对话"), unread }];
+  });
+}

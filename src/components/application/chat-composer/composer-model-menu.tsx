@@ -1,8 +1,8 @@
 import { useId, useState } from "react";
-import { RiAddLine, RiApps2Line, RiCpuLine, RiGoogleLine, RiSearchLine, RiSettings3Line } from "@remixicon/react";
+import { RiAddLine, RiApps2Line, RiCloseLine, RiCpuLine, RiGoogleLine, RiSearchLine, RiSettings3Line } from "@remixicon/react";
 import { Dropdown, DropdownDivider, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
-import { filterComposerModels, type ComposerModelOption } from "@/app/composer-model";
+import { composerProviderTypes, filterComposerModels, type ComposerModelOption } from "@/app/composer-model";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";
@@ -21,12 +21,15 @@ export function ComposerModelMenu({ state, onConfigure, disabled, className, off
   const inputId = useId();
   const triggerId = useId();
   const matches = filterComposerModels(state.models, query);
-  const providers = [...new Set(state.models.map((model) => model.provider))];
+  // The rail always lists every provider type a profile can use, plus any the running service reports,
+  // so an unconfigured provider is a place to add a model rather than a missing icon.
+  const providers = [...new Set([...state.models.filter((model) => model.runtime).map((model) => model.provider), ...composerProviderTypes, ...state.models.map((model) => model.provider)])];
+  const firstConfigured = state.models[0]?.provider;
   const selectedProvider = providers.includes(activeProvider ?? "")
-    ? activeProvider
-    : providers.includes(state.selected?.provider ?? "") ? state.selected?.provider : providers[0];
-  const visibleModels = query.trim() ? matches : filterComposerModels(state.models, "", selectedProvider);
-  const contentHeight = Math.min(276, Math.max(100, 32 + visibleModels.length * 44, providers.length * 34));
+    ? activeProvider!
+    : providers.includes(state.selected?.provider ?? "") ? state.selected!.provider : firstConfigured ?? providers[0];
+  const searching = Boolean(query.trim());
+  const visibleModels = searching ? matches : filterComposerModels(state.models, "", selectedProvider);
   const close = (next: boolean) => {
     setOpen(next);
     if (!next) {
@@ -52,41 +55,58 @@ export function ComposerModelMenu({ state, onConfigure, disabled, className, off
       <span className="truncate">{state.selected?.name || (state.selectedModelId ? "重新选择模型" : "选择模型")}</span>
       <ChevronDownSmall className="size-4 shrink-0 text-text-tertiary" aria-hidden />
     </DropdownTrigger>
-    <DropdownPopover aria-label="选择聊天模型" placement="top end" className="w-[341px]" dialogClassName="max-h-[min(520px,72dvh)] overflow-hidden overscroll-contain">
-      <div className="flex max-h-[52dvh] min-h-0 gap-2" style={{ height: contentHeight }}>
-        {providers.length > 0 && <div role="group" aria-label="模型供应商" className="flex w-[42px] shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-[17px] bg-composer-panel-rail-background p-[3px]">
-          {providers.map((provider) => <button key={provider} type="button" aria-label={provider} title={provider} aria-pressed={!query.trim() && selectedProvider === provider} onClick={() => {
-            setActiveProvider(provider);
-            if (query) { setQuery(""); setSearchOpen(false); }
-          }} className={cx("flex h-[30px] w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl text-foreground-icon-secondary outline-none hover:bg-dropdown-item-hover-background focus-visible:ring-2 focus-visible:ring-border-focus-ring", !query.trim() && selectedProvider === provider && "bg-background-primary-default text-foreground-icon-primary shadow-xs")}>
-            <ProviderIcon provider={provider} className="size-5" />
-          </button>)}
-        </div>}
+    <DropdownPopover aria-label="选择聊天模型" placement="top end" className="w-[360px]" dialogClassName="overflow-hidden overscroll-contain">
+      <div className="flex h-[min(300px,52dvh)] min-h-0 gap-2">
+        <div role="group" aria-label="模型供应商" className="flex w-[42px] shrink-0 flex-col items-center gap-1 overflow-y-auto rounded-[17px] bg-composer-panel-rail-background p-[3px]">
+          {providers.map((provider) => {
+            const active = !searching && selectedProvider === provider;
+            const count = state.models.filter((model) => model.provider === provider).length;
+            return <button key={provider} type="button" aria-label={`${provider}（${count ? `${count} 个模型` : "未配置"}）`} title={provider} aria-pressed={active} onClick={() => {
+              setActiveProvider(provider);
+              if (query) { setQuery(""); setSearchOpen(false); }
+            }} className={cx("relative flex h-[30px] w-9 shrink-0 cursor-pointer items-center justify-center rounded-xl outline-none hover:bg-dropdown-item-hover-background focus-visible:ring-2 focus-visible:ring-border-focus-ring",
+              active ? "bg-background-primary-default text-foreground-icon-primary shadow-xs" : count ? "text-foreground-icon-secondary" : "text-foreground-icon-secondary opacity-50")}>
+              <ProviderIcon provider={provider} className="size-5" />
+            </button>;
+          })}
+        </div>
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <div className="flex min-h-8 items-center justify-between gap-2 px-1">
-            {!searchOpen && <h2 className="text-body-medium text-text-primary">模型</h2>}
+          <div className="flex min-h-8 items-center justify-between gap-2 ps-1">
             {searchOpen ? <label htmlFor={inputId} className="flex min-w-0 flex-1 items-center gap-2 rounded-xl bg-background-secondary-default px-2 py-1.5">
               <RiSearchLine className="size-4 shrink-0 text-text-tertiary" aria-hidden />
-              <input id={inputId} autoFocus aria-label="搜索模型" placeholder="搜索名称或供应商" value={query}
-                onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-caption-1-regular text-text-primary outline-none placeholder:text-text-tertiary" />
-            </label> : <button type="button" aria-label="快速搜索模型" title="快速搜索模型" onClick={() => setSearchOpen(true)}
-              className="flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg px-1.5 text-caption-1-regular text-text-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-              <span>快速搜索</span>
-              <RiSearchLine className="size-4" aria-hidden />
-            </button>}
+              <input id={inputId} autoFocus aria-label="搜索模型" placeholder="搜索名称、模型或供应商" value={query}
+                onChange={(event) => setQuery(event.target.value)} className="min-w-0 flex-1 bg-transparent text-body-2-regular text-text-primary outline-none placeholder:text-text-tertiary" />
+              <button type="button" aria-label="关闭搜索" onClick={() => { setQuery(""); setSearchOpen(false); }}
+                className="flex size-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-text-tertiary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+                <RiCloseLine className="size-4" aria-hidden />
+              </button>
+            </label> : <>
+              <h2 className="truncate text-body-medium text-text-primary">{selectedProvider}</h2>
+              <button type="button" aria-label="搜索模型" title="搜索模型" disabled={!state.models.length} onClick={() => setSearchOpen(true)}
+                className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:cursor-not-allowed disabled:opacity-40">
+                <RiSearchLine className="size-4" aria-hidden />
+              </button>
+            </>}
           </div>
-          <div className="mt-1 flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
-            {visibleModels.length ? visibleModels.map((option) => <DropdownItem key={option.id} selected={state.selectedModelId === option.id}
-              onSelect={() => choose(option)} className="min-h-10 min-w-0 gap-2.5">
-              <ProviderIcon provider={option.provider} className="size-[18px] shrink-0 text-foreground-icon-secondary" />
-              <span className="min-w-0 flex-1 truncate text-body-medium" title={`${option.name} · ${option.model}`}>{option.name}</span>
-              <span aria-hidden className={cx("flex size-4 shrink-0 items-center justify-center rounded-full border", state.selectedModelId === option.id ? "border-text-primary text-text-primary" : "border-border-button-default")}>
-                {state.selectedModelId === option.id && <span className="size-2 rounded-full bg-current" />}
-              </span>
-            </DropdownItem>) : <div role="status" className="px-2 py-5 text-center text-caption-1-regular text-text-tertiary">
-              {state.models.length ? "没有匹配的模型。" : "还没有已配置的模型。"}
-              {!state.models.length && <button type="button" onClick={configure}
-                className="mt-2 inline-flex cursor-pointer items-center gap-1 rounded-lg px-2 py-1 text-text-primary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+          <div className="mt-1 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
+            {visibleModels.length ? visibleModels.map((option) => {
+              const selected = state.selectedModelId === option.id;
+              return <DropdownItem key={option.id} selected={selected} onSelect={() => choose(option)} className="min-h-11 min-w-0 gap-2.5 py-1.5">
+                <ProviderIcon provider={option.provider} className="size-[18px] shrink-0 text-foreground-icon-secondary" />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-body-medium text-text-primary">{option.name}</span>
+                  <span translate="no" className="truncate text-caption-1-regular text-text-tertiary">{option.runtime ? `${option.model} · 运行服务` : searching ? `${option.model} · ${option.provider}` : option.model}</span>
+                </span>
+                <span aria-hidden className={cx("flex size-4 shrink-0 items-center justify-center rounded-full border", selected ? "border-accent-500 text-accent-500" : "border-border-button-default")}>
+                  {selected && <span className="size-2 rounded-full bg-current" />}
+                </span>
+              </DropdownItem>;
+            }) : <div role="status" className="flex flex-1 flex-col items-center justify-center gap-2 px-4 text-center">
+              <ProviderIcon provider={selectedProvider} className="size-7 text-foreground-icon-secondary" />
+              <p className="text-body-medium text-text-primary">{searching ? "没有匹配的模型" : `还没有 ${selectedProvider} 模型`}</p>
+              <p className="text-body-2-regular text-text-secondary">{searching ? "换个名称、模型 ID 或供应商试试。" : "在“模型与 API”中填写接口地址、密钥和模型名称后，就能在这里选择。"}</p>
+              {!searching && <button type="button" onClick={configure}
+                className="mt-1 inline-flex cursor-pointer items-center gap-1 rounded-lg bg-background-tertiary-default px-2.5 py-1.5 text-body-2-medium text-text-primary outline-none hover:bg-background-quaternary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
                 <RiAddLine className="size-4" aria-hidden />添加模型
               </button>}
             </div>}
@@ -94,10 +114,13 @@ export function ComposerModelMenu({ state, onConfigure, disabled, className, off
         </div>
       </div>
       <DropdownDivider />
-      <DropdownItem onSelect={configure}>
-        <RiSettings3Line className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />
-        <span>管理模型</span>
-      </DropdownItem>
+      <div className="flex items-center justify-between gap-2 ps-2">
+        <p className="min-w-0 truncate text-caption-1-regular text-text-tertiary" title={status}>{status}</p>
+        <DropdownItem onSelect={configure} className="w-auto shrink-0 gap-1.5 px-2 py-1.5">
+          <RiSettings3Line className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />
+          <span className="text-body-2-medium">管理模型</span>
+        </DropdownItem>
+      </div>
     </DropdownPopover>
   </Dropdown>;
 }

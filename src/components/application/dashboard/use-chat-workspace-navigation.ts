@@ -4,17 +4,18 @@ import type { WorkspacePage } from "./workspace-page";
 export function useChatWorkspaceNavigation({
   setNavOpen,
   setPage,
-  setPanelOpen,
+  openSidePanel,
 }: {
   setNavOpen: Dispatch<SetStateAction<boolean>>;
   setPage: Dispatch<SetStateAction<WorkspacePage>>;
-  setPanelOpen: Dispatch<SetStateAction<boolean>>;
+  /** Opens the 历史 / 代码 / 资料 side panel (in place of the browser, if open). */
+  openSidePanel: () => void;
 }) {
   const showAllThreads = useCallback(() => {
     setPage("chat");
-    setPanelOpen(true);
+    openSidePanel();
     setNavOpen(false);
-  }, [setNavOpen, setPage, setPanelOpen]);
+  }, [setNavOpen, setPage, openSidePanel]);
 
   return { showAllThreads };
 }

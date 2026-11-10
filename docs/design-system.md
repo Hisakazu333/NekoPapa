@@ -32,7 +32,7 @@
 
 圆角与尺寸按现有组件使用。已定义的补充圆角为 `rounded-2lg`（10px）和 `rounded-2-5xl`（20px）；其他常规值沿用 Tailwind 默认档位。常规按钮由组件统一提供 medium / small / xs 的高度、圆角、图标和文字，不在调用处手工拼出第二种相似按钮。菜单表面与行间距由 [menu-styles.ts](../src/components/base/dropdown/menu-styles.ts) 共享，包含 `rounded-2xl`、边框、`shadow-dropdown` 和展开动效。
 
-正文和控件使用 Inter 的系统回退栈，中文由可用系统字体回退；代码使用 JetBrains Mono 的等宽回退栈。正文 `text-body-*` 为 14 / 20，辅助正文 `text-body-2-*` 为 13 / 18，说明 `text-caption-1-*` 为 12 / 16；标题使用对应 `text-title-*` 或 `text-display-*`。当前工作台问候的衬线字体与自适应字号来自 [chat-home.css](../src/styles/chat-home.css)，是该区域已有的展示样式，不把整套控件改成衬线。
+正文和控件使用 Inter 的系统回退栈，中文由可用系统字体回退；代码使用 JetBrains Mono 的等宽回退栈。正文 `text-body-*` 为 14 / 20，辅助正文 `text-body-2-*` 为 13 / 18，说明 `text-caption-1-*` 为 12 / 16；标题使用对应 `text-title-*` 或 `text-display-*`。当前工作台问候的衬线字体与自适应字号来自 [chat-home.css](../src/styles/chat-home.css)，是该区域已有的展示样式，不把整套控件改成衬线。首页按自身宽度（容器查询，`cqi`）而非窗口宽度缩放：内容最宽 768px，问候 28–40px，猫图标为问候字号的 1.3 倍；宽度不足 560px 时改用紧凑间距并隐藏“给你一点灵感”标签。
 
 图表与统计使用已有 chart 语义：空格子、空闲日和占比轨道用 `bg-chart-track`，单一数值的深浅用 `accent-*`（个人资料与消耗统计的热力图）；分类系列用 `--color-chart-1` 至 `--color-chart-9`（桑基图来源按位置取色），中性节点用 `chart-neutral`。统计卡在 `@container` 内按卡片宽度换列（如 `@2xl:grid-cols-4`），不要用视口断点，设置弹窗内的宽度远小于视口。
 
