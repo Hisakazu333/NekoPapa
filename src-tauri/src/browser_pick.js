@@ -4,10 +4,13 @@
 // changes (colours, opacity, type, radius) on the page itself, and can move
 // the mark up to the parent element. Pins are NekoPapa's tag shape (the same
 // shape as the cursor and the app's 批注 icon), numbered, with the comment's
-// start once written. The toolbar at the bottom (it moves to the top when the
-// pointer comes near) shows the count and can pause, so the page works
-// normally until annotating resumes, clear the pins, add them to the chat, or
-// leave. Leaving or sending puts every previewed style back.
+// start once written. The toolbar at the bottom stays where it is (drag its
+// tag to move it, double-click the tag to put it back); it shows the count and
+// can pause, so the page works normally until annotating resumes, clear the
+// pins, add them to the chat, or leave. Leaving or sending puts every
+// previewed style back.
+// Cost: the toolbar and pins are built only when the annotations change;
+// scrolling and pointer moves only reposition them, once per frame.
 // The app polls `window.__nekoPapaPick.take()`: `{ pending: true }` while
 // annotating, `{ annotations: [...] }` (or `{ cancelled: true }`) once, then
 // null. Everything read here is page content and is validated again by the
@@ -56,65 +59,7 @@
     + `<path d="${TAG}" fill="${ACCENT}" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/>`
     + `<path d="M12.25 7.5v6M9.25 10.5h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>`;
   const CURSOR = `url("data:image/svg+xml,${encodeURIComponent(CURSOR_SVG)}") 5 24, crosshair`;
-  const CSS_TEXT = `
-    :host { all: initial; }
-    * { box-sizing: border-box; font: 13px/1.4 -apple-system, BlinkMacSystemFont, "PingFang SC", system-ui, sans-serif; }
-    .layer { position: fixed; inset: 0; pointer-events: none; z-index: 2147483647; }
-    .hover, .mark { position: fixed; border: 2px solid ${ACCENT}; border-radius: 4px; }
-    .hover { border-style: dashed; background: rgba(236,72,153,.08); }
-    .mark { background: rgba(236,72,153,.06); }
-    .paused .mark, .paused .pin, .paused .note { display: none !important; }
-    .pin { position: fixed; height: 24px; max-width: 200px; display: flex; align-items: center; gap: 6px; padding: 0 8px;
-      border: 1.5px solid #fff; border-radius: 8px 8px 8px 0; background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP});
-      color: #fff; pointer-events: auto; cursor: pointer; box-shadow: 0 0 0 1px rgba(0,0,0,.45), 0 4px 12px rgba(0,0,0,.3); }
-    .pin:hover { background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); color: #fff; filter: brightness(1.08); }
-    .pin b { font-size: 13px; font-weight: 700; }
-    .pin span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; font-weight: 500; }
-    .pin.inside { border-radius: 0 8px 8px 8px; }
-    .tagname { position: fixed; padding: 2px 7px; border-radius: 6px; background: rgba(23,23,23,.9); color: #f4f4f5; white-space: nowrap;
-      font: 11px/1.5 ui-monospace, Menlo, monospace; box-shadow: 0 0 0 1px rgba(255,255,255,.12); }
-    .glass { background: rgba(23,23,23,.88); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,.10); box-shadow: 0 10px 30px rgba(0,0,0,.35); color: #f4f4f5; }
-    .note { position: fixed; width: 320px; pointer-events: auto; border-radius: 18px; overflow: hidden; }
-    .row { display: flex; align-items: center; gap: 4px; padding: 5px 5px 5px 14px; }
-    .row input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #f4f4f5; }
-    .row input::placeholder { color: #8b8b93; }
-    .panel { border-top: 1px solid rgba(255,255,255,.08); padding: 4px 12px 10px; max-height: 260px; overflow-y: auto; overscroll-behavior: contain; }
-    .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; color: #a1a1aa; font-family: ui-monospace, Menlo, monospace; }
-    .field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 4px 0; }
-    .field label { color: #d4d4d8; white-space: nowrap; }
-    .field .control { display: flex; align-items: center; gap: 6px; height: 30px; width: 168px; padding: 0 8px; border-radius: 10px;
-      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); }
-    .field .control.changed { border-color: rgba(236,72,153,.7); }
-    .control input, .control select { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #f4f4f5;
-      font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-    .control select option { color: #111; }
-    .control input[type=color] { flex: none; width: 18px; height: 18px; padding: 0; border-radius: 50%; overflow: hidden; cursor: pointer; }
-    .control input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
-    .control input[type=color]::-webkit-color-swatch { border: 1px solid rgba(255,255,255,.3); border-radius: 50%; }
-    .unit { color: #8b8b93; font-size: 12px; }
-    button { all: unset; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 10px; color: #d4d4d8; }
-    button:hover, button[aria-pressed=true] { background: rgba(255,255,255,.08); color: #fff; }
-    button:focus-visible { outline: 2px solid ${ACCENT}; outline-offset: 1px; }
-    button:disabled { opacity: .4; cursor: default; background: transparent; }
-    svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-    .icon { width: 30px; height: 30px; border-radius: 12px; }
-    .small { width: 24px; height: 24px; border-radius: 8px; }
-    .small svg { width: 15px; height: 15px; }
-    .round { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); color: #fff; }
-    .round:hover { filter: brightness(1.08); color: #fff; }
-    .bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 6px;
-      pointer-events: auto; border-radius: 22px; transition: top .18s ease, bottom .18s ease; }
-    .bar.top { bottom: auto; top: 16px; }
-    .bar .tag { width: 20px; height: 20px; margin-left: 6px; color: ${ACCENT}; }
-    .bar .tag path:first-child { fill: currentColor; stroke: none; }
-    .paused-bar .tag { color: #8b8b93; }
-    .count { padding: 0 10px; white-space: nowrap; }
-    .hint { padding: 0 6px; color: #a1a1aa; white-space: nowrap; }
-    .sep { width: 1px; height: 18px; margin: 0 4px; background: rgba(255,255,255,.14); }
-    .send { height: 30px; padding: 0 14px; border-radius: 12px; background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); color: #fff; font-weight: 600; }
-    .send:hover { filter: brightness(1.08); color: #fff; }
-  `;
+  const CSS_TEXT = nekoPapaPickCss(ACCENT, ACCENT_DEEP);
 
   const root = document.documentElement;
   const host = document.createElement("nekopapa-annotate");
@@ -324,29 +269,50 @@
     render();
   }
 
-  // Pins follow their elements; the note sits below its element, or above it near the bottom.
+  // Builds the pins and the toolbar's state; only when the annotations change.
   function render() {
-    frame = 0;
     if (!active) return;
     layer.classList.toggle("paused", paused);
     marks.replaceChildren();
     annotations.forEach((item, index) => {
-      const r = item.el.isConnected ? item.el.getBoundingClientRect() : item.rect;
-      item.rect = { left: r.left, top: r.top, width: r.width, height: r.height, bottom: r.top + r.height };
-      const mark = make("div", "mark");
-      place(mark, item.rect);
-      // The tag sits on the element's top-left corner, tip down; inside the element when there is no room above.
-      const inside = item.rect.top < 28;
-      const pin = make("button", `pin${inside ? " inside" : ""}`, `<b>${index + 1}</b>`);
       const changed = Object.keys(item.changes).length;
       const summary = item.comment || (changed ? `改了 ${changed} 项样式` : "");
-      if (summary) pin.append(make("span"));
-      if (summary) pin.lastChild.textContent = summary;
-      pin.setAttribute("aria-label", `批注 ${index + 1}${summary ? `：${summary}` : ""}`);
-      Object.assign(pin.style, { left: `${Math.max(0, item.rect.left)}px`, top: inside ? `${Math.max(0, item.rect.top)}px` : `${item.rect.top - 25}px` });
-      pin.addEventListener("click", () => openNote(index));
-      marks.append(mark, pin);
+      item.mark = make("div", "mark");
+      item.pin = make("button", "pin", `<b>${index + 1}</b>`);
+      if (summary) item.pin.append(make("span"));
+      if (summary) item.pin.lastChild.textContent = summary;
+      item.pin.setAttribute("aria-label", `批注 ${index + 1}${summary ? `：${summary}` : ""}`);
+      item.pin.addEventListener("click", () => openNote(index));
+      marks.append(item.mark, item.pin);
     });
+    const count = annotations.length;
+    bar.classList.toggle("paused-bar", paused);
+    status.textContent = paused ? "已暂停，网页可正常操作" : count ? `批注 ${count} / ${MAX}` : "点选网页元素，写下想改的地方";
+    hint.textContent = notice;
+    hint.hidden = !notice;
+    pause.setAttribute("aria-pressed", String(paused));
+    pause.setAttribute("aria-label", paused ? "继续批注" : "暂停批注");
+    pause.title = paused ? "继续批注" : "暂停批注：操作网页后再继续";
+    pause.innerHTML = icon(paused ? "play" : "pause");
+    clear.disabled = !count;
+    send.disabled = !count;
+    layout();
+  }
+
+  // Pins follow their elements; the note sits below its element, or above it
+  // near the bottom. Runs on scroll and resize, at most once per frame.
+  function layout() {
+    frame = 0;
+    if (!active) return;
+    for (const item of annotations) {
+      const r = item.el.isConnected ? item.el.getBoundingClientRect() : item.rect;
+      item.rect = { left: r.left, top: r.top, width: r.width, height: r.height, bottom: r.top + r.height };
+      place(item.mark, item.rect);
+      // The tag sits on the element's top-left corner, tip down; inside the element when there is no room above.
+      const inside = item.rect.top < 28;
+      item.pin.classList.toggle("inside", inside);
+      Object.assign(item.pin.style, { left: `${Math.max(0, item.rect.left)}px`, top: inside ? `${Math.max(0, item.rect.top)}px` : `${item.rect.top - 25}px` });
+    }
     const item = note && annotations[note.index];
     if (item) {
       note.el.style.display = "block";
@@ -355,25 +321,46 @@
       const left = Math.min(Math.max(8, item.rect.left), innerWidth - 328);
       Object.assign(note.el.style, { left: `${left}px`, top: `${below ? item.rect.bottom + 8 : Math.max(8, item.rect.top - height - 8)}px` });
     }
-    const count = annotations.length;
-    bar.classList.toggle("paused-bar", paused);
-    const status = paused ? "已暂停，网页可正常操作" : count ? `批注 ${count} / ${MAX}` : "点选网页元素，写下想改的地方";
-    bar.innerHTML = `<svg class="tag" viewBox="0 0 24 24" aria-hidden="true"><path d="${TAG}"/><path d="M12.25 7.5v6M9.25 10.5h6" stroke="#fff" stroke-width="1.8"/></svg>`
-      + `<span class="count">${status}</span>`
-      + (notice ? `<span class="hint">${notice}</span>` : "")
-      + `<span class="sep"></span>`
-      + `<button class="icon" data-act="pause" aria-pressed="${paused}" aria-label="${paused ? "继续批注" : "暂停批注"}" title="${paused ? "继续批注" : "暂停批注：操作网页后再继续"}">${icon(paused ? "play" : "pause")}</button>`
-      + `<button class="icon" data-act="clear" aria-label="清除全部批注" title="清除全部"${count ? "" : " disabled"}>${icon("trash")}</button>`
-      + `<button class="send" data-act="send"${count ? "" : " disabled"}>加入对话</button>`
-      + `<button class="icon" data-act="exit" aria-label="退出批注" title="退出（Esc）">${icon("close")}</button>`;
+    if (target && !paused) showHover(target);
+    if (bar.classList.contains("moved")) moveBar(parseFloat(bar.style.left), parseFloat(bar.style.top));
   }
-  const schedule = () => { if (!frame) frame = requestAnimationFrame(render); };
+  const schedule = () => { if (!frame) frame = requestAnimationFrame(layout); };
+
+  // The toolbar is built once; render() only updates its text and states.
+  bar.innerHTML = `<button class="grip" data-act="grip" aria-label="拖动工具栏" title="拖动移动，双击放回底部">`
+    + `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${TAG}"/><path d="M12.25 7.5v6M9.25 10.5h6" stroke="#fff" stroke-width="1.8"/></svg></button>`
+    + `<span class="count"></span><span class="hint" hidden></span><span class="sep"></span>`
+    + `<button class="icon" data-act="pause"></button>`
+    + `<button class="icon" data-act="clear" aria-label="清除全部批注" title="清除全部">${icon("trash")}</button>`
+    + `<button class="send" data-act="send">加入对话</button>`
+    + `<button class="icon" data-act="exit" aria-label="退出批注" title="退出（Esc）">${icon("close")}</button>`;
+  const [status, hint] = bar.querySelectorAll(".count, .hint");
+  const [grip, pause, clear, send] = ["grip", "pause", "clear", "send"].map((act) => bar.querySelector(`[data-act="${act}"]`));
+  function moveBar(left, top) {
+    const box = bar.getBoundingClientRect();
+    bar.classList.add("moved");
+    bar.style.left = `${Math.min(Math.max(8, left), Math.max(8, innerWidth - box.width - 8))}px`;
+    bar.style.top = `${Math.min(Math.max(8, top), Math.max(8, innerHeight - box.height - 8))}px`;
+  }
+  grip.addEventListener("pointerdown", (event) => {
+    const box = bar.getBoundingClientRect();
+    const dx = event.clientX - box.left;
+    const dy = event.clientY - box.top;
+    grip.setPointerCapture(event.pointerId);
+    const drag = (move) => moveBar(move.clientX - dx, move.clientY - dy);
+    const end = () => { grip.removeEventListener("pointermove", drag); grip.removeEventListener("pointerup", end); grip.removeEventListener("pointercancel", end); };
+    grip.addEventListener("pointermove", drag);
+    grip.addEventListener("pointerup", end);
+    grip.addEventListener("pointercancel", end);
+  });
+  grip.addEventListener("dblclick", () => { bar.classList.remove("moved"); bar.style.left = ""; bar.style.top = ""; });
 
   bar.addEventListener("click", (event) => {
     const act = event.target instanceof Element ? event.target.closest("button")?.dataset.act : undefined;
+    if (!act || act === "grip") return;
     if (act === "pause") {
       paused = !paused;
-      if (paused) { saveComment(); note?.el.remove(); note = null; hover.style.display = "none"; tagname.style.display = "none"; }
+      if (paused) { saveComment(); note?.el.remove(); note = null; hideHover(); }
       showCursor(!paused);
     }
     if (act === "clear") { note?.el.remove(); note = null; annotations.forEach(restore); annotations.length = 0; notice = ""; }
@@ -398,20 +385,25 @@
   // The page root and body are not useful annotations; a click without a
   // hover first (keyboard, touch) still marks what was clicked.
   function markable(el) { return el instanceof Element && el !== root && el !== document.body; }
-  const onMove = (event) => {
-    // Near the toolbar, it moves to the other edge so it never covers what is being marked.
-    const box = bar.getBoundingClientRect();
-    const near = event.clientX > box.left - 40 && event.clientX < box.right + 40;
-    if (near && !bar.classList.contains("top") && event.clientY > box.top - 40) bar.classList.add("top");
-    else if (near && bar.classList.contains("top") && event.clientY < box.bottom + 40) bar.classList.remove("top");
-    const el = event.target;
-    if (ours(event) || !markable(el) || paused) { hover.style.display = "none"; tagname.style.display = "none"; target = null; return; }
-    target = el;
+  function hideHover() { hover.style.display = "none"; tagname.style.display = "none"; target = null; }
+  function showHover(el) {
     const r = el.getBoundingClientRect();
     place(hover, r);
     hover.style.display = "block";
     tagname.textContent = `${el.tagName.toLowerCase()}  ${Math.round(r.width)}×${Math.round(r.height)}`;
     Object.assign(tagname.style, { display: "block", left: `${Math.max(4, r.left)}px`, top: `${r.bottom + 26 < innerHeight ? r.bottom + 4 : Math.max(4, r.top - 24)}px` });
+  }
+  // The outline is measured once per frame, not on every mouse event.
+  let moved = null;
+  let moveFrame = 0;
+  const onMove = (event) => {
+    moved = ours(event) || paused || !markable(event.target) ? null : event.target;
+    if (!moveFrame) moveFrame = requestAnimationFrame(() => {
+      moveFrame = 0;
+      if (!active) return;
+      if (!moved) { hideHover(); return; }
+      if (moved !== target || hover.style.display === "none") { target = moved; showHover(target); }
+    });
   };
   const onClick = (event) => {
     if (ours(event) || paused) return;
@@ -442,6 +434,7 @@
     if (!active) return;
     active = false;
     if (frame) cancelAnimationFrame(frame);
+    if (moveFrame) cancelAnimationFrame(moveFrame);
     for (const [type, handler] of events) window.removeEventListener(type, handler, true);
     annotations.forEach(restore);
     host.remove();

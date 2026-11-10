@@ -151,7 +151,14 @@ pub async fn browser_set_zoom<R: Runtime>(app: AppHandle<R>, zoom: f64) -> Resul
     }
 }
 
-const PICK_SCRIPT: &str = include_str!("browser_pick.js");
+// The stylesheet and the behaviour live in separate files; one wrapper scope
+// keeps both names off the page's globals.
+const PICK_SCRIPT: &str = concat!(
+    "(() => {\n",
+    include_str!("browser_pick_css.js"),
+    include_str!("browser_pick.js"),
+    "})();"
+);
 const PICK_STOP: &str = "window.__nekoPapaPick?.stop()";
 const PICK_TAKE: &str = "(() => { try { return window.__nekoPapaPick ? window.__nekoPapaPick.take() : null } catch (_) { return null } })()";
 
