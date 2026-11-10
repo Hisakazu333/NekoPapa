@@ -3,7 +3,6 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
 import { useChat } from "@ai-sdk/react";
-import { useScreenDraft } from "@/components/application/desktop-tools/use-screen-draft";
 import { createChatTransport } from "@/app/chat/chat-transport";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -383,10 +382,6 @@ export function AgentChat({
   });
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
-  useScreenDraft(busy || !history.ready, (draft) => {
-    createChat();
-    setInput(draft);
-  });
   // 清理标签: closes the views only; saved chats stay in the sidebar under their project.
   const clearTabs = () => {
     placement.leaveBrowserTab();

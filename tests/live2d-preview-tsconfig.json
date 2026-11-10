@@ -1,8 +1,0 @@
-{
-  "extends": "../tsconfig.json",
-  "compilerOptions": { "noEmit": false, "rootDir": "../src/components/application/contacts" },
-  "include": [
-    "../src/components/application/contacts/live2d-preview.ts",
-    "../src/components/application/contacts/agent-appearance-assets.ts"
-  ]
-}

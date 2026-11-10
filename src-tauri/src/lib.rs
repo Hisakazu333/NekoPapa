@@ -1,9 +1,5 @@
 mod account_auth;
 mod browser_view;
-mod desktop_pet;
-mod desktop_tools;
-mod pet_archive;
-mod screen_notebook;
 mod editor_open;
 mod external_link;
 mod local_models;
@@ -22,9 +18,6 @@ pub fn run() {
         // Terminal panel sessions (pseudo-terminals running the login shell).
         .manage(terminal::Terminals::default())
         .manage(account_auth::AccountAuth::default())
-        .manage(desktop_pet::PetLibrary::default())
-        .manage(screen_notebook::CaptureGate::default())
-        .register_asynchronous_uri_scheme_protocol("nekopet", desktop_pet::serve_asset)
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
@@ -35,24 +28,6 @@ pub fn run() {
             account_auth::device::account_device_poll,
             account_auth::account_cancel,
             account_auth::account_logout,
-            account_auth::models::account_pet_models,
-            account_auth::models::account_pet_open,
-            account_auth::models::account_pet_upload,
-            account_auth::models::account_pet_bind,
-            desktop_tools::desktop_island_open,
-            desktop_tools::desktop_island_expand,
-            desktop_tools::desktop_overlay_close,
-            desktop_pet::desktop_pet_status,
-            desktop_pet::desktop_pet_import,
-            desktop_pet::desktop_pet_open,
-            desktop_pet::desktop_pet_model,
-            screen_notebook::screen_notebook_info,
-            screen_notebook::screen_capture_feedback,
-            screen_notebook::screen_select_text,
-            screen_notebook::screen_permission_settings,
-            screen_notebook::screen_note_save,
-            screen_notebook::screen_notes_open,
-            screen_notebook::screen_note_to_chat,
             project_folder::inspect_project_folder,
             local_models::probe_local_models,
             // Read-only project views for the files and changes panels.

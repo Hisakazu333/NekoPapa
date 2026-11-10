@@ -63,7 +63,7 @@ export const personalConfiguration: readonly ConfigurationSchema[] = [
       toggle("toolMemory", "允许工具结果进入记忆", false, "仍受记忆策略限制；当前没有可清除的记忆记录。"),
     ] },
   ] },
-  { id: "desktop", effect: "runtime", scope: "Live2D 默认值 · 模型渲染与原生透明窗口尚未接入；角色头像仅用于尺寸预览。", blocks: [
+  { id: "desktop", effect: "runtime", scope: "旧版桌宠偏好，仅用于兼容已有配置与备份。", blocks: [
     { title: "显示", fields: [
       toggle("showOnLaunch", "启动时显示陪伴窗口", false, "原生陪伴窗口接入后使用。"),
       { key: "scale", label: "角色尺寸", hint: "预览与默认缩放比例。", type: "number", control: "slider", initial: 1, min: 0.5, max: 2, step: 0.1 },

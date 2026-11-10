@@ -1,7 +1,5 @@
 #[path = "account_device.rs"]
 pub(crate) mod device;
-#[path = "account_models.rs"]
-pub(crate) mod models;
 
 // Official account login. Bearer tokens stay in the host for this app session.
 use reqwest::{Client, Method, Url};
@@ -373,14 +371,11 @@ pub async fn account_cancel<R: Runtime>(
 
 #[tauri::command]
 pub async fn account_logout<R: Runtime>(
-    app: tauri::AppHandle<R>,
     webview: Webview<R>,
     auth: State<'_, AccountAuth>,
 ) -> Result<(), String> {
     main_view(&webview)?;
-    sign_out(&auth).await?;
-    crate::desktop_pet::close_account_pet(&app);
-    Ok(())
+    sign_out(&auth).await
 }
 
 async fn sign_out(auth: &AccountAuth) -> Result<(), String> {

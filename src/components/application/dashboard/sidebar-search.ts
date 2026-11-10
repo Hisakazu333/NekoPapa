@@ -48,7 +48,6 @@ const settingsSearchAliases: Record<string, string> = {
   voice: "voice speech",
   tools: "tools skills mcp connectors",
   data: "data backup export import",
-  desktop: "desktop live2d companion",
   computer: "computer control",
   history: "activity history",
   screenshots: "screenshots app snapshots",
