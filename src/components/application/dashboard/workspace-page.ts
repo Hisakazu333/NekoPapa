@@ -4,7 +4,7 @@ export type WorkspacePage = "chat" | "contacts" | "learning" | "knowledge" | "sp
 
 /**
  * Pages that cannot work yet and only state why: learning and knowledge wait
- * for the NekoBuddy backend, the cabin waits for Live2D character models.
+ * for the NekoBuddy backend, the cabin remains a planned experience.
  */
 export type PendingWorkspacePage = Extract<WorkspacePage, "learning" | "knowledge" | "cabin">;
 export const isPendingWorkspacePage = (page: WorkspacePage): page is PendingWorkspacePage =>

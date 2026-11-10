@@ -24,7 +24,7 @@ export const integrationConfiguration: readonly ConfigurationSchema[] = [
   ] },
   { id: "screenshots", effect: "runtime", scope: "应用快照默认值 · 快照服务尚未接入；保存设置不会截屏。", blocks: [
     { title: "快照", fields: [
-      select("target", "发送目标", "ask", [["ask", "每次选择"], ["current", "当前会话"], ["mini", "Live2D 陪伴窗口"]]),
+      select("target", "发送目标", "ask", [["ask", "每次选择"], ["current", "当前会话"]]),
       select("format", "图片格式", "png", [["png", "PNG"], ["jpeg", "JPEG"]], "", "segmented"),
       toggle("includeText", "包含可访问文本", "需要应用支持可访问文本。", true),
       toggle("sound", "播放提示音", "快照成功时播放。"),

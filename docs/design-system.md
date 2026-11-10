@@ -90,8 +90,6 @@ macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的
 - 工作面板以 PillTab 切换历史、代码、资料、工具。工具用 SegmentedControl 切换目录、终端、更改和文件，共用面板关闭控件与宽度。代码页和输入框下方浮层共用环境信息。环境、上下文、连接器与本地服务器使用 React Aria 折叠区，统一采用主表面和分隔边框。上下文占用条用语义图表色区分已报告的输入、输出与未分项，输入框下方用 BoardUI ProgressCircle 与 Popover 展示同一份数据。目录序号用次级表面和可读的次级文字，整行可聚焦。图片附件的本机缩略图解码失败时回退到图标。工作台与联系人输入框复用 Composer Loader，动画跟随实际请求状态，空闲时暂停，并尊重系统减少动态效果设置。等待正文时的 Agent Thinking 位于输入区上方；已收到的推理仍在消息内容中。
 - 2026-11-11 通过官方 `npx -y boardui@latest add tree-view context-menu command-palette --yes` 安装 Tree View、Context Menu、Command Palette；注册表版本引用 `@remixicon/react`，已改为 `app-icons` 中的 Lucide 图标并移除该依赖；Context Menu 的 `onAction` 类型按本仓库 react-aria-components 版本做了一处类型转换（源码内注明）。消息代码卡片为 `rounded-2xl` + `border-separator-border` + `bg-background-primary-default`，标题行 36px、等宽 `text-caption-1`；思考过程为 `text-text-tertiary` 折叠行与左侧分隔线。
 - 常规页顶部为本机资料卡（参照官方 General 页的方案卡），数据页参照官方 Storage 页的总量卡与数据表。官方 `FileUpload` 会模拟上传进度，因此导入区只采用其空闲外观，状态以真实读取与校验结果为准。
+- 灵动岛和 Live2D 桌宠的设置页沿用 BoardUI 设置行和状态点。模型来源使用 `SegmentedControl` 切换说明；未接入的能力不呈现可执行按钮。
 
 内置浏览器的网页批注（`src-tauri/src/browser_pick.js`）运行在别人的网页里，读不到应用的 token，因此在脚本内镜像默认粉色强调色（accent-500 `#ec4899` / accent-600 `#db2777`）与悬浮栏的深色毛玻璃表面：批注卡片 18px 圆角、底部工具条 22px 圆角（与底部悬浮栏一致），编号标记、光标与应用里的批注图标（`AnnotateIcon`，取代系统指针样的 MousePointer2）共用同一个“批注标签”形状：圆角标签，左下尖角指向标记位置；标记 24px 高、白色 1.5px 描边加 1px 深色外圈，在浅色与深色网页上都清楚，13px 粗体编号后接评论开头，主操作“加入对话”使用粉色渐变（悬停保持渐变，只提亮）；工具条固定在底部，左侧的批注标签是拖动手柄（`grab` 光标），工具条文字不可选中；图标沿用 Lucide 1.5 描边。样式表在 `browser_pick_css.js`。用户改了强调色时批注仍为默认粉色，这是当前限制。
-
-- 取材完成后的编辑面板沿用 BoardUI Button、Input、Textarea 和 SegmentedControl；待机时没有常驻浮层。鼠标在刘海附近停约半秒，原生把手才出现，离开收起；按住向下拖时，达到距离后把手高亮，松手开始取材。框选前的圆形扩散使用同一屏幕锚点及主题切换的 820ms 曲线，由 macOS 透明浮层绘制柔边并在框选前撤下。系统或应用减少动态效果时直接进入框选。录屏授权使用 macOS 自带弹窗，应用侧仅使用工作台的 BoardUI Toast 提示并提供打开系统设置的操作。预览使用截图的原始宽高比，选区完成后先显示编辑器和识字状态。识字在后台完成，不覆盖已经编辑的正文；笔记标题、正文和分类可直接编辑。
-- 桌宠设置使用同一套分段控件区分账号模型与本机模型，账号列表只呈现服务返回的同伴。本机文件与云端上传是不同按钮；上传回执确认后才显示保存完成。

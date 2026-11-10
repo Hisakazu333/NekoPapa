@@ -1,7 +1,7 @@
-import { BotIcon, CameraIcon, ChartColumnIcon, CodeIcon, CpuIcon, DatabaseIcon, GitBranchIcon, GitMergeIcon, GlobeIcon, HistoryIcon, InfoIcon, KeyboardIcon, LayersIcon, MicIcon, MonitorIcon, PaletteIcon, PlugIcon, PuzzleIcon, Settings2Icon, ShieldCheckIcon, ShieldEllipsisIcon, ShieldUserIcon, SquareTerminalIcon, TerminalIcon, UserIcon, WandSparklesIcon, WebhookIcon, WrenchIcon } from "@/components/foundations/icons/app-icons";
+import { BookOpenIcon, BotIcon, CameraIcon, ChartColumnIcon, CodeIcon, CpuIcon, DatabaseIcon, GitBranchIcon, GitMergeIcon, GlobeIcon, HistoryIcon, InfoIcon, KeyboardIcon, LayersIcon, MicIcon, MonitorIcon, PaletteIcon, PlugIcon, PuzzleIcon, Settings2Icon, ShieldCheckIcon, ShieldEllipsisIcon, ShieldUserIcon, SquareTerminalIcon, TerminalIcon, UserIcon, WandSparklesIcon, WebhookIcon, WrenchIcon } from "@/components/foundations/icons/app-icons";
 import type { ConfigurationGroup } from "@/app/settings/configuration-types";
 
-export type SettingsSection = Exclude<ConfigurationGroup, "desktop"> | "model" | "tools" | "skills" | "plugins" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage";
+export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "plugins" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage" | "screen-island";
 
 interface SettingsSectionEntry {
   label: string;
@@ -20,6 +20,8 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   personalization: { label: "个性化", title: "个性化与记忆", description: "保存自定义指令与未来的记忆策略。", icon: WandSparklesIcon },
   voice: { label: "语音", title: "语音偏好", description: "保存语音输入与聊天的默认配置。", icon: MicIcon },
   tools: { label: "MCP 与连接器", title: "MCP 与连接器", description: "管理 MCP 服务和连接器配置。", icon: WrenchIcon },
+  "screen-island": { label: "灵动岛", title: "灵动岛", description: "屏幕取材与截图编辑。", icon: CameraIcon },
+  desktop: { label: "Live2D 桌宠", title: "Live2D 桌宠", description: "本机模型、账号模型与桌面陪伴。", icon: BookOpenIcon },
   data: { label: "数据与备份", title: "数据与备份", description: "查看本机存储，导出、校验和恢复设置。", icon: DatabaseIcon },
   privacy: { label: "隐私", title: "隐私", description: "聊天记录保留与诊断数据。", icon: ShieldUserIcon },
   computer: { label: "电脑操作", title: "电脑操作", description: "保存未来电脑操作工具的默认范围。", icon: MonitorIcon },
@@ -43,7 +45,7 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
 
 export const settingsGroups: readonly { label: string; sections: readonly SettingsSection[] }[] = [
   { label: "工作区", sections: ["general", "profile", "usage", "appearance", "data", "privacy"] },
-  { label: "智能与工具", sections: ["model", "agent", "personalization", "voice", "tools"] },
+  { label: "智能与工具", sections: ["model", "agent", "personalization", "voice", "tools", "screen-island", "desktop"] },
   { label: "桌面与设备", sections: ["computer", "history", "screenshots", "browser", "connections"] },
   { label: "开发", sections: ["coding", "permissions", "context", "skills", "plugins", "hooks", "editor", "review", "git", "worktrees"] },
   { label: "应用", sections: ["shortcuts", "about"] },

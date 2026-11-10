@@ -62,7 +62,7 @@ export function AboutSettingsPanel({ onClose }: { onClose: () => void }) {
           <SettingsRow label="反馈问题" description="提交问题、复现步骤或界面建议。"><a className="shrink-0 text-body-medium text-text-primary underline underline-offset-4" href="https://github.com/Hisakazu333/NekoPapa/issues" target="_blank" rel="noreferrer">前往反馈</a></SettingsRow>
           <SettingsRow label="开源许可证"><span className="text-body-regular text-text-primary">Apache License 2.0</span></SettingsRow>
         </SettingsCard>
-        <p className="text-body-2-regular text-text-tertiary">聊天界面基于 BoardUI。账号、Live2D、语音与工具执行等能力以各设置页说明的实际接入状态为准。</p>
+        <p className="text-body-2-regular text-text-tertiary">聊天界面基于 BoardUI。账号、语音与工具执行等能力以各设置页说明的实际接入状态为准。</p>
       </div>
     </ModalBody>
     <ModalFooter><Button variant="secondary" onClick={onClose}>关闭</Button></ModalFooter>

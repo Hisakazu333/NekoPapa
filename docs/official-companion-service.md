@@ -24,9 +24,7 @@
 
 本轮未验证部署地址、短信送达、手机端扫码或桌面端版本门禁，也未修改 Java 后端。下节的源码核查为历史记录。
 
-## 桌宠的账号模型
-
-桌面端复用已认证的账号会话读取 `GET /api/app/companion/roster`，默认跟随 `isCurrent` 同伴。官方模型由 `/live2d/download-url` 提供发布描述与签名地址，下载后检查大小、SHA-256 和模型入口。私人模型用名册提供的已授权下载地址。签名 URL 和 Token 留在宿主，打开桌宠不会改变账号当前同伴。上传由用户明确选择 ZIP，宿主校验后调用 `POST /api/app/companion/custom-roles/model-file`，再由 `POST /api/app/companion/custom-roles` 创建私人角色并绑定模型。账号配额、灰度与模型发布状态仍由 Java 决定。当前仅验证了客户端及本地测试，未连接正式账号服务。
+桌面端已移除本机和账号模型的桌宠入口，不再下载、上传或绑定 Live2D 模型。Java 契约和已有账号资源保持原样。
 
 ## Java 源码核查结果（2026-11-08，尚未接入）
 
