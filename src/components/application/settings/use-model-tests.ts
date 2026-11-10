@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { chatModelProfile, isCredentialName } from "@/app/chat-model-profile";
+import { chatModelProfile, isCredentialName, keychainId } from "@/app/chat-model-profile";
 import type { ConfigurationRecord } from "@/app/configuration-types";
 import { chatFetch } from "@/app/desktop-chat-runtime";
 
@@ -38,10 +38,11 @@ export interface ModelListState { pending: boolean; ok?: boolean; message: strin
  */
 export function useModelList() {
   const [state, setState] = useState<ModelListState | null>(null);
-  const list = async (values: { provider: unknown; endpoint: unknown; environment: unknown }) => {
-    const profile = { provider: String(values.provider || ""), endpoint: String(values.endpoint || "").trim(), model: "", credential: String(values.environment || "").trim() };
+  /** `credential`: an environment variable, `keychain:<id>`, or empty for servers that take no key. */
+  const list = async (values: { provider: unknown; endpoint: unknown; credential: string }) => {
+    const profile = { provider: String(values.provider || ""), endpoint: String(values.endpoint || "").trim(), model: "", credential: values.credential };
     if (!profile.endpoint) { setState({ pending: false, ok: false, message: "请先填写服务地址。", models: [] }); return; }
-    if (profile.credential && !isCredentialName(profile.credential)) {
+    if (profile.credential && !isCredentialName(profile.credential) && !keychainId(profile.credential)) {
       setState({ pending: false, ok: false, message: `凭据环境变量名“${profile.credential}”需要以 KEY、TOKEN 或 SECRET 结尾。`, models: [] });
       return;
     }
@@ -55,5 +56,6 @@ export function useModelList() {
       setState({ pending: false, ok: false, message: "无法获取：聊天运行时没有响应。", models: [] });
     }
   };
-  return { state, list, clear: () => setState(null) };
+  const fail = (message: string) => setState({ pending: false, ok: false, message, models: [] });
+  return { state, list, fail, clear: () => setState(null) };
 }

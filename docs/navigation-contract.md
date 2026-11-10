@@ -762,3 +762,10 @@
 - 验证：`npm run test` 522/522（`chat-model-runtime.test.mjs` 新增思考过程流出与不回传、代码围栏拆分两项），`npm run build`、`git diff --check` 通过；浏览器中 `⇧⌘P` 打开命令面板并从中打开 设置 → 模型与 API。`agent-chat.tsx` 498 行，接近 500 行档，下次改动前先拆出标题栏 / 面板组装。
 - 未验证：文件树与右键菜单的浏览器点测（隔离服务器未设项目）；代码卡片与思考过程的实际显示（需要可用模型）；桌面窗口。
 - 尚未做（下一批）：更改面板的增删行统计（需宿主新增 `git diff --numstat`）、对话输入框 / 输入面板的 Pro 样式重做、智能体额度（上下文环）、智能体任务进度、任务列表、网页搜索、计划提问、智能体创建器、多智能体聊天、AI 图像生成；其中任务进度、任务列表、网页搜索、计划提问依赖 Agent 工具调用数据。
+
+### 模型 API Key 存入钥匙串；去掉重复的面包屑（2026-11-11）
+
+- 用户反馈“api 填写没作用”：此前只能填环境变量名，从访达打开的应用读不到 shell 变量。模型配置新增可选字段 `keySource`（API Key / 环境变量 / 不需要），桌面版新建默认 API Key：在表单粘贴 Key，保存后由 Rust `keyring`（3.6.3，macOS 钥匙串、Windows 凭据管理器、Linux Secret Service）按记录 ID 保存；“获取模型列表”先把输入的 Key 暂存为 `draft` 条目，保存后移到正式记录并删除草稿。记录只存 `keychain:<ID>`，`model_fetch` 填入 `{{nekopapa-secret:ID}}` 占位符；缺少 Key 时提示到 设置 → 模型与 API 重新填写。浏览器预览中 API Key 选项不可用。
+- 用户截图指出对话上方“工作台 › 你好”：桌面标题栏已用标签页显示当前对话，面包屑重复且“工作台”与对话实际归属不符。有窗口标题栏时 `ChatWorkspaceHeader` 改为 `compact`，只在窄窗口保留导航按钮；嵌入式（无标题栏）布局不变。
+- 验证：`npm run test` 524/524（新增钥匙串引用 / 浏览器提示、keySource 校验两项），`npm run build`、`git diff --check` 通过；`cargo test` 15 项通过（占位符填入、记录 ID 校验）；`npm run desktop:build` 生成 release `NekoPapa.app`。浏览器 `localhost:1495` 中面包屑已不显示，窄窗口导航按钮在左上角。
+- 未验证：桌面版中实际粘贴 Key、写入钥匙串并发送（不代填用户的 Key）；钥匙串首次访问时系统授权提示的表现。

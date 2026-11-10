@@ -1,5 +1,8 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ListIcon } from "@/components/foundations/icons/app-icons";
+import { keychainRef, keySourceOf, type KeySource } from "@/app/chat-model-profile";
+import { SegmentedControl, SegmentedControlItem } from "@/components/base/segmented-control/segmented-control";
+import { canStoreKeys, DRAFT_KEY_ID, storedModelKeys, storeModelKey } from "./model-key-store";
 import type { ConfigurationField, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
 import { CUSTOM_VENDOR, MODEL_VENDORS, modelVendor, vendorForEndpoint, type ModelVendor } from "@/app/model-vendors";
 import { Button } from "@/components/base/buttons/button";
@@ -15,6 +18,10 @@ import { useModelList } from "./use-model-tests";
  * vendor's public endpoint and its conventional key variable; the model id
  * comes from the server's own list (获取模型列表) or is typed. Only the
  * schema's fields are stored — the vendor is read back from the endpoint.
+ *
+ * 密钥来源: an API Key typed here goes to the system keychain when the
+ * record is saved (desktop app only) and is never kept in the form values;
+ * or the record names an environment variable; or the server takes none.
  */
 
 interface ModelProfileFieldsProps {
@@ -23,18 +30,46 @@ interface ModelProfileFieldsProps {
   errors: Record<string, string>;
   onChange: (key: string, value: ConfigurationValue) => void;
   prefix: string;
+  /** The saved record being edited, if any; its stored key is kept unless a new one is typed. */
+  recordId?: string;
+  /** The API Key typed in this form, held by the form's owner until it is saved. */
+  secret: string;
+  onSecretChange: (secret: string) => void;
 }
 
 const SELECT_TRIGGER = "h-8 w-auto gap-1 rounded-lg px-2 py-1.5";
 const REGION: Record<ModelVendor["region"], string> = { international: "国际", china: "国内", local: "本机" };
 /** Changing any of these makes a fetched list stale. */
-const LIST_KEYS = new Set(["provider", "endpoint", "environment"]);
+const LIST_KEYS = new Set(["provider", "endpoint", "environment", "keySource"]);
+const SOURCES: [KeySource, string][] = [["keychain", "API Key"], ["environment", "环境变量"], ["none", "不需要"]];
 
-export function ModelProfileFields({ fields, values, errors, onChange, prefix }: ModelProfileFieldsProps) {
+export function ModelProfileFields({ fields, values, errors, onChange, prefix, recordId, secret, onSecretChange }: ModelProfileFieldsProps) {
   const [vendor, setVendor] = useState(() => vendorForEndpoint(String(values.endpoint ?? "")));
   const modelList = useModelList();
   const current = modelVendor(vendor);
   const environment = String(values.environment ?? "").trim();
+  const source = keySourceOf({ values });
+  const [stored, setStored] = useState(false);
+  useEffect(() => {
+    let live = true;
+    if (recordId) void storedModelKeys([recordId]).then((ids) => { if (live) setStored(ids.has(recordId)); });
+    return () => { live = false; };
+  }, [recordId]);
+
+  // The key the list request uses: one typed just now goes to the keychain
+  // as a draft first, so it never travels in a request body.
+  const fetchModels = async () => {
+    let credential = "";
+    if (source === "environment") credential = environment;
+    else if (source === "keychain") {
+      if (secret.trim()) {
+        try { await storeModelKey(DRAFT_KEY_ID, secret); } catch (error) { modelList.fail(error instanceof Error ? error.message : "无法访问钥匙串。"); return; }
+        credential = keychainRef(DRAFT_KEY_ID);
+      } else if (recordId && stored) credential = keychainRef(recordId);
+      else { modelList.fail("请先填写 API Key。"); return; }
+    }
+    void modelList.list({ provider: values.provider, endpoint: values.endpoint, credential });
+  };
 
   const change = (key: string, value: ConfigurationValue) => {
     onChange(key, value);
@@ -50,6 +85,9 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix }:
     onChange("endpoint", next.endpoint);
     // Values the user typed stay; ones the previous preset filled follow the new one.
     if (!environment || environment === current?.env) onChange("environment", next.env);
+    // Local servers take no key; a hosted vendor needs one.
+    if (next.region === "local") onChange("keySource", "none");
+    else if (source === "none") onChange("keySource", canStoreKeys() ? "keychain" : "environment");
     const name = String(values.name ?? "").trim();
     if (!name || name === current?.label) onChange("name", next.label);
   };
@@ -74,9 +112,12 @@ export function ModelProfileFields({ fields, values, errors, onChange, prefix }:
       </Select>
     </SettingsRow>
     <SettingsFields fields={upper} values={values} errors={errors} onChange={change} prefix={prefix} />
-    {credential && <SettingsFields fields={[{ ...credential, hint: envHint ?? "" }]} values={values} errors={errors} onChange={change} prefix={prefix} />}
+    <KeySourceRow prefix={prefix} value={source} onChange={(next) => { change("keySource", next); }} />
+    {source === "keychain" && <KeyRow prefix={prefix} secret={secret} stored={stored} error={errors.secret}
+      onChange={(next) => { onSecretChange(next); modelList.clear(); }} />}
+    {source === "environment" && credential && <SettingsFields fields={[{ ...credential, hint: envHint ?? "" }]} values={values} errors={errors} onChange={change} prefix={prefix} />}
     <ModelRow prefix={prefix} value={String(values.model ?? "")} error={errors.model} hint={byKey("model")?.hint}
-      list={modelList.state} onFetch={() => void modelList.list({ provider: values.provider, endpoint: values.endpoint, environment: values.environment })} onChange={(next) => onChange("model", next)} />
+      list={modelList.state} onFetch={() => void fetchModels()} onChange={(next) => onChange("model", next)} />
   </>;
 }
 
@@ -109,5 +150,30 @@ function ModelRow({ prefix, value, error, hint, list, onFetch, onChange }: {
       </Select>}
       {list && <p role="status" className={cx("text-body-2-regular", list.pending ? "text-text-tertiary" : list.ok ? "text-text-secondary" : "text-text-error-primary")}>{list.message}</p>}
     </div>
+  </SettingsRow>;
+}
+
+function KeySourceRow({ prefix, value, onChange }: { prefix: string; value: KeySource; onChange: (value: KeySource) => void }) {
+  const desktop = canStoreKeys();
+  const description = value === "keychain"
+    ? desktop ? "直接填写服务商给你的 API Key，保存后存入系统钥匙串，不写入设置或备份。" : "直接填写 API Key 需要桌面应用（保存到系统钥匙串）；浏览器预览请用环境变量。"
+    : value === "environment" ? "从启动 NekoPapa 的环境变量读取密钥，适合已在 ~/.zshrc 中设置过的变量。" : "本机服务（Ollama、LM Studio 等）通常不需要密钥。";
+  return <SettingsRow label="密钥来源" description={description} labelId={`${prefix}-key-source-label`} descriptionId={`${prefix}-key-source-description`}>
+    <SegmentedControl selectedKeys={[value]} className="shrink-0" aria-labelledby={`${prefix}-key-source-label`} aria-describedby={`${prefix}-key-source-description`}
+      onSelectionChange={(keys) => { const next = Array.from(keys)[0]; if (typeof next === "string") onChange(next as KeySource); }}>
+      {SOURCES.map(([id, label]) => <SegmentedControlItem key={id} id={id} isDisabled={id === "keychain" && !desktop}>{label}</SegmentedControlItem>)}
+    </SegmentedControl>
+  </SettingsRow>;
+}
+
+function KeyRow({ prefix, secret, stored, error, onChange }: { prefix: string; secret: string; stored: boolean; error?: string; onChange: (value: string) => void }) {
+  const id = `${prefix}-secret`;
+  const description = stored
+    ? "已保存在钥匙串。留空保留原密钥；填写新的会替换它。"
+    : "例如 sk-…；只保存在本机钥匙串，发送请求时由桌面应用填入。";
+  return <SettingsRow label="API Key" description={description} error={error} labelId={`${id}-label`} descriptionId={`${id}-description`}>
+    <Input id={id} name="api-key" value={secret} onChange={onChange} size="small" className="w-60 shrink-0" type="password"
+      autoComplete="off" placeholder={stored ? "••••••••（已保存）" : "粘贴 API Key"} maxLength={4096}
+      isInvalid={Boolean(error)} aria-labelledby={`${id}-label`} aria-describedby={`${id}-description`} />
   </SettingsRow>;
 }

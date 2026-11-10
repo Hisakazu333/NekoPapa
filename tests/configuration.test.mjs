@@ -306,3 +306,17 @@ test("未落盘的设置不会被外部同步丢弃", () => {
   assert.equal(store.data.groups.profile.name, "待保存");
   assert.equal(store.storageAvailable, false);
 });
+
+test("模型配置的密钥来源：旧记录按环境变量读取，新值只接受三种来源，不保存密钥本身", () => {
+  const storage = memory();
+  const store = new ConfigurationStore(storage);
+  assert.equal(store.saveRecord("models", model()), undefined);
+  assert.equal(store.data.collections.models[0].values.keySource, "environment");
+  assert.equal(store.saveRecord("models", { ...model("钥匙串"), keySource: "keychain", environment: "" }), undefined);
+  assert.equal(store.data.collections.models[1].values.keySource, "keychain");
+  assert.ok(store.saveRecord("models", { ...model(), keySource: "plaintext" }));
+  assert.ok(store.saveRecord("models", { ...model(), keySource: "keychain", apiKey: "sk-should-never-be-stored" }));
+  const restored = new ConfigurationStore(storage);
+  assert.equal(restored.data.collections.models.length, 2);
+  assert.doesNotMatch(JSON.stringify(restored.data), /sk-should-never-be-stored/);
+});

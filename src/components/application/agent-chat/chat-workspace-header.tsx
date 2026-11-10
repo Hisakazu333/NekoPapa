@@ -12,11 +12,26 @@ export interface ChatWorkspaceHeaderProps extends AgentChatActionsProps {
   frosted: boolean;
   workspaceLabel?: string;
   showActions?: boolean;
+  /**
+   * The desktop title bar already shows the open chat as a tab, so the
+   * breadcrumb would only repeat it; only the narrow-window navigation
+   * toggle stays.
+   */
+  compact?: boolean;
 }
 
 export function ChatWorkspaceHeader({
-  title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", showActions = true, ...actions
+  title, titleRef, navOpen, onToggleNavigation, frosted, workspaceLabel = "工作台", showActions = true, compact = false, ...actions
 }: ChatWorkspaceHeaderProps) {
+  if (compact) return (
+    <IconButton
+      icon={navOpen ? XIcon : MenuIcon}
+      size="small"
+      aria-label={navOpen ? "关闭导航" : "打开导航"}
+      onClick={onToggleNavigation}
+      className="absolute start-3 top-3 z-10 lg:hidden"
+    />
+  );
   return (
     <header
       className={cx(

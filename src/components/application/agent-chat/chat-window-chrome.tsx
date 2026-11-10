@@ -33,6 +33,7 @@ export function createChatWindowChrome({
       frosted={hasMessages}
       {...actions}
       showActions={!windowToolbar}
+      compact={windowToolbar}
     />
   );
   const windowActions = windowToolbar ? (

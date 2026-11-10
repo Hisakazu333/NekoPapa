@@ -207,3 +207,17 @@ test("回复中的代码围栏拆成代码块，生成中未闭合的也按代�
   assert.deepEqual(blocks.splitMessageBlocks("没有代码"), [{ kind: "text", text: "没有代码" }]);
   assert.deepEqual(blocks.splitMessageBlocks("````md\n```\ninner\n```\n````"), [{ kind: "code", lang: "md", code: "```\ninner\n```", complete: true }]);
 });
+
+test("密钥来源：钥匙串中的 API Key 只以记录编号引用，浏览器预览如实说明读不到", async () => {
+  const record = (values) => ({ id: "rec-1", values: { name: "DeepSeek", provider: "compatible", endpoint: "https://api.deepseek.com/v1", model: "deepseek-chat", environment: "DEEPSEEK_API_KEY", ...values } });
+  assert.equal(profiles.chatModelProfile(record({ keySource: "keychain" })).profile.credential, "keychain:rec-1");
+  assert.equal(profiles.chatModelProfile(record({ keySource: "none" })).profile.credential, "");
+  // Records saved before 密钥来源 existed keep reading their variable.
+  assert.equal(profiles.chatModelProfile(record({})).profile.credential, "DEEPSEEK_API_KEY");
+  assert.equal(profiles.keychainId("keychain:rec-1"), "rec-1");
+  for (const bad of ["keychain:", "keychain:../x", "keychain:a b", "rec-1"]) assert.equal(profiles.keychainId(bad), undefined, bad);
+  assert.equal(profiles.readChatModelProfile({ provider: "compatible", endpoint: "https://x.test/v1", model: "m", credential: "keychain:../x" }), undefined);
+  const response = await route.POST(post("/api/chat", { messages, profile: { provider: "compatible", endpoint: "http://127.0.0.1:9/v1", model: "m", credential: "keychain:rec-1" } }));
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).message, /钥匙串.*浏览器预览读不到/);
+});

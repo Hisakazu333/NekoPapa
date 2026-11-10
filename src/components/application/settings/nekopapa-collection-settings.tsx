@@ -17,6 +17,7 @@ import { SkillDiscoverySection } from "./skill-discovery-section";
 import { CordisPatchSection } from "./cordis-patch-section";
 import { useModelTests } from "./use-model-tests";
 import { ModelProfileFields } from "./model-profile-fields";
+import { canStoreKeys, deleteModelKey, DRAFT_KEY_ID, storeModelKey } from "./model-key-store";
 
 type Collection = ConfigurationCollection;
 /** Extensions are shown as two pages: MCP / connectors, and skills. */
@@ -44,6 +45,8 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
   const [removal, setRemoval] = useState<Removal | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
+  /** An API Key typed in the model form; it goes to the keychain on save and never into the values. */
+  const [secret, setSecret] = useState("");
   const formId = useId();
   const modelTests = useModelTests();
   const returnFocus = useRef("");
@@ -62,6 +65,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
   const backToList = () => {
     clearDraft();
     setEditor(null);
+    setSecret("");
     setErrors({});
     requestAnimationFrame(() => document.getElementById(returnFocus.current)?.focus());
   };
@@ -72,6 +76,9 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
     setStatus("");
     const initial = fieldDefaults(schema.fields);
     if (skills) Object.assign(initial, { kind: "skill", transport: "stdio" });
+    // New model configurations take the key directly where the app can keep it safely.
+    if (collection === "models") initial.keySource = canStoreKeys() ? "keychain" : "environment";
+    setSecret("");
     setEditor({ id: record?.id, values: record ? { ...record.values } : initial, base: JSON.stringify(record?.values) });
   };
   const prepareStorage = () => {
@@ -105,6 +112,12 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
       setErrors({ form: "配置已被其他窗口更改或删除，请取消并重新打开。" });
       return;
     }
+    const keychain = collection === "models" && editor.values.keySource === "keychain";
+    if (keychain && !editor.id && !secret.trim()) {
+      setErrors({ secret: "请填写 API Key，或把密钥来源改为环境变量。" });
+      requestAnimationFrame(() => document.getElementById(`${formId}-secret`)?.focus());
+      return;
+    }
     const before = new Set(latest.map((record) => record.id));
     const result = store.saveRecord(collection, editor.values, editor.id);
     refresh();
@@ -119,7 +132,17 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
       setErrors({ form: store.notice });
       return;
     }
+    const savedId = editor.id ?? store.data.collections[collection].find((record) => !before.has(record.id))?.id;
+    const typed = secret.trim();
     backToList();
+    if (keychain && typed && savedId) {
+      report("正在把 API Key 存入钥匙串…");
+      void storeModelKey(savedId, typed).then(
+        () => { void deleteModelKey(DRAFT_KEY_ID); report("配置已保存，API Key 已存入钥匙串；现在可以在输入框的模型菜单中选用。"); },
+        (error: unknown) => setErrors({ form: `配置已保存，但 API Key 没有存入钥匙串：${error instanceof Error ? error.message : "未知错误"}。请编辑这份配置重新填写。` }),
+      );
+      return;
+    }
     report(collection === "models" ? "配置已保存到本机，可在“…”中测试连接，并在输入框的模型菜单中选用。" : "配置已保存到本机；执行服务尚未接入。");
   };
   const remove = () => {
@@ -163,7 +186,8 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
             <form id={formId} onSubmit={save} noValidate className="flex flex-col gap-2">
               <SettingsSectionLabel>{editor.id ? "编辑" : "新增"}{singular}</SettingsSectionLabel>
               <SettingsCard>{collection === "models"
-                ? <ModelProfileFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} />
+                ? <ModelProfileFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId}
+                  recordId={editor.id} secret={secret} onSecretChange={(next) => { setSecret(next); setErrors((current) => ({ ...current, secret: "" })); }} />
                 : <SettingsFields fields={fields} values={editor.values} errors={errors} onChange={update} prefix={formId} />}</SettingsCard>
             </form>
           ) : (

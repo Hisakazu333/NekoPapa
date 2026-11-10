@@ -21,7 +21,7 @@ export function presentRecord(collection: ConfigurationCollection, record: Confi
     return {
       initial, color: "blue", chips: [option("provider"), ...(role ? ["默认使用"] : [])],
       summary: `${value("model")} · ${endpointHost(value("endpoint"))}`,
-      detail: [role || "未设为默认", value("environment") && `凭据引用 ${value("environment")}`].filter(Boolean).join(" · "),
+      detail: [role || "未设为默认", value("keySource") === "keychain" ? "API Key 在钥匙串" : value("keySource") === "none" ? "不需要密钥" : value("environment") && `环境变量 ${value("environment")}`].filter(Boolean).join(" · "),
     };
   }
   if (collection === "extensions") {
