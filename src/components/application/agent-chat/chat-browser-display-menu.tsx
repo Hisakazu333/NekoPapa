@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiAddLine, RiCheckLine, RiComputerLine, RiMacbookLine, RiSmartphoneLine, RiSubtractLine, RiTabletLine, RiAspectRatioLine } from "@remixicon/react";
+import { CheckIcon, LaptopIcon, MinusIcon, MonitorIcon, PlusIcon, RectangleHorizontalIcon, SmartphoneIcon, TabletIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { toolbarIconButtonClass } from "@/components/application/dashboard/toolbar-icon-button";
 import {
@@ -7,8 +7,8 @@ import {
 } from "@/app/browser-display";
 import { cx } from "@/utils/cx";
 
-const icons: Record<BrowserDevice, typeof RiComputerLine> = {
-  fit: RiAspectRatioLine, phone: RiSmartphoneLine, tablet: RiTabletLine, laptop: RiMacbookLine, desktop: RiComputerLine,
+const icons: Record<BrowserDevice, typeof MonitorIcon> = {
+  fit: RectangleHorizontalIcon, phone: SmartphoneIcon, tablet: TabletIcon, laptop: LaptopIcon, desktop: MonitorIcon,
 };
 const stepButton = cx(toolbarIconButtonClass, "size-8 rounded-lg");
 
@@ -45,7 +45,7 @@ export function ChatBrowserDisplayMenu({ display, frame, onChange, isDisabled }:
             <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />
             <span className="flex-1 truncate text-start text-body-medium text-text-primary">{label}</span>
             <span className="text-caption-1-regular tabular-nums text-text-tertiary">{width ? `${width}px` : "当前宽度"}</span>
-            <RiCheckLine className={cx("size-4 shrink-0 text-text-primary", display.device !== id && "invisible")} aria-hidden />
+            <CheckIcon className={cx("size-4 shrink-0 text-text-primary", display.device !== id && "invisible")} aria-hidden />
           </DropdownItem>;
         })}
       </DropdownGroup>
@@ -53,11 +53,11 @@ export function ChatBrowserDisplayMenu({ display, frame, onChange, isDisabled }:
       <DropdownGroup label="缩放">
         <div className="flex items-center gap-1 px-1">
           <button type="button" className={stepButton} aria-label="缩小" disabled={fit && zoom <= 0.5} onClick={() => setZoom(stepBrowserZoom(zoom, -1))}>
-            <RiSubtractLine className="size-4" aria-hidden />
+            <MinusIcon className="size-4" aria-hidden />
           </button>
           <span className="flex-1 text-center text-body-medium tabular-nums text-text-primary" aria-live="polite">{formatBrowserZoom(zoom)}</span>
           <button type="button" className={stepButton} aria-label="放大" disabled={fit && zoom >= 1.5} onClick={() => setZoom(stepBrowserZoom(zoom, 1))}>
-            <RiAddLine className="size-4" aria-hidden />
+            <PlusIcon className="size-4" aria-hidden />
           </button>
           <button type="button" disabled={fit && zoom === 1} onClick={() => setZoom(1)}
             className="ms-1 cursor-pointer rounded-lg px-2 py-1 text-body-2-medium text-text-secondary hover:bg-background-primary-hover disabled:cursor-not-allowed disabled:opacity-40">

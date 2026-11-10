@@ -3,7 +3,7 @@
 import type { ComponentType, ReactNode } from "react";
 import { Button as AriaButton, NumberField as AriaNumberField } from "react-aria-components";
 import type { NumberFieldProps as AriaNumberFieldProps } from "react-aria-components";
-import { RiAddLine, RiSubtractLine } from "@remixicon/react";
+import { MinusIcon, PlusIcon } from "@/components/foundations/icons/app-icons";
 import { HintText } from "@/components/base/input/hint-text";
 import { InputBase } from "@/components/base/input/input";
 import type { InputSize } from "@/components/base/input/input";
@@ -89,10 +89,10 @@ export function NumberField({
               hideSteppers ? undefined : (
                 <span className="-my-1 -me-1 flex shrink-0 items-center gap-0.5">
                   <AriaButton slot="decrement" className={stepper}>
-                    <RiSubtractLine aria-hidden className="size-4" />
+                    <MinusIcon aria-hidden className="size-4" />
                   </AriaButton>
                   <AriaButton slot="increment" className={stepper}>
-                    <RiAddLine aria-hidden className="size-4" />
+                    <PlusIcon aria-hidden className="size-4" />
                   </AriaButton>
                 </span>
               )

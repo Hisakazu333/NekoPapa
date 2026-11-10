@@ -22,7 +22,7 @@ import { directionalIconClass } from "@/utils/directional-icon";
  * Renders an `<a>` when `href` is passed, otherwise a `<button>` — the same
  * action can live in copy ("Learn more →") or trigger a handler. Icons are
  * rendered by the component itself via `leadingIcon` / `trailingIcon` (pass
- * the Remix Icon reference, e.g. `RiArrowRightLine`, not an element).
+ * the icon reference from `app-icons`, e.g. `ArrowRightIcon`, not an element).
  */
 
 type LinkButtonVariant = "primary" | "secondary";

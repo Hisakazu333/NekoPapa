@@ -1,5 +1,5 @@
 import { useCallback, useState, type ReactNode, type RefObject } from "react";
-import { RiFileList3Line, RiFolder3Line, RiGitBranchLine, RiListUnordered, RiTerminalBoxLine } from "@remixicon/react";
+import { FileTextIcon, FolderIcon, GitBranchIcon, ListIcon, SquareTerminalIcon } from "@/components/foundations/icons/app-icons";
 import type { UIMessage } from "ai";
 import { CHAT_TOOL_LABELS, type ChatTool } from "@/app/chat-tools";
 import type { Project } from "@/app/projects";
@@ -9,7 +9,7 @@ import { ProjectFilesView } from "./project-files-view";
 import { TerminalView } from "./terminal-view";
 import { NoProjectMessage, ToolPanelFrame } from "./tool-panel-frame";
 
-const icons = { outline: RiListUnordered, terminal: RiTerminalBoxLine, changes: RiFileList3Line, files: RiFolder3Line } as const;
+const icons = { outline: ListIcon, terminal: SquareTerminalIcon, changes: FileTextIcon, files: FolderIcon } as const;
 
 /**
  * The panel a title-bar tool opens beside the chat. 终端 / 更改 / 文件 work in
@@ -31,7 +31,7 @@ export function ChatToolPanel({ tool, project, messages, messageAt, scrollRef, o
 
   const detail = tool === "outline" ? undefined : tool === "terminal" && !project ? "主目录" : project && <span translate="no" title={root}>
     {project.name}
-    {tool === "changes" && branch && <span className="ms-1.5 inline-flex items-center gap-0.5 align-bottom"><RiGitBranchLine className="size-3.5" aria-hidden />{branch}</span>}
+    {tool === "changes" && branch && <span className="ms-1.5 inline-flex items-center gap-0.5 align-bottom"><GitBranchIcon className="size-3.5" aria-hidden />{branch}</span>}
   </span>;
 
   let body: ReactNode;

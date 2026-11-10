@@ -1,5 +1,5 @@
 import type { ComponentType, ReactNode } from "react";
-import { RiCloseLine, RiFolder3Line } from "@remixicon/react";
+import { FolderIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
@@ -22,14 +22,14 @@ export function ToolPanelFrame({ icon: TitleIcon, title, detail, actions, onClos
         {detail && <span className="min-w-0 truncate text-caption-1-regular text-text-tertiary">{detail}</span>}
       </div>
       {actions}
-      <ToolbarIconButton icon={RiCloseLine} label={`关闭${title}`} onPress={onClose} />
+      <ToolbarIconButton icon={XIcon} label={`关闭${title}`} onPress={onClose} />
     </header>
     <div className="flex min-h-0 flex-1 flex-col">{children}</div>
   </section>;
 }
 
 /** Centered message for an empty, unavailable or failed panel. */
-export function ToolPanelMessage({ icon: MessageIcon = RiFolder3Line, title, detail, action, tone = "neutral" }: {
+export function ToolPanelMessage({ icon: MessageIcon = FolderIcon, title, detail, action, tone = "neutral" }: {
   icon?: Icon;
   title: string;
   detail?: ReactNode;

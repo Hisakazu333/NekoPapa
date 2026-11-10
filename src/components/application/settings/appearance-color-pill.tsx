@@ -1,5 +1,5 @@
 import { Button as AriaButton, parseColor } from "react-aria-components";
-import { RiArrowDownSLine } from "@remixicon/react";
+import { ChevronDownIcon } from "@/components/foundations/icons/app-icons";
 import { ColorPicker } from "@/components/base/color-picker/color-picker";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { cx } from "@/utils/cx";
@@ -21,7 +21,7 @@ export function ColorPill({ label, value, onChange }: { label: string; value?: s
       )}>
       <span aria-hidden className="size-5 rounded-full shadow-[inset_0_0_0_1px_rgb(0_0_0/0.12)]" style={{ background: value }} />
       <span translate="no" className="w-[60px] text-start font-mono text-caption-1-regular text-text-primary uppercase">{value ?? "—"}</span>
-      <RiArrowDownSLine aria-hidden className="size-4 text-foreground-icon-tertiary" />
+      <ChevronDownIcon aria-hidden className="size-4 text-foreground-icon-tertiary" />
     </AriaButton>
     <Popover aria-label={label} placement="bottom end" className="w-[248px] rounded-3xl" dialogClassName="p-1">
       {color && <ColorPicker value={color} onChange={(next) => onChange(next.toString("hex").toLowerCase())} className="w-full" />}

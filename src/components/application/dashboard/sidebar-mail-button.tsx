@@ -1,5 +1,5 @@
 import { Button as AriaButton } from "react-aria-components";
-import { RiMailLine } from "@remixicon/react";
+import { MailIcon } from "@/components/foundations/icons/app-icons";
 import { Popover, PopoverHeader, PopoverTrigger } from "@/components/base/popover/popover";
 import { cx } from "@/utils/cx";
 
@@ -15,7 +15,7 @@ export function SidebarMailButton({ className }: { className?: string }) {
       "transition-colors duration-150 hover:bg-background-secondary-hover hover:text-foreground-icon-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring",
       className,
     )}>
-      <RiMailLine className="size-5" aria-hidden />
+      <MailIcon className="size-5" aria-hidden />
     </AriaButton>
     <Popover aria-label="邮件" placement="bottom start" className="w-[280px]">
       <PopoverHeader title="邮件" description="邮件服务尚未接入，暂时不能添加邮箱或收发邮件。" />

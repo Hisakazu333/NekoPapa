@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties, type ReactNode, type Ref } from "react";
-import { RiChat3Line, RiGroupLine, RiMenuLine, RiSearchLine } from "@remixicon/react";
+import { MenuIcon, MessageCircleIcon, SearchIcon, UsersIcon } from "@/components/foundations/icons/app-icons";
 import type { GroupChat } from "@/app/group-chat-store";
 import type { ChatContact } from "@/app/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
@@ -145,7 +145,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
     )}>
       <header className="flex shrink-0 flex-col gap-4 p-4 pb-2">
         <div className="flex items-center gap-2">
-          {onNavigate && <IconButton icon={RiMenuLine} aria-label="打开导航" onClick={onNavigate} size="small" className="lg:hidden" />}
+          {onNavigate && <IconButton icon={MenuIcon} aria-label="打开导航" onClick={onNavigate} size="small" className="lg:hidden" />}
           <h1 id={titleId} className="min-w-0 flex-1 text-headline-semibold text-text-primary">联系人</h1>
           <ContactActionsMenu disabled={disabled} onCreate={onCreate} onStartGroup={onStartGroup} />
         </div>
@@ -153,7 +153,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
           ref={searchInputRef}
           aria-label="搜索联系人"
           placeholder="搜索姓名或简介"
-          leadingIcon={RiSearchLine}
+          leadingIcon={SearchIcon}
           value={query}
           onChange={onQueryChange}
           size="small"
@@ -170,7 +170,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
           <Button variant="secondary" size="small" onClick={onRetryGroups}>重试群聊记录</Button>
         </div>}
         {filtered.length === 0 && filteredGroups.length === 0 ? <div className="flex flex-col items-center gap-3 px-4 py-12 text-center">
-          <RiSearchLine className="size-7 text-foreground-icon-secondary" aria-hidden />
+          <SearchIcon className="size-7 text-foreground-icon-secondary" aria-hidden />
           <p className="text-body-medium text-text-primary">没有找到联系人</p>
           <p className="text-body-2-regular text-text-secondary">试试其他姓名或简介关键词。</p>
           <Button variant="secondary" size="small" onClick={() => onQueryChange("")}>清除搜索</Button>
@@ -179,7 +179,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
             {filteredGroups.map((group) => <div key={group.id} className={cx("flex min-w-0 items-center rounded-xl pe-1", selectedId === group.id ? "bg-background-tertiary-default" : "hover:bg-background-secondary-hover")}>
               <button type="button" ref={(button) => { if (button) contactRows.current.set(group.id, button); else contactRows.current.delete(group.id); }} onClick={(event) => { returnFocus.current = event.currentTarget; onSelectGroup(group); }} aria-pressed={selectedId === group.id}
                 className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-start focus-visible:outline-2 focus-visible:outline-border-focus-ring">
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-tertiary-default"><RiGroupLine className="size-5 text-foreground-icon-secondary" aria-hidden /></span>
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background-tertiary-default"><UsersIcon className="size-5 text-foreground-icon-secondary" aria-hidden /></span>
                 <span className="min-w-0 flex-1"><span className="block truncate text-body-medium">{group.title}</span><span className="mt-1 block truncate text-body-2-regular text-text-secondary">{group.messages.at(-1)?.text || `${group.members.length} 位联系人 · 开始对话`}</span></span>
               </button>
               <GroupChatMenu title={group.title} onDelete={() => onDeleteGroup(group)} />
@@ -202,7 +202,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
     )}>
       {children ?? <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
         <span className="flex size-16 items-center justify-center rounded-2xl bg-background-secondary-default">
-          <RiChat3Line className="size-8 text-foreground-icon-secondary" aria-hidden />
+          <MessageCircleIcon className="size-8 text-foreground-icon-secondary" aria-hidden />
         </span>
         <p className="text-headline-semibold text-text-primary">选择一位联系人</p>
         <p className="text-body-regular text-text-secondary">从左侧列表开始或继续对话。</p>

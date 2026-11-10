@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiContactsLine } from "@remixicon/react";
+import { ContactIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
@@ -32,7 +32,7 @@ export function HomeContactsMenu({ onSelectContact, onClearContact, selectedCont
     <DropdownTrigger className="chat-home__toolbar-button" aria-label={selectedContact ? `当前联系人：${selectedContact.name}，更换联系人` : "选择联系人"}>
       {selectedContact
         ? <Avatar size="xs" src={selectedContact.avatar} initials={Array.from(selectedContact.name).slice(-1).join("")} color={selectedContact.avatarColor ?? "neutral"} alt="" />
-        : <RiContactsLine aria-hidden />}
+        : <ContactIcon aria-hidden />}
       <span className="max-w-[112px] truncate" title={selectedContact?.name}>{selectedContact?.name ?? "联系人"}</span><ChevronDownSmall className="chat-home__chevron" />
     </DropdownTrigger>
     <DropdownPopover aria-label="选择联系人聊天" placement="bottom end" className="w-[300px] max-w-[calc(100vw-24px)] rounded-3xl" dialogClassName="max-h-[min(480px,70dvh)] overflow-y-auto overscroll-contain">

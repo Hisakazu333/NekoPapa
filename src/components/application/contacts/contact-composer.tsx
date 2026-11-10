@@ -1,4 +1,4 @@
-import { RiArrowUpLine, RiEmotionHappyLine, RiStopFill } from "@remixicon/react";
+import { ArrowUpIcon, SmileIcon, StopFilledIcon } from "@/components/foundations/icons/app-icons";
 import { useSendKey } from "@/hooks/use-send-key";
 import { useRef, useState, type KeyboardEvent } from "react";
 import { Button } from "@/components/base/buttons/button";
@@ -59,7 +59,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
         <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} official={officialCompanion} />
           <Dropdown isOpen={emojisOpen} onOpenChange={setEmojisOpen}>
             <DropdownTrigger aria-label="选择表情" isDisabled={busy} className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-foreground-icon-secondary outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-              <RiEmotionHappyLine className="size-5" aria-hidden />
+              <SmileIcon className="size-5" aria-hidden />
             </DropdownTrigger>
             <DropdownPopover aria-label="选择表情" placement="top end" className="w-auto rounded-2xl" dialogClassName="p-2">
               <div role="group" aria-label="表情" className="grid grid-cols-6 gap-1">
@@ -74,8 +74,8 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
               </div>
             </DropdownPopover>
           </Dropdown>
-        {busy ? <Button variant="secondary" iconOnly leadingIcon={RiStopFill} aria-label="停止回复" className="rounded-full" onClick={onStop} />
-          : <Button iconOnly leadingIcon={RiArrowUpLine} aria-label="发送消息" title="发送消息" className="rounded-full disabled:bg-background-primary-disabled disabled:text-text-tertiary" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
+        {busy ? <Button variant="secondary" iconOnly leadingIcon={StopFilledIcon} aria-label="停止回复" className="rounded-full" onClick={onStop} />
+          : <Button iconOnly leadingIcon={ArrowUpIcon} aria-label="发送消息" title="发送消息" className="rounded-full disabled:bg-background-primary-disabled disabled:text-text-tertiary" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
       </div>
     </div>
   </div>;

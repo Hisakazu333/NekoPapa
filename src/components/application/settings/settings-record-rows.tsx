@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { RiAddLine, RiDeleteBin6Line, RiEditLine, RiMoreFill } from "@remixicon/react";
+import { EllipsisIcon, PencilLineIcon, PlusIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
 import { Chip, CHIP_COLORS, type ChipColor } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
@@ -24,15 +24,15 @@ export function RecordTile({ initial, color }: { initial: string; color: ChipCol
 function RecordMenu({ id, name, onEdit, onRemove }: { id: string; name: string; onEdit: () => void; onRemove: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const items = [
-    { label: "编辑", icon: RiEditLine, action: onEdit },
-    { label: "删除", icon: RiDeleteBin6Line, action: onRemove },
+    { label: "编辑", icon: PencilLineIcon, action: onEdit },
+    { label: "删除", icon: Trash2Icon, action: onRemove },
   ];
   return <Dropdown isOpen={isOpen} onOpenChange={setIsOpen}>
     <DropdownTrigger id={id} aria-label={`${name}的操作`} className={cx(
       "flex size-7 shrink-0 items-center justify-center rounded-md text-foreground-icon-secondary transition-colors duration-150 ease",
       "hover:bg-background-secondary-hover", isOpen && "bg-background-secondary-hover",
     )}>
-      <RiMoreFill className="size-4 shrink-0" aria-hidden />
+      <EllipsisIcon className="size-4 shrink-0" aria-hidden />
     </DropdownTrigger>
     <DropdownPopover aria-label={`${name}的操作`} placement="bottom end" className="w-[160px] p-2">
       <DropdownGroup>
@@ -85,7 +85,7 @@ export function NewRecordRow({ id, label, description, onPress, isDisabled }: {
     "focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-border-focus-ring disabled:cursor-not-allowed disabled:opacity-50",
   )}>
     <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-background-tertiary-default transition-colors duration-150 ease group-hover:bg-background-tertiary-hover">
-      <RiAddLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+      <PlusIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
     </span>
     <span className="flex min-w-0 flex-col">
       <span className="text-body-medium text-text-primary">{label}</span>
@@ -106,5 +106,5 @@ export function EmptyRecords({ title, description, action }: { title: string; de
 }
 
 export function EmptyRecordsButton({ id, children, onPress }: { id: string; children: ReactNode; onPress: () => void }) {
-  return <Button id={id} variant="secondary" size="small" leadingIcon={RiAddLine} onClick={onPress}>{children}</Button>;
+  return <Button id={id} variant="secondary" size="small" leadingIcon={PlusIcon} onClick={onPress}>{children}</Button>;
 }

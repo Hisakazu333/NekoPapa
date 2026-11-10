@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { RiCheckLine, RiRefreshLine } from "@remixicon/react";
+import { CheckIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import { LOCAL_RUNTIMES, localModelRecord, readLocalRuntime, type LocalModel, type LocalRuntime, type LocalRuntimeState } from "@/app/local-models";
 import { probeLocalRuntimes } from "@/app/local-models-check";
 import type { ConfigurationRecord } from "@/app/configuration-types";
@@ -63,7 +63,7 @@ export function LocalModelsSection() {
         <SettingsSectionLabel>本地模型</SettingsSectionLabel>
         <p className="px-3 text-body-2-regular text-text-tertiary">在这台电脑上运行的推理软件。只读取模型列表，不会启动、安装或下载模型。</p>
       </div>
-      <Button variant="secondary" size="small" leadingIcon={RiRefreshLine} disabled={scan.kind === "checking"} onClick={() => void check()}
+      <Button variant="secondary" size="small" leadingIcon={RefreshCwIcon} disabled={scan.kind === "checking"} onClick={() => void check()}
         className={cx(scan.kind === "checking" && "[&_svg]:animate-spin")}>
         {scan.kind === "checking" ? "检测中" : "重新检测"}
       </Button>
@@ -102,7 +102,7 @@ export function LocalModelsSection() {
                   {model.detail && <span className="text-caption-1-regular text-text-tertiary">{model.detail}</span>}
                 </div>
                 {saved
-                  ? <span className="flex shrink-0 items-center gap-1 text-body-2-regular text-text-tertiary"><RiCheckLine className="size-4" aria-hidden />已添加</span>
+                  ? <span className="flex shrink-0 items-center gap-1 text-body-2-regular text-text-tertiary"><CheckIcon className="size-4" aria-hidden />已添加</span>
                   : <Button variant="secondary" size="small" onClick={() => add(runtime, model.id)} aria-label={`把 ${model.id} 添加为 API 配置`}>添加</Button>}
               </li>;
             })}

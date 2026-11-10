@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiCheckLine, RiShieldCheckLine, RiShieldFlashLine } from "@remixicon/react";
+import { CheckIcon, ShieldAlertIcon, ShieldCheckIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { composerPermissions, type ComposerPermission } from "@/app/chat-composer-draft";
@@ -16,7 +16,7 @@ export function ComposerPermissionMenu({ state, disabled, className }: {
   const permission = composerPermissions.find((entry) => entry.id === state.draft.permission) ?? composerPermissions[0];
   // 自动 acts without asking first, so it reads as a warning wherever it shows.
   const risky = permission.id === "auto";
-  const Icon = risky ? RiShieldFlashLine : RiShieldCheckLine;
+  const Icon = risky ? ShieldAlertIcon : ShieldCheckIcon;
 
   return <Dropdown isOpen={open} onOpenChange={setOpen}>
     <DropdownTrigger aria-label={`权限控制：${permission.label}`} isDisabled={disabled}
@@ -35,7 +35,7 @@ export function ComposerPermissionMenu({ state, disabled, className }: {
             <span className={cx("text-body-medium", item.id === "auto" && "text-text-error-primary")}>{item.label}</span>
             <span className="text-caption-1-regular text-text-tertiary">{item.description}</span>
           </span>
-          {permission.id === item.id && <RiCheckLine className="mt-0.5 size-4 shrink-0" aria-hidden />}
+          {permission.id === item.id && <CheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden />}
         </DropdownItem>)}
       </DropdownGroup>
       <DropdownDivider />

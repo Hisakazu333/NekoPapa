@@ -1,4 +1,4 @@
-import { RiGitBranchLine } from "@remixicon/react";
+import { GitBranchIcon } from "@/components/foundations/icons/app-icons";
 import type { ProjectFolderCheck } from "@/app/project-folder-info";
 import { cx } from "@/utils/cx";
 
@@ -16,7 +16,7 @@ export function ProjectFolderDetail({ folder, info, className }: { folder: strin
   const head = git?.branch ?? (git?.commit ? `分离于 ${git.commit}` : undefined);
   if (head) {
     return <span className={cx(detail, "flex min-w-0 items-center gap-1 text-text-tertiary")} title={folder}>
-      <RiGitBranchLine className="size-3.5 shrink-0" aria-label="Git 分支" />
+      <GitBranchIcon className="size-3.5 shrink-0" aria-label="Git 分支" />
       <span translate="no" className="truncate">{head}</span>
       {git?.worktree && <span className="shrink-0">· 工作树</span>}
     </span>;

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { RiDownloadLine, RiUploadCloud2Line } from "@remixicon/react";
+import { CloudUploadIcon, DownloadIcon } from "@/components/foundations/icons/app-icons";
 import { exportConfiguration, parseConfigurationBackup, validateConfiguration } from "@/app/configuration-contract";
 import type { ConfigurationData } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
@@ -125,7 +125,7 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
             </div>
             <SettingsCard>
               <SettingsRow label="当前设置" description={`${formatStorageSize(new TextEncoder().encode(JSON.stringify(data)).length)} · NekoPapa 设置格式版本 1`}>
-                <Button variant="secondary" size="small" leadingIcon={RiDownloadLine} onClick={() => exportBackup("settings")}>导出设置</Button>
+                <Button variant="secondary" size="small" leadingIcon={DownloadIcon} onClick={() => exportBackup("settings")}>导出设置</Button>
               </SettingsRow>
               <SettingsRow label="替换前的设置" description="导入确认前自动保留一份备份，可导出后重新导入。">
                 <Button variant="secondary" size="small" onClick={() => exportBackup("settings-previous")}>导出上次备份</Button>
@@ -193,7 +193,7 @@ function ImportDropzone({ busy, filename, onBrowse, onDrop }: { busy: boolean; f
     <span aria-hidden className={cx("pointer-events-none absolute inset-0 rounded-2xl border-2 border-dashed transition-colors duration-300 ease-out",
       dragOver ? "border-border-button-active" : "border-border-checkbox-default group-hover:border-border-button-active")} />
     <span className="flex size-10 items-center justify-center rounded-full bg-background-tertiary-default">
-      <RiUploadCloud2Line className="size-6 shrink-0 text-foreground-icon-secondary" aria-hidden />
+      <CloudUploadIcon className="size-6 shrink-0 text-foreground-icon-secondary" aria-hidden />
     </span>
     <div className="flex flex-col items-center gap-2 px-4 text-center">
       <p className="text-body-medium text-text-secondary">{busy ? "正在读取并校验…" : <>拖放设置文件，或<span className="text-accent-500">选择文件</span></>}</p>

@@ -9,7 +9,7 @@ import {
   TagList as AriaTagList,
 } from "react-aria-components";
 import type { TagGroupProps as AriaTagGroupProps, TagProps as AriaTagProps } from "react-aria-components";
-import { RiCloseLine } from "@remixicon/react";
+import { XIcon } from "@/components/foundations/icons/app-icons";
 import { CHIP_COLORS } from "@/components/base/badges/chip";
 import type { ChipColor } from "@/components/base/badges/chip";
 import { HintText } from "@/components/base/input/hint-text";
@@ -130,7 +130,7 @@ export function Tag({ color = "neutral", icon: Icon, className, children, ...pro
                 size === "small" ? "size-4" : "size-5",
               )}
             >
-              <RiCloseLine aria-hidden className={size === "small" ? "size-3" : "size-3.5"} />
+              <XIcon aria-hidden className={size === "small" ? "size-3" : "size-3.5"} />
             </AriaButton>
           ) : null}
         </>

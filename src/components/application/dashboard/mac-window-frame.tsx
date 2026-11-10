@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { isTauri } from "@tauri-apps/api/core";
-import { RiArrowLeftLine, RiArrowRightLine, RiAddLine, RiDeleteBin6Line, RiSideBarLine } from "@remixicon/react";
+import { ArrowLeftIcon, ArrowRightIcon, PanelLeftIcon, PlusIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
 import { ToolbarIconButton } from "./toolbar-icon-button";
 import { cx } from "@/utils/cx";
 
@@ -41,17 +41,17 @@ export function MacWindowFrame({
   const navigation = toolbarNavigation && (
     <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
       {sidebarToggle && <>
-        <ToolbarIconButton icon={RiSideBarLine} label={sidebarToggle.hidden ? "显示侧栏" : "隐藏侧栏"} onPress={sidebarToggle.onToggle}
+        <ToolbarIconButton icon={PanelLeftIcon} label={sidebarToggle.hidden ? "显示侧栏" : "隐藏侧栏"} onPress={sidebarToggle.onToggle}
           shortcut={sidebarToggle.shortcut} className="hidden lg:inline-flex" onHoverChange={sidebarToggle.onHoverChange} />
         <span aria-hidden className="mx-1 hidden h-4 w-px bg-separator-border lg:block" />
       </>}
-      <ToolbarIconButton icon={RiArrowLeftLine} label="返回" onPress={toolbarNavigation.onBack} isDisabled={!toolbarNavigation.canGoBack} />
-      <ToolbarIconButton icon={RiArrowRightLine} label="前进" onPress={toolbarNavigation.onForward} isDisabled={!toolbarNavigation.canGoForward} />
-      {toolbarNavigation.onClearTabs && <ToolbarIconButton icon={RiDeleteBin6Line} label="关闭全部标签，回到新对话（对话仍保留在侧栏）"
+      <ToolbarIconButton icon={ArrowLeftIcon} label="返回" onPress={toolbarNavigation.onBack} isDisabled={!toolbarNavigation.canGoBack} />
+      <ToolbarIconButton icon={ArrowRightIcon} label="前进" onPress={toolbarNavigation.onForward} isDisabled={!toolbarNavigation.canGoForward} />
+      {toolbarNavigation.onClearTabs && <ToolbarIconButton icon={Trash2Icon} label="关闭全部标签，回到新对话（对话仍保留在侧栏）"
         onPress={toolbarNavigation.onClearTabs} isDisabled={!toolbarNavigation.canClearTabs} />}
       {!toolbarNavigation.createInTabs && <>
         <span aria-hidden className="mx-1 h-4 w-px bg-separator-border" />
-        <ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={toolbarNavigation.onCreate} />
+        <ToolbarIconButton icon={PlusIcon} label="新建对话" onPress={toolbarNavigation.onCreate} />
       </>}
     </div>
   );

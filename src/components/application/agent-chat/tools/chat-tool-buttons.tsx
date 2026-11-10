@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import { RiFileList3Line, RiFolder3Line, RiGlobalLine, RiListUnordered, RiTerminalBoxLine } from "@remixicon/react";
+import { FileTextIcon, FolderIcon, GlobeIcon, ListIcon, SquareTerminalIcon } from "@/components/foundations/icons/app-icons";
 import { CHAT_TOOL_LABELS, chatToolForShortcut, chatToolShortcut, type ChatTool } from "@/app/chat-tools";
 import { ToolbarToggleButton } from "@/components/application/dashboard/toolbar-icon-button";
 
 const platform = () => (typeof navigator === "undefined" ? "" : navigator.platform);
-const icons = { outline: RiListUnordered, terminal: RiTerminalBoxLine, changes: RiFileList3Line, files: RiFolder3Line } as const;
+const icons = { outline: ListIcon, terminal: SquareTerminalIcon, changes: FileTextIcon, files: FolderIcon } as const;
 
 /**
  * The title-bar tool toggles, in order 目录 · 终端 · 更改 · 浏览器 · 文件.
@@ -22,7 +22,7 @@ export function ChatToolButtons({ active, onToggle, browserOpen, onToggleBrowser
     {toggle("outline")}
     {toggle("terminal")}
     {toggle("changes")}
-    {onToggleBrowser && <ToolbarToggleButton icon={RiGlobalLine} isSelected={browserOpen === true} onChange={onToggleBrowser}
+    {onToggleBrowser && <ToolbarToggleButton icon={GlobeIcon} isSelected={browserOpen === true} onChange={onToggleBrowser}
       label={browserOpen ? "关闭浏览器" : "打开浏览器"} />}
     {toggle("files")}
   </>;

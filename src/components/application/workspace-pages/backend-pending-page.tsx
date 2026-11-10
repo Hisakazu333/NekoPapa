@@ -1,4 +1,4 @@
-import { RiMenuLine } from "@remixicon/react";
+import { MenuIcon } from "@/components/foundations/icons/app-icons";
 import { Chip } from "@/components/base/badges/chip";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
@@ -16,7 +16,7 @@ export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspac
   const headingId = `${page}-planned-heading`;
   return <section aria-label={title} className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
     <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
-      <ToolbarIconButton icon={RiMenuLine} label="打开导航" onPress={onNavigate} />
+      <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />
       <span className="text-body-medium text-text-primary">{title}</span>
     </header>
     <div className="min-h-0 flex-1 overflow-y-auto">

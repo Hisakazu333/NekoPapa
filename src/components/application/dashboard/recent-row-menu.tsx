@@ -1,4 +1,4 @@
-import { RiDeleteBinLine, RiMailCheckLine, RiMailUnreadLine, RiMore2Fill, RiPencilLine } from "@remixicon/react";
+import { EllipsisVerticalIcon, MailCheckIcon, MailOpenIcon, PencilIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import {
   Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger,
@@ -19,7 +19,7 @@ export function RecentRowMenu({ thread, isOpen, onOpenChange, onRename, onToggle
   const localize = useTemplateCopy();
   const choose = (action: () => void) => () => { onOpenChange(false); action(); };
   const label = thread.unread ? "标为已读" : "标为未读";
-  const ReadIcon = thread.unread ? RiMailCheckLine : RiMailUnreadLine;
+  const ReadIcon = thread.unread ? MailCheckIcon : MailOpenIcon;
 
   return localize(<Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
     <DropdownTrigger
@@ -30,12 +30,12 @@ export function RecentRowMenu({ thread, isOpen, onOpenChange, onRename, onToggle
         isOpen && "bg-background-tertiary-default text-foreground-icon-primary opacity-100",
       )}
     >
-      <RiMore2Fill className="size-4" aria-hidden />
+      <EllipsisVerticalIcon className="size-4" aria-hidden />
     </DropdownTrigger>
     <DropdownPopover aria-label={`更多操作：${thread.title}`} placement="bottom end" className="w-[190px] p-2">
       <DropdownGroup>
         <DropdownItem onSelect={choose(onRename)} className="px-2 py-1.5">
-          <RiPencilLine className="size-4 text-foreground-icon-secondary" aria-hidden />
+          <PencilIcon className="size-4 text-foreground-icon-secondary" aria-hidden />
           <span className="text-body-medium text-text-primary">重命名</span>
         </DropdownItem>
         <DropdownItem onSelect={choose(onToggleUnread)} className="px-2 py-1.5">
@@ -43,7 +43,7 @@ export function RecentRowMenu({ thread, isOpen, onOpenChange, onRename, onToggle
           <span className="text-body-medium text-text-primary">{label}</span>
         </DropdownItem>
         <DropdownItem disabled={deleteDisabled} onSelect={choose(onDelete)} className="px-2 py-1.5">
-          <RiDeleteBinLine className="size-4 text-text-error-primary" aria-hidden />
+          <Trash2Icon className="size-4 text-text-error-primary" aria-hidden />
           <span className="text-body-medium text-text-error-primary">删除对话</span>
         </DropdownItem>
       </DropdownGroup>

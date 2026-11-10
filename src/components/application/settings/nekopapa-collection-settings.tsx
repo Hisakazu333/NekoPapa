@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent } from "react";
-import { RiCloudLine, RiCodeLine, RiSearchLine } from "@remixicon/react";
+import { CloudIcon, CodeIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import { collectionSchemas, fieldDefaults } from "@/app/configuration-contract";
 import type { ConfigurationCollection, ConfigurationField, ConfigurationRecord, ConfigurationValue, ConfigurationValues } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
@@ -173,7 +173,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                   <SettingsSectionLabel>{skills ? "技能目录" : schema.title}{records.length > 0 && ` · ${records.length}`}</SettingsSectionLabel>
                   <p className="px-3 text-body-2-regular text-text-tertiary">{skills ? "保存包含 SKILL.md 的本地目录。保存不会读取、安装或执行目录中的内容。" : schema.description}</p>
                 </div>
-                {records.length > 0 && <Input aria-label={`搜索${skills ? "技能" : schema.title}`} placeholder="搜索名称、地址或命令" size="small" value={query} onChange={setQuery} leadingIcon={RiSearchLine} type="search" />}
+                {records.length > 0 && <Input aria-label={`搜索${skills ? "技能" : schema.title}`} placeholder="搜索名称、地址或命令" size="small" value={query} onChange={setQuery} leadingIcon={SearchIcon} type="search" />}
                 {removed?.collection === collection && <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-background-secondary-default py-2 ps-3 pe-2.5">
                   <p className="min-w-0 text-body-2-regular text-text-secondary">已删除「{removed.name}」</p>
                   <Button variant="secondary" size="small" onClick={undo}>撤销删除</Button>
@@ -238,10 +238,10 @@ function ModelDefaults({ records }: { records: ConfigurationRecord[] }) {
     <SettingsSectionLabel>默认模型</SettingsSectionLabel>
     <SettingsCard>
       <SettingsRow label="通用 Agent" description="在 Agent 设置中选择；聊天服务尚未读取这些配置。">
-        <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><RiCloudLine className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.agent?.modelId)}</span></span>
+        <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><CloudIcon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.agent?.modelId)}</span></span>
       </SettingsRow>
       <SettingsRow label="Coding Agent" description="在 Coding 设置中选择；Coding 执行层接入后使用。">
-        <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><RiCodeLine className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.coding?.modelId)}</span></span>
+        <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><CodeIcon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.coding?.modelId)}</span></span>
       </SettingsRow>
     </SettingsCard>
   </section>;

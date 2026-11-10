@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import {
-  RiArrowLeftLine, RiArrowRightLine, RiCloseLine, RiCursorLine, RiExternalLinkLine, RiGlobalLine, RiLayoutRightLine,
-  RiLayoutTopLine, RiRefreshLine, RiStopCircleLine,
-} from "@remixicon/react";
+import { ArrowLeftIcon, ArrowRightIcon, CircleStopIcon, ExternalLinkIcon, GlobeIcon, MousePointer2Icon, PanelRightIcon, PanelTopIcon, RefreshCwIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { Input } from "@/components/base/input/input";
 import { ProgressTrack } from "@/components/base/progress/progress";
 import { cx } from "@/utils/cx";
@@ -167,13 +164,13 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
   const problem = notice ?? browser.error;
   return <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
     <form onSubmit={go} className="relative flex shrink-0 items-center gap-1 p-2" aria-label="浏览器地址栏">
-      <ToolbarIconButton icon={RiArrowLeftLine} label="后退" isDisabled={!hasPage} onPress={() => browser.run("back")} />
-      <ToolbarIconButton icon={RiArrowRightLine} label="前进" isDisabled={!hasPage} onPress={() => browser.run("forward")} />
+      <ToolbarIconButton icon={ArrowLeftIcon} label="后退" isDisabled={!hasPage} onPress={() => browser.run("back")} />
+      <ToolbarIconButton icon={ArrowRightIcon} label="前进" isDisabled={!hasPage} onPress={() => browser.run("forward")} />
       {browser.loading && hasPage
-        ? <ToolbarIconButton icon={RiStopCircleLine} label="停止加载" onPress={() => browser.run("stop")} />
-        : <ToolbarIconButton icon={RiRefreshLine} label="刷新" isDisabled={!hasPage} onPress={() => browser.run("reload")} />}
+        ? <ToolbarIconButton icon={CircleStopIcon} label="停止加载" onPress={() => browser.run("stop")} />
+        : <ToolbarIconButton icon={RefreshCwIcon} label="刷新" isDisabled={!hasPage} onPress={() => browser.run("reload")} />}
       <Input aria-label="网址" placeholder="输入网址，例如 example.com" size="small" className="min-w-0 flex-1"
-        leadingIcon={RiGlobalLine} value={address} spellCheck="false"
+        leadingIcon={GlobeIcon} value={address} spellCheck="false"
         onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}
         onChange={(next) => { setAddress(next); setEditing(true); setNotice(undefined); browser.clearError(); }}
         onKeyDown={(event) => {
@@ -184,17 +181,17 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
         aria-keyshortcuts="Meta+Shift+S" aria-label={browser.picking ? "停止选择元素" : "选择元素"}
         title={browser.picking ? "停止选择元素（Esc）" : "选择元素（⇧⌘S）：把网页元素的 HTML、样式和选择器加入对话"}
         className={cx(toolbarIconButtonClass, browser.picking && "bg-background-primary-hover text-text-primary")}>
-        <RiCursorLine className={toolbarIconClass} aria-hidden />
+        <MousePointer2Icon className={toolbarIconClass} aria-hidden />
       </button>
       <ChatBrowserDisplayMenu display={browser.display} frame={hasPage ? frame : undefined} onChange={browser.setDisplay} />
-      <ToolbarIconButton icon={RiExternalLinkLine} label="在新窗口打开" isDisabled={!address.trim() && !browser.url} onPress={popOut} />
+      <ToolbarIconButton icon={ExternalLinkIcon} label="在新窗口打开" isDisabled={!address.trim() && !browser.url} onPress={popOut} />
       <button type="button" aria-label={placement === "side" ? "移到标题栏标签" : "放回侧边"}
         title={placement === "side" ? "移到标题栏标签（也可以拖到标题栏）" : "放回侧边（也可以拖动标签到右侧）"}
         onPointerDown={onMovePointerDown} onClick={(event) => { if (event.detail === 0) onMove(); }}
         className={cx(toolbarIconButtonClass, "touch-none")}>
-        {placement === "side" ? <RiLayoutTopLine className={toolbarIconClass} aria-hidden /> : <RiLayoutRightLine className={toolbarIconClass} aria-hidden />}
+        {placement === "side" ? <PanelTopIcon className={toolbarIconClass} aria-hidden /> : <PanelRightIcon className={toolbarIconClass} aria-hidden />}
       </button>
-      <ToolbarIconButton icon={RiCloseLine} label="关闭浏览器" onPress={onClose} />
+      <ToolbarIconButton icon={XIcon} label="关闭浏览器" onPress={onClose} />
       {/* Loading: a sweep along the toolbar's lower edge, outside the native
           page view so it is never covered and never shifts the page. */}
       {browser.loading && hasPage && <ProgressTrack percentage={0} isIndeterminate size="sm" className="pointer-events-none absolute inset-x-3 bottom-0 h-0.5" />}
@@ -208,7 +205,7 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
     <div ref={viewportRef} className={cx("relative mx-2 mb-2 min-h-0 flex-1 overflow-hidden rounded-xl",
       hasPage && frame && frame.x > 0 ? "bg-background-tertiary-default" : "bg-background-primary-default")}>
       {!hasPage && <div className="flex h-full flex-col items-center justify-center gap-1 px-6 text-center">
-        <RiGlobalLine className="mb-2 size-8 text-foreground-icon-tertiary" aria-hidden />
+        <GlobeIcon className="mb-2 size-8 text-foreground-icon-tertiary" aria-hidden />
         {browser.available ? <>
           <p className="text-body-medium text-text-primary">输入网址打开网页</p>
           <p className="max-w-[320px] text-body-2-regular text-text-secondary">也可以打开本机正在运行的页面，例如 localhost:5173。</p>

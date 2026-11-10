@@ -1,5 +1,5 @@
 import { useMemo, type RefObject } from "react";
-import { RiListUnordered } from "@remixicon/react";
+import { ListIcon } from "@/components/foundations/icons/app-icons";
 import type { UIMessage } from "ai";
 import { chatOutline } from "@/app/chat-tools";
 import { messageText } from "../thread-storage";
@@ -26,7 +26,7 @@ export function ChatOutlineView({ messages, messageAt, scrollRef }: {
     target.focus({ preventScroll: true });
   };
 
-  if (entries.length === 0) return <ToolPanelMessage icon={RiListUnordered} title="还没有消息" detail="发送消息后，这里按顺序列出你问过的内容，点一下即可跳到那里。" />;
+  if (entries.length === 0) return <ToolPanelMessage icon={ListIcon} title="还没有消息" detail="发送消息后，这里按顺序列出你问过的内容，点一下即可跳到那里。" />;
   return <ol aria-label="对话目录" className="min-h-0 flex-1 overflow-auto px-2 pb-3">
     {entries.map((entry) => <li key={entry.id}>
       <button type="button" onClick={() => jump(entry.id)} title={entry.title}

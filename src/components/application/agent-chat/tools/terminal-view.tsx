@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { RiDeleteBack2Line, RiRestartLine, RiTerminalBoxLine } from "@remixicon/react";
+import { DeleteIcon, RotateCcwIcon, SquareTerminalIcon } from "@/components/foundations/icons/app-icons";
 import { Terminal, type ITheme } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
@@ -40,8 +40,8 @@ export function TerminalView({ cwd, onActions }: { cwd?: string; onActions: (act
 
   useEffect(() => {
     onActions(<>
-      <ToolbarIconButton icon={RiDeleteBack2Line} label="清屏" onPress={() => term.current?.clear()} isDisabled={state.kind !== "running"} />
-      <ToolbarIconButton icon={RiRestartLine} label="重新启动终端" onPress={() => void restart()} isDisabled={state.kind === "starting"} />
+      <ToolbarIconButton icon={DeleteIcon} label="清屏" onPress={() => term.current?.clear()} isDisabled={state.kind !== "running"} />
+      <ToolbarIconButton icon={RotateCcwIcon} label="重新启动终端" onPress={() => void restart()} isDisabled={state.kind === "starting"} />
     </>);
   }, [onActions, restart, state.kind]);
 
@@ -103,7 +103,7 @@ export function TerminalView({ cwd, onActions }: { cwd?: string; onActions: (act
     };
   }, [cwd, generation]);
 
-  if (!terminalAvailable()) return <ToolPanelMessage icon={RiTerminalBoxLine} title="终端需要桌面应用"
+  if (!terminalAvailable()) return <ToolPanelMessage icon={SquareTerminalIcon} title="终端需要桌面应用"
     detail="终端在本机运行 shell，只能在 NekoPapa 桌面应用中使用；浏览器页面不能启动本机进程。" />;
 
   return <div className="relative flex min-h-0 flex-1 flex-col">
@@ -112,7 +112,7 @@ export function TerminalView({ cwd, onActions }: { cwd?: string; onActions: (act
       <p role={state.kind === "error" ? "alert" : "status"} className={state.kind === "error" ? "min-w-0 flex-1 text-body-2-regular text-text-error-primary" : "min-w-0 flex-1 text-body-2-regular text-text-secondary"}>
         {state.kind === "error" ? `无法启动终端：${state.message}` : "Shell 已退出。"}
       </p>
-      <Button size="small" leadingIcon={RiRestartLine} onClick={() => void restart()}>重新启动</Button>
+      <Button size="small" leadingIcon={RotateCcwIcon} onClick={() => void restart()}>重新启动</Button>
     </div>}
   </div>;
 }

@@ -1,4 +1,4 @@
-import { RiChatSmile2Line } from "@remixicon/react";
+import { MessageCircleHeartIcon } from "@/components/foundations/icons/app-icons";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { useContacts } from "@/hooks/use-contacts";
@@ -100,9 +100,9 @@ export function ContactsMessenger({ onNavigate, provider, requestedContactId, on
 
   return <ChatWorkspaceSplit mainMinWidth={560} panelOpen={profileOpen && Boolean(editorContact)} onClose={closeEditor} panelId="contact-profile-panel" panelLabel={editorContact?.kind === "official" ? "联系人资料" : "联系人设置"} resizeLabel="调整联系人资料区宽度" panel={editorContact && <AgentProfilePanel contact={editorContact} creating={Boolean(draft)} onClose={closeEditor} onCreated={(contact) => { setSearchQuery(""); select(contact); setProfileOpen(false); }} />}>
     <ContactsWorkspace onSelect={select} onCreate={() => create()} onStartGroup={() => startGroup()} groups={groupHistory.groups} onSelectGroup={selectGroup} onDeleteGroup={setDeleteTarget} onDeleteContact={setDeleteContactTarget} onEditContact={(contact) => { select(contact); setProfileOpen(true); }} searchInputRef={searchInputRef} selectedId={selectedId} previews={previews} onNavigate={onNavigate} disabled={!history.ready} query={searchQuery} onQueryChange={setSearchQuery} groupNotice={groupHistory.error} onRetryGroups={groupHistory.retry}>
-    {draft && <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 px-8 text-center"><RiChatSmile2Line className="size-14 text-foreground-icon-secondary" aria-hidden /><h1 className="text-headline-semibold text-text-primary">{draft.name || "新的联系人"}</h1><p className="text-body-regular text-text-tertiary">完成右侧设定，开启你们的第一段对话。</p></div>}
+    {draft && <div className="flex h-full flex-1 flex-col items-center justify-center gap-3 px-8 text-center"><MessageCircleHeartIcon className="size-14 text-foreground-icon-secondary" aria-hidden /><h1 className="text-headline-semibold text-text-primary">{draft.name || "新的联系人"}</h1><p className="text-body-regular text-text-tertiary">完成右侧设定，开启你们的第一段对话。</p></div>}
     {!selectedId && !draft && <div className="flex h-full flex-1 flex-col items-center justify-center gap-4 bg-background-secondary-default text-text-tertiary">
-      <RiChatSmile2Line className="size-12 opacity-30" aria-hidden />
+      <MessageCircleHeartIcon className="size-12 opacity-30" aria-hidden />
       <p className="text-body-regular">选择一位联系人，开始聊天</p>
     </div>}
     {history.ready && opened.filter((snapshot) => !deletedIds.includes(snapshot.id)).map((snapshot) => { const contact = contacts.find((item) => item.id === snapshot.id) ?? snapshot; return <div key={contact.id} hidden={Boolean(draft) || selectedId !== contact.id} style={{ display: !draft && selectedId === contact.id ? "flex" : "none" }} className="h-full min-h-0 min-w-0 flex-1">

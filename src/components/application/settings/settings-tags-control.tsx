@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiAddLine } from "@remixicon/react";
+import { PlusIcon } from "@/components/foundations/icons/app-icons";
 import type { ConfigurationField } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
@@ -41,7 +41,7 @@ export function TagsControl({ field, id, value, aria, onChange }: {
       <Input id={id} aria-label={`添加${field.label}`} value={entry} size="small" placeholder="输入名称后按 Enter" className="w-60"
         onChange={(next) => { setEntry(next); setNotice(""); }} aria-describedby={aria["aria-describedby"]}
         onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) { event.preventDefault(); add(); } }} />
-      <Button variant="secondary" size="small" leadingIcon={RiAddLine} onClick={add} disabled={!entry.trim()}>添加</Button>
+      <Button variant="secondary" size="small" leadingIcon={PlusIcon} onClick={add} disabled={!entry.trim()}>添加</Button>
     </div>
     {notice && <p role="alert" className="text-body-2-regular text-text-error-primary">{notice}</p>}
   </div>;

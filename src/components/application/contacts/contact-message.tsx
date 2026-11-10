@@ -1,4 +1,4 @@
-import { RiCheckLine, RiFileCopyLine } from "@remixicon/react";
+import { CheckIcon, CopyIcon } from "@/components/foundations/icons/app-icons";
 import { useEffect, useState } from "react";
 import type { ChatContact } from "@/app/contacts-store";
 import { Avatar } from "@/components/base/avatar/avatar";
@@ -27,7 +27,7 @@ export function ContactMessage({ text, isUser, contact, userName, at, streaming 
         {at ? <time dateTime={new Date(at).toISOString()}>{new Date(at).toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" })}</time> : null}
         {!streaming && <button type="button" className="flex cursor-pointer items-center gap-1 rounded px-1 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-border-focus-ring" aria-label={`复制${name}的消息`} onClick={async () => {
           try { await navigator.clipboard.writeText(text); setCopyState("copied"); } catch { setCopyState("failed"); }
-        }}>{copyState === "copied" ? <RiCheckLine className="size-3" aria-hidden /> : <RiFileCopyLine className="size-3" aria-hidden />}
+        }}>{copyState === "copied" ? <CheckIcon className="size-3" aria-hidden /> : <CopyIcon className="size-3" aria-hidden />}
           <span role="status">{copyState === "copied" ? "已复制" : copyState === "failed" ? "复制失败" : "复制"}</span>
         </button>}
       </div>

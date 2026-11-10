@@ -1,4 +1,4 @@
-import { RiArrowRightUpLine } from "@remixicon/react";
+import { ArrowUpRightIcon } from "@/components/foundations/icons/app-icons";
 import { desktopAccountApi } from "@/app/desktop-account-api";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { Button } from "@/components/base/buttons/button";
@@ -20,7 +20,7 @@ export function ProfileAccountCard({ onOpenLogin }: { onOpenLogin: () => void })
             {closed ? "官方账号服务暂未开放" : "未登录"}
           </p>
         </div>
-        <Button variant="secondary" size="small" trailingIcon={RiArrowRightUpLine} onClick={onOpenLogin}>
+        <Button variant="secondary" size="small" trailingIcon={ArrowUpRightIcon} onClick={onOpenLogin}>
           {closed ? "查看登录页" : "登录"}
         </Button>
       </div>

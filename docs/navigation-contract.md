@@ -664,3 +664,8 @@
 - 用户反馈主题卡片全部平铺占满设置页，且数量偏少。“主题”首行改为“配色方案”选择器（`appearance-theme-picker.tsx`）：只显示当前主题，点按打开带搜索的滚动列表，选中后关闭并滚动定位到当前项。
 - 新增 27 套开源配色（Nightfox、Iceberg、PaperColor、Flexoki、Edge、Modus、Selenized、Bluloco、Zenbones、Alabaster、Palenight、Moonlight、Horizon、Cobalt2、Synthwave '84、Shades of Purple、Zenburn、Sonokai、Melange、Mellow、Snazzy、Oceanic Next、Spacegray、Panda、Embark、Andromeda、Bamboo），共 46 套；现有测试逐一校验正文对比度 ≥ 4.5:1 与浅 / 深方向。
 - 浏览器 `localhost:1495`：设置页主题只占一行；列表打开时定位到当前 Oxocarbon，搜索 “night” 过滤为 4 项。选中后关闭弹层的点按因用户同时操作面板未完成验证；桌面窗口未验证。
+
+### 图标改为 Lucide 细线（2026-11-10）
+
+- 用户反馈全站图标粗糙。原 Remixicon 线性图标为填充形状、线宽约 2/24，缩到 16–18px 显得粗钝且不可调。新增 `src/components/foundations/icons/app-icons.tsx`，以 `lucide-react@1.61.0` 统一 1.5 描边（24 格，随尺寸缩放）重绘 131 个用到的图标（含基础组件），82 个文件改为从该文件引用，移除 `@remixicon/react`。
+- 无直接对应的图标取最接近的 Lucide 图标；Google 模型提供方改用通用 `Sparkle`，GitHub 改用 Octicons 标志。

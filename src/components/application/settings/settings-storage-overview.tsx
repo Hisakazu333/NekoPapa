@@ -1,11 +1,11 @@
-import { RiChat3Line, RiContactsBookLine, RiDatabase2Line, RiFileShield2Line, RiLayoutLine, RiSettings3Line, RiTranslate2 } from "@remixicon/react";
+import { BookUserIcon, DatabaseIcon, FileLockIcon, LanguagesIcon, LayoutPanelLeftIcon, MessageCircleIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
 import { formatStorageSize, measureLocalStorage, type LocalDataCategoryId, type LocalStorageUsage } from "@/app/local-storage-usage";
 import { Chip } from "@/components/base/badges/chip";
 import { SettingsCard, SettingsSectionLabel } from "./settings-rows";
 
-const icons: Record<LocalDataCategoryId, typeof RiChat3Line> = {
-  settings: RiSettings3Line, "settings-backup": RiFileShield2Line, chats: RiChat3Line,
-  contacts: RiContactsBookLine, workspace: RiLayoutLine, preferences: RiTranslate2, other: RiDatabase2Line,
+const icons: Record<LocalDataCategoryId, typeof MessageCircleIcon> = {
+  settings: SettingsIcon, "settings-backup": FileLockIcon, chats: MessageCircleIcon,
+  contacts: BookUserIcon, workspace: LayoutPanelLeftIcon, preferences: LanguagesIcon, other: DatabaseIcon,
 };
 
 /** Reads the current origin's storage; returns null when the WebView blocks access. */

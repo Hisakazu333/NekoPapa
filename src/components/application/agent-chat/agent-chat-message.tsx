@@ -2,7 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import { RiCheckLine, RiFileCopyLine, RiVolumeMuteLine, RiVolumeUpLine } from "@remixicon/react";
+import { CheckIcon, CopyIcon, Volume2Icon, VolumeXIcon } from "@/components/foundations/icons/app-icons";
 import { motion, useReducedMotion } from "motion/react";
 import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
 
@@ -166,14 +166,14 @@ function MessageActions({ text, at, hidden }: { text: string; at?: number; hidde
       )}
     >
       <ActionButton label={copied ? "Copied" : "Copy message"} onClick={copy}>
-        {copied ? <RiCheckLine className="size-4" aria-hidden /> : <RiFileCopyLine className="size-4" aria-hidden />}
+        {copied ? <CheckIcon className="size-4" aria-hidden /> : <CopyIcon className="size-4" aria-hidden />}
       </ActionButton>
 
       <ActionButton label={speaking ? "Stop reading aloud" : "Read aloud"} onClick={toggleSpeech}>
         {speaking ? (
-          <RiVolumeMuteLine className="size-4" aria-hidden />
+          <VolumeXIcon className="size-4" aria-hidden />
         ) : (
-          <RiVolumeUpLine className="size-4" aria-hidden />
+          <Volume2Icon className="size-4" aria-hidden />
         )}
       </ActionButton>
 

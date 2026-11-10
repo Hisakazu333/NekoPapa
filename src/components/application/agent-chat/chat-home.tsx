@@ -1,17 +1,5 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import {
-  RiArrowUpLine,
-  RiBookOpenLine,
-  RiChatSmile2Line,
-  RiCompass3Line,
-  RiLightbulbLine,
-  RiListCheck3,
-  RiMagicLine,
-  RiPencilLine,
-  RiPlugLine,
-  RiRefreshLine,
-  RiSearchLine,
-} from "@remixicon/react";
+import { ArrowUpIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -34,10 +22,10 @@ const modes = [
   { id: "code", label: "编程", prefix: "请协助分析以下编程问题，并说明实现思路：\n" },
 ] as const;
 const shortcuts = [
-  { label: "解释", icon: RiLightbulbLine, mode: "explain", prompt: "一个我正在学习的概念，并举一个生活中的例子。" },
-  { label: "写作", icon: RiPencilLine, mode: "write", prompt: "我想表达的想法是：" },
-  { label: "计划", icon: RiListCheck3, mode: "plan", prompt: "我想完成的目标是：" },
-  { label: "研究", icon: RiBookOpenLine, mode: "chat", prompt: "帮我研究一个问题：先梳理关键概念、需要验证的事实，以及可以继续查找的资料。问题是：" },
+  { label: "解释", icon: LightbulbIcon, mode: "explain", prompt: "一个我正在学习的概念，并举一个生活中的例子。" },
+  { label: "写作", icon: PencilIcon, mode: "write", prompt: "我想表达的想法是：" },
+  { label: "计划", icon: ListChecksIcon, mode: "plan", prompt: "我想完成的目标是：" },
+  { label: "研究", icon: BookOpenIcon, mode: "chat", prompt: "帮我研究一个问题：先梳理关键概念、需要验证的事实，以及可以继续查找的资料。问题是：" },
 ] as const;
 
 const ideas = [
@@ -125,7 +113,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
             <div className="chat-home__send-actions">
               <ComposerModelMenu state={composer} onConfigure={(target) => onOpenSettings("model", target)} official={official} />
               <button type="submit" className="chat-home__send-button" disabled={!canSend} aria-label="发送消息" title={sendBlockedReason ?? (disabled ? "连接模型后即可发送" : "发送消息")}>
-                <RiArrowUpLine aria-hidden />
+                <ArrowUpIcon aria-hidden />
               </button>
             </div>
           </div>
@@ -134,8 +122,8 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
         <div className="chat-home__toolbar">
           <div className="chat-home__toolbar-group">
             <ComposerModeMenu state={composer} context={selectedContact?.kind ?? "workspace"} className="chat-home__toolbar-button" />
-            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" onClick={fillIdea}><RiMagicLine aria-hidden /></button>
-            <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><RiPlugLine aria-hidden /></button>
+            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" onClick={fillIdea}><WandSparklesIcon aria-hidden /></button>
+            <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><PlugIcon aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
             {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} />}
@@ -148,8 +136,8 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
 
       <div className="chat-home__suggestions" aria-label="快捷提示">
         {official ? <>
-          <button type="button" className="chat-home__suggestion" onClick={() => fill("今天想和你聊聊发生的事。")}><RiChatSmile2Line aria-hidden /><span>聊聊今天</span></button>
-          <button type="button" className="chat-home__suggestion" onClick={() => fill("陪我放松一下，聊点轻松的话题吧。")}><RiCompass3Line aria-hidden /><span>一起放松</span></button>
+          <button type="button" className="chat-home__suggestion" onClick={() => fill("今天想和你聊聊发生的事。")}><MessageCircleHeartIcon aria-hidden /><span>聊聊今天</span></button>
+          <button type="button" className="chat-home__suggestion" onClick={() => fill("陪我放松一下，聊点轻松的话题吧。")}><CompassIcon aria-hidden /><span>一起放松</span></button>
         </> : shortcuts.map(({ label, icon: Icon, mode: modeId, prompt }) => (
           <button type="button" key={label} className="chat-home__suggestion" onClick={() => {
             const next = modes.find((entry) => entry.id === modeId)!;
@@ -159,16 +147,16 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
       </div>
 
       <div className="chat-home__ideas">
-        <RiCompass3Line className="chat-home__idea-icon" aria-hidden />
+        <CompassIcon className="chat-home__idea-icon" aria-hidden />
         <span className="chat-home__idea-label">给你一点灵感</span>
         <button type="button" className="chat-home__idea-prompt" onClick={fillIdea}>{ideas[ideaIndex]}</button>
-        <button type="button" className="chat-home__icon-button" aria-label="换一个灵感" onClick={() => setIdeaIndex((current) => (current + 1) % ideas.length)}><RiRefreshLine aria-hidden /></button>
+        <button type="button" className="chat-home__icon-button" aria-label="换一个灵感" onClick={() => setIdeaIndex((current) => (current + 1) % ideas.length)}><RefreshCwIcon aria-hidden /></button>
       </div>
 
       {disabled && (
         <p id={`${inputId}-connection`} role="status" className="chat-home__connection">
           {sendBlockedReason ?? "连接模型后即可发送，你可以先写下想法。"}
-          {!sendBlockedReason && <button type="button" onClick={() => onOpenSettings("model")}><RiSearchLine aria-hidden />配置模型</button>}
+          {!sendBlockedReason && <button type="button" onClick={() => onOpenSettings("model")}><SearchIcon aria-hidden />配置模型</button>}
         </p>
       )}
     </section>

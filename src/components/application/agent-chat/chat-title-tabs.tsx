@@ -1,5 +1,5 @@
 import { useEffect, useRef, type KeyboardEvent, type PointerEvent } from "react";
-import { RiAddLine, RiCloseLine, RiGlobalLine } from "@remixicon/react";
+import { GlobeIcon, PlusIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { cx } from "@/utils/cx";
 import { SpinnerGlyph } from "@/components/base/spinner/spinner";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
@@ -100,7 +100,7 @@ export function ChatTitleTabs({ tabs, activeId, busy, nativeWindow, onSelect, on
               "hover:bg-background-tertiary-default hover:text-foreground-icon-primary disabled:cursor-not-allowed disabled:opacity-40",
               active ? "opacity-100" : "opacity-0 group-hover:opacity-100",
             )}>
-            <RiCloseLine className="size-3.5" aria-hidden />
+            <XIcon className="size-3.5" aria-hidden />
           </button>
         </div>;
       })}
@@ -118,7 +118,7 @@ export function ChatTitleTabs({ tabs, activeId, busy, nativeWindow, onSelect, on
           className="flex h-full min-w-0 flex-1 cursor-grab touch-none items-center gap-1.5 rounded-lg ps-2.5 pe-7 text-start outline-none select-none focus-visible:ring-2 focus-visible:ring-border-focus-ring active:cursor-grabbing">
           {browserTab.loading
             ? <SpinnerGlyph size="xs" className="shrink-0 text-foreground-icon-secondary" />
-            : <RiGlobalLine className="size-3.5 shrink-0 text-foreground-icon-secondary" aria-hidden />}
+            : <GlobeIcon className="size-3.5 shrink-0 text-foreground-icon-secondary" aria-hidden />}
           <span className={cx("truncate text-body-2-regular", browserActive ? "text-text-primary" : "text-text-secondary")}>{browserTab.title}</span>
         </button>
         <button type="button" tabIndex={-1} aria-label={`关闭 ${browserTab.title}`} title="关闭浏览器标签" onClick={browserTab.onClose}
@@ -127,10 +127,10 @@ export function ChatTitleTabs({ tabs, activeId, busy, nativeWindow, onSelect, on
             "hover:bg-background-tertiary-default hover:text-foreground-icon-primary",
             browserActive ? "opacity-100" : "opacity-0 group-hover:opacity-100",
           )}>
-          <RiCloseLine className="size-3.5" aria-hidden />
+          <XIcon className="size-3.5" aria-hidden />
         </button>
       </div>}
     </div>
-    {onCreate && <span className="ms-1 flex shrink-0"><ToolbarIconButton icon={RiAddLine} label="新建对话" onPress={onCreate} /></span>}
+    {onCreate && <span className="ms-1 flex shrink-0"><ToolbarIconButton icon={PlusIcon} label="新建对话" onPress={onCreate} /></span>}
   </div>;
 }

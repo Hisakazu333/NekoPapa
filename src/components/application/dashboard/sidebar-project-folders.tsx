@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { RiAddLine, RiChatNewLine, RiFolder3Line, RiFolderOpenLine, RiPushpinFill } from "@remixicon/react";
+import { FolderIcon, FolderOpenIcon, PinFilledIcon, PlusIcon, SquarePenIcon } from "@/components/foundations/icons/app-icons";
 import type { Project } from "@/app/projects";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { ProjectFolderForm } from "@/components/application/agent-chat/project-folder-form";
@@ -36,12 +36,12 @@ export function AddProjectFolderButton() {
         if (folder) announce(folder);
         else if (error) toast.error("没有添加项目", { description: error });
       })}>
-      <RiAddLine className="size-4" aria-hidden />
+      <PlusIcon className="size-4" aria-hidden />
     </AriaButton>;
   }
   return <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
     <AriaButton aria-label="添加项目文件夹" className={cx(ICON_BUTTON, open && "bg-background-tertiary-default")}>
-      <RiAddLine className="size-4" aria-hidden />
+      <PlusIcon className="size-4" aria-hidden />
     </AriaButton>
     <Popover aria-label="添加项目文件夹" placement="bottom start" className="w-[300px]" dialogClassName="p-2.5 outline-none">
       <ProjectFolderForm autoFocus notice={notice} onSubmitFolder={async (path) => {
@@ -75,7 +75,7 @@ export function ProjectFolderGroup({ group, open, onToggle, actions, onNewChat, 
   const { project } = group;
   const listId = `recent-project-${project.id}`;
   const showChildren = open && !actions.collapsed;
-  const FolderIcon = showChildren ? RiFolderOpenLine : RiFolder3Line;
+  const ProjectFolderIcon = showChildren ? FolderOpenIcon : FolderIcon;
   const reveal = cx("opacity-0 focus-visible:opacity-100 group-hover/folder:opacity-100 group-focus-within/folder:opacity-100", menuOpen && "opacity-100");
   return <div className="flex min-w-0 flex-col">
     <div className="group/folder relative flex min-w-0 items-center rounded-2lg hover:bg-background-secondary-hover/60">
@@ -85,10 +85,10 @@ export function ProjectFolderGroup({ group, open, onToggle, actions, onNewChat, 
           "flex min-w-0 cursor-pointer items-center gap-2 rounded-2lg p-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring",
           actions.collapsed ? "w-9" : "w-full pe-16",
         )}>
-        <FolderIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+        <ProjectFolderIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
         <Collapsible collapsed={actions.collapsed} className="flex-1 gap-1.5">
           <span translate="no" className="truncate text-body-medium text-text-secondary">{project.name}</span>
-          {project.pinned && <RiPushpinFill className="size-3 shrink-0 text-foreground-icon-tertiary" aria-label="已置顶" />}
+          {project.pinned && <PinFilledIcon className="size-3 shrink-0 text-foreground-icon-tertiary" aria-label="已置顶" />}
         </Collapsible>
       </button>
       {!actions.collapsed && <span className="absolute end-1.5 flex items-center gap-0.5">
@@ -96,7 +96,7 @@ export function ProjectFolderGroup({ group, open, onToggle, actions, onNewChat, 
           onTogglePinned={() => togglePinned(project.id)} onEdit={() => onEdit(project)} onRemove={() => onRemove(project)} />
         <button type="button" aria-label={`在${project.name}中新建对话`} title="在此项目中新建对话" disabled={actions.busy}
           onClick={() => onNewChat(project.id)} className={cx(ICON_BUTTON, reveal)}>
-          <RiChatNewLine className="size-4" aria-hidden />
+          <SquarePenIcon className="size-4" aria-hidden />
         </button>
       </span>}
     </div>

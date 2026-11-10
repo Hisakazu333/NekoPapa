@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RiArrowGoBackLine } from "@remixicon/react";
+import { Undo2Icon } from "@/components/foundations/icons/app-icons";
 import { contrastRatio, themeById, themeColorKeys, type ThemeMode } from "@/app/appearance-themes";
 import { Button } from "@/components/base/buttons/button";
 import { tokenHex } from "@/platform/token-color";
@@ -31,7 +31,7 @@ function ColorRow({ label, value, themeValue, themeLabel, shown, onChange }: {
 }) {
   return <SettingsRow label={label} description={value ? "已自定义。" : themeValue ? `跟随 ${themeLabel}。` : "应用默认配色。"}>
     <div className="flex shrink-0 items-center gap-1">
-      {value && <Button size="xs" variant="ghost" leadingIcon={RiArrowGoBackLine} onClick={() => onChange("")} aria-label={`${label}恢复为跟随主题`}>恢复</Button>}
+      {value && <Button size="xs" variant="ghost" leadingIcon={Undo2Icon} onClick={() => onChange("")} aria-label={`${label}恢复为跟随主题`}>恢复</Button>}
       <ColorPill label={label} value={value || themeValue || shown} onChange={onChange} />
     </div>
   </SettingsRow>;

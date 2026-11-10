@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import { RiLinksLine, RiPencilLine } from "@remixicon/react";
+import { Link2Icon, PencilIcon } from "@/components/foundations/icons/app-icons";
 import type { LocalProfile } from "@/app/local-profile";
 import type { ProfileIdentity } from "@/app/profile-identity";
 import { Avatar } from "@/components/base/avatar/avatar";
@@ -42,7 +42,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
             initials={identity.initials}
             className="size-20 text-title-1-semibold ring-4 ring-background-full"
           />
-          <Button ref={editRef} variant="secondary" size="small" leadingIcon={RiPencilLine} onClick={onEdit}>
+          <Button ref={editRef} variant="secondary" size="small" leadingIcon={PencilIcon} onClick={onEdit}>
             编辑资料
           </Button>
         </div>
@@ -63,7 +63,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
           </button>}
         {website && <a href={website} target="_blank" rel="noreferrer"
           className="mt-2 inline-flex max-w-full items-center gap-1 rounded-md text-body-2-medium text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-          <RiLinksLine className="size-4 shrink-0" aria-hidden />
+          <Link2Icon className="size-4 shrink-0" aria-hidden />
           <span translate="no" className="truncate">{websiteLabel(website)}</span>
         </a>}
       </div>

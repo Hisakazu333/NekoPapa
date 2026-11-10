@@ -1,7 +1,5 @@
 import { useState, type ComponentType } from "react";
-import {
-  RiBookOpenLine, RiCloseLine, RiDraftLine, RiFileList3Line, RiFolder3Line, RiGitBranchLine, RiQuestionAnswerLine, RiTerminalBoxLine,
-} from "@remixicon/react";
+import { BookOpenIcon, FileTextIcon, FolderIcon, GitBranchIcon, MessagesSquareIcon, NotebookPenIcon, SquareTerminalIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { CHAT_TOOL_LABELS, type ChatTool } from "@/app/chat-tools";
 import { resolveProject } from "@/app/projects";
 import { useProjects } from "@/hooks/use-projects";
@@ -13,9 +11,9 @@ import { ChatEnvironment } from "./tools/chat-environment";
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 type PanelTab = "history" | "code" | "study";
 const CODE_TOOLS: { tool: ChatTool; icon: Icon; description: string }[] = [
-  { tool: "changes", icon: RiFileList3Line, description: "项目主要文件夹里未提交的 Git 更改与差异。" },
-  { tool: "files", icon: RiFolder3Line, description: "浏览项目文件，只读预览文本内容。" },
-  { tool: "terminal", icon: RiTerminalBoxLine, description: "在项目文件夹中打开本机 shell（桌面应用）。" },
+  { tool: "changes", icon: FileTextIcon, description: "项目主要文件夹里未提交的 Git 更改与差异。" },
+  { tool: "files", icon: FolderIcon, description: "浏览项目文件，只读预览文本内容。" },
+  { tool: "terminal", icon: SquareTerminalIcon, description: "在项目文件夹中打开本机 shell（桌面应用）。" },
 ];
 const TABS: { id: PanelTab; label: string }[] = [{ id: "history", label: "历史" }, { id: "code", label: "代码" }, { id: "study", label: "资料" }];
 
@@ -62,7 +60,7 @@ export function ChatSidePanel({ project, onClose, onOpenTool, ...history }: Omit
       </PillTabList>
       <button type="button" onClick={onClose} aria-label="关闭辅助工作区" title="关闭辅助工作区"
         className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-        <RiCloseLine className="size-5" aria-hidden />
+        <XIcon className="size-5" aria-hidden />
       </button>
     </div>
     {tab === "history" && <AgentChatHistory {...history} className="min-h-0 w-full flex-1 rounded-none bg-transparent p-0" />}
@@ -81,15 +79,15 @@ export function ChatSidePanel({ project, onClose, onOpenTool, ...history }: Omit
         </li>)}
       </ul>}
       <Planned status="Coding 智能体尚未接入" detail="接入后，Agent 模式在项目文件夹里读写代码，这里显示它做了什么。上面的工具只读取项目文件和 Git 状态；终端运行你自己输入的命令。" items={[
-        { icon: RiGitBranchLine, title: "Agent 的修改", description: "本次对话由 Agent 修改的文件，以及保留或撤销。" },
-        { icon: RiTerminalBoxLine, title: "Agent 的命令", description: "Agent 运行的命令与输出，例如测试和构建。" },
+        { icon: GitBranchIcon, title: "Agent 的修改", description: "本次对话由 Agent 修改的文件，以及保留或撤销。" },
+        { icon: SquareTerminalIcon, title: "Agent 的命令", description: "Agent 运行的命令与输出，例如测试和构建。" },
       ]} />
     </div>}
     {tab === "study" && <div className="min-h-0 flex-1 overflow-y-auto">
       <Planned status="NekoBuddy 后端未连接" detail="学习与知识库由 NekoBuddy 后端提供。接入后，这里跟随当前对话显示相关资料与学习进度；当前不会上传或读取资料。" items={[
-        { icon: RiBookOpenLine, title: "引用资料", description: "回答引用的知识库原文，并标明出处。" },
-        { icon: RiDraftLine, title: "学习笔记", description: "从对话整理的要点、错题与复习计划。" },
-        { icon: RiQuestionAnswerLine, title: "练习", description: "围绕当前主题出题、批改，并记录掌握情况。" },
+        { icon: BookOpenIcon, title: "引用资料", description: "回答引用的知识库原文，并标明出处。" },
+        { icon: NotebookPenIcon, title: "学习笔记", description: "从对话整理的要点、错题与复习计划。" },
+        { icon: MessagesSquareIcon, title: "练习", description: "围绕当前主题出题、批改，并记录掌握情况。" },
       ]} />
     </div>}
   </div>;

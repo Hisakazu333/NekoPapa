@@ -2,7 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
-import { RiMailCheckLine } from "@remixicon/react";
+import { MailCheckIcon } from "@/components/foundations/icons/app-icons";
 import { Button } from "@/components/base/buttons/button";
 import { Checkbox } from "@/components/base/checkbox/checkbox";
 import { Divider } from "@/components/base/divider/divider";
@@ -214,7 +214,7 @@ export function AuthCard({
   const mark =
     logo ??
     (verify ? (
-      <RiMailCheckLine className="size-8 text-foreground-icon-primary" aria-hidden />
+      <MailCheckIcon className="size-8 text-foreground-icon-primary" aria-hidden />
     ) : null);
 
   const body = (

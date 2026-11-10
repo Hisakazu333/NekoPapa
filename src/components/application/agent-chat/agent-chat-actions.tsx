@@ -2,7 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import { RiCheckLine, RiLayoutRightLine, RiMoreFill, RiUploadLine } from "@remixicon/react";
+import { CheckIcon, EllipsisIcon, PanelRightIcon, UploadIcon } from "@/components/foundations/icons/app-icons";
 import { useEffect, useState } from "react";
 
 import {
@@ -113,9 +113,9 @@ export function AgentChatActions({
         className={ACTION_BUTTON}
       >
         {shared ? (
-          <RiCheckLine className={toolbarIconClass} aria-hidden />
+          <CheckIcon className={toolbarIconClass} aria-hidden />
         ) : (
-          <RiUploadLine className={toolbarIconClass} aria-hidden />
+          <UploadIcon className={toolbarIconClass} aria-hidden />
         )}
       </button>}
 
@@ -125,7 +125,7 @@ export function AgentChatActions({
           isDisabled={disabled}
           className={cx(ACTION_BUTTON, menuOpen && "bg-background-primary-hover text-text-primary")}
         >
-          <RiMoreFill className={toolbarIconClass} aria-hidden />
+          <EllipsisIcon className={toolbarIconClass} aria-hidden />
         </DropdownTrigger>
 
         <DropdownPopover
@@ -155,7 +155,7 @@ export function AgentChatActions({
       {onTogglePanel && <button type="button" onClick={onTogglePanel} aria-pressed={panelOpen}
         aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料）"}
         className={cx(ACTION_BUTTON, panelOpen && "bg-background-primary-hover text-text-primary")}>
-        <RiLayoutRightLine className={toolbarIconClass} aria-hidden />
+        <PanelRightIcon className={toolbarIconClass} aria-hidden />
       </button>}
     </div>
   ));

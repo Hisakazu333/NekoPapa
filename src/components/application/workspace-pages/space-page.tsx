@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { RiMenuLine, RiSearchLine } from "@remixicon/react";
+import { MenuIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import { StatusDot } from "@/components/base/badges/status-dot";
 import { Input } from "@/components/base/input/input";
 import { Table, TableBody, TableCell, TableColumn, TableHeader, TableRow } from "@/components/base/table/table";
@@ -45,7 +45,7 @@ export function SpacePage({ onNavigate }: { onNavigate: () => void }) {
 
     <div className="flex min-w-0 flex-1 flex-col">
       <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
-        <ToolbarIconButton icon={RiMenuLine} label="打开导航" onPress={onNavigate} />
+        <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />
         <span className="text-body-medium text-text-primary md:hidden">空间</span>
       </header>
       <nav aria-label="分类" className="flex gap-1 overflow-x-auto px-3 pb-2 md:hidden">
@@ -56,7 +56,7 @@ export function SpacePage({ onNavigate }: { onNavigate: () => void }) {
         <div className="mx-auto flex w-full max-w-[960px] flex-col gap-5 px-4 py-6 sm:px-8 lg:pt-8">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="text-title-1-semibold text-text-primary">{label}</h2>
-            <Input aria-label="搜索空间" placeholder="搜索空间" leadingIcon={RiSearchLine} isDisabled className="w-full sm:w-64" />
+            <Input aria-label="搜索空间" placeholder="搜索空间" leadingIcon={SearchIcon} isDisabled className="w-full sm:w-64" />
           </div>
 
           <div role="status" className="flex items-start gap-3 rounded-2xl border border-separator-border bg-background-primary-default p-3">

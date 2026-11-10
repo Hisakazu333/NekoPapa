@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { RiBookShelfLine, RiExternalLinkLine, RiGithubLine, RiLink, RiPlugLine, RiPuzzle2Line, RiSettings3Line } from "@remixicon/react";
+import { ExternalLinkIcon, GithubIcon, LibraryIcon, LinkIcon, PlugIcon, PuzzleIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
 import { DSH_PLUGIN_SEARCH_URL, openExternal } from "@/platform/open-external";
 import type { ConfigurationRecord } from "@/app/configuration-types";
 import { Button } from "@/components/base/buttons/button";
@@ -11,9 +11,9 @@ import { useConfiguration } from "@/hooks/use-configuration";
 import { cx } from "@/utils/cx";
 
 const kinds = {
-  mcp: { label: "MCP 服务", icon: RiPlugLine },
-  skill: { label: "技能目录", icon: RiBookShelfLine },
-  connector: { label: "连接器", icon: RiLink },
+  mcp: { label: "MCP 服务", icon: PlugIcon },
+  skill: { label: "技能目录", icon: LibraryIcon },
+  connector: { label: "连接器", icon: LinkIcon },
 } as const;
 type Kind = keyof typeof kinds;
 const kindOf = (record: ConfigurationRecord): Kind => record.values.kind === "skill" || record.values.kind === "connector" ? record.values.kind : "mcp";
@@ -49,7 +49,7 @@ export function ChatPluginsButton() {
 
   return <PopoverTrigger isOpen={open} onOpenChange={setOpen}>
     <AriaButton ref={trigger} aria-label={label} className={cx(toolbarIconButtonClass, open && "bg-background-primary-hover text-text-primary")}>
-      <RiPuzzle2Line className={toolbarIconClass} aria-hidden />
+      <PuzzleIcon className={toolbarIconClass} aria-hidden />
     </AriaButton>
     <Popover aria-label="插件与工具" placement="bottom end" className="w-[320px]">
       <PopoverHeader title="插件与工具" description="Coding 执行层尚未接入，下面的内容都不会运行。" />
@@ -59,9 +59,9 @@ export function ChatPluginsButton() {
           dsh 插件是 TypeScript / JavaScript 模块（导出 <code translate="no" className="font-mono text-caption-1-regular">apply(ctx)</code>，由 Cordis 配置加载），与技能和 MCP 不同。可在设置 → 开发 → Cordis 插件中保存配置条目；执行层接入前不会加载。
         </p>
         <div className="flex gap-2">
-          <Button size="small" variant="secondary" leadingIcon={RiSettings3Line} className="flex-1" onClick={() => manage("plugins")}
+          <Button size="small" variant="secondary" leadingIcon={SettingsIcon} className="flex-1" onClick={() => manage("plugins")}
             aria-label={pluginLabel}>Cordis 插件</Button>
-          <Button size="small" variant="secondary" leadingIcon={RiGithubLine} trailingIcon={RiExternalLinkLine} className="flex-1" onClick={searchGitHub}
+          <Button size="small" variant="secondary" leadingIcon={GithubIcon} trailingIcon={ExternalLinkIcon} className="flex-1" onClick={searchGitHub}
             aria-label="在 GitHub 搜索 DeepSeek Harness 插件（在系统浏览器中打开）" title="在 GitHub 搜索 DeepSeek Harness 插件">
             GitHub 搜索
           </Button>
@@ -89,8 +89,8 @@ export function ChatPluginsButton() {
             })}
           </ul>}
         <div className="flex gap-2">
-          <Button size="small" variant="secondary" leadingIcon={RiSettings3Line} className="flex-1" onClick={() => manage("tools")}>MCP 与连接器</Button>
-          <Button size="small" variant="secondary" leadingIcon={RiBookShelfLine} className="flex-1" onClick={() => manage("skills")}>技能</Button>
+          <Button size="small" variant="secondary" leadingIcon={SettingsIcon} className="flex-1" onClick={() => manage("tools")}>MCP 与连接器</Button>
+          <Button size="small" variant="secondary" leadingIcon={LibraryIcon} className="flex-1" onClick={() => manage("skills")}>技能</Button>
         </div>
       </section>
     </Popover>

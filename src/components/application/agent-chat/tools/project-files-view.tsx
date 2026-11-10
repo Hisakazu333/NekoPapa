@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { RiArrowLeftLine, RiArrowRightSLine, RiFileLine, RiFolder3Line, RiFolderOpenLine, RiLink, RiRefreshLine } from "@remixicon/react";
+import { ArrowLeftIcon, ChevronRightIcon, FileIcon, FolderIcon, FolderOpenIcon, LinkIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import { formatBytes, type ProjectEntry, type ProjectFile, type ProjectListing } from "@/app/project-workspace";
 import { projectWorkspace } from "@/app/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
@@ -37,7 +37,7 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
 
   const reload = useCallback(() => { for (const dir of open) void load(dir); }, [open, load]);
   useEffect(() => {
-    onActions(<ToolbarIconButton icon={RiRefreshLine} label="刷新文件" onPress={reload} />);
+    onActions(<ToolbarIconButton icon={RefreshCwIcon} label="刷新文件" onPress={reload} />);
   }, [onActions, reload]);
 
   const toggle = (dir: string) => {
@@ -58,7 +58,7 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
 
   if (preview) return <FilePreview preview={preview} onBack={() => setPreview(undefined)} />;
   const top = folders[""];
-  if (!top || top.kind === "loading") return <ToolPanelMessage icon={RiFolder3Line} title="正在读取文件夹…" />;
+  if (!top || top.kind === "loading") return <ToolPanelMessage icon={FolderIcon} title="正在读取文件夹…" />;
   if (top.kind === "error") return <ToolPanelMessage tone="error" title="无法读取项目文件夹" detail={top.message} />;
   if (top.listing.entries.length === 0) return <ToolPanelMessage title="文件夹是空的" />;
 
@@ -81,12 +81,12 @@ function EntryRow({ entry, depth, expanded, onToggle, onOpen, children }: {
   entry: ProjectEntry; depth: number; expanded: boolean; onToggle: () => void; onOpen: () => void; children?: React.ReactNode;
 }) {
   const dir = entry.kind === "dir";
-  const Icon = dir ? (expanded ? RiFolderOpenLine : RiFolder3Line) : entry.kind === "link" ? RiLink : RiFileLine;
+  const Icon = dir ? (expanded ? FolderOpenIcon : FolderIcon) : entry.kind === "link" ? LinkIcon : FileIcon;
   return <li>
     <button type="button" onClick={dir ? onToggle : onOpen} aria-expanded={dir ? expanded : undefined} title={entry.path}
       className="flex h-7 w-full cursor-pointer items-center gap-1.5 rounded-lg pe-2 text-start outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring"
       style={{ paddingInlineStart: depth * 16 + 4 }}>
-      <RiArrowRightSLine className={cx("size-4 shrink-0 text-foreground-icon-tertiary transition-transform", !dir && "invisible", expanded && "rotate-90")} aria-hidden />
+      <ChevronRightIcon className={cx("size-4 shrink-0 text-foreground-icon-tertiary transition-transform", !dir && "invisible", expanded && "rotate-90")} aria-hidden />
       <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />
       <span translate="no" className="min-w-0 flex-1 truncate text-body-2-regular text-text-primary">{entry.name}</span>
       {entry.kind === "file" && <span className="shrink-0 text-caption-1-regular text-text-tertiary tabular-nums">{formatBytes(entry.size)}</span>}
@@ -99,16 +99,16 @@ function FilePreview({ preview, onBack }: { preview: Preview; onBack: () => void
   const { state } = preview;
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="flex shrink-0 items-center gap-2 px-2 pb-2">
-      <ToolbarIconButton icon={RiArrowLeftLine} label="返回文件列表" onPress={onBack} />
+      <ToolbarIconButton icon={ArrowLeftIcon} label="返回文件列表" onPress={onBack} />
       <span translate="no" title={preview.path} className="min-w-0 flex-1 truncate font-mono text-caption-1-regular text-text-secondary">{preview.path}</span>
       {state.kind === "ready" && <span className="shrink-0 text-caption-1-regular text-text-tertiary">{formatBytes(state.file.size)}</span>}
     </div>
-    {state.kind === "loading" && <ToolPanelMessage icon={RiFileLine} title="正在读取文件…" />}
-    {state.kind === "error" && <ToolPanelMessage tone="error" icon={RiFileLine} title="无法读取这个文件" detail={state.message} />}
+    {state.kind === "loading" && <ToolPanelMessage icon={FileIcon} title="正在读取文件…" />}
+    {state.kind === "error" && <ToolPanelMessage tone="error" icon={FileIcon} title="无法读取这个文件" detail={state.message} />}
     {state.kind === "ready" && (state.file.tooLarge
-      ? <ToolPanelMessage icon={RiFileLine} title="文件太大，不在这里预览" detail="只预览 512 KB 以内的文本文件。" />
+      ? <ToolPanelMessage icon={FileIcon} title="文件太大，不在这里预览" detail="只预览 512 KB 以内的文本文件。" />
       : state.file.binary || state.file.text === undefined
-        ? <ToolPanelMessage icon={RiFileLine} title="这是二进制文件" detail="只预览文本文件。" />
+        ? <ToolPanelMessage icon={FileIcon} title="这是二进制文件" detail="只预览文本文件。" />
         : <FileText text={state.file.text} />)}
   </div>;
 }

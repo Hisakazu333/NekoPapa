@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { RiCloseLine } from "@remixicon/react";
+import { XIcon } from "@/components/foundations/icons/app-icons";
 import { contactAvatarColors, type ChatContact, type ContactAvatarColor, type ContactDraft, type ContactErrors, type ContactLanguage } from "@/app/contacts-store";
 import { Button } from "@/components/base/buttons/button";
 import { Input } from "@/components/base/input/input";
@@ -75,7 +75,7 @@ function AgentProfileEditor({ contact, onClose, onSaved, creating = false, onCre
     onKeyDown={(event) => { if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); onClose(); } }}>
     <header className="flex shrink-0 items-center gap-3 px-5 py-4">
       <h2 className="min-w-0 flex-1 truncate text-center text-headline-semibold">{creating ? "创建联系人" : contact.name}</h2>
-      <button type="button" aria-label={official ? "关闭联系人资料" : "关闭联系人设置"} onClick={onClose} className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-background-tertiary-default text-text-tertiary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-focus-ring"><RiCloseLine className="size-4" aria-hidden /></button>
+      <button type="button" aria-label={official ? "关闭联系人资料" : "关闭联系人设置"} onClick={onClose} className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-background-tertiary-default text-text-tertiary hover:text-text-primary focus-visible:outline-2 focus-visible:outline-border-focus-ring"><XIcon className="size-4" aria-hidden /></button>
     </header>
     <form ref={formRef} id={formId} onSubmit={submit} noValidate className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pb-5">
       {official ? <AgentAppearancePreview contact={previewContact} /> : <ContactAvatarEditor contact={previewContact} value={draft.avatarDataUrl}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { RiCheckLine, RiFolder3Line, RiFolderAddLine } from "@remixicon/react";
+import { CheckIcon, FolderIcon, FolderPlusIcon } from "@/components/foundations/icons/app-icons";
 import { resolveProject, type Project } from "@/app/projects";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
@@ -61,7 +61,7 @@ export function HomeProjectMenu({ value, onChange }: {
 
   return <PopoverTrigger isOpen={open} onOpenChange={setMenuOpen}>
     <AriaButton className="chat-home__toolbar-button" aria-label={selected ? `当前项目：${selected.name}，更换项目` : "选择项目"}>
-      <RiFolder3Line aria-hidden />
+      <FolderIcon aria-hidden />
       <span translate="no" className="max-w-[128px] truncate" title={selected?.folders[0]}>{selected?.name ?? "项目"}</span>
       <ChevronDownSmall className="chat-home__chevron" />
     </AriaButton>
@@ -69,13 +69,13 @@ export function HomeProjectMenu({ value, onChange }: {
       <p className="px-2.5 pt-1 text-caption-1-medium text-text-tertiary">项目</p>
       <button type="button" className={OPTION} onClick={() => choose(undefined)}>
         <span className="flex-1 text-body-medium text-text-primary">不使用项目</span>
-        {!selected && <RiCheckLine className="size-4 shrink-0 text-foreground-icon-primary" aria-hidden />}
+        {!selected && <CheckIcon className="size-4 shrink-0 text-foreground-icon-primary" aria-hidden />}
       </button>
       <ul className="flex flex-col">
         {options.map((project) => <li key={project.id}>
           <button type="button" className={OPTION} onClick={() => choose(project.id)} aria-current={project.id === selected?.id ? "true" : undefined}
             title={project.folders.join("\n")}>
-            <RiFolder3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+            <FolderIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
             <span className="flex min-w-0 flex-1 flex-col">
               <span className="flex min-w-0 items-baseline gap-1.5">
                 <span translate="no" className="truncate text-body-medium text-text-primary">{project.name}</span>
@@ -83,7 +83,7 @@ export function HomeProjectMenu({ value, onChange }: {
               </span>
               <ProjectFolderDetail folder={project.folders[0]} info={infoOf(project.folders[0])} />
             </span>
-            {project.id === selected?.id && <RiCheckLine className="size-4 shrink-0 text-foreground-icon-primary" aria-hidden />}
+            {project.id === selected?.id && <CheckIcon className="size-4 shrink-0 text-foreground-icon-primary" aria-hidden />}
           </button>
         </li>)}
       </ul>
@@ -91,7 +91,7 @@ export function HomeProjectMenu({ value, onChange }: {
         {typing
           ? <ProjectFolderForm autoFocus onSubmitFolder={addTyped} notice={notice} className="px-2.5 pb-2 pt-1.5" />
           : <button type="button" className={OPTION} onClick={() => void addPicked()} disabled={chooser.picking}>
-            <RiFolderAddLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+            <FolderPlusIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
             <span className="flex-1 text-body-medium text-text-primary">{chooser.picking ? "正在打开文件夹窗口…" : "添加文件夹…"}</span>
           </button>}
         {chooser.error && <div role="alert" className="flex flex-col items-start gap-1 px-2.5 pb-2">

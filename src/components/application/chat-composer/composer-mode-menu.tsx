@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { RiBookOpenLine, RiCheckLine, RiChatSmile2Line, RiMagicLine, RiRobot2Line, RiUserSettingsLine } from "@remixicon/react";
+import { BookOpenIcon, BotIcon, CheckIcon, MessageCircleHeartIcon, UserCogIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { composerModesForContext, selectComposerMode, type ComposerContext, type ComposerMode } from "@/app/chat-composer-draft";
@@ -7,7 +7,7 @@ import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";
 
-const modeIcons = { auto: RiMagicLine, chat: RiChatSmile2Line, study: RiBookOpenLine, professional: RiUserSettingsLine, agent: RiRobot2Line };
+const modeIcons = { auto: WandSparklesIcon, chat: MessageCircleHeartIcon, study: BookOpenIcon, professional: UserCogIcon, agent: BotIcon };
 
 export function ComposerModeMenu({ state, context = "custom", disabled, className }: {
   state: ChatComposerState;
@@ -43,7 +43,7 @@ export function ComposerModeMenu({ state, context = "custom", disabled, classNam
             <span className="text-body-medium">{item.label}</span>
             <span className="text-caption-1-regular text-text-tertiary">{item.description}</span>
           </span>
-          {mode.id === item.id && <RiCheckLine className="mt-0.5 size-4 shrink-0" aria-hidden />}
+          {mode.id === item.id && <CheckIcon className="mt-0.5 size-4 shrink-0" aria-hidden />}
         </DropdownItem>; })}
       </DropdownGroup>
       <DropdownDivider />

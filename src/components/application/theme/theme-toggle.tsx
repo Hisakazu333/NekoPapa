@@ -5,7 +5,7 @@ import { useTemplateCopy } from "@/components/foundations/template-copy/template
 import { useRef, useSyncExternalStore } from "react";
 import { revealTheme } from "@/platform/theme-transition";
 import type { ThemeTransitionOrigin } from "@/platform/theme-transition";
-import { RiMoonLine, RiSunLine } from "@remixicon/react";
+import { MoonIcon, SunIcon } from "@/components/foundations/icons/app-icons";
 import { Switch as AriaSwitch } from "react-aria-components";
 import { SwitchTrack } from "@/components/base/switch/switch";
 import { cx } from "@/utils/cx";
@@ -99,8 +99,8 @@ export function ThemeToggle({
     const small = size === "small" && !glass;
     const sidebarSurface = appearance === "sidebar-segmented";
     const options = [
-      { mode: "light" as const, label: "Use light mode", Icon: RiSunLine },
-      { mode: "dark" as const, label: "Use dark mode", Icon: RiMoonLine },
+      { mode: "light" as const, label: "Use light mode", Icon: SunIcon },
+      { mode: "dark" as const, label: "Use dark mode", Icon: MoonIcon },
     ];
 
     return localize((
@@ -187,7 +187,7 @@ export function ThemeToggle({
   }
 
   if (collapsed) {
-    const Icon = dark ? RiSunLine : RiMoonLine;
+    const Icon = dark ? SunIcon : MoonIcon;
     return localize((
       <button
         type="button"
@@ -247,7 +247,7 @@ export function ThemeToggle({
       {(state) => (
         <>
           <span className="flex min-w-0 items-center gap-2">
-            <RiMoonLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+            <MoonIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
             <span className="text-body-medium text-text-secondary">Dark mode</span>
           </span>
           <SwitchTrack state={state} size="sm" shape="pill" />

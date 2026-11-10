@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { RiCloseLine, RiCursorLine } from "@remixicon/react";
+import { MousePointer2Icon, XIcon } from "@/components/foundations/icons/app-icons";
 import { composerArtifacts } from "@/app/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 
@@ -11,7 +11,7 @@ export function ComposerDraftSummary({ state, disabled }: { state: ChatComposerS
         <span title={file.path} className="truncate">{file.path}</span><span className="shrink-0 text-text-tertiary">{Math.max(1, Math.ceil(file.size / 1024))} KB</span>
       </Chip>)}
       {draft.pageElements.map((element) => <Chip key={element.id} label={`移除网页元素${element.selector || element.tag}`} disabled={disabled} onRemove={() => state.setDraft((previous) => ({ ...previous, pageElements: previous.pageElements.filter((item) => item.id !== element.id) }))}>
-        <RiCursorLine className="size-3.5 shrink-0" aria-hidden />
+        <MousePointer2Icon className="size-3.5 shrink-0" aria-hidden />
         <span title={`${element.url}\n${element.selector}`} className="truncate">网页元素 &lt;{element.tag}&gt; {element.selector}</span>
         <span className="shrink-0 text-text-tertiary">{element.size.width}×{element.size.height}</span>
       </Chip>)}
@@ -25,6 +25,6 @@ export function ComposerDraftSummary({ state, disabled }: { state: ChatComposerS
 
 function Chip({ children, label, onRemove, disabled }: { children: ReactNode; label: string; onRemove: () => void; disabled?: boolean }) {
   return <span className="flex max-w-full items-center gap-2 rounded-xl bg-background-secondary-default px-2 py-1 text-caption-1-regular text-text-secondary">
-    {children}<button type="button" aria-label={label} disabled={disabled} className="shrink-0 cursor-pointer rounded-full p-0.5 outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:opacity-50" onClick={onRemove}><RiCloseLine className="size-3" aria-hidden /></button>
+    {children}<button type="button" aria-label={label} disabled={disabled} className="shrink-0 cursor-pointer rounded-full p-0.5 outline-none hover:bg-background-tertiary-default focus-visible:ring-2 focus-visible:ring-border-focus-ring disabled:opacity-50" onClick={onRemove}><XIcon className="size-3" aria-hidden /></button>
   </span>;
 }

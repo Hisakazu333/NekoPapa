@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { RiArrowLeftLine, RiExternalLinkLine } from "@remixicon/react";
+import { ArrowLeftIcon, ExternalLinkIcon } from "@/components/foundations/icons/app-icons";
 import { desktopAccountApi } from "@/app/desktop-account-api";
 import { AuthCard, AuthMediaCarousel } from "@/components/application/auth/auth-card";
 import { Button } from "@/components/base/buttons/button";
@@ -43,7 +43,7 @@ export function AccountLoginPage({ onBack }: { onBack: () => void }) {
       {macWindow && <div data-tauri-drag-region aria-hidden className="h-10 shrink-0" />}
       <header data-tauri-drag-region={macWindow || undefined}
         className={cx("flex h-14 shrink-0 items-center px-4 sm:px-6", macWindow && "h-12")}>
-        <Button variant="ghost" size="small" leadingIcon={RiArrowLeftLine} onClick={onBack}>
+        <Button variant="ghost" size="small" leadingIcon={ArrowLeftIcon} onClick={onBack}>
           返回工作区
         </Button>
       </header>
@@ -66,7 +66,7 @@ export function AccountLoginPage({ onBack }: { onBack: () => void }) {
                 </p>
               </div>
             </div>
-            <Button disabled className="w-full" trailingIcon={RiExternalLinkLine}>在浏览器中登录</Button>
+            <Button disabled className="w-full" trailingIcon={ExternalLinkIcon}>在浏览器中登录</Button>
             <p className="text-center text-caption-1-regular text-text-tertiary">
               开放后，NekoPapa 会在浏览器中打开确认页面，不需要在这里输入密码。
             </p>

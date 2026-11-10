@@ -1,6 +1,6 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import type { ComponentType, ReactNode } from "react";
-import { RiChatAiLine } from "@remixicon/react";
+import { MessageSquareTextIcon } from "@/components/foundations/icons/app-icons";
 import { Badge } from "@/components/base/badges/badge";
 import { cx } from "@/utils/cx";
 
@@ -100,7 +100,7 @@ export type DashboardNavKey = string;
 
 /** The local workspace exposes only the installed chat page. */
 export const DASHBOARD_NAV: DashboardNavItem[] = [
-  { key: "chat", label: "Chat", icon: RiChatAiLine, href: "/" },
+  { key: "chat", label: "Chat", icon: MessageSquareTextIcon, href: "/" },
 ];
 
 /**

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { RiArrowLeftSLine } from "@remixicon/react";
+import { ChevronLeftIcon } from "@/components/foundations/icons/app-icons";
 import { ResizableDivider } from "@/components/base/resizable-divider/resizable-divider";
 import { MIN_CHAT_WIDTH, fitPanelWidth, panelWidthLimits, workspaceUsesOverlay } from "./chat-workspace-layout";
 import "@/styles/chat-workspace-split.css";
@@ -76,7 +76,7 @@ export function ChatWorkspaceSplit({ children, panel, panelOpen, onClose, onOpen
       <div className="chat-workspace-main" inert={panelOpen && overlay ? true : undefined}>{children}</div>
       {!panelOpen && onOpen && <button ref={openRef} type="button" className="chat-workspace-open" onClick={onOpen}
         aria-label="展开辅助工作区" title="展开辅助工作区" aria-controls={panelId} aria-expanded={false}>
-        <RiArrowLeftSLine aria-hidden className="size-4" />
+        <ChevronLeftIcon aria-hidden className="size-4" />
       </button>}
       {panelOpen && <>
         {overlay ? <button type="button" className="chat-workspace-backdrop" onClick={onClose} tabIndex={-1} aria-label="关闭辅助工作区" /> : (

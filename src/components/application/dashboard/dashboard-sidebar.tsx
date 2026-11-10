@@ -10,11 +10,7 @@ import {
   type ReactNode,
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
-import {
-  RiCloseLine,
-  RiSearchLine,
-  RiSideBarFill,
-} from "@remixicon/react";
+import { PanelLeftIcon, SearchIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { DashboardSidebarFooter } from "./dashboard-sidebar-footer";
 import { CloseButton } from "@/components/base/buttons/close-button";
 import { Kbd } from "@/components/base/kbd/kbd";
@@ -245,7 +241,7 @@ export function DashboardSidebar({
                 onClick={activateSearch}
                 className="flex size-5 shrink-0 cursor-pointer items-center justify-center text-foreground-icon-secondary"
               >
-                <RiSearchLine className="size-5" aria-hidden />
+                <SearchIcon className="size-5" aria-hidden />
               </button>
               <input
                 ref={searchInputRef}
@@ -286,7 +282,7 @@ export function DashboardSidebar({
               onClick={onClose}
               className="cursor-pointer text-foreground-icon-secondary"
             >
-              <RiCloseLine className="size-5" aria-hidden />
+              <XIcon className="size-5" aria-hidden />
             </button>
           ) : (
             <div className={cx("flex items-center gap-1", collapsed && "flex-col")}>
@@ -304,7 +300,7 @@ export function DashboardSidebar({
                 collapsed && "flex w-9 items-center justify-center",
               )}
             >
-              <RiSideBarFill
+              <PanelLeftIcon
                 className={cx("size-5 transition-transform duration-300 ease-in-out", collapsed ? "rtl:-scale-x-100" : "-scale-x-100 rtl:scale-x-100")}
                 aria-hidden
               />
@@ -320,7 +316,7 @@ export function DashboardSidebar({
               ref={searchFieldRef}
               className="flex w-full items-center gap-2 rounded-full bg-background-tertiary-default py-2 pe-2.5 ps-2 ring-2 ring-inset ring-border-button-active transition-[background-color,box-shadow] duration-[var(--input-transition-ms)] ease"
             >
-              <RiSearchLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+              <SearchIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
               <input
                 ref={searchInputRef}
                 type="search"
@@ -359,7 +355,7 @@ export function DashboardSidebar({
               )}
             >
               <span className={cx("flex min-w-0 items-center gap-2", !collapsed && "flex-1")}>
-                <RiSearchLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+                <SearchIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
                 <Collapsible collapsed={collapsed}>
                   <span className="text-body-medium whitespace-nowrap text-text-secondary">
                     快速搜索

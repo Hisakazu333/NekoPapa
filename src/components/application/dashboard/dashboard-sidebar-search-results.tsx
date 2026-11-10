@@ -1,11 +1,11 @@
 import { useEffect } from "react";
-import { RiChat3Line, RiContactsLine, RiSettings3Line } from "@remixicon/react";
+import { ContactIcon, MessageCircleIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import { sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
 import { cx } from "@/utils/cx";
 
 const icons = {
-  page: RiChat3Line, thread: RiChat3Line, contact: RiContactsLine, setting: RiSettings3Line,
+  page: MessageCircleIcon, thread: MessageCircleIcon, contact: ContactIcon, setting: SettingsIcon,
 };
 
 export function DashboardSidebarSearchResults({

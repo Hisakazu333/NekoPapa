@@ -1,5 +1,5 @@
 import { useId, useRef, useState } from "react";
-import { RiAddLine, RiAttachment2, RiArrowLeftSLine, RiCheckLine, RiFolderLine, RiFocus3Line, RiListCheck3 } from "@remixicon/react";
+import { CheckIcon, ChevronLeftIcon, CrosshairIcon, FolderIcon, ListChecksIcon, PaperclipIcon, PlusIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { Button } from "@/components/base/buttons/button";
 import { composerArtifacts, COMPOSER_GOAL_LIMIT, validateComposerGoal, type ComposerArtifact } from "@/app/chat-composer-draft";
@@ -25,26 +25,26 @@ export function ComposerAddMenu({ state, disabled, className, official = false }
     <input ref={(input) => { folderRef.current = input; input?.setAttribute("webkitdirectory", ""); }} type="file" multiple aria-label="选择聊天文件夹" className="hidden" onChange={(event) => receiveFiles(event.target)} />
     <Dropdown isOpen={open} onOpenChange={changeOpen}>
       <DropdownTrigger aria-label="添加到聊天" isDisabled={disabled} className={cx("flex size-9 shrink-0 items-center justify-center rounded-full bg-ai-chat-composer-add-background text-foreground-icon-primary hover:bg-background-tertiary-default disabled:opacity-50", className)}>
-        <RiAddLine className={cx("size-5 transition-transform motion-reduce:transition-none", open && "rotate-45")} aria-hidden />
+        <PlusIcon className={cx("size-5 transition-transform motion-reduce:transition-none", open && "rotate-45")} aria-hidden />
       </DropdownTrigger>
       <DropdownPopover aria-label={view === "goal" ? "设置聊天目标" : "添加到聊天"} placement="top start" className="w-[365px] max-w-[calc(100vw-32px)] rounded-2xl" dialogClassName="max-h-[70dvh] overflow-y-auto">
         {view === "main" ? <>
           <DropdownGroup label="添加">
-            <DropdownItem className="py-1.5" onSelect={() => setView("files")}><RiAttachment2 className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">文件和文件夹</span></DropdownItem>
+            <DropdownItem className="py-1.5" onSelect={() => setView("files")}><PaperclipIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">文件和文件夹</span></DropdownItem>
             {!official && <>
-              <DropdownItem className="py-1.5" selected={Boolean(state.draft.goal)} onSelect={() => { setGoal(state.draft.goal); setView("goal"); }}><RiFocus3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">目标 <span className="text-text-secondary">设定本次任务目标</span></span></DropdownItem>
-              <DropdownItem className="py-1.5" selected={state.draft.planning} onSelect={() => { state.setDraft((draft) => ({ ...draft, planning: !draft.planning })); changeOpen(false); }}><RiListCheck3 className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="min-w-0 flex-1 truncate text-body-medium">计划模式 <span className="text-text-secondary">先规划复杂任务</span></span>{state.draft.planning && <RiCheckLine className="size-4 shrink-0" aria-hidden />}</DropdownItem>
+              <DropdownItem className="py-1.5" selected={Boolean(state.draft.goal)} onSelect={() => { setGoal(state.draft.goal); setView("goal"); }}><CrosshairIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">目标 <span className="text-text-secondary">设定本次任务目标</span></span></DropdownItem>
+              <DropdownItem className="py-1.5" selected={state.draft.planning} onSelect={() => { state.setDraft((draft) => ({ ...draft, planning: !draft.planning })); changeOpen(false); }}><ListChecksIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="min-w-0 flex-1 truncate text-body-medium">计划模式 <span className="text-text-secondary">先规划复杂任务</span></span>{state.draft.planning && <CheckIcon className="size-4 shrink-0" aria-hidden />}</DropdownItem>
             </>}
           </DropdownGroup>
           {!official && <DropdownGroup label="插件">
             {composerArtifacts.map((artifact) => <DropdownItem className="py-1.5" key={artifact.id} selected={state.draft.artifact === artifact.id} onSelect={() => { state.setDraft((draft) => ({ ...draft, artifact: draft.artifact === artifact.id ? null : artifact.id })); changeOpen(false); }}>
-              <ArtifactIcon name={artifact.id} /><span className="min-w-0 flex-1 truncate text-body-medium">{artifact.label} <span className="text-text-secondary">{artifact.description}</span></span>{state.draft.artifact === artifact.id && <RiCheckLine className="size-4 shrink-0" aria-hidden />}
+              <ArtifactIcon name={artifact.id} /><span className="min-w-0 flex-1 truncate text-body-medium">{artifact.label} <span className="text-text-secondary">{artifact.description}</span></span>{state.draft.artifact === artifact.id && <CheckIcon className="size-4 shrink-0" aria-hidden />}
             </DropdownItem>)}
           </DropdownGroup>}
         </> : view === "files" ? <>
           <Back onClick={() => setView("main")} />
-          <DropdownItem onSelect={() => filesRef.current?.click()}><RiAttachment2 className="size-5" aria-hidden />选择文件</DropdownItem>
-          <DropdownItem onSelect={() => folderRef.current?.click()}><RiFolderLine className="size-5" aria-hidden />选择文件夹</DropdownItem>
+          <DropdownItem onSelect={() => filesRef.current?.click()}><PaperclipIcon className="size-5" aria-hidden />选择文件</DropdownItem>
+          <DropdownItem onSelect={() => folderRef.current?.click()}><FolderIcon className="size-5" aria-hidden />选择文件夹</DropdownItem>
           <p className="p-2 text-caption-1-regular text-text-tertiary">最多 10 个文件，每个不超过 10 MB，总计不超过 25 MB。文件暂存当前草稿，尚未上传。</p>
         </> : <>
           <Back onClick={() => setView("main")} />
@@ -64,7 +64,7 @@ export function ComposerAddMenu({ state, disabled, className, official = false }
 }
 
 function Back({ onClick }: { onClick: () => void }) {
-  return <button type="button" className="flex cursor-pointer items-center gap-1 rounded-lg px-1 py-2 text-caption-1-regular text-text-secondary outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring" onClick={onClick}><RiArrowLeftSLine className="size-4" aria-hidden />返回添加菜单</button>;
+  return <button type="button" className="flex cursor-pointer items-center gap-1 rounded-lg px-1 py-2 text-caption-1-regular text-text-secondary outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring" onClick={onClick}><ChevronLeftIcon className="size-4" aria-hidden />返回添加菜单</button>;
 }
 
 function ArtifactIcon({ name }: { name: ComposerArtifact }) {

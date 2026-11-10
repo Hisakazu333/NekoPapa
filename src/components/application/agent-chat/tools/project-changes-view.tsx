@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { RiArrowLeftLine, RiCheckboxCircleLine, RiGitBranchLine, RiRefreshLine } from "@remixicon/react";
+import { ArrowLeftIcon, CircleCheckIcon, GitBranchIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import { parseGitStatus, parseUnifiedDiff, untrackedDiff, type ChangeKind, type FileDiff, type GitChange, type GitStatus } from "@/app/project-workspace";
 import { projectWorkspace } from "@/app/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
@@ -44,7 +44,7 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refresh]);
-  useEffect(() => { onActions(<ToolbarIconButton icon={RiRefreshLine} label="刷新更改" onPress={() => void refresh()} />); }, [onActions, refresh]);
+  useEffect(() => { onActions(<ToolbarIconButton icon={RefreshCwIcon} label="刷新更改" onPress={() => void refresh()} />); }, [onActions, refresh]);
 
   const open = async (change: GitChange) => {
     setDiff({ change, state: { kind: "loading" } });
@@ -61,16 +61,16 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
   };
 
   if (diff) return <DiffPane diff={diff} onBack={() => { setDiff(undefined); void refresh(); }} />;
-  if (load.kind === "loading") return <ToolPanelMessage icon={RiGitBranchLine} title="正在读取 Git 状态…" />;
-  if (load.kind === "error") return <ToolPanelMessage tone="error" icon={RiGitBranchLine} title="无法读取更改" detail={load.message} />;
-  if (load.kind === "norepo") return <ToolPanelMessage icon={RiGitBranchLine} title="这个文件夹不是 Git 仓库" detail="在项目文件夹中运行 git init 后，这里显示未提交的更改。" />;
+  if (load.kind === "loading") return <ToolPanelMessage icon={GitBranchIcon} title="正在读取 Git 状态…" />;
+  if (load.kind === "error") return <ToolPanelMessage tone="error" icon={GitBranchIcon} title="无法读取更改" detail={load.message} />;
+  if (load.kind === "norepo") return <ToolPanelMessage icon={GitBranchIcon} title="这个文件夹不是 Git 仓库" detail="在项目文件夹中运行 git init 后，这里显示未提交的更改。" />;
   const { status } = load;
   return <div className="flex min-h-0 flex-1 flex-col">
     {(status.ahead > 0 || status.behind > 0 || status.upstream) && <p className="shrink-0 px-4 pb-2 text-caption-1-regular text-text-tertiary">
       {status.upstream ? `跟踪 ${status.upstream}` : ""}{status.ahead > 0 ? ` · 领先 ${status.ahead}` : ""}{status.behind > 0 ? ` · 落后 ${status.behind}` : ""}
     </p>}
     {status.changes.length === 0
-      ? <ToolPanelMessage icon={RiCheckboxCircleLine} title="没有未提交的更改" detail="工作区与最新提交一致。" />
+      ? <ToolPanelMessage icon={CircleCheckIcon} title="没有未提交的更改" detail="工作区与最新提交一致。" />
       : <>
         <p className="shrink-0 px-4 pb-1 text-caption-1-medium text-text-secondary">{status.changes.length} 个文件有更改</p>
         <ul aria-label="有更改的文件" className="min-h-0 flex-1 overflow-auto px-2 pb-3">
@@ -98,18 +98,18 @@ function DiffPane({ diff, onBack }: { diff: Diff; onBack: () => void }) {
   const { change, state } = diff;
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="flex shrink-0 items-center gap-2 px-2 pb-2">
-      <ToolbarIconButton icon={RiArrowLeftLine} label="返回更改列表" onPress={onBack} />
+      <ToolbarIconButton icon={ArrowLeftIcon} label="返回更改列表" onPress={onBack} />
       <span translate="no" title={change.path} className="min-w-0 flex-1 truncate font-mono text-caption-1-regular text-text-secondary">{change.path}</span>
       {state.kind === "ready" && <span className="shrink-0 font-mono text-caption-1-regular">
         <span className="text-status-lime-text">+{state.diff.added}</span> <span className="text-status-rose-text">−{state.diff.removed}</span>
       </span>}
     </div>
-    {state.kind === "loading" && <ToolPanelMessage icon={RiGitBranchLine} title="正在读取差异…" />}
-    {state.kind === "error" && <ToolPanelMessage tone="error" icon={RiGitBranchLine} title="无法读取差异" detail={state.message} />}
+    {state.kind === "loading" && <ToolPanelMessage icon={GitBranchIcon} title="正在读取差异…" />}
+    {state.kind === "error" && <ToolPanelMessage tone="error" icon={GitBranchIcon} title="无法读取差异" detail={state.message} />}
     {state.kind === "ready" && (state.diff.binary
-      ? <ToolPanelMessage icon={RiGitBranchLine} title="二进制文件或文件太大" detail="这里只显示文本差异。" />
+      ? <ToolPanelMessage icon={GitBranchIcon} title="二进制文件或文件太大" detail="这里只显示文本差异。" />
       : state.diff.lines.length === 0
-        ? <ToolPanelMessage icon={RiGitBranchLine} title="没有可显示的文本差异" detail={change.kind === "renamed" ? "文件只是改了名字。" : "可能只改了文件权限。"} />
+        ? <ToolPanelMessage icon={GitBranchIcon} title="没有可显示的文本差异" detail={change.kind === "renamed" ? "文件只是改了名字。" : "可能只改了文件权限。"} />
         : <DiffText lines={state.diff.lines} />)}
   </div>;
 }

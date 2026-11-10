@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { RiArrowDownSLine, RiCheckLine, RiSearchLine } from "@remixicon/react";
+import { CheckIcon, ChevronDownIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import { APPEARANCE_THEMES, themeById, type AppearanceTheme, type ThemeMode } from "@/app/appearance-themes";
 import { Input } from "@/components/base/input/input";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
@@ -64,11 +64,11 @@ export function AppearanceThemePicker({ value, mode, onChange }: { value: string
       )}>
       <ThemeSwatch theme={theme} mode={mode} className="h-6 rounded-full" />
       <span translate="no" className="max-w-40 truncate text-body-2-medium text-text-primary">{theme.label}</span>
-      <RiArrowDownSLine aria-hidden className="size-4 shrink-0 text-foreground-icon-tertiary" />
+      <ChevronDownIcon aria-hidden className="size-4 shrink-0 text-foreground-icon-tertiary" />
     </AriaButton>
     <Popover aria-label="选择主题" placement="bottom end" className="w-[320px]" dialogClassName="flex flex-col gap-2 p-2">
       <Input aria-label="搜索主题" placeholder={`搜索 ${APPEARANCE_THEMES.length} 个主题`} size="small" type="search" autoFocus
-        value={query} onChange={setQuery} leadingIcon={RiSearchLine} />
+        value={query} onChange={setQuery} leadingIcon={SearchIcon} />
       <div ref={list} className="relative max-h-[min(320px,40dvh)] overflow-y-auto overscroll-contain">
         {shown.length === 0
           ? <p role="status" className="px-2 py-6 text-center text-body-2-regular text-text-tertiary">没有匹配的主题。</p>
@@ -82,7 +82,7 @@ export function AppearanceThemePicker({ value, mode, onChange }: { value: string
                 <ThemeSwatch theme={item} mode={mode} className="h-7" />
                 <span translate="no" className="min-w-0 flex-1 truncate text-body-2-medium text-text-primary">{item.label}</span>
                 {only && <span className="shrink-0 text-caption-1-regular text-text-tertiary">{only}</span>}
-                {item.id === theme.id && <RiCheckLine aria-hidden className="size-4 shrink-0 text-text-primary" />}
+                {item.id === theme.id && <CheckIcon aria-hidden className="size-4 shrink-0 text-text-primary" />}
               </RadioCard>;
             })}
           </RadioGroup>}

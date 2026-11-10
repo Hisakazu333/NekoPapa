@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
-import { RiFolder3Line } from "@remixicon/react";
+import { FolderIcon } from "@/components/foundations/icons/app-icons";
 import { profileActivity } from "@/app/profile-activity";
 import { resolveProject } from "@/app/projects";
 import { useProjects } from "@/hooks/use-projects";
@@ -62,7 +62,7 @@ export function ProfileActivityCard() {
                   const project = projectOf(entry.key);
                   return <li key={entry.key}
                     className="flex min-h-12 items-center gap-3 border-b border-border-button-default py-2 pe-3 last:border-b-0">
-                    <RiFolder3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+                    <FolderIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
                     <span className="flex min-w-0 flex-1 flex-col">
                       <span translate="no" className="truncate text-body-medium text-text-primary">{project?.name ?? entry.key}</span>
                       {project && <span translate="no" className="truncate text-caption-1-regular text-text-tertiary">{project.folders[0]}</span>}

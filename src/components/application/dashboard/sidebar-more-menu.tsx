@@ -1,6 +1,6 @@
 import { useRef, type ComponentType } from "react";
 import { Button as AriaButton } from "react-aria-components";
-import { RiMoreLine, RiPushpinFill, RiPushpinLine } from "@remixicon/react";
+import { EllipsisIcon, PinFilledIcon, PinIcon } from "@/components/foundations/icons/app-icons";
 import { Popover, PopoverTrigger } from "@/components/base/popover/popover";
 import { cx } from "@/utils/cx";
 import { Collapsible } from "./sidebar-navigation";
@@ -46,7 +46,7 @@ export function SidebarMoreMenu({ entries, collapsed, notice, onTogglePin }: {
       collapsed ? "w-9" : "w-full", isOpen && "bg-background-secondary-hover",
     )}>
       <span className="flex min-w-0 items-center gap-2">
-        <RiMoreLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+        <EllipsisIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
         <Collapsible collapsed={collapsed}><span className="text-body-medium whitespace-nowrap text-text-secondary">更多</span></Collapsible>
       </span>
     </AriaButton>
@@ -65,7 +65,7 @@ export function SidebarMoreMenu({ entries, collapsed, notice, onTogglePin }: {
               "hover:bg-background-tertiary-default focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-border-focus-ring",
               pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100",
             )}>
-            {pinned ? <RiPushpinFill className="size-4" aria-hidden /> : <RiPushpinLine className="size-4" aria-hidden />}
+            {pinned ? <PinFilledIcon className="size-4" aria-hidden /> : <PinIcon className="size-4" aria-hidden />}
           </button>
         </li>)}
       </ul>

@@ -1,4 +1,4 @@
-import { RiCloseLine, RiMoreFill, RiPencilLine, RiPushpinLine, RiUnpinLine } from "@remixicon/react";
+import { EllipsisIcon, PencilIcon, PinIcon, PinOffIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import {
   Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger,
@@ -18,7 +18,7 @@ export function ProjectRowMenu({ project, isOpen, onOpenChange, onTogglePinned, 
 }) {
   const localize = useTemplateCopy();
   const choose = (action: () => void) => () => { onOpenChange(false); action(); };
-  const PinIcon = project.pinned ? RiUnpinLine : RiPushpinLine;
+  const PinToggleIcon = project.pinned ? PinOffIcon : PinIcon;
 
   return localize(<Dropdown isOpen={isOpen} onOpenChange={onOpenChange}>
     <DropdownTrigger aria-label={`项目操作：${project.name}`} className={cx(
@@ -26,23 +26,23 @@ export function ProjectRowMenu({ project, isOpen, onOpenChange, onTogglePinned, 
       isOpen && "bg-background-tertiary-default text-foreground-icon-primary",
       className,
     )}>
-      <RiMoreFill className="size-4" aria-hidden />
+      <EllipsisIcon className="size-4" aria-hidden />
     </DropdownTrigger>
     <DropdownPopover aria-label={`项目操作：${project.name}`} placement="bottom end" className="w-[190px] p-2">
       <DropdownGroup>
         <DropdownItem onSelect={choose(onTogglePinned)} className="px-2 py-1.5">
-          <PinIcon className="size-4 text-foreground-icon-secondary" aria-hidden />
+          <PinToggleIcon className="size-4 text-foreground-icon-secondary" aria-hidden />
           <span className="text-body-medium text-text-primary">{project.pinned ? "取消置顶" : "置顶"}</span>
         </DropdownItem>
         <DropdownItem onSelect={choose(onEdit)} className="px-2 py-1.5">
-          <RiPencilLine className="size-4 text-foreground-icon-secondary" aria-hidden />
+          <PencilIcon className="size-4 text-foreground-icon-secondary" aria-hidden />
           <span className="text-body-medium text-text-primary">编辑</span>
         </DropdownItem>
       </DropdownGroup>
       <DropdownDivider />
       <DropdownGroup>
         <DropdownItem onSelect={choose(onRemove)} className="px-2 py-1.5">
-          <RiCloseLine className="size-4 text-text-error-primary" aria-hidden />
+          <XIcon className="size-4 text-text-error-primary" aria-hidden />
           <span className="text-body-medium text-text-error-primary">移除项目</span>
         </DropdownItem>
       </DropdownGroup>

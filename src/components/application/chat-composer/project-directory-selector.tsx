@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { RiCloseLine, RiFolderOpenLine } from "@remixicon/react";
+import { FolderOpenIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { clearComposerProjectDirectory, selectComposerProjectDirectory } from "@/app/chat-composer-draft";
 import { Button } from "@/components/base/buttons/button";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -31,13 +31,13 @@ export function ProjectDirectorySelector({ state, disabled = false }: { state: C
         event.currentTarget.value = "";
       }} />
     <Button variant={state.draft.projectDirectory ? "secondary" : "ghost"} size="small"
-      leadingIcon={RiFolderOpenLine} disabled={disabled}
+      leadingIcon={FolderOpenIcon} disabled={disabled}
       aria-label={state.draft.projectDirectory ? `项目目录：${state.draft.projectDirectory}` : "选择项目目录"}
       title={state.draft.projectDirectory || "选择项目目录"}
       onClick={() => input.current?.click()} className="max-w-44 min-w-0">
       <span className="truncate">{state.draft.projectDirectory || "项目目录"}</span>
     </Button>
-    {state.draft.projectDirectory && <Button variant="ghost" size="small" iconOnly leadingIcon={RiCloseLine}
+    {state.draft.projectDirectory && <Button variant="ghost" size="small" iconOnly leadingIcon={XIcon}
       disabled={disabled} aria-label="清除项目目录" title="清除项目目录" onClick={clear} />}
     <span role={error ? "alert" : "status"} className="sr-only">
       {error || (state.draft.projectDirectory ? `已选择文件夹 ${state.draft.projectDirectory}。当前仅暂存名称，执行服务未连接。` : "")}

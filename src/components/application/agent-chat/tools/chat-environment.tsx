@@ -1,5 +1,5 @@
 import { useEffect, useState, type ComponentType, type ReactNode } from "react";
-import { RiArrowRightSLine, RiComputerLine, RiDonutChartLine, RiFileList3Line, RiFolder3Line, RiGitBranchLine } from "@remixicon/react";
+import { ChartPieIcon, ChevronRightIcon, FileTextIcon, FolderIcon, GitBranchIcon, MonitorIcon } from "@/components/foundations/icons/app-icons";
 import { parseGitStatus, type GitStatus } from "@/app/project-workspace";
 import { projectWorkspace } from "@/app/project-workspace-client";
 import type { Project } from "@/app/projects";
@@ -12,7 +12,7 @@ function Row({ icon: RowIcon, label, value, onPress }: { icon: Icon; label: Reac
     <RowIcon className="size-[18px] shrink-0 text-foreground-icon-secondary" aria-hidden />
     <span className="min-w-0 flex-1 truncate text-body-2-regular text-text-primary">{label}</span>
     {value !== undefined && <span className="min-w-0 max-w-[55%] shrink truncate text-end text-caption-1-regular text-text-tertiary">{value}</span>}
-    {onPress && <RiArrowRightSLine className="size-4 shrink-0 text-foreground-icon-tertiary" aria-hidden />}
+    {onPress && <ChevronRightIcon className="size-4 shrink-0 text-foreground-icon-tertiary" aria-hidden />}
   </>;
   const row = "flex h-9 w-full items-center gap-2.5 rounded-lg px-2 text-start";
   return <li>{onPress
@@ -49,15 +49,15 @@ export function ChatEnvironment({ project, onOpenChanges }: { project?: Project;
   return <section aria-label="环境" className="flex flex-col gap-1 rounded-2xl bg-background-primary-default p-2">
     <h3 className="px-2 pt-1 text-caption-1-medium text-text-tertiary">环境</h3>
     <ul className="flex flex-col">
-      <Row icon={RiComputerLine} label="本电脑" />
+      <Row icon={MonitorIcon} label="本电脑" />
       {project && root
         ? <>
-          <Row icon={RiFolder3Line} label={<span translate="no">{project.name}</span>} value={<span translate="no" title={root}>{root}</span>} />
-          <Row icon={RiGitBranchLine} label={<span translate="no">{branch}{sync}</span>} value={git.kind === "error" ? git.message : status?.upstream && <span translate="no">{status.upstream}</span>} />
-          {status && <Row icon={RiFileList3Line} label="更改" value={status.changes.length === 0 ? "没有未提交的更改" : `${status.changes.length} 个文件`} onPress={onOpenChanges} />}
+          <Row icon={FolderIcon} label={<span translate="no">{project.name}</span>} value={<span translate="no" title={root}>{root}</span>} />
+          <Row icon={GitBranchIcon} label={<span translate="no">{branch}{sync}</span>} value={git.kind === "error" ? git.message : status?.upstream && <span translate="no">{status.upstream}</span>} />
+          {status && <Row icon={FileTextIcon} label="更改" value={status.changes.length === 0 ? "没有未提交的更改" : `${status.changes.length} 个文件`} onPress={onOpenChanges} />}
         </>
-        : <Row icon={RiFolder3Line} label="未归入项目" value="在输入框或侧栏选择项目" />}
-      <Row icon={RiDonutChartLine} label="上下文" value="聊天服务接入后显示用量" />
+        : <Row icon={FolderIcon} label="未归入项目" value="在输入框或侧栏选择项目" />}
+      <Row icon={ChartPieIcon} label="上下文" value="聊天服务接入后显示用量" />
     </ul>
   </section>;
 }

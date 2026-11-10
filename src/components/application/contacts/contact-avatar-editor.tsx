@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ChangeEvent } from "react";
-import { RiImageAddLine } from "@remixicon/react";
+import { ImagePlusIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts-store";
 import { Button } from "@/components/base/buttons/button";
 import { AgentAppearancePreview } from "./agent-appearance-preview";
@@ -51,7 +51,7 @@ export function ContactAvatarEditor({ contact, value, error, onChange, onBusyCha
     <AgentAppearancePreview contact={contact} onAvatarClick={selectFile} avatarImporting={busy} />
     <input ref={input} type="file" accept={CONTACT_AVATAR_ACCEPT} aria-label="选择联系人头像图片" className="hidden" onChange={(event) => void changeFile(event)} />
     <div className="flex flex-wrap items-center justify-center gap-2">
-      <Button ref={trigger} variant="secondary" size="small" leadingIcon={RiImageAddLine} onClick={selectFile} disabled={busy}
+      <Button ref={trigger} variant="secondary" size="small" leadingIcon={ImagePlusIcon} onClick={selectFile} disabled={busy}
         aria-invalid={Boolean(importError || error) || undefined} aria-describedby={feedbackId}>
         {busy ? "正在处理图片…" : value ? "更换头像" : "导入头像"}
       </Button>

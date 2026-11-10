@@ -2,12 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import {
-  RiAddLine,
-  RiCloseLine,
-  RiDownloadLine,
-  RiMore2Fill,
-} from "@remixicon/react";
+import { DownloadIcon, EllipsisVerticalIcon, PlusIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
 import {
@@ -87,10 +82,10 @@ export function AgentChatHistory({
         disabled={disabled}
         className="flex w-full cursor-pointer items-center gap-2 rounded-2lg px-2 py-2 text-body-medium text-text-primary transition-colors hover:bg-background-secondary-hover disabled:cursor-not-allowed disabled:opacity-50"
       >
-        <RiAddLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+        <PlusIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
         新对话
       </button>
-      {onClose && <button type="button" onClick={onClose} aria-label="关闭辅助工作区" className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-background-secondary-hover"><RiCloseLine className="size-5" aria-hidden /></button>}
+      {onClose && <button type="button" onClick={onClose} aria-label="关闭辅助工作区" className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary hover:bg-background-secondary-hover"><XIcon className="size-5" aria-hidden /></button>}
       </div>
 
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto [scrollbar-width:none]">
@@ -150,7 +145,7 @@ function RailFooter({
         title={label}
         className="flex size-6 shrink-0 cursor-pointer items-center justify-center rounded-full bg-button-primary text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
       >
-        <RiDownloadLine className="size-3.5 shrink-0" aria-hidden />
+        <DownloadIcon className="size-3.5 shrink-0" aria-hidden />
       </button>
     </div>
   ));
@@ -343,7 +338,7 @@ function RowMenu({
           isOpen && "bg-background-tertiary-default text-foreground-icon-primary",
         )}
       >
-        <RiMore2Fill className="size-4 shrink-0" aria-hidden />
+        <EllipsisVerticalIcon className="size-4 shrink-0" aria-hidden />
       </DropdownTrigger>
 
       <DropdownPopover

@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { RiCheckLine, RiRefreshLine } from "@remixicon/react";
+import { CheckIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import { collectionSchemas, fieldDefaults } from "@/app/configuration-contract";
 import { displaySkillPath, foundSkills, savedSkillDirs, SKILL_SOURCE_LABELS, SKILL_SOURCE_ROOTS, type FoundSkill } from "@/app/skill-discovery";
 import { scanSkillFolders } from "@/app/skill-discovery-client";
@@ -61,7 +61,7 @@ export function SkillDiscoverySection({ onStatus }: { onStatus: (message: string
       </div>
       <div className="flex shrink-0 gap-1">
         {pending.length > 1 && <Button size="small" variant="secondary" onClick={() => add(pending)}>全部添加（{pending.length}）</Button>}
-        <Button size="small" variant="ghost" iconOnly leadingIcon={RiRefreshLine} aria-label="重新扫描" disabled={scan.kind === "scanning"} onClick={run} />
+        <Button size="small" variant="ghost" iconOnly leadingIcon={RefreshCwIcon} aria-label="重新扫描" disabled={scan.kind === "scanning"} onClick={run} />
       </div>
     </div>
     <SettingsCard>
@@ -81,7 +81,7 @@ export function SkillDiscoverySection({ onStatus }: { onStatus: (message: string
               <span translate="no" title={skill.dir} className="truncate text-caption-1-regular text-text-tertiary">{displaySkillPath(skill.dir, scan.home)}</span>
             </span>
             {added
-              ? <span className="flex shrink-0 items-center gap-1 text-body-2-regular text-text-tertiary"><RiCheckLine className="size-4" aria-hidden />已添加</span>
+              ? <span className="flex shrink-0 items-center gap-1 text-body-2-regular text-text-tertiary"><CheckIcon className="size-4" aria-hidden />已添加</span>
               : <Button size="small" variant="secondary" onClick={() => add([skill])} aria-label={`添加技能 ${skill.name}`}>添加</Button>}
           </li>;
         })}

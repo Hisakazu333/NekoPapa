@@ -35,10 +35,10 @@ import { directionalIconClass } from "@/utils/directional-icon";
  *
  * Icons are rendered by the component itself via the `leadingIcon` /
  * `trailingIcon` props so the consumer can't pass the wrong size. Pass
- * a Remix Icon component reference (`RiAddLine`, not `<RiAddLine />`).
+ * an icon component reference from `app-icons` (`PlusIcon`, not `<PlusIcon />`).
  *
  * For icon-only buttons:
- *   <Button iconOnly leadingIcon={RiAddLine} aria-label="Add" />
+ *   <Button iconOnly leadingIcon={PlusIcon} aria-label="Add" />
  *
  * The HTML `type` prop is preserved; Figma's "Type" enum is renamed to
  * `variant` to avoid the clash.

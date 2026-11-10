@@ -1,4 +1,4 @@
-import { RiChat3Line } from "@remixicon/react";
+import { MessageCircleIcon } from "@/components/foundations/icons/app-icons";
 import { useState, type KeyboardEvent } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 import type { StoredThread } from "@/components/application/agent-chat/thread-storage";
@@ -72,7 +72,7 @@ export function RecentConversationRow({ thread, actions, nested = false }: { thr
         collapsed ? "w-9 justify-center" : "w-full",
       )}>
       {!nested && <span className="relative flex size-5 shrink-0 items-center justify-center">
-        <RiChat3Line className="size-4 text-foreground-icon-secondary" aria-hidden />
+        <MessageCircleIcon className="size-4 text-foreground-icon-secondary" aria-hidden />
         {thread.unread && <span className="absolute -end-0.5 -top-0.5 size-1.5 rounded-full bg-accent-600" aria-label="未读" />}
       </span>}
       <Collapsible collapsed={collapsed} className="flex-1 gap-2 pe-1">

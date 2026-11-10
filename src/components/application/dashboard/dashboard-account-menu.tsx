@@ -1,17 +1,6 @@
 import { useRef, useState } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
-import {
-  RiFeedbackLine,
-  RiGlobalLine,
-  RiLoginBoxLine,
-  RiPaletteLine,
-  RiComputerLine,
-  RiSunLine,
-  RiMoonLine,
-  RiQuestionLine,
-  RiSettings3Line,
-  RiUserLine,
-} from "@remixicon/react";
+import { CircleHelpIcon, GlobeIcon, LogInIcon, MessageSquareWarningIcon, MonitorIcon, MoonIcon, PaletteIcon, SettingsIcon, SunIcon, UserIcon } from "@/components/foundations/icons/app-icons";
 import { Kbd } from "@/components/base/kbd/kbd";
 import { Avatar } from "@/components/base/avatar/avatar";
 import {
@@ -45,7 +34,7 @@ function AccountAction({
   label,
   onSelect,
 }: {
-  icon: typeof RiUserLine;
+  icon: typeof UserIcon;
   label: string;
   onSelect: () => void;
 }) {
@@ -57,7 +46,7 @@ function AccountAction({
   );
 }
 
-function HelpLink({ href, icon: Icon, children }: { href: string; icon: typeof RiUserLine; children: string }) {
+function HelpLink({ href, icon: Icon, children }: { href: string; icon: typeof UserIcon; children: string }) {
   return (
     <a
       href={href}
@@ -161,13 +150,13 @@ export function DashboardAccountMenu({
         >
           <DropdownGroup>
             <DropdownItem onSelect={showLogin}>
-              <RiLoginBoxLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+              <LogInIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
               <span className="flex-1">登录 NekoPapa</span>
               <span className="text-caption-1-regular text-text-tertiary">{accountStatus}</span>
             </DropdownItem>
-            <AccountAction icon={RiUserLine} label="本机资料" onSelect={() => showSettings("profile")} />
+            <AccountAction icon={UserIcon} label="本机资料" onSelect={() => showSettings("profile")} />
             <DropdownItem onSelect={() => showSettings("general")}>
-              <RiSettings3Line className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+              <SettingsIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
               <span className="flex-1">设置</span>
               <Kbd>{settingsShortcut}</Kbd>
             </DropdownItem>
@@ -176,7 +165,7 @@ export function DashboardAccountMenu({
           <DropdownGroup label="偏好">
             <div className="flex min-w-0 items-center justify-between gap-2 px-2 py-1">
               <span className="flex min-w-0 items-center gap-2 text-body-medium text-text-primary">
-                <RiPaletteLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+                <PaletteIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
                 <span>外观</span>
               </span>
               <SegmentedControl data-theme-control aria-label="主题" selectedKeys={[appearanceMode]} className="shrink-0 rounded-full [&>span]:rounded-full"
@@ -184,9 +173,9 @@ export function DashboardAccountMenu({
                   const mode = Array.from(keys)[0];
                   if (mode === "system" || mode === "light" || mode === "dark") chooseAppearance({ mode });
                 }}>
-                <SegmentedControlItem id="system" aria-label="跟随系统" className="size-7 rounded-full px-0"><RiComputerLine className="size-4" aria-hidden /></SegmentedControlItem>
-                <SegmentedControlItem id="light" aria-label="浅色" className="size-7 rounded-full px-0"><RiSunLine className="size-4" aria-hidden /></SegmentedControlItem>
-                <SegmentedControlItem id="dark" aria-label="深色" className="size-7 rounded-full px-0"><RiMoonLine className="size-4" aria-hidden /></SegmentedControlItem>
+                <SegmentedControlItem id="system" aria-label="跟随系统" className="size-7 rounded-full px-0"><MonitorIcon className="size-4" aria-hidden /></SegmentedControlItem>
+                <SegmentedControlItem id="light" aria-label="浅色" className="size-7 rounded-full px-0"><SunIcon className="size-4" aria-hidden /></SegmentedControlItem>
+                <SegmentedControlItem id="dark" aria-label="深色" className="size-7 rounded-full px-0"><MoonIcon className="size-4" aria-hidden /></SegmentedControlItem>
               </SegmentedControl>
             </div>
             <div className="flex min-w-0 items-center justify-between gap-2 px-2 py-1">
@@ -195,7 +184,7 @@ export function DashboardAccountMenu({
             </div>
             <div className="flex min-w-0 items-center justify-between gap-2 px-2 py-1">
               <span className="flex min-w-0 items-center gap-2 text-body-medium text-text-primary">
-                <RiGlobalLine className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+                <GlobeIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
                 <span>语言</span>
               </span>
               <Select aria-label="界面语言" selectedKey={language} size="sm" className="w-[152px] shrink-0"
@@ -220,8 +209,8 @@ export function DashboardAccountMenu({
           </DropdownGroup>
           <DropdownDivider />
           <DropdownGroup>
-            <HelpLink href="https://github.com/Hisakazu333/NekoPapa#readme" icon={RiQuestionLine}>帮助文档</HelpLink>
-            <HelpLink href="https://github.com/Hisakazu333/NekoPapa/issues" icon={RiFeedbackLine}>反馈问题</HelpLink>
+            <HelpLink href="https://github.com/Hisakazu333/NekoPapa#readme" icon={CircleHelpIcon}>帮助文档</HelpLink>
+            <HelpLink href="https://github.com/Hisakazu333/NekoPapa/issues" icon={MessageSquareWarningIcon}>反馈问题</HelpLink>
           </DropdownGroup>
         </DropdownPopover>
       </Dropdown>

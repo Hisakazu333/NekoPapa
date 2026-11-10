@@ -1,5 +1,5 @@
 import type { Ref } from "react";
-import { RiArrowRightSLine, RiCloseLine, RiFolderLine, RiMenuLine } from "@remixicon/react";
+import { ChevronRightIcon, FolderIcon, MenuIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { IconButton } from "@/components/base/buttons/icon-button";
 import { cx } from "@/utils/cx";
 import { AgentChatActions, type AgentChatActionsProps } from "./agent-chat-actions";
@@ -27,7 +27,7 @@ export function ChatWorkspaceHeader({
       )}
     >
       <IconButton
-        icon={navOpen ? RiCloseLine : RiMenuLine}
+        icon={navOpen ? XIcon : MenuIcon}
         size="small"
         aria-label={navOpen ? "关闭导航" : "打开导航"}
         onClick={onToggleNavigation}
@@ -36,11 +36,11 @@ export function ChatWorkspaceHeader({
       <nav ref={titleRef} aria-label="当前位置" className="min-w-0 shrink">
         <ol className="flex min-w-0 items-center gap-2 text-body-medium sm:gap-3">
           <li className="flex shrink-0 items-center gap-2 text-text-tertiary">
-            <RiFolderLine className="size-[18px] shrink-0" aria-hidden />
+            <FolderIcon className="size-[18px] shrink-0" aria-hidden />
             <span className="max-w-28 truncate" title={workspaceLabel}>{workspaceLabel}</span>
           </li>
           <li className="shrink-0 text-text-tertiary" aria-hidden>
-            <RiArrowRightSLine className="size-[18px]" />
+            <ChevronRightIcon className="size-[18px]" />
           </li>
           <li aria-current="page" title={title} className="min-w-0 truncate text-text-secondary">
             {title}

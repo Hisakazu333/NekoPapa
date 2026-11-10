@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from "react";
-import { RiBook2Line, RiChatAiLine, RiContactsLine, RiFolder5Line, RiGraduationCapLine, RiHome4Line } from "@remixicon/react";
+import { BookIcon, ContactIcon, FolderIcon, GraduationCapIcon, HouseIcon, MessageSquareTextIcon } from "@/components/foundations/icons/app-icons";
 import type { SidebarDestination } from "@/app/sidebar-pins";
 import { useSidebarPins } from "@/hooks/use-sidebar-pins";
 import type { SidebarMoreEntry } from "@/components/application/dashboard/sidebar-more-menu";
@@ -36,14 +36,14 @@ export function useAgentChatSidebar({
   const { pins, toggle, notice } = useSidebarPins();
   // Secondary pages offered by "更多"; pinned ones also appear in the main navigation.
   const destinations: Record<SidebarDestination, Omit<DashboardNavItem, "key">> = useMemo(() => ({
-    space: { label: "空间", icon: RiFolder5Line, href: "#space", onSelect: () => { setPage("space"); setNavOpen(false); } },
-    knowledge: { label: "知识库", icon: RiBook2Line, href: "#knowledge", onSelect: () => { setPage("knowledge"); setNavOpen(false); } },
-    cabin: { label: "小屋", icon: RiHome4Line, href: "#cabin", onSelect: () => { setPage("cabin"); setNavOpen(false); } },
+    space: { label: "空间", icon: FolderIcon, href: "#space", onSelect: () => { setPage("space"); setNavOpen(false); } },
+    knowledge: { label: "知识库", icon: BookIcon, href: "#knowledge", onSelect: () => { setPage("knowledge"); setNavOpen(false); } },
+    cabin: { label: "小屋", icon: HouseIcon, href: "#cabin", onSelect: () => { setPage("cabin"); setNavOpen(false); } },
   }), [setNavOpen, setPage]);
   const items: DashboardNavItem[] = useMemo(() => [
-    { key: "chat", label: "工作台", icon: RiChatAiLine, href: "/", onSelect: () => { setPage("chat"); setNavOpen(false); } },
-    { key: "contacts", label: "联系人", icon: RiContactsLine, href: "#contacts", onSelect: () => { setRequestedContactId(activeContactId); setPage("contacts"); setNavOpen(false); } },
-    { key: "learning", label: "学习", icon: RiGraduationCapLine, href: "#learning", onSelect: () => { setPage("learning"); setNavOpen(false); } },
+    { key: "chat", label: "工作台", icon: MessageSquareTextIcon, href: "/", onSelect: () => { setPage("chat"); setNavOpen(false); } },
+    { key: "contacts", label: "联系人", icon: ContactIcon, href: "#contacts", onSelect: () => { setRequestedContactId(activeContactId); setPage("contacts"); setNavOpen(false); } },
+    { key: "learning", label: "学习", icon: GraduationCapIcon, href: "#learning", onSelect: () => { setPage("learning"); setNavOpen(false); } },
     ...pins.map((id) => ({ key: id, ...destinations[id] })),
   ], [activeContactId, destinations, pins, setNavOpen, setPage, setRequestedContactId]);
   const more = useMemo(() => ({

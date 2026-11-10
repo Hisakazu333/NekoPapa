@@ -1,7 +1,5 @@
 import type { ComponentType } from "react";
-import {
-  RiApps2Line, RiChat3Line, RiDeleteBin6Line, RiFileLine, RiFileTextLine, RiFolderLine, RiImageLine, RiStickyNoteLine,
-} from "@remixicon/react";
+import { FileIcon, FileTextIcon, FolderIcon, ImageIcon, LayoutGridIcon, MessageCircleIcon, StickyNoteIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
@@ -16,14 +14,14 @@ export type SpaceScope = "recent" | "starred" | "local" | "cloud";
 export interface SpaceCategoryInfo { label: string; icon: Icon; contents: string }
 
 export const spaceCategories: Record<SpaceCategory, SpaceCategoryInfo> = {
-  all: { label: "全部", icon: RiApps2Line, contents: "对话、项目、文件和生成的内容" },
-  chats: { label: "对话", icon: RiChat3Line, contents: "工作台与联系人的对话记录" },
-  projects: { label: "项目", icon: RiFolderLine, contents: "本地项目及其源文件夹" },
-  files: { label: "文件", icon: RiFileLine, contents: "发送给同伴的文件和文件夹" },
-  creations: { label: "生成内容", icon: RiFileTextLine, contents: "对话中生成的文档、表格、演示文稿和代码" },
-  images: { label: "图像", icon: RiImageLine, contents: "对话里的图片与生成的图像" },
-  notes: { label: "笔记", icon: RiStickyNoteLine, contents: "学习笔记与收藏的回答" },
-  trash: { label: "回收站", icon: RiDeleteBin6Line, contents: "删除的内容，可在这里恢复或彻底删除" },
+  all: { label: "全部", icon: LayoutGridIcon, contents: "对话、项目、文件和生成的内容" },
+  chats: { label: "对话", icon: MessageCircleIcon, contents: "工作台与联系人的对话记录" },
+  projects: { label: "项目", icon: FolderIcon, contents: "本地项目及其源文件夹" },
+  files: { label: "文件", icon: FileIcon, contents: "发送给同伴的文件和文件夹" },
+  creations: { label: "生成内容", icon: FileTextIcon, contents: "对话中生成的文档、表格、演示文稿和代码" },
+  images: { label: "图像", icon: ImageIcon, contents: "对话里的图片与生成的图像" },
+  notes: { label: "笔记", icon: StickyNoteIcon, contents: "学习笔记与收藏的回答" },
+  trash: { label: "回收站", icon: Trash2Icon, contents: "删除的内容，可在这里恢复或彻底删除" },
 };
 
 /** Library categories in the rail; the trash sits apart at the bottom. */
