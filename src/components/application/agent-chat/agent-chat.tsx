@@ -7,8 +7,8 @@ import { DefaultChatTransport } from "ai";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { DashboardSidebar } from "@/components/application/dashboard/dashboard-sidebar";
-import { DashboardSidebarDrawer } from "@/components/application/dashboard/dashboard-sidebar-drawer";
+import { WorkspaceNavigation } from "@/components/application/dashboard/workspace-navigation";
+import { normalizeNavigationLayout } from "@/app/dock-magnification";
 import { isPendingWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { BackendPendingPage } from "@/components/application/workspace-pages/backend-pending-page";
 import { SpacePage } from "@/components/application/workspace-pages/space-page";
@@ -16,7 +16,7 @@ import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashb
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
 import { useSidebarVisibility } from "@/components/application/dashboard/use-sidebar-visibility";
 import { toast } from "@/components/base/toast/toast";
-import { SidebarPeek, useSidebarPeek } from "@/components/application/dashboard/sidebar-peek";
+import { useSidebarPeek } from "@/components/application/dashboard/sidebar-peek";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ContactsMessenger } from "@/components/application/contacts/contacts-messenger";
 import { reconcileContactThread, sameContactThread } from "@/components/application/contacts/contact-thread-sync";
@@ -77,7 +77,9 @@ export function AgentChat({
   const [input, setInput] = useState("");
   const [navOpen, setNavOpen] = useState(false);
   const sidebarVisibility = useSidebarVisibility();
-  const sidebarPeek = useSidebarPeek(sidebarVisibility.hidden && !contained);
+  const configuration = useConfiguration().data;
+  const navigationLayout = normalizeNavigationLayout(configuration.groups.appearance.navigation);
+  const sidebarPeek = useSidebarPeek(navigationLayout === "sidebar" && sidebarVisibility.hidden && !contained);
   const [page, setPage] = useState<WorkspacePage>("chat");
   const [requestedContactId, setRequestedContactId] = useState<string>();
   const history = useChatHistory();
@@ -283,7 +285,7 @@ export function AgentChat({
   }, [busy, keepLiveThread, rememberSession, restoreSession]);
   // General → 新建对话 → 项目文件夹 decides whether a new chat stays in the open project
   // (by id; a legacy folder path resolves to its project, a removed project to none).
-  const newChatProject = useConfiguration().data.groups.general.projectFolder === "none" ? undefined : resolveProject(projects, activeProject)?.id;
+  const newChatProject = configuration.groups.general.projectFolder === "none" ? undefined : resolveProject(projects, activeProject)?.id;
   const startNewChat = useCallback(() => startChatIn(newChatProject), [startChatIn, newChatProject]);
 
   const renameThread = useCallback((id: string, title: string) => {
@@ -421,7 +423,8 @@ export function AgentChat({
       contained={contained}
       className={className}
       titlebarContent={windowActions}
-      sidebarToggle={{ hidden: sidebarVisibility.hidden, shortcut: sidebarVisibility.shortcut, onHoverChange: sidebarPeek.hover,
+      dockInset={navigationLayout === "dock"}
+      sidebarToggle={navigationLayout === "dock" ? undefined : { hidden: sidebarVisibility.hidden, shortcut: sidebarVisibility.shortcut, onHoverChange: sidebarPeek.hover,
         onToggle: () => { sidebarPeek.setOpen(false); sidebarVisibility.toggle(); } }}
       toolbarNavigation={{
         onBack: windowNavigation.back,
@@ -434,17 +437,9 @@ export function AgentChat({
         canClearTabs: !busy && (windowNavigation.state.ids.length > 1 || messages.length > 0),
       }}
     >
-      {/* The browser and the tool panels (目录 / 终端 / 更改 / 文件) all fold the sidebar to its rail for room. */}
-      <DashboardSidebar {...sidebar} selected={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
-        className={sidebarVisibility.hidden ? "hidden" : "hidden lg:flex"} />
-      <SidebarPeek peek={sidebarPeek}>
-        {(close) => <DashboardSidebar mobile {...sidebar} selected={page} onClose={close} className="flex" />}
-      </SidebarPeek>
-
-      {/* The Pro template pushes the workspace across; this is the plain overlay drawer. */}
-      <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
-        <DashboardSidebar mobile {...sidebar} selected={page} onClose={() => setNavOpen(false)} className="flex" />
-      </DashboardSidebarDrawer>
+      <WorkspaceNavigation layout={navigationLayout} sidebar={sidebar} page={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
+        sidebarHidden={sidebarVisibility.hidden} peek={sidebarPeek} navOpen={navOpen} setNavOpen={setNavOpen} contained={contained}
+        onOpenSettings={() => openSettings("general")} />
 
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
         <ContactsMessenger onNavigate={() => setNavOpen(true)} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />

@@ -15,6 +15,7 @@ export function MacWindowFrame({
   titlebarContent,
   toolbarNavigation,
   sidebarToggle,
+  dockInset = false,
 }: {
   children: ReactNode;
   contained?: boolean;
@@ -34,9 +35,12 @@ export function MacWindowFrame({
   };
   /** Hides or shows the desktop sidebar; only shown where that sidebar exists (lg and up). */
   sidebarToggle?: { hidden: boolean; onToggle: () => void; shortcut: string; onHoverChange?: (inside: boolean, pointerType: string) => void };
+  /** Keeps a strip free at the bottom for the floating dock (导航布局 → 底部悬浮栏). */
+  dockInset?: boolean;
 }) {
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
-  const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", height, className);
+  const inset = dockInset && "pb-[76px]";
+  const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", inset, height, className);
 
   const navigation = toolbarNavigation && (
     <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
@@ -64,7 +68,7 @@ export function MacWindowFrame({
           {navigation}
           {titlebarContent && <div className="flex min-w-0 flex-1 items-center">{titlebarContent}</div>}
         </header>
-        <div className="relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3">{children}</div>
+        <div className={cx("relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3", inset)}>{children}</div>
       </div>
     );
   }
@@ -82,7 +86,7 @@ export function MacWindowFrame({
           <div data-tauri-drag-region className="h-full min-w-0 flex-1" />
         )}
       </header>
-      <div className="relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3">{children}</div>
+      <div className={cx("relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3", inset)}>{children}</div>
     </div>
   );
 }

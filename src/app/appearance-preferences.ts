@@ -2,6 +2,7 @@ export const APPEARANCE_MODES = ["system", "light", "dark"] as const;
 export type AppearanceMode = (typeof APPEARANCE_MODES)[number];
 
 export const APPEARANCE_ACCENTS = [
+  { id: "pink", label: "粉色", swatchClass: "bg-appearance-accent-pink" },
   { id: "green", label: "鼠尾草绿", swatchClass: "bg-appearance-accent-green" },
   { id: "blue", label: "蓝色", swatchClass: "bg-appearance-accent-blue" },
   { id: "purple", label: "紫色", swatchClass: "bg-appearance-accent-purple" },
@@ -9,7 +10,7 @@ export const APPEARANCE_ACCENTS = [
 ] as const;
 
 export type NamedAppearanceAccent = (typeof APPEARANCE_ACCENTS)[number]["id"];
-/** "theme" follows the colour theme's accent (the default theme's is green). */
+/** "theme" follows the colour theme's accent (the default theme's is pink). */
 export type AppearanceAccent = NamedAppearanceAccent | "theme" | `#${string}`;
 export type ResolvedAppearanceTheme = "light" | "dark";
 
@@ -20,9 +21,9 @@ export function normalizeAppearanceMode(value: unknown): AppearanceMode {
 }
 
 export function normalizeAppearanceAccent(value: unknown): AppearanceAccent {
-  if (typeof value !== "string") return "green";
+  if (typeof value !== "string") return "pink";
   if (appearanceAccentIds.has(value) || value === "theme") return value as AppearanceAccent;
-  return /^#[\da-f]{6}$/i.test(value) ? value.toLowerCase() as AppearanceAccent : "green";
+  return /^#[\da-f]{6}$/i.test(value) ? value.toLowerCase() as AppearanceAccent : "pink";
 }
 
 export function resolveAppearanceTheme(
@@ -65,7 +66,7 @@ function clearCustomAccentRamp(root: AppearanceRoot) {
 /** `themeAccent` is the colour theme's accent, used when the accent is "theme". */
 export function applyAppearanceAccent(root: AppearanceRoot, accent: unknown, themeAccent = ""): AppearanceAccent {
   const chosen = normalizeAppearanceAccent(accent);
-  const normalizedAccent = chosen === "theme" ? normalizeAppearanceAccent(themeAccent || "green") : chosen;
+  const normalizedAccent = chosen === "theme" ? normalizeAppearanceAccent(themeAccent || "pink") : chosen;
   if (normalizedAccent.startsWith("#")) {
     root.dataset.accent = "custom";
     setCustomAccentRamp(root, normalizedAccent);

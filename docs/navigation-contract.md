@@ -669,3 +669,18 @@
 
 - 用户反馈全站图标粗糙。原 Remixicon 线性图标为填充形状、线宽约 2/24，缩到 16–18px 显得粗钝且不可调。新增 `src/components/foundations/icons/app-icons.tsx`，以 `lucide-react@1.61.0` 统一 1.5 描边（24 格，随尺寸缩放）重绘 131 个用到的图标（含基础组件），82 个文件改为从该文件引用，移除 `@remixicon/react`。
 - 无直接对应的图标取最接近的 Lucide 图标；Google 模型提供方改用通用 `Sparkle`，GitHub 改用 Octicons 标志。
+
+### 默认强调色改为粉色、桌面“自动”跟随系统（2026-11-10）
+
+- NekoPapa 的品牌色是粉色：`theme.css` 的默认 accent 色阶由 `green-*` 改为 `pink-*`，新增“粉色”预设并作为默认值（`appearance-preferences.ts`、`configuration-personal.ts`）；鼠尾草绿保留为可选预设，新增 `[data-accent="green"]` 色阶规则。已保存为鼠尾草绿的本机设置不自动改写，需在偏好中改选粉色。
+- 自动模式：`tauri.conf.json` 与 `tauri.macos.conf.json` 把主窗口固定为 `"theme": "Light"`，WebView 因此始终报告浅色，“自动”在桌面版无法跟随 macOS 深色。移除该项，窗口外观跟随系统。浏览器预览中“自动”显示深色，是因为预览面板跟随应用的深色外观，属正常。
+- 测试：外观测试改为以粉色为默认值并覆盖鼠尾草绿预设；配置草稿测试中原用作无效值的 `pink` 改为 `teal`。浏览器中确认 `pink` / `green` 预设分别解析为 pink-500 / green-500。
+- 未验证：桌面窗口中切换 macOS 深浅外观时“自动”的实际表现。
+
+### 导航布局：底部悬浮栏（2026-11-10）
+
+- 设置 → 外观新增“导航布局”（侧栏 / 底部悬浮栏），保存在外观字段 `navigation`，旧数据缺省为侧栏。悬浮栏模式不显示左侧栏、浮出与标题栏侧栏按钮；窗口底部居中的悬浮栏提供主导航、“对话、搜索与账号”（宽窗口也可打开侧栏抽屉）与“设置”，鼠标靠近时按 macOS 程序坞方式放大并显示名称。
+- 结构：`agent-chat.tsx` 中侧栏、浮出与抽屉的渲染移到新的 `workspace-navigation.tsx`（agent-chat 由 494 行降到约 489 行）；`DashboardSidebarDrawer` 新增 `always`；`MacWindowFrame` 新增 `dockInset` 留出底部 76px。
+- 测试：新增 `tests/dock-magnification.test.mjs`（2 项）；`configuration-backup.test.mjs` 旧外观数据的默认字段加入 `navigation: "sidebar"`。
+- 浏览器 `localhost:1495`（1400×860 模拟视口，测试后已恢复，测试用的 `navigation` 已删除）：悬浮栏居中显示、侧栏隐藏、悬停放大与名称提示、切换联系人后选中状态跟随、抽屉在宽窗口打开。
+- 未验证：设置页中切换并保存该选项的点按流程（本轮直接写入测试存储验证渲染）；桌面窗口。

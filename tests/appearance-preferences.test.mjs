@@ -19,13 +19,13 @@ try {
 
 test("normalizes supported appearance values and falls back to safe defaults", () => {
   assert.deepEqual(appearance.APPEARANCE_MODES, ["system", "light", "dark"]);
-  assert.deepEqual(appearance.APPEARANCE_ACCENTS.map(({ id }) => id), ["green", "blue", "purple", "orange"]);
+  assert.deepEqual(appearance.APPEARANCE_ACCENTS.map(({ id }) => id), ["pink", "green", "blue", "purple", "orange"]);
   assert.equal(appearance.normalizeAppearanceMode("dark"), "dark");
   assert.equal(appearance.normalizeAppearanceMode("unknown"), "system");
   assert.equal(appearance.normalizeAppearanceAccent("purple"), "purple");
   assert.equal(appearance.normalizeAppearanceAccent("#AABBCC"), "#aabbcc");
-  assert.equal(appearance.normalizeAppearanceAccent("#xyzxyz"), "green");
-  assert.equal(appearance.normalizeAppearanceAccent(null), "green");
+  assert.equal(appearance.normalizeAppearanceAccent("#xyzxyz"), "pink");
+  assert.equal(appearance.normalizeAppearanceAccent(null), "pink");
 });
 
 test("resolves explicit and system-following themes", () => {
@@ -44,6 +44,8 @@ test("applies a validated accent to the document root without changing the input
   assert.equal(root.dataset.accent, "orange");
   assert.deepEqual(selected, { accent: "orange" });
   appearance.applyAppearanceAccent(root, "unsupported");
+  assert.equal(root.dataset.accent, "pink");
+  appearance.applyAppearanceAccent(root, "green");
   assert.equal(root.dataset.accent, "green");
   assert.equal(values.has("--color-accent-500"), false);
 });

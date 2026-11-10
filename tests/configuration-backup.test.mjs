@@ -70,7 +70,7 @@ test("主题模式保存使用最新外观字段，不清空旧工作台偏好�
   const restored = new ConfigurationStore(storage).data;
   // Fields added later (the colour theme) read back as their defaults.
   assert.deepEqual(restored.groups.appearance, { ...existing.groups.appearance, mode: "dark",
-    theme: "default", backgroundLight: "", foregroundLight: "", backgroundDark: "", foregroundDark: "" });
+    theme: "default", backgroundLight: "", foregroundLight: "", backgroundDark: "", foregroundDark: "", navigation: "sidebar" });
   assert.equal(restored.groups.profile.name, existing.groups.profile.name);
   assert.deepEqual(restored.collections, existing.collections);
   assert.deepEqual(restored.groups.agent, existing.groups.agent);

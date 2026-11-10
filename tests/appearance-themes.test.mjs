@@ -65,12 +65,12 @@ test("应用与清除色阶只改中性色变量，并标记当前主题", () =>
   assert.equal(target.dataset.colorTheme, undefined);
 });
 
-test("强调色“跟随主题”使用主题强调色，默认主题回到鼠尾草绿", () => {
+test("强调色“跟随主题”使用主题强调色，默认主题回到 NekoPapa 粉色", () => {
   const target = root();
   assert.equal(preferences.applyAppearanceAccent(target, "theme", "#88c0d0"), "#88c0d0");
   assert.equal(target.dataset.accent, "custom");
-  assert.equal(preferences.applyAppearanceAccent(target, "theme", ""), "green");
-  assert.equal(target.dataset.accent, "green");
+  assert.equal(preferences.applyAppearanceAccent(target, "theme", ""), "pink");
+  assert.equal(target.dataset.accent, "pink");
   assert.equal(preferences.normalizeAppearanceAccent("theme"), "theme");
 });
 

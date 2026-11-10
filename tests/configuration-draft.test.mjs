@@ -177,7 +177,7 @@ test("自定义 HEX 强调色经外观草稿保存并重载，无效颜色返回
   assert.deepEqual(saved.errors, {});
   assert.equal(new ConfigurationStore(storage).data.groups.appearance.accent, "#6a2cb8");
   const before = storage.entries.get(key);
-  for (const accent of ["#6a2cb", "pink", "#gggggg"]) {
+  for (const accent of ["#6a2cb", "teal", "#gggggg"]) {
     const current = store.data.groups.appearance;
     const result = saveConfigurationDraft(store, "appearance", { ...current, accent }, current);
     assert.equal(result.saved, false);

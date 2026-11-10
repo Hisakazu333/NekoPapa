@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent as ReactFocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { parseColor } from "react-aria-components";
+import { normalizeNavigationLayout, type NavigationLayout } from "@/app/dock-magnification";
 import { Button } from "@/components/base/buttons/button";
 import { ColorPicker } from "@/components/base/color-picker/color-picker";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
@@ -28,19 +29,23 @@ const modeOptions = [
 const fontOptions = [
   ["system", "系统字体"], ["serif", "衬线字体"], ["mono", "等宽字体"],
 ] as const;
+const navigationOptions = [
+  ["sidebar", "侧栏"], ["dock", "底部悬浮栏"],
+] as const;
 const densityOptions = [
   ["comfortable", "舒适"], ["compact", "紧凑"],
 ] as const;
 
 const accentColors: Record<NamedAppearanceAccent, string> = {
+  pink: "#ec4899",
   green: "#6f7b63",
   blue: "#597fa7",
   purple: "#8771a3",
   orange: "#a8754f",
 };
 const accentByColor = new Map(Object.entries(accentColors).map(([id, color]) => [color, id as AppearanceAccent]));
-/** "theme" shows the theme's accent for the mode on screen, or the default green. */
-const accentHex = (value: AppearanceAccent, themeAccent = "") => value.startsWith("#") ? value : value === "theme" ? themeAccent || accentColors.green : accentColors[value as NamedAppearanceAccent];
+/** "theme" shows the theme's accent for the mode on screen, or the default pink. */
+const accentHex = (value: AppearanceAccent, themeAccent = "") => value.startsWith("#") ? value : value === "theme" ? themeAccent || accentColors.pink : accentColors[value as NamedAppearanceAccent];
 const readThemeDraft = (values: ConfigurationValues): ThemeDraft => ({
   theme: normalizeThemeId(values.theme),
   backgroundLight: normalizeThemeColor(values.backgroundLight), foregroundLight: normalizeThemeColor(values.foregroundLight),
@@ -94,7 +99,7 @@ function ThemeThumbnail({ mode }: { mode: AppearanceMode }) {
   </span>;
 }
 
-const fieldLabels: Record<string, string> = { mode: "主题模式", font: "字体", density: "界面密度", reducedMotion: "减少动态效果", theme: "主题", backgroundLight: "浅色背景", foregroundLight: "浅色前景", backgroundDark: "深色背景", foregroundDark: "深色前景" };
+const fieldLabels: Record<string, string> = { mode: "主题模式", font: "字体", density: "界面密度", navigation: "导航布局", reducedMotion: "减少动态效果", theme: "主题", backgroundLight: "浅色背景", foregroundLight: "浅色前景", backgroundDark: "深色背景", foregroundDark: "深色前景" };
 
 const equal = (left: ConfigurationValues, right: ConfigurationValues) => JSON.stringify(left) === JSON.stringify(right);
 
@@ -107,6 +112,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
   const [accent, setAccent] = useState<AppearanceAccent>(() => normalizeAppearanceAccent(data.groups.appearance.accent));
   const [font, setFont] = useState(String(data.groups.appearance.font ?? "system"));
   const [density, setDensity] = useState(String(data.groups.appearance.density ?? "comfortable"));
+  const [navigation, setNavigation] = useState<NavigationLayout>(() => normalizeNavigationLayout(data.groups.appearance.navigation));
   const [reducedMotion, setReducedMotion] = useState(data.groups.appearance.reducedMotion === true);
   // The theme draft keeps colours as typed; only complete HEX values apply to the preview.
   const [themeDraft, setThemeDraft] = useState<ThemeDraft>(() => readThemeDraft(data.groups.appearance));
@@ -118,6 +124,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     || accent !== normalizeAppearanceAccent(base.accent)
     || font !== String(base.font ?? "system")
     || density !== String(base.density ?? "comfortable")
+    || navigation !== normalizeNavigationLayout(base.navigation)
     || reducedMotion !== (base.reducedMotion === true)
     || THEME_DRAFT_KEYS.some((key) => themeDraft[key] !== readThemeDraft(base)[key]);
   const themeAccent = resolveThemeColors(themeDraft as unknown as ConfigurationValues, currentTheme)?.accent;
@@ -132,6 +139,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
       setAccent(normalizeAppearanceAccent(current.accent));
       setFont(String(current.font ?? "system"));
       setDensity(String(current.density ?? "comfortable"));
+      setNavigation(normalizeNavigationLayout(current.navigation));
       setReducedMotion(current.reducedMotion === true);
       setThemeDraft(readThemeDraft(current));
       savedAppearance.current = current;
@@ -147,6 +155,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     setAccent(normalizeAppearanceAccent(current.accent));
     setFont(String(current.font ?? "system"));
     setDensity(String(current.density ?? "comfortable"));
+    setNavigation(normalizeNavigationLayout(current.navigation));
     setReducedMotion(current.reducedMotion === true);
     setThemeDraft(readThemeDraft(current));
     setErrors({});
@@ -156,7 +165,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
   };
 
   const save = (overwrite = false) => {
-    const draft = { ...base, mode, accent, font, density, reducedMotion, ...themeDraft };
+    const draft = { ...base, mode, accent, font, density, navigation, reducedMotion, ...themeDraft };
     const result = saveConfigurationDraft(store, "appearance", draft, base, overwrite);
     refresh();
     setErrors(result.errors);
@@ -170,6 +179,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     setAccent(normalizeAppearanceAccent(result.values.accent));
     setFont(String(result.values.font ?? "system"));
     setDensity(String(result.values.density ?? "comfortable"));
+    setNavigation(normalizeNavigationLayout(result.values.navigation));
     setReducedMotion(result.values.reducedMotion === true);
     setThemeDraft(readThemeDraft(result.values));
     savedAppearance.current = result.values;
@@ -212,6 +222,13 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
               </div>
               <SettingsRow label="当前显示" description="跟随系统时显示当前实际应用的主题。">
                 <span className="shrink-0 text-body-regular text-text-primary">{currentTheme === "dark" ? "深色" : "浅色"}</span>
+              </SettingsRow>
+              <SettingsRow label="导航布局" description={navigation === "dock" ? "主导航在窗口底部的悬浮栏；对话、搜索与账号从悬浮栏打开。" : "主导航在左侧栏，可收起或隐藏。"}>
+                <Select aria-label="导航布局" selectedKey={navigation} size="sm" className="w-32 shrink-0" onSelectionChange={(key) => {
+                  if (key === "sidebar" || key === "dock") { setNavigation(key); setErrors({}); setConflicts([]); setStatus(""); }
+                }}>
+                  {navigationOptions.map(([id, label]) => <SelectItem key={id} id={id} textValue={label}>{label}</SelectItem>)}
+                </Select>
               </SettingsRow>
               <SettingsRow label="界面密度" description="调整设置列表、输入区和工具栏的间距。">
                 <Select aria-label="界面密度" selectedKey={density} size="sm" className="w-28 shrink-0" onSelectionChange={(key) => {

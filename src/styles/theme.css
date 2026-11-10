@@ -32,21 +32,21 @@
    * a raw hue, so the whole system re-tints by overriding these eleven
    * variables at runtime (see app/appearance-preferences.ts and
    * appearance-accent.css) or in a customer project after importing this
-   * file. Defaults to the green
-   * primitives above. Content/data blues (charts, status chips, calendar
+   * file. Defaults to the pink
+   * primitives (NekoPapa's brand colour). Content/data blues (charts, status chips, calendar
    * events, info notifications) deliberately keep referencing blue-*.
    * --------------------------------------------------------------------------*/
-  --color-accent-50:  var(--color-green-50);
-  --color-accent-100: var(--color-green-100);
-  --color-accent-200: var(--color-green-200);
-  --color-accent-300: var(--color-green-300);
-  --color-accent-400: var(--color-green-400);
-  --color-accent-500: var(--color-green-500);
-  --color-accent-600: var(--color-green-600);
-  --color-accent-700: var(--color-green-700);
-  --color-accent-800: var(--color-green-800);
-  --color-accent-900: var(--color-green-900);
-  --color-accent-950: var(--color-green-950);
+  --color-accent-50:  var(--color-pink-50);
+  --color-accent-100: var(--color-pink-100);
+  --color-accent-200: var(--color-pink-200);
+  --color-accent-300: var(--color-pink-300);
+  --color-accent-400: var(--color-pink-400);
+  --color-accent-500: var(--color-pink-500);
+  --color-accent-600: var(--color-pink-600);
+  --color-accent-700: var(--color-pink-700);
+  --color-accent-800: var(--color-pink-800);
+  --color-accent-900: var(--color-pink-900);
+  --color-accent-950: var(--color-pink-950);
 
   /* ----- Typography ----------------------------------------------------------
    * Font sizes, weights, line-heights, and tracking all match Tailwind v4
@@ -139,6 +139,7 @@
  * Tailwind reads the *current* computed value of the variable, so light↔dark
  * flips work without rebuild. */
 @theme inline {
+  --color-appearance-accent-pink:   var(--color-pink-500);
   --color-appearance-accent-green:  var(--color-green-500);
   --color-appearance-accent-blue:   var(--color-blue-500);
   --color-appearance-accent-purple: var(--color-purple-500);
