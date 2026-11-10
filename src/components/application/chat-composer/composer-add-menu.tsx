@@ -27,7 +27,7 @@ export function ComposerAddMenu({ state, disabled, className, official = false }
       <DropdownTrigger aria-label="添加到聊天" isDisabled={disabled} className={cx("flex size-9 shrink-0 items-center justify-center rounded-full bg-ai-chat-composer-add-background text-foreground-icon-primary hover:bg-background-tertiary-default disabled:opacity-50", className)}>
         <PlusIcon className={cx("size-5 transition-transform motion-reduce:transition-none", open && "rotate-45")} aria-hidden />
       </DropdownTrigger>
-      <DropdownPopover aria-label={view === "goal" ? "设置聊天目标" : "添加到聊天"} placement="top start" className="w-[365px] max-w-[calc(100vw-32px)] rounded-2xl" dialogClassName="max-h-[70dvh] overflow-y-auto">
+      <DropdownPopover aria-label={view === "goal" ? "设置聊天目标" : "添加到聊天"} placement="top start" className="w-[365px] max-w-[calc(100vw-32px)] overscroll-contain rounded-2xl">
         {view === "main" ? <>
           <DropdownGroup label="添加">
             <DropdownItem className="py-1.5" onSelect={() => setView("files")}><PaperclipIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">文件和文件夹</span></DropdownItem>

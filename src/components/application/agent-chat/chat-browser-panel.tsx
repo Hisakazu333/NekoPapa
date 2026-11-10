@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type PointerEvent as ReactPointerEvent } from "react";
-import { ArrowLeftIcon, ArrowRightIcon, CircleStopIcon, ExternalLinkIcon, GlobeIcon, MousePointer2Icon, PanelRightIcon, PanelTopIcon, RefreshCwIcon, XIcon } from "@/components/foundations/icons/app-icons";
+import { ArrowLeftIcon, ArrowRightIcon, CircleStopIcon, ExternalLinkIcon, GlobeIcon, AnnotateIcon, PanelRightIcon, PanelTopIcon, RefreshCwIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { Input } from "@/components/base/input/input";
 import { ProgressTrack } from "@/components/base/progress/progress";
 import { cx } from "@/utils/cx";
@@ -178,10 +178,10 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
           if (event.key === "Escape" && editing) { event.preventDefault(); event.stopPropagation(); setAddress(pageAddress); setEditing(false); }
         }} />
       <button type="button" aria-pressed={browser.picking} disabled={!hasPage} onClick={togglePick}
-        aria-keyshortcuts="Meta+Shift+S" aria-label={browser.picking ? "停止选择元素" : "选择元素"}
-        title={browser.picking ? "停止选择元素（Esc）" : "选择元素（⇧⌘S）：把网页元素的 HTML、样式和选择器加入对话"}
+        aria-keyshortcuts="Meta+Shift+S" aria-label={browser.picking ? "退出批注" : "批注网页"}
+        title={browser.picking ? "退出批注（Esc）" : "批注网页（⇧⌘S）：点选元素并写评论，发送后连同 HTML、样式和选择器加入对话"}
         className={cx(toolbarIconButtonClass, browser.picking && "bg-background-primary-hover text-text-primary")}>
-        <MousePointer2Icon className={toolbarIconClass} aria-hidden />
+        <AnnotateIcon className={toolbarIconClass} aria-hidden />
       </button>
       <ChatBrowserDisplayMenu display={browser.display} frame={hasPage ? frame : undefined} onChange={browser.setDisplay} />
       <ToolbarIconButton icon={ExternalLinkIcon} label="在新窗口打开" isDisabled={!address.trim() && !browser.url} onPress={popOut} />
@@ -197,7 +197,7 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
       {browser.loading && hasPage && <ProgressTrack percentage={0} isIndeterminate size="sm" className="pointer-events-none absolute inset-x-3 bottom-0 h-0.5" />}
     </form>
     {browser.loading && hasPage && <span role="status" className="sr-only">正在加载网页</span>}
-    {browser.picking && <p role="status" className="mx-3 mb-2 text-body-2-regular text-text-secondary">在网页中点选一个元素，加入对话输入框；按 Esc 或再次点按钮取消。</p>}
+    {browser.picking && <p role="status" className="mx-3 mb-2 text-body-2-regular text-text-secondary">批注中：点选元素并写评论（最多 5 处），点网页底部的“发送”加入输入框；Esc、× 或再次点按钮退出。</p>}
     {problem && <p role="alert" className="mx-3 mb-2 text-body-2-regular text-text-error-primary">{problem}</p>}
     {browser.title && hasPage && <p className="sr-only" aria-live="polite">{browser.title}</p>}
 

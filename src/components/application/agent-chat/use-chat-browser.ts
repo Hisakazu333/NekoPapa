@@ -103,7 +103,7 @@ export function useChatBrowser(onPick: (element: Omit<PageElement, "id">) => voi
         if (stopped) return;
         const result = readPickState(json);
         if (result.kind === "pending") return;
-        if (result.kind === "picked") onPickRef.current(result.element);
+        if (result.kind === "picked") result.elements.forEach((element) => onPickRef.current(element));
         setState((current) => ({ ...current, picking: false }));
       }, (error: unknown) => {
         if (!stopped) setState((current) => ({ ...current, picking: false, error: browserErrorMessage(error) }));

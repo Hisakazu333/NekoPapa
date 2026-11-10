@@ -63,9 +63,14 @@ function HelpLink({ href, icon: Icon, children }: { href: string; icon: typeof U
 export function DashboardAccountMenu({
   collapsed = false,
   onOpenSettings,
+  placement = "end bottom",
+  offset,
 }: {
   collapsed?: boolean;
   onOpenSettings?: OpenWorkspaceSettings;
+  /** Beside the sidebar by default; the bottom dock opens it above itself. */
+  placement?: "end bottom" | "top";
+  offset?: number;
 }) {
   const localize = useTemplateCopy();
   const { profile } = useLocalProfile();
@@ -144,8 +149,8 @@ export function DashboardAccountMenu({
             the trigger already shows it. */}
         <DropdownPopover
           aria-label="账号菜单"
-          placement="end bottom"
-          offset={collapsed ? 20 : 24}
+          placement={placement}
+          offset={offset ?? (collapsed ? 20 : 24)}
           className="max-h-[calc(100dvh-72px)] w-[280px] overflow-y-auto"
         >
           <DropdownGroup>

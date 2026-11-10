@@ -684,3 +684,27 @@
 - 测试：新增 `tests/dock-magnification.test.mjs`（2 项）；`configuration-backup.test.mjs` 旧外观数据的默认字段加入 `navigation: "sidebar"`。
 - 浏览器 `localhost:1495`（1400×860 模拟视口，测试后已恢复，测试用的 `navigation` 已删除）：悬浮栏居中显示、侧栏隐藏、悬停放大与名称提示、切换联系人后选中状态跟随、抽屉在宽窗口打开。
 - 未验证：设置页中切换并保存该选项的点按流程（本轮直接写入测试存储验证渲染）；桌面窗口。
+
+### 底部悬浮栏：面板替代侧栏抽屉（2026-11-11）
+
+- 用户反馈：悬浮栏点“对话、搜索与账号”滑出整个侧栏抽屉，导航与悬浮栏重复，对话列表的交互也不对。改为程序坞式面板：悬浮栏分为主导航（含“更多”）｜对话、快速搜索｜账号头像、设置；“更多”“对话”“快速搜索”在悬浮栏上方居中弹出 Popover，账号头像打开账号菜单（向上弹出）。
+- 选择对话、搜索结果或更多中的页面后面板关闭：`agent-chat.tsx` 把 `setNavOpen(false)` 包成 `closeNavigation`，同时关闭悬浮栏面板，侧栏与悬浮栏共用同一处理路径。面板中打开的删除对话、编辑项目确认框获得焦点时，点按确认框不会关闭面板。`⌘L` / `Ctrl+K` 在悬浮栏模式打开搜索面板（侧栏不挂载时原快捷键失效的问题一并修复）。
+- 结构：新增 `dock-search-panel.tsx`；`sidebar-more-menu.tsx` 抽出 `SidebarMoreList` 供侧栏与悬浮栏共用；`DashboardAccountMenu` 新增 `placement` / `offset`；`DashboardSidebarDrawer` 去掉 `always`（悬浮栏不再打开抽屉）；`use-chat-workspace-navigation.ts` 的 `setNavOpen` 改为普通回调类型。行数：agent-chat 492、workspace-dock 121、workspace-navigation 95、dock-search-panel 48、sidebar-more-menu 92，均在 500 行档。
+- 验证：`npm run test` 508/508、`npm run build`、`git diff --check` 通过。浏览器 `localhost:1495`：用户通过设置 → 外观实际切换并保存为底部悬浮栏，新悬浮栏正常渲染（三组图标与头像）。
+- 未验证：各面板打开、选择后关闭、确认框与面板共存、`⌘L` 的逐项浏览器点按（用户正在操作该面板，本轮未介入）；桌面窗口。
+
+### 联系人选择修复与网页批注（2026-11-11）
+
+- 用户反馈“选中联系人没有反应”：工作台输入框下层的“联系人”菜单选择后立即被还原。原因是 `selectContact` 调用 `openThread(thread)` 未带联系人，随后 `restoreSession` 用快照里的空联系人覆盖了选择；改为 `openThread(thread, contact)`。联系人页的联系人行在聊天记录读取完成前不再禁用，选中后对话区显示“正在读取聊天记录…”，读取完成后打开。
+- 用户反馈输入框下拉菜单不能滚动：联系人、权限、模式、添加四个菜单的内层 `overflow-y-auto` 容器没有溢出却被视为滚动容器（联系人菜单另有 `overscroll-contain`），滚轮被吞掉；改为只由外层面板滚动（React Aria 按可用空间限制高度）并加 `overscroll-contain`。
+- 网页批注参照 Codex 的批注流程，用 NekoPapa 自己的视觉（粉色强调色、悬浮栏式毛玻璃）：编号标记、评论卡片、样式面板（6 项实时预览）、底部批注工具条，一次最多 5 处，退出或加入对话后恢复网页原样式。读取结果由单个元素改为 `{ annotations: [...] }`（旧的单元素回复仍可读）；`PageElement` 新增 `comment`、`changes`，`PAGE_ELEMENT_LIMIT` 由 3 改为 5。
+- 测试：`browser-view.test.mjs` 新增多条批注、样式改动过滤两项并更新上限场景；`npm run test` 510/510，`npm run build`、`git diff --check`、`cargo check`、`cargo test`（10 项）与 `npm run desktop:build -- --debug` 通过。
+- 浏览器 `localhost:1495`：输入框联系人菜单选择白羽澪后按钮与模式随之更新、选“工作台对话”可清除；联系人菜单滚轮滚到底（39/39）且页面不动。批注脚本在独立测试页（同源 about 页面写入，非用户数据）注入验证：点选按钮出现编号与卡片、评论输入保持焦点、样式面板改背景与字号实时生效、滚动后焦点保留且卡片跟随、页面自身点击事件未触发、“加入对话”返回评论与样式改动、网页恢复原 `style`。
+- 未验证：Tauri 原生网页视图中的批注全流程（脚本由 `browser_view.rs` 注入，未在桌面窗口点测）；用户自选强调色时批注仍为默认粉色。
+
+### 网页批注：自有标签设计与交互补充（2026-11-11）
+
+- 用户反馈：批注工具不要和普通鼠标指针一样、不要圆形标记（看不清）。批注按钮与草稿附件图标改为新的 `AnnotateIcon`（批注标签 + 笔），网页内光标改为同形状的粉色标签（覆盖网页自身 `cursor`，退出或暂停时移除），编号标记改为同形状的标签并显示评论开头。
+- 交互补充：悬停显示标签名与尺寸；“改为上一层元素”；“隐藏”改为“暂停批注”，暂停时网页恢复正常操作；工具条在鼠标靠近时移到顶部。`browser_pick.js` 463 行（500 行档）。
+- 验证：`npm run test` 510/510、`npm run build`、`git diff --check`、`cargo check` 与 `npm run desktop:build -- --debug` 通过。独立测试页注入验证：网页按钮的 `cursor:pointer` 被批注光标覆盖；悬停显示 `span 53×15`；点到按钮内文字后“改为上一层元素”变为 `#cta`；标记显示“1 按钮改大一点”；鼠标靠近底部时工具条移到顶部（top 16px）；暂停后标记隐藏、光标恢复、网页按钮点击生效；继续后“加入对话”返回该按钮与评论。光标与图标在浅色、深色背景下放大检查。
+- 未验证：Tauri 原生网页视图中的批注全流程与自定义光标显示。

@@ -35,7 +35,9 @@ export function HomeContactsMenu({ onSelectContact, onClearContact, selectedCont
         : <ContactIcon aria-hidden />}
       <span className="max-w-[112px] truncate" title={selectedContact?.name}>{selectedContact?.name ?? "联系人"}</span><ChevronDownSmall className="chat-home__chevron" />
     </DropdownTrigger>
-    <DropdownPopover aria-label="选择联系人聊天" placement="bottom end" className="w-[300px] max-w-[calc(100vw-24px)] rounded-3xl" dialogClassName="max-h-[min(480px,70dvh)] overflow-y-auto overscroll-contain">
+    {/* The panel itself scrolls (React Aria caps it to the room on screen); an
+        inner scroller here would swallow the wheel without moving. */}
+    <DropdownPopover aria-label="选择联系人聊天" placement="bottom end" className="w-[300px] max-w-[calc(100vw-24px)] overscroll-contain rounded-3xl">
       <DropdownGroup label="对话对象">
         <DropdownItem selected={!selectedContact} onSelect={() => { setOpen(false); onClearContact(); }} className="rounded-xl px-3 py-2.5">
           {selectedContact ? "工作台对话（不选择联系人）" : "工作台对话"}

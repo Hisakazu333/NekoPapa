@@ -103,35 +103,65 @@ test("picker replies are read as pending, cancelled, picked or gone", () => {
   assert.deepEqual(pick.readPickState('{"cancelled":true}'), { kind: "cancelled" });
   assert.deepEqual(pick.readPickState("null"), { kind: "gone" });
   assert.deepEqual(pick.readPickState("not json"), { kind: "gone" });
+  // The earlier single-element reply still reads as one annotation without a comment.
   const result = pick.readPickState(JSON.stringify(picked));
   assert.equal(result.kind, "picked");
-  assert.equal(result.element.tag, "h1");
-  assert.deepEqual(result.element.size, { width: 320, height: 40 });
-  assert.deepEqual(result.element.styles, { color: "rgb(0, 0, 0)", "font-size": "32px" });
+  assert.equal(result.elements.length, 1);
+  assert.equal(result.elements[0].tag, "h1");
+  assert.equal(result.elements[0].comment, "");
+  assert.deepEqual(result.elements[0].size, { width: 320, height: 40 });
+  assert.deepEqual(result.elements[0].styles, { color: "rgb(0, 0, 0)", "font-size": "32px" });
+});
+
+test("an annotation pass sends its elements with comments, dropping bad entries and extras", () => {
+  const annotations = [
+    { ...picked, comment: "  标题太大  " },
+    { ...picked, url: "file:///etc/hosts", comment: "dropped" },
+    { ...picked, selector: "main > p", tag: "P", comment: "z".repeat(1200) },
+    ...["a", "b", "c", "d"].map((selector) => ({ ...picked, selector })),
+  ];
+  const result = pick.readPickState(JSON.stringify({ annotations }));
+  assert.equal(result.kind, "picked");
+  // Only the first five entries are read; the file:// one among them is dropped.
+  assert.deepEqual(result.elements.map((item) => item.selector), ["main > h1", "main > p", "a", "b"]);
+  assert.equal(result.elements[0].comment, "标题太大");
+  assert.equal(result.elements[1].comment.length, 1000);
+  assert.deepEqual(result.elements[0].changes, {});
+  assert.deepEqual(pick.readPickState(JSON.stringify({ annotations: [{ ...picked, tag: "<b>" }] })), { kind: "gone" });
+});
+
+test("style changes keep only the panel's properties and non-empty targets", () => {
+  const changes = { color: { from: "rgb(0, 0, 0)", to: " #ec4899 " }, opacity: { from: "1", to: "" }, position: { from: "static", to: "fixed" }, "font-size": "16px" };
+  const [element] = pick.readPickState(JSON.stringify({ annotations: [{ ...picked, changes }] })).elements;
+  assert.deepEqual(element.changes, { color: { from: "rgb(0, 0, 0)", to: "#ec4899" } });
 });
 
 test("page content is capped and non-web pages are refused", () => {
-  const huge = pick.readPickState(JSON.stringify({ ...picked, html: "x".repeat(9000), text: "y".repeat(900) }));
-  assert.equal(huge.element.html.length, 4000);
-  assert.equal(huge.element.htmlTruncated, true);
-  assert.equal(huge.element.text.length, 500);
+  const huge = pick.readPickState(JSON.stringify({ ...picked, html: "x".repeat(9000), text: "y".repeat(900) })).elements[0];
+  assert.equal(huge.html.length, 4000);
+  assert.equal(huge.htmlTruncated, true);
+  assert.equal(huge.text.length, 500);
   assert.deepEqual(pick.readPickState(JSON.stringify({ ...picked, url: "file:///etc/hosts" })), { kind: "gone" });
   assert.deepEqual(pick.readPickState(JSON.stringify({ ...picked, tag: "<script>" })), { kind: "gone" });
 });
 
-test("the draft keeps three elements and replaces a re-picked one", () => {
-  const element = pick.readPickState(JSON.stringify(picked)).element;
+test("the draft keeps five elements and replaces a re-picked one", () => {
+  const element = pick.readPickState(JSON.stringify(picked)).elements[0];
   let list = [];
-  for (const [index, selector] of ["a", "b", "c"].entries()) list = pick.addPageElement(list, { ...element, selector }, String(index)).elements;
-  assert.equal(list.length, 3);
-  assert.match(pick.addPageElement(list, { ...element, selector: "d" }, "4").error, /最多附带 3 个/);
-  const replaced = pick.addPageElement(list, { ...element, selector: "b", text: "new" }, "5").elements;
-  assert.deepEqual(replaced.map((item) => item.id), ["0", "2", "5"]);
+  for (const [index, selector] of ["a", "b", "c", "d", "e"].entries()) list = pick.addPageElement(list, { ...element, selector }, String(index)).elements;
+  assert.equal(list.length, 5);
+  assert.match(pick.addPageElement(list, { ...element, selector: "f" }, "6").error, /最多附带 5 个/);
+  const replaced = pick.addPageElement(list, { ...element, selector: "b", text: "new" }, "7").elements;
+  assert.deepEqual(replaced.map((item) => item.id), ["0", "2", "3", "4", "7"]);
 });
 
 test("an element is written into the message with page, selector, styles and HTML", () => {
-  const element = { ...pick.readPickState(JSON.stringify(picked)).element, id: "1" };
+  const element = { ...pick.readPickState(JSON.stringify(picked)).elements[0], id: "1" };
   const text = pick.pageElementText(element);
+  assert.doesNotMatch(text, /批注：/);
+  assert.match(pick.pageElementText({ ...element, comment: "改成两行" }), /^批注：改成两行\n网页元素：/);
+  assert.match(pick.pageElementText({ ...element, changes: { color: { from: "rgb(0, 0, 0)", to: "#ec4899" }, opacity: { from: "", to: "0.8" } } }),
+    /改动样式：color: rgb\(0, 0, 0\) → #ec4899; opacity: （未设置） → 0.8/);
   assert.match(text, /网页元素：Docs（https:\/\/example.com\/docs）/);
   assert.match(text, /选择器：main > h1/);
   assert.match(text, /font-size: 32px/);

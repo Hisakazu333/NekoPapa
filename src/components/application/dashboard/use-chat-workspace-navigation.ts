@@ -6,7 +6,7 @@ export function useChatWorkspaceNavigation({
   setPage,
   openSidePanel,
 }: {
-  setNavOpen: Dispatch<SetStateAction<boolean>>;
+  setNavOpen: (open: boolean) => void;
   setPage: Dispatch<SetStateAction<WorkspacePage>>;
   /** Opens the 历史 / 代码 / 资料 side panel (in place of the browser, if open). */
   openSidePanel: () => void;

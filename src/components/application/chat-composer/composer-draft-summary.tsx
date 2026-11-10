@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { MousePointer2Icon, XIcon } from "@/components/foundations/icons/app-icons";
+import { AnnotateIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { composerArtifacts } from "@/app/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 
@@ -11,8 +11,11 @@ export function ComposerDraftSummary({ state, disabled }: { state: ChatComposerS
         <span title={file.path} className="truncate">{file.path}</span><span className="shrink-0 text-text-tertiary">{Math.max(1, Math.ceil(file.size / 1024))} KB</span>
       </Chip>)}
       {draft.pageElements.map((element) => <Chip key={element.id} label={`移除网页元素${element.selector || element.tag}`} disabled={disabled} onRemove={() => state.setDraft((previous) => ({ ...previous, pageElements: previous.pageElements.filter((item) => item.id !== element.id) }))}>
-        <MousePointer2Icon className="size-3.5 shrink-0" aria-hidden />
-        <span title={`${element.url}\n${element.selector}`} className="truncate">网页元素 &lt;{element.tag}&gt; {element.selector}</span>
+        <AnnotateIcon className="size-3.5 shrink-0" aria-hidden />
+        <span title={`${element.comment ? `${element.comment}\n` : ""}${element.url}\n${element.selector}`} className="truncate">
+          {element.comment ? <>批注：{element.comment}<span className="text-text-tertiary"> · &lt;{element.tag}&gt;</span></> : <>网页元素 &lt;{element.tag}&gt; {element.selector}</>}
+          {Object.keys(element.changes ?? {}).length > 0 && <span className="text-text-tertiary"> · 改动 {Object.keys(element.changes).length} 项样式</span>}
+        </span>
         <span className="shrink-0 text-text-tertiary">{element.size.width}×{element.size.height}</span>
       </Chip>)}
       {draft.goal && <Chip label="清除聊天目标" disabled={disabled} onRemove={() => state.setDraft((previous) => ({ ...previous, goal: "" }))}><span title={draft.goal} className="truncate">目标：{draft.goal}</span></Chip>}

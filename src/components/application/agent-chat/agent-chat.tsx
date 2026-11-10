@@ -76,6 +76,9 @@ export function AgentChat({
   const probe = useChatProvider(ENDPOINT);
   const [input, setInput] = useState("");
   const [navOpen, setNavOpen] = useState(false);
+  // The dock's open panel (对话 / 搜索 / 更多); a finished navigation closes it like the drawer.
+  const [dockPanel, setDockPanel] = useState<string | null>(null);
+  const closeNavigation = useCallback((open: boolean) => { setNavOpen(open); if (!open) setDockPanel(null); }, []);
   const sidebarVisibility = useSidebarVisibility();
   const configuration = useConfiguration().data;
   const navigationLayout = normalizeNavigationLayout(configuration.groups.appearance.navigation);
@@ -339,18 +342,18 @@ export function AgentChat({
     const thread = resolveContactThread(loaded.writable ? loaded.threads : history.threads, contact);
     contactBaseline.current = thread;
     if (thread?.unread) toggleUnread(thread.id);
-    setSelectedContact(contact);
-    restoreSession(sessionMemory.current.openThread(thread));
+    // restoreSession sets the contact from the snapshot, so the snapshot must carry it.
+    restoreSession(sessionMemory.current.openThread(thread, contact));
   }, [busy, activeContact?.id, keepLiveThread, rememberSession, history.threads, toggleUnread, restoreSession]);
 
   useStartupThread({ ready: history.ready, activeId, threads: allThreads, onOpen: selectThread });
   const { showAllThreads } = useChatWorkspaceNavigation({
-    setNavOpen,
+    setNavOpen: closeNavigation,
     setPage,
     openSidePanel,
   });
   const sidebar = useAgentChatSidebar({
-    setPage, setRequestedContactId, setNavOpen, activeContactId: activeContact?.id, activeId,
+    setPage, setRequestedContactId, setNavOpen: closeNavigation, activeContactId: activeContact?.id, activeId,
     threads: history.threads, contacts, busy, onSelectThread: selectThread,
     onShowAllThreads: showAllThreads, onRenameThread: renameThread, onToggleUnread: toggleUnread, onDeleteThread: deleteThread,
     onNewChatInProject: startChatIn,
@@ -438,7 +441,7 @@ export function AgentChat({
       }}
     >
       <WorkspaceNavigation layout={navigationLayout} sidebar={sidebar} page={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
-        sidebarHidden={sidebarVisibility.hidden} peek={sidebarPeek} navOpen={navOpen} setNavOpen={setNavOpen} contained={contained}
+        sidebarHidden={sidebarVisibility.hidden} peek={sidebarPeek} navOpen={navOpen} setNavOpen={setNavOpen} contained={contained} dockPanel={dockPanel} onDockPanelChange={setDockPanel}
         onOpenSettings={() => openSettings("general")} />
 
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">

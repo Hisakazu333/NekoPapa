@@ -51,26 +51,42 @@ export function SidebarMoreMenu({ entries, collapsed, notice, onTogglePin }: {
       </span>
     </AriaButton>
     <Popover aria-label="更多" placement={collapsed ? "end top" : "bottom start"} className="w-[248px] p-0" dialogClassName="p-0">
-      <div {...hoverProps} className="flex flex-col p-1.5">
-      <ul className="flex flex-col">
-        {entries.map(({ id, label, icon: Icon, pinned, onOpen }) => <li key={id} className="group flex items-center rounded-2lg hover:bg-background-secondary-hover">
-          <button type="button" onClick={() => { setIsOpen(false); onOpen(); }}
-            className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-2lg px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-            <Icon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-            <span className="truncate text-body-medium text-text-primary">{label}</span>
-          </button>
-          <button type="button" aria-pressed={pinned} aria-label={pinned ? `从侧栏取消固定${label}` : `固定${label}到侧栏`} onClick={() => onTogglePin(id)}
-            className={cx(
-              "me-1 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-foreground-icon-secondary outline-none transition-opacity duration-150",
-              "hover:bg-background-tertiary-default focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-border-focus-ring",
-              pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100",
-            )}>
-            {pinned ? <PinFilledIcon className="size-4" aria-hidden /> : <PinIcon className="size-4" aria-hidden />}
-          </button>
-        </li>)}
-      </ul>
-      {notice && <p role="alert" className="px-2 pb-1.5 pt-1 text-body-2-regular text-text-error-primary">{notice}</p>}
+      <div {...hoverProps}>
+        <SidebarMoreList entries={entries} notice={notice} onTogglePin={onTogglePin} onOpened={() => setIsOpen(false)} />
       </div>
     </Popover>
   </PopoverTrigger>;
+}
+
+/**
+ * The 更多 rows: each opens its destination, and its pin button adds it to or
+ * removes it from the main navigation (`place` names where that is).
+ */
+export function SidebarMoreList({ entries, notice, onTogglePin, onOpened, place = "侧栏" }: {
+  entries: SidebarMoreEntry[];
+  notice?: string;
+  onTogglePin: (id: string) => void;
+  onOpened: () => void;
+  place?: string;
+}) {
+  return <div className="flex flex-col p-1.5">
+    <ul className="flex flex-col">
+      {entries.map(({ id, label, icon: Icon, pinned, onOpen }) => <li key={id} className="group flex items-center rounded-2lg hover:bg-background-secondary-hover">
+        <button type="button" onClick={() => { onOpened(); onOpen(); }}
+          className="flex min-w-0 flex-1 cursor-pointer items-center gap-2 rounded-2lg px-2 py-2 text-start outline-none focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+          <Icon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
+          <span className="truncate text-body-medium text-text-primary">{label}</span>
+        </button>
+        <button type="button" aria-pressed={pinned} aria-label={pinned ? `从${place}取消固定${label}` : `固定${label}到${place}`} onClick={() => onTogglePin(id)}
+          className={cx(
+            "me-1 flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-foreground-icon-secondary outline-none transition-opacity duration-150",
+            "hover:bg-background-tertiary-default focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-border-focus-ring",
+            pinned ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+          )}>
+          {pinned ? <PinFilledIcon className="size-4" aria-hidden /> : <PinIcon className="size-4" aria-hidden />}
+        </button>
+      </li>)}
+    </ul>
+    {notice && <p role="alert" className="px-2 pb-1.5 pt-1 text-body-2-regular text-text-error-primary">{notice}</p>}
+  </div>;
 }

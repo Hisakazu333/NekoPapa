@@ -25,7 +25,7 @@ export function ComposerPermissionMenu({ state, disabled, className }: {
       <span className="truncate">{permission.label}</span>
       <ChevronDownSmall className={cx("size-4 shrink-0", risky ? "text-text-error-primary" : "text-text-tertiary")} aria-hidden />
     </DropdownTrigger>
-    <DropdownPopover aria-label="权限控制" placement="top start" dialogClassName="max-h-[min(420px,70dvh)] overflow-y-auto">
+    <DropdownPopover aria-label="权限控制" placement="top start" className="overscroll-contain">
       <DropdownGroup label="权限控制">
         {composerPermissions.map((item) => <DropdownItem key={item.id} selected={permission.id === item.id} onSelect={() => {
           state.setDraft((draft) => ({ ...draft, permission: item.id as ComposerPermission }));

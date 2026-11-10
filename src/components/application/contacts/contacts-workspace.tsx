@@ -26,6 +26,7 @@ export interface ContactPreview {
 export interface ContactsWorkspaceProps {
   onSelect: (contact: ChatContact) => void;
   selectedId?: string;
+  /** While history loads: creating, group chats and the row menus wait; rows still select. */
   disabled?: boolean;
   previews?: Record<string, ContactPreview>;
   onNavigate?: () => void;
@@ -76,11 +77,10 @@ function ContactRow({ contact, selected, disabled, preview, onSelect, onButtonRe
     type="button"
     ref={(button) => onButtonRef(contact.id, button)}
     onClick={(event) => onSelect(contact, event.currentTarget)}
-    disabled={disabled}
     aria-label={`与${contact.name}对话`}
     aria-pressed={selected}
     className={cx(
-      "flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-start outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-border-focus-ring disabled:cursor-not-allowed disabled:opacity-60",
+      "flex w-full min-w-0 cursor-pointer items-center gap-3 rounded-xl px-3 py-3 text-start outline-none transition-colors focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-border-focus-ring",
     )}
   >
     <Avatar size="lg" className="size-10" src={contact.avatar} initials={Array.from(contact.name).slice(-1).join("")} alt="" color={contact.avatarColor ?? "neutral"} />

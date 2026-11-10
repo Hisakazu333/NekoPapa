@@ -32,7 +32,7 @@ export function ComposerModeMenu({ state, context = "custom", disabled, classNam
       <span className="truncate">{mode.label}</span>
       <ChevronDownSmall className="size-4 shrink-0 text-text-tertiary" aria-hidden />
     </DropdownTrigger>
-    <DropdownPopover aria-label="对话模式" placement="top start" dialogClassName="max-h-[min(420px,70dvh)] overflow-y-auto">
+    <DropdownPopover aria-label="对话模式" placement="top start" className="overscroll-contain">
       <DropdownGroup label="对话模式">
         {modes.map((item) => { const Icon = modeIcons[item.id]; return <DropdownItem key={item.id} selected={mode.id === item.id} onSelect={() => {
           state.setDraft((draft) => selectComposerMode(draft, item.id as ComposerMode));

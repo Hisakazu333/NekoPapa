@@ -105,6 +105,8 @@ export function ContactsMessenger({ onNavigate, provider, requestedContactId, on
       <MessageCircleHeartIcon className="size-12 opacity-30" aria-hidden />
       <p className="text-body-regular">选择一位联系人，开始聊天</p>
     </div>}
+    {/* Rows stay pressable while history loads; the chat opens once it is ready. */}
+    {selectedId && !draft && !history.ready && <div role="status" className="flex h-full flex-1 items-center justify-center bg-background-secondary-default text-body-regular text-text-tertiary">正在读取聊天记录…</div>}
     {history.ready && opened.filter((snapshot) => !deletedIds.includes(snapshot.id)).map((snapshot) => { const contact = contacts.find((item) => item.id === snapshot.id) ?? snapshot; return <div key={contact.id} hidden={Boolean(draft) || selectedId !== contact.id} style={{ display: !draft && selectedId === contact.id ? "flex" : "none" }} className="h-full min-h-0 min-w-0 flex-1">
       <ContactConversation contact={contact} initialThread={findContactThread(history.threads, contact.id)} provider={provider} active={selectedId === contact.id}
         onBack={() => setSelectedId(undefined)} onOpenProfile={() => setProfileOpen(true)} onStartGroup={() => startGroup(contact.id)} onDelete={() => setDeleteContactTarget(contact)} onPreview={onPreview} />
