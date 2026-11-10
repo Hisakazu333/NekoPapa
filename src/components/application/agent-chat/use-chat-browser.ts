@@ -25,6 +25,10 @@ export interface ChatBrowser extends ChatBrowserState {
   clearError: () => void;
   /** Starts or stops picking an element in the page. */
   togglePick: () => void;
+  /** An address to open once the browser area is on screen (a chat link). */
+  requested?: string;
+  request: (url: string) => void;
+  clearRequest: () => void;
 }
 
 /**
@@ -43,6 +47,8 @@ export function useChatBrowser(onPick: (element: Omit<PageElement, "id">) => voi
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   const [display, setDisplay] = useState<BrowserDisplay>(defaultBrowserDisplay);
+  const [requested, setRequested] = useState<string>();
+  const clearRequest = useCallback(() => setRequested(undefined), []);
   const mounted = useRef(true);
 
   const fail = useCallback((error: unknown) => {
@@ -112,5 +118,5 @@ export function useChatBrowser(onPick: (element: Omit<PageElement, "id">) => voi
     return () => { stopped = true; window.clearInterval(timer); };
   }, [state.picking]);
 
-  return { available, ...state, display, setDisplay, open, run, openWindow, clearError, togglePick };
+  return { available, ...state, display, setDisplay, open, run, openWindow, clearError, togglePick, requested, request: setRequested, clearRequest };
 }

@@ -6,6 +6,8 @@ import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-ic
 import { SpinnerGlyph } from "@/components/base/spinner/spinner";
 import { cx } from "@/utils/cx";
 import { FileText } from "./file-text";
+import { OpenInEditorButton } from "./open-in-editor-button";
+import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 import { ToolPanelMessage } from "./tool-panel-frame";
 
 type Folder = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; listing: ProjectListing };
@@ -56,7 +58,7 @@ export function ProjectFilesView({ root, onActions }: { root: string; onActions:
     }
   };
 
-  if (preview) return <FilePreview preview={preview} onBack={() => setPreview(undefined)} />;
+  if (preview) return <FilePreview root={root} preview={preview} onBack={() => setPreview(undefined)} />;
   const top = folders[""];
   if (!top || top.kind === "loading") return <ToolPanelMessage icon={FolderIcon} title="正在读取文件夹…" />;
   if (top.kind === "error") return <ToolPanelMessage tone="error" title="无法读取项目文件夹" detail={top.message} />;
@@ -95,13 +97,15 @@ function EntryRow({ entry, depth, expanded, onToggle, onOpen, children }: {
   </li>;
 }
 
-function FilePreview({ preview, onBack }: { preview: Preview; onBack: () => void }) {
+function FilePreview({ root, preview, onBack }: { root: string; preview: Preview; onBack: () => void }) {
   const { state } = preview;
+  const { wrap } = useEditorPreferences();
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="flex shrink-0 items-center gap-2 px-2 pb-2">
       <ToolbarIconButton icon={ArrowLeftIcon} label="返回文件列表" onPress={onBack} />
       <span translate="no" title={preview.path} className="min-w-0 flex-1 truncate font-mono text-caption-1-regular text-text-secondary">{preview.path}</span>
       {state.kind === "ready" && <span className="shrink-0 text-caption-1-regular text-text-tertiary">{formatBytes(state.file.size)}</span>}
+      <OpenInEditorButton root={root} path={preview.path} />
     </div>
     {state.kind === "loading" && <ToolPanelMessage icon={FileIcon} title="正在读取文件…" />}
     {state.kind === "error" && <ToolPanelMessage tone="error" icon={FileIcon} title="无法读取这个文件" detail={state.message} />}
@@ -109,6 +113,6 @@ function FilePreview({ preview, onBack }: { preview: Preview; onBack: () => void
       ? <ToolPanelMessage icon={FileIcon} title="文件太大，不在这里预览" detail="只预览 512 KB 以内的文本文件。" />
       : state.file.binary || state.file.text === undefined
         ? <ToolPanelMessage icon={FileIcon} title="这是二进制文件" detail="只预览文本文件。" />
-        : <FileText text={state.file.text} />)}
+        : <FileText text={state.file.text} wrap={wrap} />)}
   </div>;
 }

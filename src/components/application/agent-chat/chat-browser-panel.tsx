@@ -9,10 +9,13 @@ import { nativeBrowser, type BrowserBounds } from "@/app/native-browser";
 import { browserFrame, type BrowserFrame } from "@/app/browser-display";
 import { ChatBrowserDisplayMenu } from "./chat-browser-display-menu";
 import { useAppOverlayOpen } from "./use-app-overlay-open";
+import { useConfiguration } from "@/hooks/use-configuration";
 import type { ChatBrowser } from "./use-chat-browser";
 
 const sameBounds = (a: BrowserBounds | null, b: BrowserBounds) =>
   a !== null && a.x === b.x && a.y === b.y && a.width === b.width && a.height === b.height;
+// Transitions that can move or resize the browser box (the sidebar, panels, the divider).
+const LAYOUT_TRANSITION = /^(width|height|min-width|max-width|left|right|top|bottom|inset|transform|translate|margin|padding|flex|grid|all)/;
 const frameChanged = (a: BrowserFrame | undefined, b: BrowserFrame) => !a || a.layoutWidth !== b.layoutWidth || a.width !== b.width;
 
 /**
@@ -51,7 +54,9 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
   const shown = hasPage && !overlayOpen && !suspended;
 
   // While not editing, the bar follows the page (links, redirects, back / forward).
-  const pageAddress = browser.url ? displayBrowserAddress(browser.url) : "";
+  const { data: settings } = useConfiguration();
+  const fullAddress = settings.groups.browser?.fullUrl === true;
+  const pageAddress = browser.url ? displayBrowserAddress(browser.url, fullAddress) : "";
   if (!editing && address !== pageAddress && browser.url) setAddress(pageAddress);
 
   // The native view's rectangle and zoom for the current display mode: a
@@ -106,16 +111,19 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
     if (viewportRef.current) resize.observe(viewportRef.current);
     resize.observe(document.documentElement);
     window.addEventListener("resize", wake);
-    document.addEventListener("transitionrun", wake, true);
-    document.addEventListener("transitionend", wake, true);
+    document.addEventListener("transitionrun", onTransition, true);
+    document.addEventListener("transitionend", onTransition, true);
     document.addEventListener("pointermove", onDrag, true);
     function onDrag(event: PointerEvent) { if (event.buttons) wake(); }
+    // Hover colours fade all over the app; only a transition that can move
+    // or resize the box needs the frame-by-frame follow.
+    function onTransition(event: TransitionEvent) { if (LAYOUT_TRANSITION.test(event.propertyName)) wake(); }
     return () => {
       cancelAnimationFrame(raf);
       resize.disconnect();
       window.removeEventListener("resize", wake);
-      document.removeEventListener("transitionrun", wake, true);
-      document.removeEventListener("transitionend", wake, true);
+      document.removeEventListener("transitionrun", onTransition, true);
+      document.removeEventListener("transitionend", onTransition, true);
       document.removeEventListener("pointermove", onDrag, true);
       boundsRef.current = null;
       zoomRef.current = null;
@@ -139,21 +147,40 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
     return () => window.removeEventListener("keydown", onKey);
   }, [hasPage, togglePick]);
 
-  const go = (event?: FormEvent) => {
-    event?.preventDefault();
-    const target = normalizeBrowserAddress(address);
-    if (!target.ok) { setNotice(target.reason); return; }
+  const openUrl = (url: string, measured = measure()) => {
     setNotice(undefined);
     setEditing(false);
-    setAddress(displayBrowserAddress(target.url));
+    setAddress(displayBrowserAddress(url, fullAddress));
     if (!browser.available) { setNotice("内置浏览器需要 NekoPapa 桌面应用。网页版不能嵌入其他网站，可以用“在新窗口打开”。"); return; }
-    const measured = measure();
     if (!measured) { setNotice("浏览器区域太小，放大窗口后再试。"); return; }
     boundsRef.current = measured.bounds;
     zoomRef.current = measured.frame.zoom;
     setFrame(measured.frame);
-    browser.open(target.url, measured.bounds, measured.frame.zoom);
+    browser.open(url, measured.bounds, measured.frame.zoom);
   };
+  const go = (event?: FormEvent) => {
+    event?.preventDefault();
+    const target = normalizeBrowserAddress(address);
+    if (!target.ok) { setNotice(target.reason); return; }
+    openUrl(target.url);
+  };
+  // A link from a chat message (设置 → 浏览器 → 打开位置: 内置浏览器). The area
+  // may still be opening, so wait a few frames for it to have a size.
+  const requested = browser.requested;
+  useEffect(() => {
+    if (!requested) return;
+    let raf = 0;
+    let tries = 0;
+    const attempt = () => {
+      const measured = measure();
+      if (!measured && ++tries < 30) { raf = requestAnimationFrame(attempt); return; }
+      browser.clearRequest();
+      openUrl(requested, measured);
+    };
+    attempt();
+    return () => cancelAnimationFrame(raf);
+  // Runs once per requested address; openUrl reads the latest render's state.
+  }, [requested]);
   const popOut = () => {
     const target = normalizeBrowserAddress(editing || !browser.url ? address : browser.url);
     if (!target.ok) { setNotice(target.reason); return; }
@@ -171,7 +198,7 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
         : <ToolbarIconButton icon={RefreshCwIcon} label="刷新" isDisabled={!hasPage} onPress={() => browser.run("reload")} />}
       <Input aria-label="网址" placeholder="输入网址，例如 example.com" size="small" className="min-w-0 flex-1"
         leadingIcon={GlobeIcon} value={address} spellCheck="false"
-        onFocus={() => setEditing(true)} onBlur={() => setEditing(false)}
+        onFocus={() => { setEditing(true); if (browser.url && address === pageAddress) setAddress(displayBrowserAddress(browser.url)); }} onBlur={() => setEditing(false)}
         onChange={(next) => { setAddress(next); setEditing(true); setNotice(undefined); browser.clearError(); }}
         onKeyDown={(event) => {
           if (event.key === "Enter" && !event.nativeEvent.isComposing) go();
@@ -197,7 +224,7 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
       {browser.loading && hasPage && <ProgressTrack percentage={0} isIndeterminate size="sm" className="pointer-events-none absolute inset-x-3 bottom-0 h-0.5" />}
     </form>
     {browser.loading && hasPage && <span role="status" className="sr-only">正在加载网页</span>}
-    {browser.picking && <p role="status" className="mx-3 mb-2 text-body-2-regular text-text-secondary">批注中：点选元素并写评论（最多 5 处），点网页底部的“发送”加入输入框；Esc、× 或再次点按钮退出。</p>}
+    {browser.picking && <p role="status" className="mx-3 mb-2 text-body-2-regular text-text-secondary">批注中：点选元素并写评论（最多 5 处），点网页工具栏的“加入对话”放进输入框（拖动工具栏左侧的标签可移开它）；Esc、× 或再次点按钮退出。</p>}
     {problem && <p role="alert" className="mx-3 mb-2 text-body-2-regular text-text-error-primary">{problem}</p>}
     {browser.title && hasPage && <p className="sr-only" aria-live="polite">{browser.title}</p>}
 

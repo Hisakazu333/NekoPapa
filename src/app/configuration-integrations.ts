@@ -29,25 +29,25 @@ export const integrationConfiguration: readonly ConfigurationSchema[] = [
       toggle("sound", "播放提示音", "快照成功时播放。"),
     ] },
   ] },
-  { id: "browser", effect: "runtime", scope: "浏览器默认值 · 标题栏的内置浏览器已可使用，但还不读取这些默认值；自动化服务尚未接入，没有浏览数据或密码记录。", blocks: [
+  { id: "browser", effect: "immediate", scope: "内置浏览器 · 链接打开位置与地址栏显示保存后立即生效；不记录浏览数据或密码。", blocks: [
     { title: "链接与浏览", fields: [
-      select("webTarget", "网页链接打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "", "select"),
-      select("localTarget", "本地开发地址打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "", "select"),
-      toggle("fullUrl", "显示完整网址", "未来地址栏显示路径、查询参数和片段。"),
-      select("annotations", "批注时包含截图", "ask", [["ask", "每次选择"], ["always", "始终包含"], ["never", "不包含"]], "", "select"),
+      select("webTarget", "网页链接打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "点按聊天回复中的网址时使用；内置浏览器只在桌面应用中可用。", "select"),
+      select("localTarget", "本地开发地址打开位置", "system", [["system", "系统默认浏览器"], ["internal", "内置浏览器"]], "localhost、127.0.0.1、*.localhost、*.test 的地址。", "select"),
+      toggle("fullUrl", "显示完整网址", "地址栏显示协议、查询参数和片段；关闭时只显示域名和路径，编辑时仍显示完整网址。"),
+      select("annotations", "批注时包含截图", "ask", [["ask", "每次选择"], ["always", "始终包含"], ["never", "不包含"]], "暂不可用：宿主还不能截取网页画面，批注只附带 HTML、样式与选择器。", "select"),
     ] },
   ] },
 ];
 
 export interface CollectionSchema { title: string; singular: string; description: string; fields: readonly Field[] }
 const name: Field = { ...text("name", "名称", "用于识别这份配置。", 72), required: true };
-const environment: Field = { ...text("environment", "凭据环境变量名", "仅保存变量名，不填写 API Key 或密码。", 80), format: "environment" };
+const environment: Field = { ...text("environment", "凭据环境变量名", "仅保存变量名（以 KEY、TOKEN 或 SECRET 结尾），不填写 API Key 或密码；本地服务可留空。", 80), format: "environment" };
 
 export const collectionSchemas: Record<ConfigurationCollection, CollectionSchema> = {
-  models: { title: "自定义 API", singular: "API 配置", description: "保存你自己的 API 服务、模型与凭据引用。由 API 提供方计费；模型调用与连接测试待接入。", fields: [
+  models: { title: "自定义 API", singular: "API 配置", description: "保存你自己的 API 服务、模型与凭据引用。在输入框的模型菜单选中后，由这份配置回复；密钥只从环境变量读取。由 API 提供方计费。", fields: [
     name,
     select("provider", "接口类型", "compatible", [["compatible", "OpenAI 兼容接口"], ["anthropic", "Anthropic 接口"], ["custom", "其他接口"]]),
-    { ...text("endpoint", "服务地址", "完整的 HTTP 或 HTTPS 基础地址，不包含密钥。"), required: true, format: "url" },
+    { ...text("endpoint", "服务地址", "接口的基础地址，例如 https://api.openai.com/v1、https://api.anthropic.com/v1 或 http://127.0.0.1:11434/v1；不包含密钥。"), required: true, format: "url" },
     { ...text("model", "模型标识", "填写提供方的实际模型 ID。", 160), required: true },
     environment,
   ] },

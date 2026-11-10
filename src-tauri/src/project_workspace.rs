@@ -45,7 +45,7 @@ pub struct GitOutput {
     output: String,
 }
 
-fn root_of(root: &str) -> Result<PathBuf, String> {
+pub(crate) fn root_of(root: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(root);
     if !path.is_absolute() {
         return Err("项目文件夹必须是完整路径。".into());
@@ -67,7 +67,7 @@ fn relative(path: &str) -> Result<PathBuf, String> {
 }
 
 /// Joins and resolves symlinks, then confirms the result is still inside the root.
-fn inside(root: &Path, path: &str) -> Result<PathBuf, String> {
+pub(crate) fn inside(root: &Path, path: &str) -> Result<PathBuf, String> {
     let joined = root.join(relative(path)?);
     let resolved = fs::canonicalize(&joined).map_err(|_| "文件不存在或无法访问。".to_string())?;
     if !resolved.starts_with(root) {

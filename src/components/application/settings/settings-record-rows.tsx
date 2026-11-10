@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { EllipsisIcon, PencilLineIcon, PlusIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
+import { EllipsisIcon, PencilLineIcon, PlugIcon, PlusIcon, Trash2Icon } from "@/components/foundations/icons/app-icons";
 import { Chip, CHIP_COLORS, type ChipColor } from "@/components/base/badges/chip";
 import { Button } from "@/components/base/buttons/button";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
@@ -21,9 +21,10 @@ export function RecordTile({ initial, color }: { initial: string; color: ChipCol
 }
 
 /** Bare "…" row action opening 编辑 / 删除. */
-function RecordMenu({ id, name, onEdit, onRemove }: { id: string; name: string; onEdit: () => void; onRemove: () => void }) {
+function RecordMenu({ id, name, onEdit, onRemove, onTest }: { id: string; name: string; onEdit: () => void; onRemove: () => void; onTest?: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
   const items = [
+    ...(onTest ? [{ label: "测试连接", icon: PlugIcon, action: onTest }] : []),
     { label: "编辑", icon: PencilLineIcon, action: onEdit },
     { label: "删除", icon: Trash2Icon, action: onRemove },
   ];
@@ -55,9 +56,12 @@ export interface RecordRowProps {
   detail?: string;
   onEdit: () => void;
   onRemove: () => void;
+  /** Model profiles: 测试连接 in the menu, and its latest result under the row. */
+  onTest?: () => void;
+  test?: { pending: boolean; ok?: boolean; message: string };
 }
 
-export function RecordRow({ menuId, name, initial, color, chips, summary, detail, onEdit, onRemove }: RecordRowProps) {
+export function RecordRow({ menuId, name, initial, color, chips, summary, detail, onEdit, onRemove, onTest, test }: RecordRowProps) {
   return <li className="flex w-full items-center gap-2.5 border-b border-separator-border py-2.5 pe-2.5">
     <RecordTile initial={initial} color={color} />
     <div className="flex min-w-0 flex-1 flex-col">
@@ -67,8 +71,9 @@ export function RecordRow({ menuId, name, initial, color, chips, summary, detail
       </div>
       <p className="truncate text-body-2-regular text-text-secondary">{summary}</p>
       {detail && <p className="truncate text-body-2-regular text-text-tertiary">{detail}</p>}
+      {test && <p role="status" className={cx("text-body-2-regular", test.pending ? "text-text-tertiary" : test.ok ? "text-text-secondary" : "text-text-error-primary")}>{test.message}</p>}
     </div>
-    <RecordMenu id={menuId} name={name} onEdit={onEdit} onRemove={onRemove} />
+    <RecordMenu id={menuId} name={name} onEdit={onEdit} onRemove={onRemove} onTest={onTest} />
   </li>;
 }
 

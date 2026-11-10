@@ -15,6 +15,7 @@ import { useSettingsDraft } from "./settings-draft-context";
 import { LocalModelsSection } from "./local-models-section";
 import { SkillDiscoverySection } from "./skill-discovery-section";
 import { CordisPatchSection } from "./cordis-patch-section";
+import { useModelTests } from "./use-model-tests";
 
 type Collection = ConfigurationCollection;
 /** Extensions are shown as two pages: MCP / connectors, and skills. */
@@ -43,6 +44,7 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [status, setStatus] = useState("");
   const formId = useId();
+  const modelTests = useModelTests();
   const returnFocus = useRef("");
   const inView = (record: ConfigurationRecord) => collection !== "extensions" || (skills ? record.values.kind === "skill" : record.values.kind !== "skill");
   const records = data.collections[collection].filter(inView);
@@ -197,11 +199,12 @@ export function CollectionSettingsPanel({ collection, view, onClose }: Collectio
                         const name = String(record.values.name);
                         return <RecordRow key={record.id} menuId={menuId} name={name} {...presentRecord(collection, record, data.groups)}
                           onEdit={() => open(menuId, record)}
+                          {...(collection === "models" ? { onTest: () => void modelTests.test(record), test: modelTests.results[record.id] } : {})}
                           onRemove={() => { setRemoval({ id: record.id, name, base: JSON.stringify(record.values), triggerId: menuId }); setErrors({}); setStatus(""); }} />;
                       })}
                     </ul>}
                     <NewRecordRow id={`${formId}-add`} label={`新增${singular}`} isDisabled={atLimit} onPress={add}
-                      description={atLimit ? "已达到 100 份配置上限。" : skills ? "选择一个本地技能目录。" : "仅保存配置，不会连接或执行。"} />
+                      description={atLimit ? "已达到 100 份配置上限。" : skills ? "选择一个本地技能目录。" : collection === "models" ? "保存后可在“…”中测试连接，并在输入框的模型菜单中选用。" : "仅保存配置，不会连接或执行。"} />
                   </SettingsCard>
                 )}
               </section>

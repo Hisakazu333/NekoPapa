@@ -50,6 +50,11 @@ export function useBrowserPlacement(chatId: string) {
     else toggleAuxiliary("browser");
   }, [browserTab, toggleAuxiliary]);
   const selectBrowserTab = useCallback(() => setBrowserTab({ active: true }), []);
+  /** Shows the browser wherever it lives (a chat link opening in it). */
+  const showBrowser = useCallback(() => {
+    if (browserTab) setBrowserTab({ active: true });
+    else setAuxiliary("browser");
+  }, [browserTab]);
   /** A chat tab or a new chat was chosen: the browser tab stays, in the background. */
   const leaveBrowserTab = useCallback(() => setBrowserTab((current) => current && { active: false }), []);
   const closeBrowserTab = useCallback(() => setBrowserTab(null), []);
@@ -67,6 +72,7 @@ export function useBrowserPlacement(chatId: string) {
     moveToTab,
     moveToSide,
     selectBrowserTab,
+    showBrowser,
     leaveBrowserTab,
     closeBrowserTab,
   };

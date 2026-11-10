@@ -342,16 +342,13 @@
     bar.style.left = `${Math.min(Math.max(8, left), Math.max(8, innerWidth - box.width - 8))}px`;
     bar.style.top = `${Math.min(Math.max(8, top), Math.max(8, innerHeight - box.height - 8))}px`;
   }
+  // A drag follows the window's mouse moves (onMove) and ends on any release
+  // (swallow), since the page's own handlers never see those events.
+  let drag = null;
   grip.addEventListener("pointerdown", (event) => {
     const box = bar.getBoundingClientRect();
-    const dx = event.clientX - box.left;
-    const dy = event.clientY - box.top;
-    grip.setPointerCapture(event.pointerId);
-    const drag = (move) => moveBar(move.clientX - dx, move.clientY - dy);
-    const end = () => { grip.removeEventListener("pointermove", drag); grip.removeEventListener("pointerup", end); grip.removeEventListener("pointercancel", end); };
-    grip.addEventListener("pointermove", drag);
-    grip.addEventListener("pointerup", end);
-    grip.addEventListener("pointercancel", end);
+    // No preventDefault: it would stop the mouse moves the drag follows.
+    drag = { dx: event.clientX - box.left, dy: event.clientY - box.top };
   });
   grip.addEventListener("dblclick", () => { bar.classList.remove("moved"); bar.style.left = ""; bar.style.top = ""; });
 
@@ -377,6 +374,7 @@
 
   const ours = (event) => event.composedPath().includes(host);
   const swallow = (event) => {
+    if (drag && (event.type === "pointerup" || event.type === "mouseup")) drag = null;
     if (ours(event) || paused) return;
     event.preventDefault();
     event.stopPropagation();
@@ -397,6 +395,8 @@
   let moved = null;
   let moveFrame = 0;
   const onMove = (event) => {
+    if (drag && !event.buttons) drag = null;
+    if (drag) { moveBar(event.clientX - drag.dx, event.clientY - drag.dy); return; }
     moved = ours(event) || paused || !markable(event.target) ? null : event.target;
     if (!moveFrame) moveFrame = requestAnimationFrame(() => {
       moveFrame = 0;
@@ -423,7 +423,7 @@
     if (note) closeNote(); else finish({ cancelled: true });
   };
   const events = [["mousemove", onMove], ["click", onClick], ["mousedown", swallow], ["mouseup", swallow], ["pointerdown", swallow],
-    ["pointerup", swallow], ["dblclick", swallow], ["contextmenu", swallow], ["keydown", onKey], ["scroll", schedule], ["resize", schedule]];
+    ["pointerup", swallow], ["pointercancel", swallow], ["dblclick", swallow], ["contextmenu", swallow], ["keydown", onKey], ["scroll", schedule], ["resize", schedule]];
   for (const [type, handler] of events) window.addEventListener(type, handler, true);
 
   function finish(value) {

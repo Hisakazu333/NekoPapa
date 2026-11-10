@@ -25,8 +25,9 @@ export function parseChatProviderProbe(value: unknown): ChatProviderProbe {
   };
 }
 
-export function chatContactAvailability(probe: ChatProviderProbe, contact?: { kind: "official" | "custom" }) {
-  if (contact?.kind !== "official") return { ready: probe.status === "ready", reason: undefined };
+/** `usesProfile`: a saved 模型与 API profile answers, whether or not the runtime has its own key. */
+export function chatContactAvailability(probe: ChatProviderProbe, contact?: { kind: "official" | "custom" }, usesProfile = false) {
+  if (contact?.kind !== "official") return { ready: usesProfile || probe.status === "ready", reason: undefined };
   return {
     ready: probe.officialCompanions.configured,
     reason: probe.officialCompanions.configured ? undefined : probe.status === "checking"

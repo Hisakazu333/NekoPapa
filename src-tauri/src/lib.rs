@@ -1,6 +1,8 @@
 mod browser_view;
+mod editor_open;
 mod external_link;
 mod local_models;
+mod model_proxy;
 mod project_folder;
 mod project_workspace;
 mod skill_discovery;
@@ -23,6 +25,8 @@ pub fn run() {
             project_workspace::project_read_file,
             project_workspace::project_git_status,
             project_workspace::project_git_diff,
+            // 设置 → 编辑器与终端 → 外部编辑器.
+            editor_open::open_in_editor,
             // 设置 → 技能: lists skill folders already on this computer.
             skill_discovery::scan_skill_folders,
             // Links that leave the app open in the system browser.
@@ -40,6 +44,10 @@ pub fn run() {
             browser_view::browser_pick_result,
             browser_view::browser_close,
             browser_view::browser_open_window,
+            // Desktop chat runtime: model requests with keys filled in on this side.
+            model_proxy::chat_environment,
+            model_proxy::model_fetch,
+            model_proxy::model_fetch_cancel,
         ])
         .run(tauri::generate_context!())
         .expect("failed to run NekoPapa");

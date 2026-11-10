@@ -1,4 +1,5 @@
 import type { ConfigurationRecord } from "./configuration-types";
+import { chatModelProfile } from "./chat-model-profile";
 
 export interface ComposerModelOption {
   id: string;
@@ -33,8 +34,9 @@ export function filterComposerModels(options: readonly ComposerModelOption[], qu
     && (!term || `${option.name} ${option.model} ${option.provider}`.toLocaleLowerCase().includes(term)));
 }
 
-export function composerModelBlockReason(selectedId: string | undefined, options: readonly ComposerModelOption[]) {
+/** A saved profile answers through the chat runtime; one that cannot (removed, invalid) blocks sending. */
+export function composerModelBlockReason(selectedId: string | undefined, options: readonly ComposerModelOption[], records: readonly ConfigurationRecord[] = []) {
   if (!selectedId || selectedId === "runtime") return undefined;
-  const selected = options.find((option) => option.id === selectedId);
-  return selected ? "模型已选好，等待模型服务接入。" : "所选模型配置已移除，请重新选择。";
+  const record = options.some((option) => option.id === selectedId) ? records.find((entry) => entry.id === selectedId) : undefined;
+  return record ? chatModelProfile(record).reason : "所选模型配置已移除，请重新选择。";
 }

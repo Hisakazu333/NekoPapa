@@ -13,7 +13,7 @@ export function GeneralSettingsPanel({ onClose }: { onClose: () => void }) {
   return <ConfigurationGroupPanel group="general" onClose={onClose} />;
 }
 
-/** Send and newline keys follow the General setting, so this list never contradicts it. */
+/** Every shortcut the workbench handles today. Send and newline keys follow the General setting, so this list never contradicts it. */
 function shortcutList(sendKey: unknown) {
   const modEnter = sendKey === "mod-enter";
   return [
@@ -23,6 +23,12 @@ function shortcutList(sendKey: unknown) {
     { keys: modEnter ? "Enter" : "Shift + Enter", action: "插入换行", description: "在聊天输入框中继续编写多行消息。" },
     { keys: "Escape", action: "关闭弹窗", description: "关闭当前可取消的对话框。" },
     { keys: "⌘ / Ctrl + ,", action: "打开或关闭设置", description: "macOS 使用 ⌘，Windows 和 Linux 使用 Ctrl。" },
+    { keys: "⌘J / Ctrl+J", action: "终端", description: "打开或收起右侧的终端面板（桌面应用）。输入框聚焦时同样生效。" },
+    { keys: "⇧⌘D / Ctrl+Shift+D", action: "更改", description: "打开或收起项目的 Git 更改面板。" },
+    { keys: "⇧⌘F / Ctrl+Shift+F", action: "文件", description: "打开或收起项目的文件面板。" },
+    { keys: "⇧⌘S / Ctrl+Shift+S", action: "批注网页", description: "内置浏览器打开网页时开始或退出批注；批注中按 Esc 关闭卡片或退出。" },
+    { keys: "← / → · Home / End", action: "切换标题栏标签", description: "焦点在标题栏的对话标签上时移动到相邻、第一个或最后一个标签。" },
+    { keys: "Delete", action: "关闭标签", description: "焦点在标题栏的对话或浏览器标签上时关闭它；回复生成中的对话不能关闭。" },
   ];
 }
 

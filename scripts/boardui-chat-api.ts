@@ -7,6 +7,8 @@ import type { Connect, Plugin } from "vite";
 export interface ChatRoute {
   GET: () => Promise<Response>;
   POST: (request: Request) => Promise<Response>;
+  /** 设置 → 模型与 API → 测试连接 (POST /api/model-test). */
+  TEST?: (request: Request) => Promise<Response>;
 }
 
 /** Keeps the installed Web API route server-side in Vite dev and preview. */
@@ -21,7 +23,14 @@ export function boarduiChatApi(route: ChatRoute): Plugin {
 
 export function createChatMiddleware(route: ChatRoute): Connect.NextHandleFunction {
   return (request, response, next) => {
-    if (request.url?.split("?", 1)[0] !== "/api/chat") { next(); return; }
+    const path = request.url?.split("?", 1)[0];
+    if (path === "/api/model-test" && route.TEST) {
+      const test = route.TEST;
+      // POST only: the GET probe of the chat route has no counterpart here.
+      void handleChatRequest(request, response, { GET: () => Promise.resolve(Response.json({ error: "method_not_allowed" }, { status: 405 })), POST: test });
+      return;
+    }
+    if (path !== "/api/chat") { next(); return; }
     void handleChatRequest(request, response, route);
   };
 }

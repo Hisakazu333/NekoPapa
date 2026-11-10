@@ -1,4 +1,5 @@
-import { DefaultChatTransport, readUIMessageStream, type UIMessage } from "ai";
+import { readUIMessageStream, type UIMessage } from "ai";
+import { createChatTransport } from "../../../app/chat-transport";
 import type { GroupReply } from "./group-turn";
 import { toChatContactRequest } from "../agent-chat/chat-contact";
 
@@ -10,7 +11,7 @@ export const requestGroupReply: GroupReply = async ({ group, contact, signal, on
     const label = message.role === "user" ? "用户" : `${speaker?.name ?? "联系人"} [${message.speakerId}]`;
     return { id: message.id, role: own ? "assistant" : "user", parts: [{ type: "text", text: `${label}：\n${message.text}` }] };
   });
-  const transport = new DefaultChatTransport({ api: "/api/chat" });
+  const transport = createChatTransport();
   const body = { contact: toChatContactRequest(contact), groupContext: { members: group.members.map(toChatContactRequest) } };
   const stream = await transport.sendMessages({ chatId: group.id, trigger: "submit-message", messageId: undefined, messages, abortSignal: signal, body });
   let text = "";

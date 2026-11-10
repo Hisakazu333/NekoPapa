@@ -47,7 +47,7 @@ export function ComposerModelMenu({ state, onConfigure, disabled, className, off
     onConfigure(document.getElementById(triggerId));
   };
   const status = state.modelBlockReason
-    || (official ? "官方服务未接入，模型选择不影响调用。" : state.selected?.runtime ? "当前使用运行服务提供的模型。" : "所选模型偏好暂存于本机会话。" );
+    || (official ? "官方服务未接入，模型选择不影响调用。" : state.selected?.runtime ? "当前使用运行服务提供的模型。" : state.selected ? "使用你在 设置 → 模型与 API 保存的配置回复。" : "未选择模型。" );
 
   return <Dropdown isOpen={open} onOpenChange={close}>
     <DropdownTrigger id={triggerId} aria-label="选择聊天模型" aria-description={status} isDisabled={disabled}

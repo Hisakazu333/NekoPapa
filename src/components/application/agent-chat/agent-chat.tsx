@@ -3,7 +3,7 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { createChatTransport } from "@/app/chat-transport";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
@@ -44,6 +44,7 @@ import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { ChatTitleTabs } from "./chat-title-tabs";
 import { ChatSidePanel } from "./chat-side-panel";
 import { ChatBrowserPanel } from "./chat-browser-panel";
+import { MessageLinkProvider, useMessageLinkOpener } from "./message-links";
 import { ChatToolPanel } from "./tools/chat-tool-panel";
 import { useChatToolShortcuts } from "./tools/chat-tool-buttons";
 import { useChatBrowser } from "./use-chat-browser";
@@ -89,12 +90,12 @@ export function AgentChat({
   const { contacts, deletedIds } = useContacts();
   const [selectedContact, setSelectedContact] = useState<ChatContact>();
   const activeContact = selectedContact ? contacts.find((contact) => contact.id === selectedContact.id) ?? selectedContact : undefined;
-  const availability = chatContactAvailability(probe, activeContact);
   const threads = useMemo(() => history.threads.filter((thread) => !thread.contact), [history.threads]);
   // Empty until the mount effect assigns one: an id generated during render
   // would differ between server and client and break hydration.
   const [activeId, setActiveId] = useState("");
   const composer = useChatComposer(activeId, { model: probe.model, provider: probe.label ?? probe.provider }, activeContact?.kind ?? "workspace");
+  const availability = chatContactAvailability(probe, activeContact, composer.usesProfile);
   // Elements picked in the built-in browser join the open chat's draft.
   const browser = useChatBrowser(composer.addPageElement);
   // The right-hand area holds either the side panel or the built-in browser;
@@ -105,6 +106,7 @@ export function AgentChat({
   const toggleTool = useCallback((tool: ChatTool) => placement.toggleAuxiliary(tool), [placement.toggleAuxiliary]);
   const browserDrag = useBrowserDrag((zone) => zone === "tab" ? placement.moveToTab() : placement.moveToSide());
   const browserLabel = browserTabLabel(browser.url, browser.title);
+  const openLink = useMessageLinkOpener(browser, placement.showBrowser);
   const composerBlockedReason = (activeContact?.kind === "official" ? composer.draftBlockReason : composer.blockReason) ?? availability.reason;
   /** Stamped on send, so render never calls Date.now(). */
   const [activeUpdatedAt, setActiveUpdatedAt] = useState(0);
@@ -123,7 +125,7 @@ export function AgentChat({
   const historyError = history.error;
   const retryHistory = history.retryHistory;
 
-  const [transport] = useState(() => new DefaultChatTransport({ api: ENDPOINT }));
+  const [transport] = useState(createChatTransport);
 
   const { messages, sendMessage, setMessages, status, stop, error } = useChat({
     transport,
@@ -238,7 +240,7 @@ export function AgentChat({
     const trimmed = text.trim();
     if (!trimmed || busy || !availability.ready || composerBlockedReason) return;
     setActiveUpdatedAt(Date.now());
-    void sendMessage({ text: activeContact?.kind === "official" ? trimmed : composer.prepareText(trimmed) }, activeContact ? { body: { contact: toChatContactRequest(activeContact) } } : undefined);
+    void sendMessage({ text: activeContact?.kind === "official" ? trimmed : composer.prepareText(trimmed) }, { body: { ...composer.requestBody, ...(activeContact ? { contact: toChatContactRequest(activeContact) } : {}) } });
     setInput("");
   };
 
@@ -421,7 +423,7 @@ export function AgentChat({
       tabs={chatTabEntries(windowNavigation.state, { activeId, activeTitle: workspaceTitle, threads: allThreads, sessionOf: (id) => sessionMemory.current.getSession(id) })} />,
   });
 
-  return localize((
+  return localize(<MessageLinkProvider value={openLink}>
     <MacWindowFrame
       contained={contained}
       className={className}
@@ -487,6 +489,6 @@ export function AgentChat({
       </div>
       <BrowserDragLayer drag={browserDrag.drag} />
     </MacWindowFrame>
-  ));
+  </MessageLinkProvider>);
 }
 

@@ -18,3 +18,5 @@ tauri = { version = "2", features = ["unstable"] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 portable-pty = "0.9"
+# The desktop chat runtime's model requests (model_proxy.rs): streamed replies over TLS.
+reqwest = { version = "0.13", default-features = false, features = ["stream", "native-tls", "http2"] }

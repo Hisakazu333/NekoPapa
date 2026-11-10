@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { parseChatProviderProbe, type ChatProviderProbe } from "@/app/chat-provider-status";
+import { chatFetch } from "@/app/desktop-chat-runtime";
 
 export function useChatProvider(endpoint: string) {
   const [probe, setProbe] = useState<ChatProviderProbe>(() => ({ ...parseChatProviderProbe(null), status: "checking" }));
@@ -7,7 +8,7 @@ export function useChatProvider(endpoint: string) {
   // no key renders setup steps instead of letting someone type into a dead box.
   useEffect(() => {
     let cancelled = false;
-    fetch(endpoint, { method: "GET" })
+    chatFetch(endpoint, { method: "GET" })
       .then((res) => (res.ok ? res.json() : null))
       .then((data: unknown) => {
         if (cancelled) return;

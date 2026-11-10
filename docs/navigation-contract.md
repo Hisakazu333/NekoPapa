@@ -708,3 +708,20 @@
 - 交互补充：悬停显示标签名与尺寸；“改为上一层元素”；“隐藏”改为“暂停批注”，暂停时网页恢复正常操作；工具条在鼠标靠近时移到顶部。`browser_pick.js` 463 行（500 行档）。
 - 验证：`npm run test` 510/510、`npm run build`、`git diff --check`、`cargo check` 与 `npm run desktop:build -- --debug` 通过。独立测试页注入验证：网页按钮的 `cursor:pointer` 被批注光标覆盖；悬停显示 `span 53×15`；点到按钮内文字后“改为上一层元素”变为 `#cta`；标记显示“1 按钮改大一点”；鼠标靠近底部时工具条移到顶部（top 16px）；暂停后标记隐藏、光标恢复、网页按钮点击生效；继续后“加入对话”返回该按钮与评论。光标与图标在浅色、深色背景下放大检查。
 - 未验证：Tauri 原生网页视图中的批注全流程与自定义光标显示。
+
+### 网页批注：工具条跳动与性能修复（2026-11-11）
+
+- 用户反馈：在桌面应用中点选元素后，想点“加入对话”时工具条跳到顶部，靠近顶部又跳回底部，始终点不到；批注和浏览器有性能问题。原因：工具条“鼠标靠近就移到另一边”的避让逻辑在判断指针是否位于工具条之前执行，指针一接近就移走；另外每次滚动帧都重建全部标记和工具条的 `innerHTML`，滚动中按下的按钮会被替换掉。
+- 修复：去掉自动避让，工具条固定在底部，拖动左侧的批注标签可移到任意位置（双击放回），工具条内文字不可选中；工具条只构建一次，`render()` 仅在批注变化时重建标记、更新文字与按钮状态，滚动与窗口变化只由 `layout()` 每帧最多重新定位一次；悬停描边改为每帧最多测量一次。“加入对话”和保存按钮悬停时保持粉色（此前被通用按钮悬停色覆盖）。浏览器面板原来在应用内任何过渡开始或结束时都逐帧测量 400ms，现在只对可能移动或改变大小的过渡（宽高、位置、transform、外边距等）跟随，悬停颜色过渡不再触发。面板提示改为“点网页工具栏的‘加入对话’”。
+- 结构：样式表拆到 `src-tauri/src/browser_pick_css.js`（69 行），`browser_view.rs` 用 `concat!` 把它与 `browser_pick.js`（456 行）包在同一个函数作用域中注入，网页全局不出现这两个名字；均在 500 行档。
+- 验证：`npm run test` 510/510，`npm run build`、`git diff --check`、`cargo check`、`cargo test`（10 项）与 `npm run desktop:build -- --debug` 通过。独立测试页（`localhost:1495` 写入的卡片页，非用户数据）注入与宿主相同拼接的脚本：点选卡片出现标记与评论卡片；指针从卡片移到工具条再到“加入对话”时工具条位置不变，点击返回 1 条批注及评论并移除批注界面；拖动标签后工具条移到 (448, 426)，之后仍可点选元素，点击移动后的“加入对话”成功；滚动后卡片和标记跟随。在 boardui.com 检查：无 CSP meta、`html` / `body` 无 transform / filter，固定定位的 Shadow 层位于最上层且输入框可获得焦点，空闲时无滚动事件。
+- 未验证：Tauri 原生网页视图中的点测（需用户在桌面应用中确认）；未能把完整脚本注入 boardui.com（浏览器面板阻止该网页访问本机开发服务器）。
+
+### 设置落地：模型驱动聊天、浏览器与编辑器偏好（2026-11-11）
+
+- 用户要求把设置页中不依赖 Agent 的逻辑都落地。模型与 API：输入框选中的配置随请求发送（`profile`，只含接口类型、地址、模型与凭据环境变量名），服务端校验后用对应接口发起请求，Key 从环境变量读取；记录菜单新增“测试连接”（`POST /api/model-test`，请求 `{地址}/models`）。个性化：自定义指令随请求发送（`instructions`），放在系统提示最前。
+- 桌面安装包聊天：`src/app/desktop-chat-runtime.ts` 拦截 `/api/chat` 与 `/api/model-test`，在窗口内运行与开发服务器相同的处理函数（`chat-handler.ts`、`providers.ts` 从 `route.ts` 拆出）；模型请求经 Tauri 命令 `model_fetch` / `model_fetch_cancel` 流式转发（`src-tauri/src/model_proxy.rs`，只允许 GET / POST 与 http(s)，请求体最大 8 MiB），Key 只在宿主侧填入，窗口只拿到前 8 个字符用于识别服务商。
+- 浏览器：消息中的网址可点击并按链接打开方式打开；地址栏遵循“显示完整网址”。编辑器与终端：“在编辑器中打开”（`editor_open.rs`）、并排差异视图、自动换行、空白字符显示、终端 Shell（`terminal_open` 新增 `shell` 参数）与字号。快捷键页补全为 13 项实际快捷键。以上配置组标为保存后立即生效。
+- 结构：新增 `chat-model-profile.ts`、`chat-transport.ts`、`desktop-chat-runtime.ts`、`message-links.ts`、`diff-rows.ts`、`use-model-tests.ts`、`use-editor-preferences.ts` 等；行数最大为 `agent-chat.tsx` 494 行，新增与修改文件均在 500 行档。
+- 验证：`npm run test` 517/517（新增 `chat-model-runtime.test.mjs` 7 项，用本机假 OpenAI 兼容服务验证 Authorization 来自环境变量、指令进入系统提示、用量写入、测试连接各状态、链接拆分、地址显示与并排差异），`npm run build`、`git diff --check`、`cargo check`、`cargo test`（14 项）与 `npm run desktop:build -- --debug` 通过。开发服务器 `localhost:1495`：不可达地址的测试连接返回“无法连接服务…”，GET 探测正常；快捷键页显示 13 项；模型与 API 页正常渲染。
+- 未验证：桌面安装包中用真实 Key 或本机模型的端到端聊天；桌面版“在编辑器中打开”与终端 Shell 切换的点测。群聊回复仍使用默认模型且不带自定义指令。

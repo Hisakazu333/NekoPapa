@@ -5,6 +5,8 @@ import { projectWorkspace } from "@/app/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 import { Chip, type ChipColor } from "@/components/base/badges/chip";
 import { DiffText } from "./file-text";
+import { OpenInEditorButton } from "./open-in-editor-button";
+import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 import { ToolPanelMessage } from "./tool-panel-frame";
 
 type Load = { kind: "loading" } | { kind: "error"; message: string } | { kind: "norepo" } | { kind: "ready"; status: GitStatus };
@@ -60,7 +62,7 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
     }
   };
 
-  if (diff) return <DiffPane diff={diff} onBack={() => { setDiff(undefined); void refresh(); }} />;
+  if (diff) return <DiffPane root={root} diff={diff} onBack={() => { setDiff(undefined); void refresh(); }} />;
   if (load.kind === "loading") return <ToolPanelMessage icon={GitBranchIcon} title="正在读取 Git 状态…" />;
   if (load.kind === "error") return <ToolPanelMessage tone="error" icon={GitBranchIcon} title="无法读取更改" detail={load.message} />;
   if (load.kind === "norepo") return <ToolPanelMessage icon={GitBranchIcon} title="这个文件夹不是 Git 仓库" detail="在项目文件夹中运行 git init 后，这里显示未提交的更改。" />;
@@ -94,8 +96,9 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
   </div>;
 }
 
-function DiffPane({ diff, onBack }: { diff: Diff; onBack: () => void }) {
+function DiffPane({ root, diff, onBack }: { root: string; diff: Diff; onBack: () => void }) {
   const { change, state } = diff;
+  const editor = useEditorPreferences();
   return <div className="flex min-h-0 flex-1 flex-col">
     <div className="flex shrink-0 items-center gap-2 px-2 pb-2">
       <ToolbarIconButton icon={ArrowLeftIcon} label="返回更改列表" onPress={onBack} />
@@ -103,6 +106,7 @@ function DiffPane({ diff, onBack }: { diff: Diff; onBack: () => void }) {
       {state.kind === "ready" && <span className="shrink-0 font-mono text-caption-1-regular">
         <span className="text-status-lime-text">+{state.diff.added}</span> <span className="text-status-rose-text">−{state.diff.removed}</span>
       </span>}
+      {change.kind !== "deleted" && <OpenInEditorButton root={root} path={change.path} />}
     </div>
     {state.kind === "loading" && <ToolPanelMessage icon={GitBranchIcon} title="正在读取差异…" />}
     {state.kind === "error" && <ToolPanelMessage tone="error" icon={GitBranchIcon} title="无法读取差异" detail={state.message} />}
@@ -110,6 +114,6 @@ function DiffPane({ diff, onBack }: { diff: Diff; onBack: () => void }) {
       ? <ToolPanelMessage icon={GitBranchIcon} title="二进制文件或文件太大" detail="这里只显示文本差异。" />
       : state.diff.lines.length === 0
         ? <ToolPanelMessage icon={GitBranchIcon} title="没有可显示的文本差异" detail={change.kind === "renamed" ? "文件只是改了名字。" : "可能只改了文件权限。"} />
-        : <DiffText lines={state.diff.lines} />)}
+        : <DiffText lines={state.diff.lines} split={editor.split} wrap={editor.wrap} whitespace={editor.whitespace} />)}
   </div>;
 }

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat-composer-draft";
 import { composerModelBlockReason, composerModels, type ComposerRuntimeModel } from "@/app/composer-model";
 import { addPageElement, type PageElement } from "@/app/browser-pick";
+import { chatModelProfile } from "@/app/chat-model-profile";
 import { useConfiguration } from "./use-configuration";
 
 interface DraftState { draft: ComposerDraft; selectedModel?: string; error?: string }
@@ -19,7 +20,13 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
   };
   const models = composerModels(data.collections.models, runtime);
   const selected = models.find((option) => option.id === (state.selectedModel ?? "runtime"));
-  const modelBlockReason = composerModelBlockReason(state.selectedModel, models);
+  const modelBlockReason = composerModelBlockReason(state.selectedModel, models, data.collections.models);
+  // What every send adds to the request: the saved profile the picker chose
+  // (else the runtime's own provider answers) and 设置 → 个性化's instructions.
+  const record = selected && !selected.runtime ? data.collections.models.find((entry) => entry.id === selected.id) : undefined;
+  const profile = record ? chatModelProfile(record).profile : undefined;
+  const instructions = String(data.groups.personalization?.instructions ?? "").trim();
+  const requestBody = { ...(profile ? { profile } : {}), ...(instructions ? { instructions } : {}) };
   const draftBlockReason = composerDraftBlockReason(state.draft);
   return {
     draft: state.draft,
@@ -30,6 +37,9 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     modelBlockReason,
     draftBlockReason,
     blockReason: draftBlockReason ?? modelBlockReason,
+    /** A saved profile answers, so the runtime's own key is not needed. */
+    usesProfile: Boolean(profile),
+    requestBody,
     setDraft: (change: (draft: ComposerDraft) => ComposerDraft) => update((previous) => ({ ...previous, draft: change(previous.draft) })),
     selectModel: (selectedModel: string) => update((previous) => ({ ...previous, selectedModel })),
     addFiles: (files: File[]) => update((previous) => {

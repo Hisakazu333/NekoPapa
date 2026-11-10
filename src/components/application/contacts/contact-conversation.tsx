@@ -1,5 +1,5 @@
 import { useChat } from "@ai-sdk/react";
-import { DefaultChatTransport } from "ai";
+import { createChatTransport } from "@/app/chat-transport";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
@@ -37,7 +37,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
   const openSettings = useWorkspaceSettings();
   const { profile } = useLocalProfile();
   const [initial] = useState<StoredThread>(() => initialThread ?? resolveContactThread(history.threads, contact));
-  const [transport] = useState(() => new DefaultChatTransport({ api: "/api/chat" }));
+  const [transport] = useState(createChatTransport);
   const { messages, setMessages, sendMessage, regenerate, status, stop, error } = useChat({ id: initial.id, messages: initial.messages, transport });
   const synchronized = useRef(initial);
   const [metadata, setMetadata] = useState(initial);
@@ -47,7 +47,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
   const [messageAt, setMessageAt] = useState(initial.messageAt);
   const scrollRef = useRef<HTMLDivElement>(null);
   const busy = status === "submitted" || status === "streaming";
-  const availability = chatContactAvailability(provider, contact);
+  const availability = chatContactAvailability(provider, contact, composer.usesProfile);
   const draftBlockedReason = contact.kind === "official" ? composer.draftBlockReason : composer.blockReason;
   const modeBlocked = Boolean(draftBlockedReason);
   const last = messages[messages.length - 1];
@@ -101,7 +101,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
   const send = () => {
     if (!input.trim() || modeBlocked || busy || !availability.ready) return;
     setUpdatedAt(Date.now());
-    void sendMessage({ text: contact.kind === "official" ? input.trim() : composer.prepareText(input) }, { body: { contact: toChatContactRequest(contact) } });
+    void sendMessage({ text: contact.kind === "official" ? input.trim() : composer.prepareText(input) }, { body: { ...composer.requestBody, contact: toChatContactRequest(contact) } });
     setInput("");
   };
 
@@ -120,7 +120,7 @@ export function ContactConversation({ contact, initialThread, provider, active, 
       {showThinking && <AgentThinking variant="wave" label={`${contact.name}正在回复`} className="mt-5" />}
       {error && <div role="alert" className="mt-4 flex items-center gap-3 rounded-xl border border-separator-border bg-background-full p-3 text-body-regular text-text-secondary">
         <span>{availability.reason ?? "回复失败，消息已保留。请检查模型连接后重试。"}</span>
-        <button type="button" disabled={busy || !availability.ready || modeBlocked || Boolean(composer.modelBlockReason)} className="shrink-0 cursor-pointer underline disabled:opacity-50" onClick={() => { if (!availability.ready || busy || modeBlocked || composer.modelBlockReason) return; setUpdatedAt(Date.now()); void regenerate({ body: { contact: toChatContactRequest(contact) } }); }}>重试回复</button>
+        <button type="button" disabled={busy || !availability.ready || modeBlocked || Boolean(composer.modelBlockReason)} className="shrink-0 cursor-pointer underline disabled:opacity-50" onClick={() => { if (!availability.ready || busy || modeBlocked || composer.modelBlockReason) return; setUpdatedAt(Date.now()); void regenerate({ body: { ...composer.requestBody, contact: toChatContactRequest(contact) } }); }}>重试回复</button>
       </div>}
     </div>
     {history.error && <p role="alert" className="border-t border-separator-border px-5 py-2 text-caption-1-regular text-text-secondary">{history.error} <button type="button" onClick={history.retryHistory} className="cursor-pointer underline">重试保存</button></p>}

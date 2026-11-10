@@ -197,10 +197,15 @@ test("model search supports names, identifiers and provider groups, with empty a
   assert.deepEqual(model.filterComposerModels(options, "missing"), []);
 });
 
-test("pending or removed model selection blocks use of the unrelated current runtime", () => {
-  const options = model.composerModels([{ id: "own", values: { name: "同名模型", model: "runtime", provider: "compatible" } }], { model: "runtime" });
-  assert.equal(model.composerModelBlockReason("runtime", options), undefined);
-  assert.match(model.composerModelBlockReason("own", options), /等待模型服务接入/);
-  assert.match(model.composerModelBlockReason("removed", options), /已移除/);
-  assert.equal(model.composerModelBlockReason(undefined, options), undefined);
+test("a saved model profile answers; an invalid or removed one blocks instead of falling back to the runtime", () => {
+  const records = [
+    { id: "own", values: { name: "同名模型", model: "runtime", provider: "compatible", endpoint: "http://127.0.0.1:11434/v1", environment: "" } },
+    { id: "bad", values: { name: "坏配置", model: "m", provider: "compatible", endpoint: "not a url", environment: "" } },
+  ];
+  const options = model.composerModels(records, { model: "runtime" });
+  assert.equal(model.composerModelBlockReason("runtime", options, records), undefined);
+  assert.equal(model.composerModelBlockReason("own", options, records), undefined);
+  assert.match(model.composerModelBlockReason("bad", options, records), /服务地址或模型标识无效/);
+  assert.match(model.composerModelBlockReason("removed", options, records), /已移除/);
+  assert.equal(model.composerModelBlockReason(undefined, options, records), undefined);
 });

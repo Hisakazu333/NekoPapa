@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv } from "vite";
 import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
-import { GET, POST } from "./src/app/api/chat/route";
+import { GET, POST, TEST } from "./src/app/api/chat/route";
 import { boarduiChatApi } from "./scripts/boardui-chat-api";
 import { projectFolderApi } from "./scripts/project-folder-api";
 import { localModelsApi } from "./scripts/local-models-api";
@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     if (process.env[name] === undefined && environment[name] !== undefined) process.env[name] = environment[name];
   }
   return {
-    plugins: [tailwindcss(), boarduiChatApi({ GET, POST }), projectFolderApi(), localModelsApi(), projectWorkspaceApi(), skillDiscoveryApi()],
+    plugins: [tailwindcss(), boarduiChatApi({ GET, POST, TEST }), projectFolderApi(), localModelsApi(), projectWorkspaceApi(), skillDiscoveryApi()],
     resolve: { alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     } },

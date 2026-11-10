@@ -49,9 +49,9 @@ function nekoPapaPickCss(ACCENT, ACCENT_DEEP) {
     .small { width: 24px; height: 24px; border-radius: 8px; }
     .small svg { width: 15px; height: 15px; }
     .round { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); color: #fff; }
-    .round:hover { filter: brightness(1.08); color: #fff; }
+    .round:hover { background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); filter: brightness(1.08); color: #fff; }
     .bar { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 6px;
-      pointer-events: auto; border-radius: 22px; }
+      pointer-events: auto; border-radius: 22px; user-select: none; -webkit-user-select: none; }
     .bar.moved { bottom: auto; transform: none; }
     .grip { width: 30px; height: 30px; border-radius: 12px; color: ${ACCENT}; cursor: grab; touch-action: none; }
     .grip:hover { color: ${ACCENT}; }
@@ -63,6 +63,7 @@ function nekoPapaPickCss(ACCENT, ACCENT_DEEP) {
     .hint { padding: 0 6px; color: #a1a1aa; white-space: nowrap; }
     .sep { width: 1px; height: 18px; margin: 0 4px; background: rgba(255,255,255,.14); }
     .send { height: 30px; padding: 0 14px; border-radius: 12px; background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); color: #fff; font-weight: 600; }
-    .send:hover { filter: brightness(1.08); color: #fff; }
+    .send:hover { background: linear-gradient(180deg, ${ACCENT}, ${ACCENT_DEEP}); filter: brightness(1.08); color: #fff; }
+    .send:disabled { background: rgba(255,255,255,.08); filter: none; }
 `;
 }

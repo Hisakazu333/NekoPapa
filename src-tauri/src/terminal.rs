@@ -56,13 +56,29 @@ fn take_utf8(pending: &mut Vec<u8>) -> String {
     text
 }
 
+/// 设置 → 编辑器与终端 → Shell: one of the listed shells, found in the usual places.
+fn find_shell(name: &str) -> Result<String, String> {
+    if !["zsh", "bash", "fish", "pwsh"].contains(&name) {
+        return Err("未知的 Shell。".into());
+    }
+    ["/bin", "/usr/bin", "/usr/local/bin", "/opt/homebrew/bin"]
+        .iter()
+        .map(|dir| PathBuf::from(dir).join(name))
+        .find(|path| path.is_file())
+        .map(|path| path.to_string_lossy().into_owned())
+        .ok_or(format!("没有找到 {name}，请先安装，或在 设置 → 编辑器与终端 中选择其他 Shell。"))
+}
+
 #[tauri::command]
-pub async fn terminal_open<R: Runtime>(app: AppHandle<R>, terminals: State<'_, Terminals>, cwd: Option<String>, cols: u16, rows: u16) -> Result<u32, String> {
+pub async fn terminal_open<R: Runtime>(app: AppHandle<R>, terminals: State<'_, Terminals>, cwd: Option<String>, cols: u16, rows: u16, shell: Option<String>) -> Result<u32, String> {
     if terminals.sessions.lock().map_err(|_| "终端不可用。")?.len() >= MAX_SESSIONS {
         return Err("同时最多打开 8 个终端。".into());
     }
     let pair = native_pty_system().openpty(size(cols, rows)).map_err(|_| "无法创建终端。".to_string())?;
-    let shell = std::env::var("SHELL").unwrap_or_else(|_| if cfg!(windows) { "powershell.exe".into() } else { "/bin/zsh".into() });
+    let shell = match shell.as_deref() {
+        None | Some("system") => std::env::var("SHELL").unwrap_or_else(|_| if cfg!(windows) { "powershell.exe".into() } else { "/bin/zsh".into() }),
+        Some(name) => find_shell(name)?,
+    };
     let mut command = CommandBuilder::new(&shell);
     if !cfg!(windows) {
         command.arg("-l");

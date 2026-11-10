@@ -52,9 +52,9 @@ export const personalConfiguration: readonly ConfigurationSchema[] = [
       select("webSearch", "网页搜索", "off", [["off", "关闭"], ["cached", "优先缓存"], ["live", "实时搜索"]], "", "segmented"),
     ] },
   ] },
-  { id: "personalization", effect: "runtime", scope: "用户偏好 · 当前保存指令和记忆策略，尚未生成或检索长期记忆。", blocks: [
+  { id: "personalization", effect: "immediate", scope: "用户偏好 · 自定义指令保存后加入工作台与联系人的每次聊天；记忆策略尚未接入，不会生成或检索长期记忆。", blocks: [
     { title: "自定义指令", fields: [
-      { ...text("instructions", "给 Agent 的指令", "描述称呼、语气、工作习惯和希望遵守的规则。", 12000), type: "textarea", control: "textarea" },
+      { ...text("instructions", "给 Agent 的指令", "描述称呼、语气、工作习惯和希望遵守的规则；会作为系统指令加入每次聊天（官方人物除外）。", 12000), type: "textarea", control: "textarea" },
       toggle("writingStyle", "参考我的写作偏好", false, "使用明确填写的指令，不会读取其他应用或历史文件。"),
     ] },
     { title: "记忆", fields: [

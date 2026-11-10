@@ -39,11 +39,13 @@ function route() {
   return routing;
 }
 
-const keyOf = (cwd: string | undefined) => cwd ?? "~";
+/** 设置 → 编辑器与终端 → Shell; "system" is the login shell ($SHELL). */
+export type TerminalShell = "system" | "zsh" | "bash" | "fish" | "pwsh";
+const keyOf = (cwd: string | undefined, shell: TerminalShell) => `${shell}:${cwd ?? "~"}`;
 
-async function start(cwd: string | undefined, cols: number, rows: number): Promise<TerminalSession> {
+async function start(cwd: string | undefined, cols: number, rows: number, shell: TerminalShell): Promise<TerminalSession> {
   await route();
-  const id = await invoke<number>("terminal_open", { cwd: cwd ?? null, cols, rows });
+  const id = await invoke<number>("terminal_open", { cwd: cwd ?? null, cols, rows, shell });
   let buffer = "";
   let ended = false;
   const listeners = new Set<Listener>();
@@ -55,7 +57,7 @@ async function start(cwd: string | undefined, cols: number, rows: number): Promi
     end() {
       ended = true;
       byId.delete(id);
-      sessions.delete(keyOf(cwd));
+      sessions.delete(keyOf(cwd, shell));
       for (const listener of listeners) listener({ kind: "exit" });
     },
   });
@@ -68,7 +70,7 @@ async function start(cwd: string | undefined, cols: number, rows: number): Promi
     resize: (cols, rows) => { if (!ended) void invoke("terminal_resize", { id, cols, rows }).catch(ignore); },
     subscribe: (listener) => { listeners.add(listener); return () => listeners.delete(listener); },
     async close() {
-      sessions.delete(keyOf(cwd));
+      sessions.delete(keyOf(cwd, shell));
       byId.delete(id);
       ended = true;
       await invoke("terminal_close", { id }).catch(ignore);
@@ -76,12 +78,12 @@ async function start(cwd: string | undefined, cols: number, rows: number): Promi
   };
 }
 
-/** The live session for this folder, or a new one. */
-export function terminalFor(cwd: string | undefined, cols: number, rows: number): Promise<TerminalSession> {
-  const key = keyOf(cwd);
+/** The live session for this folder and shell, or a new one. */
+export function terminalFor(cwd: string | undefined, cols: number, rows: number, shell: TerminalShell = "system"): Promise<TerminalSession> {
+  const key = keyOf(cwd, shell);
   const existing = sessions.get(key);
   if (existing) return existing;
-  const created = start(cwd, cols, rows);
+  const created = start(cwd, cols, rows, shell);
   sessions.set(key, created);
   created.catch(() => sessions.delete(key));
   return created;

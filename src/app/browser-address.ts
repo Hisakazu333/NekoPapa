@@ -10,7 +10,7 @@ export type BrowserAddress = { ok: true; url: string } | { ok: false; reason: st
 const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
 const HOST = /^(\[[0-9a-f:]+\]|[a-z0-9-]+(\.[a-z0-9-]+)*)(:\d{1,5})?([/?#].*)?$/i;
 
-function isLocalHost(host: string) {
+export function isLocalHost(host: string) {
   const name = host.replace(/^\[|\]$/g, "").toLowerCase();
   return name === "localhost" || name === "::1" || /^127(\.\d{1,3}){3}$/.test(name) || name.endsWith(".localhost") || name.endsWith(".test");
 }
@@ -42,10 +42,15 @@ export function normalizeBrowserAddress(input: string): BrowserAddress {
   return { ok: false, reason: "网址格式不正确。" };
 }
 
-/** What the address bar shows for a page: the URL without a trailing "/" on a bare origin. */
-export function displayBrowserAddress(url: string): string {
+/**
+ * What the address bar shows for a page. `full` (设置 → 浏览器 → 显示完整网址)
+ * shows the whole URL, without a trailing "/" on a bare origin; otherwise
+ * the host and path only. Editing always starts from the full URL.
+ */
+export function displayBrowserAddress(url: string, full = true): string {
   try {
     const parsed = new URL(url);
+    if (!full) return `${parsed.host}${parsed.pathname === "/" ? "" : parsed.pathname.replace(/\/$/, "")}`;
     return parsed.pathname === "/" && !parsed.search && !parsed.hash ? parsed.origin : parsed.href;
   } catch {
     return url;

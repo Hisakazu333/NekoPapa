@@ -7,6 +7,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { cx } from "@/utils/cx";
+import { LinkedText } from "./message-links";
 
 /**
  * One turn in the transcript.
@@ -36,7 +37,7 @@ export function AgentMessage({ role, text, streaming = false, at }: AgentMessage
   if (role === "user") {
     return localize((
       <p className="ms-auto flex w-fit max-w-[75%] flex-col rounded-2xl bg-background-primary-default px-3 py-[11px] text-start text-body-regular break-words whitespace-pre-wrap text-text-primary shadow-card">
-        <span translate="no">{text}</span>
+        <span translate="no"><LinkedText text={text} /></span>
       </p>
     ));
   }
@@ -105,7 +106,7 @@ const Line = memo(function Line({ text, animate }: { text: string; animate: bool
       translate="no"
       className="text-body-regular break-words text-text-primary"
     >
-      {text}
+      <LinkedText text={text} />
     </motion.p>
   );
 });

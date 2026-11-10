@@ -39,17 +39,17 @@ export const developmentConfiguration: readonly ConfigurationSchema[] = [
       { key: "compactThreshold", label: "压缩阈值", hint: "上下文使用达到该比例时压缩。", type: "number", control: "slider", initial: 85, min: 50, max: 95, step: 5, unit: "%" },
     ] },
   ] },
-  { id: "editor", effect: "runtime", scope: "编辑器与终端 · 文件打开和终端服务尚未接入；保存不会启动编辑器或 Shell。", blocks: [
+  { id: "editor", effect: "immediate", scope: "编辑器与终端 · 用于“更改”“文件”面板和内置终端，保存后生效；命令超时等 Agent 运行命令时使用。", blocks: [
     { title: "编辑器", fields: [
-      select("external", "外部编辑器", "system", [["system", "系统默认"], ["vscode", "VS Code"], ["cursor", "Cursor"], ["zed", "Zed"], ["jetbrains", "JetBrains IDE"], ["xcode", "Xcode"]], "从变更和文件链接打开时使用。"),
+      select("external", "外部编辑器", "system", [["system", "系统默认"], ["vscode", "VS Code"], ["cursor", "Cursor"], ["zed", "Zed"], ["jetbrains", "JetBrains IDE"], ["xcode", "Xcode"]], "在“更改”“文件”面板中点按“用…打开”时使用（桌面应用）。"),
       { ...select("diff", "差异视图", "unified", [["unified", "统一"], ["split", "并排"]], "", "segmented"), optionHints: { unified: "增删内容上下排列。", split: "修改前后左右对照。" } },
       toggle("wrap", "自动换行", "长行在差异和文件预览中换行。", true),
       toggle("whitespace", "显示空白字符变化", "在差异中标出缩进和行尾空格。"),
     ] },
     { title: "终端", fields: [
-      select("shell", "Shell", "system", [["system", "系统默认"], ["zsh", "zsh"], ["bash", "bash"], ["fish", "fish"], ["pwsh", "PowerShell"]], "Agent 运行命令时使用。"),
+      select("shell", "Shell", "system", [["system", "系统默认"], ["zsh", "zsh"], ["bash", "bash"], ["fish", "fish"], ["pwsh", "PowerShell"]], "内置终端新开的会话使用；已在运行的终端点“重新启动”后生效。"),
       number("fontSize", "终端字号", "内置终端的字号。", 13, 10, 24, " px"),
-      number("timeout", "命令超时", "超过时间仍未结束的命令会被停止。", 120, 10, 3600, " 秒"),
+      number("timeout", "命令超时", "Agent 运行命令时使用：超过时间仍未结束的命令会被停止。内置终端是交互式的，不受此限制。", 120, 10, 3600, " 秒"),
     ] },
   ] },
 ];
