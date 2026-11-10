@@ -96,7 +96,7 @@ v2 协议区分 `session_id`、`turn_id`、事件 `seq`、提交身份和取消 
 执行器在最终 `done` 可见前刷新持久事件并更新终态；取消路径尽力保存已生成内容，不承诺撤销已有副作用。事件重放也不表示模型调用或内存 Solve 计划能在进程死亡后原样继续。
 源码：[完成提交 L1295](https://github.com/HKUDS/DeepTutor/blob/60fb3bdfddb30b7740c7ce3bd9b28d908f2af6db/deeptutor/services/session/turns/executor.py#L1295)、[取消处理 L1346](https://github.com/HKUDS/DeepTutor/blob/60fb3bdfddb30b7740c7ce3bd9b28d908f2af6db/deeptutor/services/session/turns/executor.py#L1346)。
 
-**我们采用的设计：** 沿用 [目标运行契约](architecture.md) 与 [会话存储](session-storage.md) 的 Rust 单写、Node 执行与持久事件边界，普通文字学习不强制依赖 Pi。
+**我们采用的设计：** 沿用 [目标运行契约](architecture.md) 与 [会话存储](session-storage.md) 的 Rust 单写、Node 执行与持久事件边界，普通文字学习不强制依赖 Coding 执行层。
 `requestId` 对应用户动作，`runId` 对应一次执行，`attemptId` 对应一次学员作答；同 attempt 的判分重试可产生新 run，不能新增作答证据。
 事件提交后广播，重连先读快照与缺口；进程死亡标 interrupted，保留已提交前缀，由用户选择重试。
 将来若用 DeepTutor adapter，额外保存服务端 session / turn ID 及 turn 内 `seq`，它与我们计划的 Session 事件序号不是同一计数器。
@@ -134,7 +134,7 @@ SQLite 由宿主单写，原件与索引放管理资源目录，执行器只返�
 
 ### EDU-0：真实运行与可恢复存储
 
-依赖普通模型连接、宿主进程 / 协议、Session / Run 与持久化基础，对应 `RT-01 / RT-03`、`DATA-01–04`、`CHAT-01–03` 的相关部分。普通学习底座与 Pi 专用依赖分开；浏览器可先纵向验证，桌面仍需安装包运行与退出验收。
+依赖普通模型连接、宿主进程 / 协议、Session / Run 与持久化基础，对应 `RT-01 / RT-03`、`DATA-01–04`、`CHAT-01–03` 的相关部分。普通学习底座与 Coding 执行层专用依赖分开；浏览器可先纵向验证，桌面仍需安装包运行与退出验收。
 通过条件：两轮真实问答可继续；重复提交不重复执行；停止、断流、保存失败、认证失效和进程退出都有真实状态与恢复入口。
 
 ### EDU-1：一份资料的一次学习闭环
@@ -156,7 +156,7 @@ SQLite 由宿主单写，原件与索引放管理资源目录，执行器只返�
 
 ### EDU-4：编程实作与专题研究
 
-编程执行依赖 Pi / 宿主的目录绑定、授权、真实命令与测试，没有执行器时只承诺阅读分析并标“未运行”。
+编程执行依赖 Coding 执行层 / 宿主的目录绑定、授权、真实命令与测试，没有执行器时只承诺阅读分析并标“未运行”。
 专题研究依赖可靠检索、预算、提纲确认、子任务取消与 partial 成果，多联系人群聊作为独立产品范围。
 通过条件：命令、退出码、测试与改动来自真实结果；研究引用可打开，子题失败不呈现完整成功，取消保留已发生的实际结果。
 

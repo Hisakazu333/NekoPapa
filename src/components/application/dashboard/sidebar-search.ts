@@ -54,7 +54,7 @@ const settingsSearchAliases: Record<string, string> = {
   screenshots: "screenshots app snapshots",
   browser: "browser links annotations",
   connections: "devices ssh connections",
-  coding: "coding pi development",
+  coding: "coding development",
   hooks: "hooks lifecycle commands",
   review: "review code security",
   git: "git branches pull requests",

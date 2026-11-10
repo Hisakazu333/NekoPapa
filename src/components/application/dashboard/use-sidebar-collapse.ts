@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
  * The sidebar's collapsed state, plus a temporary rail on request: while
- * `preferRail` holds (the built-in browser is open) an expanded sidebar folds
+ * `preferRail` holds (the built-in browser or a tool panel is open) an expanded sidebar folds
  * to its icon rail to give the page room, and opens again when the request
  * ends. Collapsing or expanding by hand in between is the user's choice and
  * is kept: the sidebar is then not reopened automatically.

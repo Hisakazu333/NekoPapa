@@ -1,13 +1,16 @@
 import { useCallback, useState } from "react";
+import type { ChatTool } from "@/app/chat-tools";
 
-export type ChatAuxiliary = "panel" | "browser" | null;
+/** What the right-hand area shows: the side panel, the side browser or a title-bar tool. */
+export type ChatAuxiliary = "panel" | "browser" | ChatTool | null;
 
 /**
  * Where the built-in browser lives: in the right-hand area beside the chat
  * (`auxiliary === "browser"`), or as its own tab in the title bar that shows
  * the page across the whole work area. There is one browser either way, so
- * moving it keeps the page. The side panel (历史 / 代码 / 资料) shares the
- * right-hand area with the side browser only.
+ * moving it keeps the page. The side panel (历史 / 代码 / 资料), the side
+ * browser and the title-bar tools (目录 / 终端 / 更改 / 文件) take turns in
+ * the right-hand area.
  *
  * `chatId` is the open chat: opening another chat (from a tab, the sidebar
  * or 新建对话) leaves the browser tab for the chat, which keeps the tab.
@@ -22,7 +25,7 @@ export function useBrowserPlacement(chatId: string) {
     if (browserTab?.active) setBrowserTab({ active: false });
   }
 
-  const toggleAuxiliary = useCallback((kind: "panel" | "browser") => {
+  const toggleAuxiliary = useCallback((kind: Exclude<ChatAuxiliary, null>) => {
     // The side area belongs to the chat view, so using it shows the chat.
     setBrowserTab((current) => current && { active: false });
     setAuxiliary((current) => current === kind ? null : kind);

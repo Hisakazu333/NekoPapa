@@ -68,13 +68,15 @@ export function ChatConversation({
             onProjectChange={onProjectChange}
           />
         ) : messages.map((message, index) => (
-          <AgentMessage
-            key={message.id}
-            role={message.role}
-            text={messageText(message)}
-            streaming={busy && index === messages.length - 1}
-            at={messageAt[message.id]}
-          />
+          // The wrapper is the 目录 panel's jump target (data-message-id).
+          <div key={message.id} data-message-id={message.id} className="scroll-mt-20">
+            <AgentMessage
+              role={message.role}
+              text={messageText(message)}
+              streaming={busy && index === messages.length - 1}
+              at={messageAt[message.id]}
+            />
+          </div>
         ))}
 
         {showThinking && <AgentThinking variant="wave" label="Thinking" className="px-1" />}

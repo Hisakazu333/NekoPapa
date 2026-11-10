@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { Button as AriaButton } from "react-aria-components";
+import { Button as AriaButton, ToggleButton as AriaToggleButton } from "react-aria-components";
 import { Tooltip, TooltipTrigger } from "@/components/base/tooltip/tooltip";
 import { Kbd } from "@/components/base/kbd/kbd";
 import { cx } from "@/utils/cx";
@@ -38,6 +38,30 @@ export function ToolbarIconButton({ icon: Icon, label, onPress, isDisabled = fal
       <AriaButton aria-label={label} onPress={onPress} isDisabled={isDisabled} className={cx(toolbarIconButtonClass, className)}>
         <Icon className={cx(toolbarIconClass, directionalIconClass(Icon))} aria-hidden />
       </AriaButton>
+      <Tooltip placement="bottom">{shortcut ? <span className="flex items-center gap-2">{label}<Kbd>{shortcut}</Kbd></span> : label}</Tooltip>
+    </TooltipTrigger>
+  );
+}
+
+/**
+ * The same quiet button as an on / off toggle for a panel (终端, 文件, …):
+ * pressed state shows as the hover fill, and the tooltip names the action
+ * and its shortcut.
+ */
+export function ToolbarToggleButton({ icon: Icon, label, isSelected, onChange, shortcut, isDisabled = false }: {
+  icon: IconComponent;
+  label: string;
+  isSelected: boolean;
+  onChange: () => void;
+  shortcut?: string;
+  isDisabled?: boolean;
+}) {
+  return (
+    <TooltipTrigger>
+      <AriaToggleButton aria-label={label} isSelected={isSelected} onChange={onChange} isDisabled={isDisabled}
+        className={cx(toolbarIconButtonClass, "data-[selected]:bg-background-primary-hover data-[selected]:text-text-primary")}>
+        <Icon className={toolbarIconClass} aria-hidden />
+      </AriaToggleButton>
       <Tooltip placement="bottom">{shortcut ? <span className="flex items-center gap-2">{label}<Kbd>{shortcut}</Kbd></span> : label}</Tooltip>
     </TooltipTrigger>
   );

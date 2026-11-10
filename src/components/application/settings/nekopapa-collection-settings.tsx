@@ -236,7 +236,7 @@ function ModelDefaults({ records }: { records: ConfigurationRecord[] }) {
       <SettingsRow label="通用 Agent" description="在 Agent 设置中选择；聊天服务尚未读取这些配置。">
         <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><RiCloudLine className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.agent?.modelId)}</span></span>
       </SettingsRow>
-      <SettingsRow label="Coding Agent" description="在 Coding 设置中选择；Pi 接入后使用。">
+      <SettingsRow label="Coding Agent" description="在 Coding 设置中选择；Coding 执行层接入后使用。">
         <span className="flex min-w-0 items-center gap-2 text-body-2-regular text-text-primary"><RiCodeLine className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="max-w-40 truncate">{modelName(data.groups.coding?.modelId)}</span></span>
       </SettingsRow>
     </SettingsCard>

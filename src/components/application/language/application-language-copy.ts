@@ -134,7 +134,7 @@ const copyPairs = [
   ["保存未来快照服务的输出偏好。", "Set output preferences for a future snapshot service."],
   ["保存未来浏览器服务的链接和批注偏好。", "Set link and annotation preferences for a future browser service."],
   ["管理远程设备连接信息。", "Manage remote device connection details."],
-  ["保存 Pi 项目与代码编辑的默认配置。", "Set defaults for Pi projects and code editing."],
+  ["保存 Coding 项目与代码编辑的默认配置。", "Set defaults for Coding projects and code editing."],
   ["管理未来运行服务的事件与命令配置。", "Manage event and command settings for a future runtime service."],
   ["保存代码审查与安全审查的默认配置。", "Set defaults for code and security reviews."],
   ["保存分支、提交和 Pull Request 偏好。", "Set branch, commit, and pull request preferences."],

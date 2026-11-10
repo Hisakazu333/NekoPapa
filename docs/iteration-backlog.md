@@ -12,14 +12,14 @@
 
 修改现有模块时遵循 [仓库迭代约定](../AGENTS.md)。DATA-04 / UX-01 先完成相关职责拆分：控制器按菜单、弹窗、搜索与快捷键提取，状态按类型、持久化与兼容恢复整理，工作台测试按行为拆开且保持覆盖。新增文件默认 500 行档，超限不能仅登记待办后交付。
 
-## M0：运行时与 Pi 实验
+## M0：运行时与执行引擎实验
 
 | ID / 优先级 | 依赖 | 开发交付与计划代码位置 | 完成条件 / 验证 |
 | --- | --- | --- | --- |
 | RT-01 / P0 | 当前 Tauri 壳 | Rust `agent_process/` + `agent-runtime/` 构建入口；子进程启动、握手、退出及资源定位 | 原生包不依赖系统 Node；不兼容握手、缺资源与异常退出有错误；A-RT-01 |
-| RT-02 / P0 | RT-01 | `agent-runtime/src/pi/` 固定版本实验；创建、恢复、订阅、prompt、abort、dispose | 独立项目验证真实消息 / 工具、重试及 `agent_settled`；比较 SDK / RPC 可用性；A-RT-02 |
+| RT-02 / P0 | RT-01 | `agent-runtime/src/engine/` 固定版本实验（引擎待选定）；创建、恢复、订阅、提交、停止、销毁 | 独立项目验证真实消息 / 工具、重试及引擎的完成判断；比较 SDK / RPC 可用性；A-RT-02 |
 | RT-03 / P0 | RT-01 | `src/shared/contracts/` + `src/desktop/` + Rust DTO；命令、requestId、Run ID、事件序号、快照协议 | 乱序、重复、断帧、超大帧、日志污染与断连 fixture；schema 两端一致；A-RT-01 |
-| RT-04 / P0 | RT-01、RT-02、RT-03 | 构建资源与依赖锁定；记录 Node / SDK / 原生模块 / 扩展资源方案 | 安装包环境运行最小 Pi 接入并停止；写技术验证记录，必要时才调整 engines；A-RT-02、A-REL-01 |
+| RT-04 / P0 | RT-01、RT-02、RT-03 | 构建资源与依赖锁定；记录 Node / SDK / 原生模块 / 扩展资源方案 | 安装包环境运行最小执行引擎接入并停止；写技术验证记录，必要时才调整 engines；A-RT-02、A-REL-01 |
 
 M0 结束时补齐实际构建命令、已采用的 SDK 版本、runtime 版本及失败清单；不把实验写成主产品聊天已完成。
 
@@ -28,7 +28,7 @@ M0 结束时补齐实际构建命令、已采用的 SDK 版本、runtime 版本�
 | ID / 优先级 | 依赖 | 开发交付与计划代码位置 | 完成条件 / 验证 |
 | --- | --- | --- | --- |
 | DATA-01 / P0 | RT-04 | Rust `storage/`；appData、SQLite、单写队列、schema 迁移和一致性备份接口 | 临时根、只读 / 磁盘错误、迁移中断、WAL 在线备份均可恢复；A-DATA-02、A-DATA-04 |
-| DATA-02 / P0 | DATA-01 | Rust `services/`；内容、Session、Run、message、Pi binding DTO 与存储约束 | ID / mode 稳定、合法归属、requestId 唯一、每会话一个 Run；Coding 投影带来源；A-DATA-02 |
+| DATA-02 / P0 | DATA-01 | Rust `services/`；内容、Session、Run、message、engine binding DTO 与存储约束 | ID / mode 稳定、合法归属、requestId 唯一、每会话一个 Run；Coding 投影带来源；A-DATA-02 |
 | DATA-03 / P0 | DATA-02、RT-03 | 输入 outbox、事件提交 / 去重、快照补取、活动与读水位 | 接受前持久化；后台更新不抢标签；缺口补取；归档 Run 仍可达；A-RT-01、A-DATA-02、A-DATA-03 |
 | DATA-04 / P0 | DATA-01、DATA-02 | `state.ts` 的导入适配 + Rust migrations；旧 localStorage、recovery、归档 / 回收站与视图迁移 | 完整 / 部分损坏 / 重复导入保留 ID、顺序与原件；无假正文和时间；A-DATA-01 |
 | DATA-05 / P1 | DATA-03、DATA-04 | 导出 / 导入、backup manifest、清理队列及独立永久清除管理 | 单对象范围明确，恢复可核对，拒绝活跃清除，不删项目 / 外部原件；A-DATA-03、A-DATA-04 |
@@ -58,14 +58,14 @@ M0 结束时补齐实际构建命令、已采用的 SDK 版本、runtime 版本�
 
 若正式模型条件缺失，DESK-01 保持阻塞 / 待验收；头像降级是必要体验，不替代 Live2D 完成状态。
 
-## M4：Pi Coding
+## M4：Coding
 
 | ID / 优先级 | 依赖 | 开发交付与计划代码位置 | 完成条件 / 验证 |
 | --- | --- | --- | --- |
-| PI-01 / P0 | RT-02、DATA-02 | 项目目录选择 / 绑定；Rust project service，Pi 显式 cwd / agentDir / resourceLoader | 失效目录不回退；移动组不改 cwd；改目录新会话；未信任扩展不自动运行；A-PI-01 |
-| PI-02 / P0 | PI-01、DATA-03；DATA-05 备份能力 | Pi SessionManager 创建 / 恢复 / 分支 / 压缩读取；binding 对账与投影重建 | DB / 原文件交错崩溃，源 ID 去重，未知结果不自动重发，旧格式先备份；A-PI-02 |
-| PI-03 / P0 | PI-02、DATA-03 | `src/features/coding/` + Adapter 工具 / 授权 / 取消；按项目串行写，长输出按资源读 | 独立测试仓库真实读改验，拒绝 / 停止 / 失败有结果，低层结束不假完成；A-PI-01、A-PI-03 |
-| PI-04 / P1 | PI-03、DATA-05 | 文件差异与验证记录、所选分支可读导出 / 完整备份 | 展示修改前后和命令 exit code；包含原有脏改动的标识；停止不假回滚；A-PI-03、A-DATA-04 |
+| CODE-01 / P0 | RT-02、DATA-02 | 项目目录选择 / 绑定；Rust project service，执行引擎显式 cwd / 配置目录 / 资源加载器 | 失效目录不回退；移动组不改 cwd；改目录新会话；未信任扩展不自动运行；A-CODE-01 |
+| CODE-02 / P0 | CODE-01、DATA-03；DATA-05 备份能力 | 执行引擎的会话管理 创建 / 恢复 / 分支 / 压缩读取；binding 对账与投影重建 | DB / 原文件交错崩溃，源 ID 去重，未知结果不自动重发，旧格式先备份；A-CODE-02 |
+| CODE-03 / P0 | CODE-02、DATA-03 | `src/features/coding/` + Adapter 工具 / 授权 / 取消；按项目串行写，长输出按资源读 | 独立测试仓库真实读改验，拒绝 / 停止 / 失败有结果，低层结束不假完成；A-CODE-01、A-CODE-03 |
+| CODE-04 / P1 | CODE-03、DATA-05 | 文件差异与验证记录、所选分支可读导出 / 完整备份 | 展示修改前后和命令 exit code；包含原有脏改动的标识；停止不假回滚；A-CODE-03、A-DATA-04 |
 
 ## M5：页面与首个普通工作流
 
@@ -83,12 +83,12 @@ M0 结束时补齐实际构建命令、已采用的 SDK 版本、runtime 版本�
 | --- | --- | --- | --- |
 | AUTO-01 / P2 | FLOW-03、DESK-03 | 触发器持久化、目标 Session、时区、occurrence ID、暂停与运行历史 | 重复触发 / busy / 目标归档或失效 / 休眠 / 重启 / DST 有明确记录，不静默补执行；A-AUTO-01 |
 | AUTO-02 / P2 | FLOW-03；真实使用场景 | 工作流模板与一个连接器；定义复制、配置、断开、查询 / 写入 | 不复制凭据 / Run / 授权；连接失败可处理；用真实服务证明场景，样例不算验收；A-FLOW-02、A-AUTO-01 |
-| REL-01 / P1 | RT-04、DESK-03、PI-04、FLOW-03 | 原生候选包、升级 / 恢复演练、签名 / 公证与支持平台记录 | 安装后从模型配置到真实保存；无系统 Node；版本 / 资源 / 许可齐备；A-REL-01 |
+| REL-01 / P1 | RT-04、DESK-03、CODE-04、FLOW-03 | 原生候选包、升级 / 恢复演练、签名 / 公证与支持平台记录 | 安装后从模型配置到真实保存；无系统 Node；版本 / 资源 / 许可齐备；A-REL-01 |
 | REL-02 / P1 | DATA-05、REL-01；声明范围涉及的 AUTO 任务 | 容量与恢复测量、隐私导出检查、README / 文档和交付记录 | 实测规模、恢复时间和限制；仅列通过验收的平台与能力；A-SCALE-01、A-DATA-04 |
 
 ## 依赖不等于开放全部功能
 
-RT / DATA 的接口可先被 fixture 验证。CHAT 到 M2 才接入聊天正文；DESK 到 M3 才出现透明模型；Pi 在 M0 是实验、M4 才成为用户 Coding 流程。已完成某个基础任务，不代表整个阶段和所有入口都应开放。
+RT / DATA 的接口可先被 fixture 验证。CHAT 到 M2 才接入聊天正文；DESK 到 M3 才出现透明模型；执行引擎在 M0 是实验、M4 才成为用户 Coding 流程。已完成某个基础任务，不代表整个阶段和所有入口都应开放。
 
 后置范围不混入上述 33 项：NekoPapa 云账号 / 同步、团队共享与权限、多人页面协作、完整 Notion 数据库、通用 UI 自动化、多 Agent 自动委派、插件市场、语音和主动问候。出现真实需求时另写任务与验收，避免用“设置以后能做很多”扩散当前范围。
 
@@ -96,8 +96,8 @@ RT / DATA 的接口可先被 fixture 验证。CHAT 到 M2 才接入聊天正文�
 
 | 问题 | 负责解决的任务 | 需要的证据 |
 | --- | --- | --- |
-| Pi 实际 npm 制品与 Node LTS 是否兼容 | RT-02、RT-04 | 锁文件、安装后运行和取消结果 |
-| 应用库与 Pi 文件能否可靠对账 | DATA-03、PI-02 | 两种提交顺序的故障注入与恢复报告 |
+| 执行引擎实际 npm 制品与 Node LTS 是否兼容 | RT-02、RT-04 | 锁文件、安装后运行和取消结果 |
+| 应用库与引擎会话文件能否可靠对账 | DATA-03、CODE-02 | 两种提交顺序的故障注入与恢复报告 |
 | 普通模型提供方与凭据方案 | CHAT-01 | 真实连接、取消和错误；不记录密钥值 |
 | Live2D 正式资源与分发 | DESK-01 | SDK / 模型来源、许可、原生透明渲染 |
 | 第一个连接器是什么 | AUTO-02 | 用户使用场景与实际服务能力；确定前不创建假集成 |

@@ -5,7 +5,7 @@ const toggle = (key: string, label: string, hint: string, initial = false): Fiel
 const tags = (key: string, label: string, hint: string, initial = ""): Field => ({ key, label, hint, initial, type: "textarea", control: "tags", maxLength: 4000 });
 const number = (key: string, label: string, hint: string, initial: number, min: number, max: number, unit?: string): Field => ({ key, label, hint, initial, min, max, step: 1, type: "number", control: "number", unit });
 
-/** Coding-session rules a future Pi / executor adapter reads before running tools. */
+/** Coding-session rules the future Coding executor reads before running tools. */
 export const developmentConfiguration: readonly ConfigurationSchema[] = [
   { id: "permissions", effect: "runtime", scope: "Coding 权限规则 · 执行器尚未接入；规则只作为默认值保存，不会授予或撤销任何权限。", blocks: [
     { title: "默认模式", fields: [
@@ -24,7 +24,7 @@ export const developmentConfiguration: readonly ConfigurationSchema[] = [
       tags("domains", "允许访问的网络域名", "沙箱内命令可以访问的域名。"),
     ] },
   ] },
-  { id: "context", effect: "runtime", scope: "上下文与指令 · Pi 适配层尚未接入；这些规则不会读取项目文件。", blocks: [
+  { id: "context", effect: "runtime", scope: "上下文与指令 · Coding 执行层尚未接入；这些规则不会读取项目文件。", blocks: [
     { title: "项目指令", fields: [
       toggle("projectInstructions", "读取项目指令文件", "从工作目录读取 AGENTS.md 或 CLAUDE.md。", true),
       tags("extraInstructions", "额外指令文件", "相对工作目录的路径，例如 docs/CONVENTIONS.md。"),

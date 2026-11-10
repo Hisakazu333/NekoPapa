@@ -1,6 +1,6 @@
 # NekoPapa 文档索引
 
-更新日期：2026-11-08。当前入口为基于 BoardUI Chat Starter 适配的 React + Vite 工作台与联系人界面，桌面宿主保留 Tauri 2 / Rust。涉及数据库、Pi、Live2D、工作流和教育执行服务的文档仍含规划内容，不能据此推断能力已接入。
+更新日期：2026-11-08。当前入口为基于 BoardUI Chat Starter 适配的 React + Vite 工作台与联系人界面，桌面宿主保留 Tauri 2 / Rust。涉及数据库、Coding 执行层、Live2D、工作流和教育执行服务的文档仍含规划内容，不能据此推断能力已接入。
 
 ## 当前事实与使用说明
 
@@ -17,7 +17,7 @@
 
 聊天正文由共享 ChatHistoryStore 按 ID 合并到浏览器存储，联系人复用最近的相同 contact.id 会话并保留 thread.id；工作台对话独立。该实现不代表 SQLite、跨设备同步或原生多窗口执行已经验收。模型调用路径使用 Vite 开发 / 预览服务器的环境变量，本机模型配置记录尚未驱动该路由；未连接时禁用发送，不生成演示回复。
 
-当前设置为 28 个分类，包含个人资料、外观、模型、工具及各类执行偏好。账号服务、Live2D、语音、电脑操控、SSH、Pi、Hooks 等尚未接入，保存默认值不等于运行能力可用。设置备份与聊天历史分别管理。实际依赖与脚本以 [package.json](../package.json)、[Cargo.toml](../src-tauri/Cargo.toml) 及锁文件为准。
+当前设置为 28 个分类，包含个人资料、外观、模型、工具及各类执行偏好。账号服务、Live2D、语音、电脑操控、SSH、Coding 执行层、Hooks 等尚未接入，保存默认值不等于运行能力可用。设置备份与聊天历史分别管理。实际依赖与脚本以 [package.json](../package.json)、[Cargo.toml](../src-tauri/Cargo.toml) 及锁文件为准。
 
 ## 学习方向与外部服务评估
 

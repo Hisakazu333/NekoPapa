@@ -5,6 +5,7 @@ import { GET, POST } from "./src/app/api/chat/route";
 import { boarduiChatApi } from "./scripts/boardui-chat-api";
 import { projectFolderApi } from "./scripts/project-folder-api";
 import { localModelsApi } from "./scripts/local-models-api";
+import { projectWorkspaceApi } from "./scripts/project-workspace-api";
 
 // The official runtime reads these server variables; none are defined in the client bundle.
 const runtimeVariables = [
@@ -19,7 +20,7 @@ export default defineConfig(({ mode }) => {
     if (process.env[name] === undefined && environment[name] !== undefined) process.env[name] = environment[name];
   }
   return {
-    plugins: [tailwindcss(), boarduiChatApi({ GET, POST }), projectFolderApi(), localModelsApi()],
+    plugins: [tailwindcss(), boarduiChatApi({ GET, POST }), projectFolderApi(), localModelsApi(), projectWorkspaceApi()],
     resolve: { alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     } },

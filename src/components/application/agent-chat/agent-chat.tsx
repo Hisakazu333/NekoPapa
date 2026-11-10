@@ -15,6 +15,7 @@ import { SpacePage } from "@/components/application/workspace-pages/space-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
 import { useChatWorkspaceNavigation } from "@/components/application/dashboard/use-chat-workspace-navigation";
 import { useSidebarVisibility } from "@/components/application/dashboard/use-sidebar-visibility";
+import { SidebarPeek } from "@/components/application/dashboard/sidebar-peek";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import { ContactsMessenger } from "@/components/application/contacts/contacts-messenger";
 import { reconcileContactThread, sameContactThread } from "@/components/application/contacts/contact-thread-sync";
@@ -26,6 +27,7 @@ import { useConfiguration } from "@/hooks/use-configuration";
 import { useProjects } from "@/hooks/use-projects";
 import { resolveProject } from "@/app/projects";
 import { browserTabLabel } from "@/app/browser-address";
+import { CHAT_TOOL_LABELS, CHAT_TOOLS, type ChatTool } from "@/app/chat-tools";
 import type { ChatContact } from "@/app/contacts-store";
 import { chatContactAvailability } from "@/app/chat-provider-status";
 import { useAgentChatSidebar } from "./use-agent-chat-sidebar";
@@ -41,6 +43,8 @@ import { ChatWorkspaceSplit } from "./chat-workspace-split";
 import { ChatTitleTabs } from "./chat-title-tabs";
 import { ChatSidePanel } from "./chat-side-panel";
 import { ChatBrowserPanel } from "./chat-browser-panel";
+import { ChatToolPanel } from "./tools/chat-tool-panel";
+import { useChatToolShortcuts } from "./tools/chat-tool-buttons";
 import { useChatBrowser } from "./use-chat-browser";
 import { useBrowserPlacement } from "./use-browser-placement";
 import { BrowserDragLayer, useBrowserDrag } from "./use-browser-drag";
@@ -90,6 +94,8 @@ export function AgentChat({
   // the browser can also move to its own title-bar tab and be dragged back.
   const placement = useBrowserPlacement(activeId);
   const { auxiliary, openSidePanel } = placement;
+  const activeTool = CHAT_TOOLS.find((tool) => tool === auxiliary) ?? null;
+  const toggleTool = useCallback((tool: ChatTool) => placement.toggleAuxiliary(tool), [placement.toggleAuxiliary]);
   const browserDrag = useBrowserDrag((zone) => zone === "tab" ? placement.moveToTab() : placement.moveToSide());
   const browserLabel = browserTabLabel(browser.url, browser.title);
   const composerBlockedReason = (activeContact?.kind === "official" ? composer.draftBlockReason : composer.blockReason) ?? availability.reason;
@@ -364,6 +370,7 @@ export function AgentChat({
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
+  useChatToolShortcuts(page === "chat", toggleTool);
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
   const chatActions = {
@@ -378,6 +385,8 @@ export function AgentChat({
     onTogglePanel: () => placement.toggleAuxiliary("panel"),
     browserOpen: placement.browserShown,
     onToggleBrowser: placement.toggleBrowser,
+    activeTool,
+    onToggleTool: toggleTool,
   };
   const { workspaceHeader, windowActions } = createChatWindowChrome({
     title: workspaceTitle,
@@ -414,8 +423,12 @@ export function AgentChat({
         canGoForward: windowNavigation.canGoForward,
       }}
     >
-      <DashboardSidebar {...sidebar} selected={page} preferRail={page === "chat" && auxiliary === "browser"}
+      {/* The browser and the tool panels (目录 / 终端 / 更改 / 文件) all fold the sidebar to its rail for room. */}
+      <DashboardSidebar {...sidebar} selected={page} preferRail={page === "chat" && auxiliary !== null && auxiliary !== "panel"}
         className={sidebarVisibility.hidden ? "hidden" : "hidden lg:flex"} />
+      <SidebarPeek enabled={sidebarVisibility.hidden && !contained}>
+        {(close) => <DashboardSidebar mobile {...sidebar} selected={page} onClose={close} className="flex" />}
+      </SidebarPeek>
 
       {/* The Pro template pushes the workspace across; this is the plain overlay drawer. */}
       <DashboardSidebarDrawer open={navOpen} contained={contained} onClose={() => setNavOpen(false)}>
@@ -436,16 +449,19 @@ export function AgentChat({
       {/* The chat stays mounted behind the browser tab, so its scroll and draft survive. */}
       <div style={{ display: placement.browserTabActive ? "none" : "flex" }} className="min-h-0 min-w-0 flex-1">
       <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openSidePanel} onClose={placement.closeAuxiliary}
-        widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
+        widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : activeTool ? 0.45 : undefined}
         mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
-        panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={auxiliary === "browser"
+        panelLabel={auxiliary === "browser" ? "浏览器" : activeTool ? CHAT_TOOL_LABELS[activeTool] : "辅助工作区"} panel={activeTool
+          ? <ChatToolPanel tool={activeTool} project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}
+            scrollRef={scrollRef} onClose={placement.closeAuxiliary} />
+          : auxiliary === "browser"
           ? <ChatBrowserPanel browser={browser} placement="side" onClose={placement.closeAuxiliary} onMove={placement.moveToTab}
             suspended={browserDrag.drag !== null}
             onMovePointerDown={(event) => browserDrag.begin(event, "side", browserLabel, placement.moveToTab)} />
           : <ChatSidePanel project={activeProject} threads={allThreads} activeId={activeId} onSelect={selectThread}
             onNewChat={startNewChat} onRename={renameThread} onToggleUnread={toggleUnread}
             onDelete={deleteThread} onExport={exportThreads} disabled={busy}
-            onClose={placement.closeAuxiliary} />
+            onClose={placement.closeAuxiliary} onOpenTool={toggleTool} />
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
             {workspaceHeader}

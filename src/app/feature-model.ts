@@ -27,7 +27,7 @@ export const featureCatalog: readonly FeatureDefinition[] = [
     capabilities: ["选定资料、整理摘要，再保存为页面", "查看每一步的输入、输出与待确认操作", "失败可处理，重试不重复创建成果"] },
   { id: "agent-workspace", title: "Agent 工作区", icon: "terminal", category: "执行", status: "待接入",
     description: "在独立工作区查看 Agent 的任务、步骤和待确认操作。",
-    capabilities: ["普通陪伴与 Pi Coding 的运行分别展示", "工作区与主窗口引用同一次运行", "真实执行信息接入前，可先查看已有会话活动"] },
+    capabilities: ["普通陪伴与 Coding 的运行分别展示", "工作区与主窗口引用同一次运行", "真实执行信息接入前，可先查看已有会话活动"] },
   { id: "schedules", title: "定时任务", icon: "clock", category: "执行", status: "待接入",
     description: "为需要反复完成的工作设置时间规则。",
     capabilities: ["明确选择会话、工作流与运行时间", "暂停、恢复，并查看实际执行记录", "休眠错过、归档或运行冲突有明确处理结果"] },

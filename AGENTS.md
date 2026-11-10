@@ -6,10 +6,10 @@
 
 - 开始工作前读取 `README.md`、相关代码和测试，检查 `git status --short`，保留已有变更；按实际调用链确认本次范围。
 - 当前入口使用 React 19 + TypeScript + Vite、Tailwind CSS 4、Tauri 2 / Rust 宿主和 npm。界面沿用已引入的 BoardUI 基础组件；锁定版本以 `package-lock.json`、`src-tauri/Cargo.lock` 为准，不为局部迭代引入另一套框架。旧直接 DOM 导航源码仅作历史兼容，不能当作当前入口。
-- `src/main.ts` 负责启动组装；`src/components/application` 管理当前工作台、联系人、账号页面与设置交互，`src/components/base` 管理共享组件；`src/app` 与 `src/hooks` 按实际领域拥有数据、存储、请求与协调，`src-tauri/src` 管理原生能力。普通 Agent、Pi 适配层及工作流按实际接入进度独立建设。
+- `src/main.ts` 负责启动组装；`src/components/application` 管理当前工作台、联系人、账号页面与设置交互，`src/components/base` 管理共享组件；`src/app` 与 `src/hooks` 按实际领域拥有数据、存储、请求与协调，`src-tauri/src` 管理原生能力。普通 Agent、Coding 执行层及工作流按实际接入进度独立建设。
 - 导航行为以 `docs/navigation-map.md` 和 `docs/navigation-contract.md` 中标注为当前的契约为依据。若文档与当前源码或用户最新明确要求冲突，先按真实调用链确认并在本轮同步修复实现和文档；历史验收和计划内容不得覆盖当前行为。分类、内容标签、会话模式、归档和运行状态各有职责；操作同一对象必须保持同一 ID。
 - 状态由对应领域模块拥有，视图负责呈现，控制器负责交互协调，存储负责读写与兼容。多个窗口或入口共享契约和处理路径，避免重复状态源。
-- 界面状态依据真实数据与执行结果；未接入的聊天、Pi、登录或工具能力不得呈现为已经完成。测试样例只放在测试或独立验证环境。
+- 界面状态依据真实数据与执行结果；未接入的聊天、Coding 执行层、登录或工具能力不得呈现为已经完成。测试样例只放在测试或独立验证环境。
 
 ## 设计依据与页面边界
 

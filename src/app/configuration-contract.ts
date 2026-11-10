@@ -54,7 +54,11 @@ export function validateFields(fields: readonly ConfigurationField[], input: unk
       continue;
     }
     else if (field.type === "select" && !field.options?.some(([id]) => id === value)) errors[field.key] = "请选择有效选项。";
-    else if (value && field.format === "url") {
+    else if (value && field.format === "color") {
+      // Theme colours are empty (follow the theme) or six-digit HEX.
+      if (/^#[\da-f]{6}$/i.test(value)) { values[field.key] = value.toLowerCase(); continue; }
+      errors[field.key] = "请填写六位 HEX 颜色，例如 #1e1e2e；留空跟随主题。";
+    } else if (value && field.format === "url") {
       try {
         const url = new URL(value);
         if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.username || url.password || url.search || url.hash) throw new Error();

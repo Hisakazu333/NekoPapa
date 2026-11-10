@@ -1,3 +1,4 @@
+import { APPEARANCE_THEMES } from "./appearance-themes";
 import type { ConfigurationField as Field, ConfigurationSchema } from "./configuration-types";
 
 const select = (key: string, label: string, initial: string, options: Field["options"], hint = "", control: Field["control"] = "select"): Field => ({ key, label, initial, options, hint, type: "select", control });
@@ -15,7 +16,12 @@ export const personalConfiguration: readonly ConfigurationSchema[] = [
   { id: "appearance", effect: "immediate", scope: "应用外观 · 保存后立即应用于工作台、设置和弹窗。", blocks: [
     { title: "视觉风格", fields: [
       select("mode", "模式", "system", [["system", "跟随系统"], ["light", "浅色"], ["dark", "深色"]]),
-      { ...select("accent", "强调色", "green", [["green", "鼠尾草绿"], ["blue", "蓝色"], ["purple", "紫色"], ["orange", "暖橙色"]], "用于开关、选中状态和输入焦点。"), format: "accent" },
+      select("theme", "主题", "default", APPEARANCE_THEMES.map(({ id, label }) => [id, label]), "背景、前景与强调色的整套配色。"),
+      { ...select("accent", "强调色", "green", [["theme", "跟随主题"], ["green", "鼠尾草绿"], ["blue", "蓝色"], ["purple", "紫色"], ["orange", "暖橙色"]], "用于开关、选中状态和输入焦点。"), format: "accent" },
+      { ...text("backgroundLight", "浅色背景", "留空跟随主题。", 7), format: "color" },
+      { ...text("foregroundLight", "浅色前景", "留空跟随主题。", 7), format: "color" },
+      { ...text("backgroundDark", "深色背景", "留空跟随主题。", 7), format: "color" },
+      { ...text("foregroundDark", "深色前景", "留空跟随主题。", 7), format: "color" },
       select("font", "字体", "system", [["system", "系统字体"], ["serif", "衬线字体"], ["mono", "等宽字体"]]),
       select("density", "设置列表密度", "comfortable", [["comfortable", "舒适"], ["compact", "紧凑"]]),
       toggle("reducedMotion", "减少动态效果", false, "关闭图标反馈动画和界面过渡；系统的减少动态效果偏好仍然有效。"),

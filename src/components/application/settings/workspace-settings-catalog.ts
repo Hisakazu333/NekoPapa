@@ -35,7 +35,7 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   screenshots: { label: "应用快照", title: "应用快照", description: "保存未来快照服务的输出偏好。", icon: RiCameraLine },
   browser: { label: "浏览器", title: "浏览器", description: "保存未来浏览器服务的链接和批注偏好。", icon: RiGlobalLine },
   connections: { label: "设备与 SSH", title: "设备与 SSH", description: "管理远程设备连接信息。", icon: RiTerminalBoxLine },
-  coding: { label: "Coding", title: "Coding 默认值", description: "保存 Pi 项目与代码编辑的默认配置。", icon: RiCodeLine },
+  coding: { label: "Coding", title: "Coding 默认值", description: "保存 Coding 项目与代码编辑的默认配置。", icon: RiCodeLine },
   permissions: { label: "权限规则", title: "权限规则", description: "Coding 会话的权限模式、命令、文件与网络规则。", icon: RiShieldKeyholeLine },
   context: { label: "上下文与指令", title: "上下文与指令", description: "项目指令、文件范围和上下文压缩。", icon: RiStackLine },
   skills: { label: "技能", title: "技能", description: "管理 Agent 可以按需读取的本地技能目录。", icon: RiPuzzle2Line },

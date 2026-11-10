@@ -14,7 +14,7 @@
 
 联系人是产品中的人物与用户配置对象。自建联系人可配置专业提示词；官方人物提示词由 Java 管理，桌面只持有公开资料，不允许用户编辑，仅用于单人聊天与学习。选中聊天联系人不等于切换后端账号的常驻人物。当前官方聊天服务未接入，不能通过通用模型设置绕过限制，详见 [Java 人物服务](official-companion-service.md)。
 
-项目未建立 SQLite、Agent 进程、原生密钥存储、多窗口或真实 Session 服务。账号已按现有 Java API 准备无默认网络 transport 的客户端适配，生产连接未启用，本轮未发真实账号请求。下面的运行桥接仍是计划，不能把浏览器存储或 `WorkspaceStore` 当 Agent 运行时，也不把 Pi SDK 放进 WebView。
+项目未建立 SQLite、Agent 进程、原生密钥存储、多窗口或真实 Session 服务。账号已按现有 Java API 准备无默认网络 transport 的客户端适配，生产连接未启用，本轮未发真实账号请求。下面的运行桥接仍是计划，不能把浏览器存储或 `WorkspaceStore` 当 Agent 运行时，也不把执行引擎 SDK 放进 WebView。
 
 ## 云端服务接入评估（待确认）
 
@@ -44,7 +44,7 @@ Tauri / Rust 宿主
                  │ 私有 stdin / stdout 协议
                  ▼
 随应用分发的 Node.js Agent 进程
-  ├─ Pi Adapter：Agent 会话、模型流与工具循环
+  ├─ 执行引擎适配层：Agent 会话、模型流与工具循环
   ├─ 工具配置：Coding、资料、网页等受控能力
   ├─ 学习编排 / 可选 DeepTutor worker 适配
   └─ 共享工具 / Workflow 执行服务（后续）
@@ -52,7 +52,7 @@ Tauri / Rust 宿主
           模型 API / 已注册工具 / 可选 Python 学习服务
 ```
 
-这是逻辑结构，不代表进程已经创建。Rust 是应用产品数据的唯一写入服务；Pi 通过自己的 SessionManager 写其会话上下文，Rust 只写对应的产品元数据与可重建投影。普通聊天和学习产品记录由 Rust 管理，Node 不另存第二份权威 transcript。官方人物经 Java 执行的边界独立，不交给本地 Pi 生成替代人设。
+这是逻辑结构，不代表进程已经创建。Rust 是应用产品数据的唯一写入服务；执行引擎通过自己的 SessionManager 写其会话上下文，Rust 只写对应的产品元数据与可重建投影。普通聊天和学习产品记录由 Rust 管理，Node 不另存第二份权威 transcript。官方人物经 Java 执行的边界独立，不交给本地执行引擎 生成替代人设。
 
 学习编排参考 DeepTutor 的资料版本、解释引用、题目、作答和反馈状态；需要其能力时才通过适配器启动或连接独立 Python worker / 服务，共用产品 Run、取消、事件和成果契约。首条短文本学习流程不强制安装整套 DeepTutor，不移植其 Next.js 前端，也不默认随桌面包携带完整 Python 依赖。资料和教学数据所有权、上游固定源码见 [DeepTutor 接入评估](deeptutor-integration.md)。
 
@@ -60,11 +60,11 @@ Tauri / Rust 宿主
 | --- | --- | --- |
 | 前端 Shell | 现有侧栏、标签、菜单、布局与内容路由 | 不直接启动命令或保存权威聊天 |
 | 前端内容模块 | 普通消息、Coding 输出、页面编辑、草稿 | 不根据组件是否挂载取消运行 |
-| Rust Session 服务 | 创建、读取、归档、删除至回收站、恢复、导出、迁移 | 不重建 Pi 模型上下文算法 |
+| Rust Session 服务 | 创建、读取、归档、删除至回收站、恢复、导出、迁移 | 不重建执行引擎的模型上下文算法 |
 | Rust Run 服务 | 接受请求、状态机、授权、落盘后广播 | 不把收到请求直接标成完成 |
 | Rust Process Manager | 启动、握手、健康状态、退出与崩溃处理 | 不无条件重发有副作用的任务 |
 | 聊天 / 官方人物适配 | 普通对话、Java 官方人物调用、流式和记忆引用 | 不向官方人物开放用户编辑提示词或 Agent 工具 |
-| Pi Adapter | 通用与 Coding 的会话、工具配置、cwd、订阅、取消和投影 | 不维护第二份可写 Pi 历史，不把全部工具默认放开 |
+| 执行引擎适配层 | 通用与 Coding 的会话、工具配置、cwd、订阅、取消和投影 | 不维护第二份可写引擎历史，不把全部工具默认放开 |
 | 学习编排 / worker 适配 | 资料证据、教学步骤、作答反馈及可选 DeepTutor 服务 | 不自行覆盖产品 Run 状态或用模型自评代替掌握证据 |
 | Workflow 服务 | 版本化定义、节点输入输出、幂等与恢复 | 不与聊天工具另建一套授权执行器 |
 
@@ -73,18 +73,18 @@ Tauri / Rust 宿主
 | 决策 | 状态与理由 | 通过条件 |
 | --- | --- | --- |
 | React + TypeScript + Tauri 2 / Rust | 当前入口，延续现有实现与 BoardUI 组件 | 保留导航与原生窗口回归 |
-| 默认 Auto；Agent 统一通用任务与 Coding | 模式约定已确定；执行层待实现，优先共用 Pi SDK 并配置提示与工具 | 同一会话身份下执行受授权任务，不增加独立 Coding 顶级模式 |
+| 默认 Auto；Agent 统一通用任务与 Coding | 模式约定已确定；执行层待实现，优先共用执行引擎 SDK 并配置提示与工具 | 同一会话身份下执行受授权任务，不增加独立 Coding 顶级模式 |
 | Agent 在独立 Node.js 进程 | 计划；SDK 需要 Node，进程不依赖前端标签 | RT-01 验证安装包无系统 Node 也可启动 |
 | SDK 嵌入优先，官方 RPC 备选 | 计划；SDK 更适合 TypeScript 适配 | RT-02 验证订阅、恢复、资源加载与取消；备选保持同一应用协议 |
 | Rust SQLite 单写服务 | 计划；产品对象需要事务、多窗口和查询 | DATA-01 验证迁移、错误与备份；不让多个窗口直接打开 DB |
-| 产品记录在 SQLite，Pi 上下文在原文件 | 计划；避免两份可写 Agent 模型上下文 | DATA-02 / PI-02 验证关联、恢复和索引重建 |
+| 产品记录在 SQLite，引擎上下文在原文件 | 计划；避免两份可写 Agent 模型上下文 | DATA-02 / CODE-02 验证关联、恢复和索引重建 |
 | 本地优先，不依赖登录 | 产品首版范围 | 账号仍未接入时可配置自己的模型连接；本地数据不会被虚构账号覆盖 |
 
-2026-11-08 核查 Pi 官方最新 release 为 [v1.5.0](https://github.com/earendil-works/pi/releases/tag/v1.5.0)，发布于 2026-11-02，固定提交 `f9a26365568127461c47a07a37dcb42c140a3ac5`。包名为 `@earendil-works/pi-ai`、`@earendil-works/pi-agent-core`、`@earendil-works/pi-coding-agent`；最低 Node ≥22.19，当前项目 `engines` 仍允许 Node 20。本轮不改依赖，M0 先验证受支持的 Node LTS、实际 npm 制品与资源，再锁定 Agent 包和分发 runtime。依据：[包定义](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/package.json)、[通用 Agent core](https://github.com/earendil-works/pi/blob/v1.5.0/packages/agent/README.md)。
+**执行引擎尚未选定。** 2026-11-10 按用户决定移除原 Pi 方案，后续另行评估执行引擎（候选的 Coding harness 尚未核查）。本文的适配层、会话文件与运行事件按引擎无关的契约描述；选定后在此记录版本、包名、Node 要求和许可证，并补充具体生命周期接口。
 
-Pi Coding SDK 可整体替换 system prompt、自选 `tools/customTools` 和资源加载器，足以先复用一个执行层做通用任务；不因包名含 Coding 就另建一套框架。SDK 的 MCP、工具搜索与 codemode 需显式装配，不能把 CLI 默认加载视为 SDK 已接通。网页检索、文档解析和产物导出仍需实现或接入受控工具。依据：[SDK](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/docs/sdk.md)、[提示替换](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/examples/sdk/03-custom-prompt.ts)、[完整资源控制](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/examples/sdk/12-full-control.ts)。
+候选引擎需能整体替换 system prompt、自选工具与资源加载，以便同一执行层兼做通用任务与 Coding，不因引擎名称含 Coding 就另建一套框架。MCP、工具搜索等能力需显式装配，不能把命令行默认加载视为 SDK 已接通；网页检索、文档解析和产物导出仍需实现或接入受控工具。
 
-Tauri 官方提供 [Node.js sidecar 示例](https://v2.tauri.app/learn/sidecar-nodejs/)和 [sidecar 分发说明](https://v2.tauri.app/develop/sidecar/)。本项目要验证的是包含 Pi 的真实依赖和资源，不把简单脚本打包成功当成 SDK 已可分发。候选方案为随包分发 Node 可执行文件、构建后的 JS 与必要资源；SEA / 单文件方案在扩展加载和资源兼容通过后再选。
+Tauri 官方提供 [Node.js sidecar 示例](https://v2.tauri.app/learn/sidecar-nodejs/)和 [sidecar 分发说明](https://v2.tauri.app/develop/sidecar/)。本项目要验证的是包含执行引擎的真实依赖和资源，不把简单脚本打包成功当成 SDK 已可分发。候选方案为随包分发 Node 可执行文件、构建后的 JS 与必要资源；SEA / 单文件方案在扩展加载和资源兼容通过后再选。
 
 ## 侧栏与后端重构期间的实施顺序
 
@@ -92,8 +92,8 @@ Tauri 官方提供 [Node.js sidecar 示例](https://v2.tauri.app/learn/sidecar-n
 
 Java 重构期间优先完成三条可独立验收的本机流程，真实模型使用用户自己的配置；缺少配置时保留草稿并说明依赖，不生成样例结果：
 
-1. **本机 runtime 与 Coding。** 安装包在没有全局 Node / Pi 的机器启动随包进程；用户选择独立测试项目，提交修改要求，查看文件读取、改动与测试结果，允许或拒绝命令并可取消，重启后能按同一会话继续。先验收握手、凭据边界和会话恢复，再放开写入；失败保留已有改动与运行记录，不自动重跑外部动作。
-2. **通用资料任务。** 复用已通过验收的 Pi 执行与权限路径，用户选定资料、提出整理要求，Agent 读取授权范围并生成可打开的成果，保留来源与运行记录。拒绝文件访问、取消或导出失败时有明确状态和重试路径；无需切换到独立 Coding 模式，也不依赖官方账号。
+1. **本机 runtime 与 Coding。** 安装包在没有全局 Node / 执行引擎 的机器启动随包进程；用户选择独立测试项目，提交修改要求，查看文件读取、改动与测试结果，允许或拒绝命令并可取消，重启后能按同一会话继续。先验收握手、凭据边界和会话恢复，再放开写入；失败保留已有改动与运行记录，不自动重跑外部动作。
+2. **通用资料任务。** 复用已通过验收的 Coding 执行层与权限路径，用户选定资料、提出整理要求，Agent 读取授权范围并生成可打开的成果，保留来源与运行记录。拒绝文件访问、取消或导出失败时有明确状态和重试路径；无需切换到独立 Coding 模式，也不依赖官方账号。
 3. **学习解释、题目、作答、反馈与笔记。** 先支持目标与短文本版本，显示有出处的解释，出一道题后等待学员独立作答，再保存对应题目 / 作答 ID 的反馈与笔记。评价失败重试不新增作答；资料更版保留原证据。DeepTutor worker 是后续能力适配，官方人物表达仍等待 Java 接通，不能将通用学习执行冒充官方人物服务。
 
 上述为实施与验收顺序，当前尚未交付这些运行流程。每条均应覆盖成功、拒绝、取消、失败恢复和持久化证据，不能以按钮或进程启动单独宣布完成。
@@ -106,7 +106,7 @@ Java 重构期间优先完成三条可独立验收的本机流程，真实模型
 | --- | --- | --- |
 | Command | `requestId`、`command`、`protocolVersion`；有对象时带 `sessionId` | 用户的操作请求，重复 requestId 查询原结果，不重新执行 |
 | Accepted / Rejected | `requestId`；接受运行时带 `runId` | 只有应用输入事务提交后才接受；拒绝保留草稿并给出可处理错误 |
-| Run Event | `eventId`、`sessionId`、`runId`、`seq`、`type`、`occurredAt`、`payload` | `seq` 是宿主提交的单 Session 连续序号；源事件另带 adapter 序号或 Pi entry ID |
+| Run Event | `eventId`、`sessionId`、`runId`、`seq`、`type`、`occurredAt`、`payload` | `seq` 是宿主提交的单 Session 连续序号；源事件另带 adapter 序号或引擎的 entry ID |
 | Snapshot | `sessionId`、`asOfSeq`、`projectionVersion`、当前消息 / Run 摘要 | 反映同一提交水位，前端从下一序号接增量 |
 | Approval Decision | `approvalId`、`runId`、`decision`、`expectedRevision` | 只对尚待确认的相同操作生效，重复或过期决定不能执行两次 |
 
@@ -129,15 +129,15 @@ Java 重构期间优先完成三条可独立验收的本机流程，真实模型
 
 M2 重试限最新一轮，当前答案修订与旧答案分别保存；上下文只采用当前已完成答案，重试不把旧答案再次喂入同一轮。规则见会话文档，不依靠 UI 隐藏旧消息实现。
 
-## Pi Adapter 的接入边界
+## 执行引擎适配层的接入边界
 
-以 `Map<sessionId, AgentSessionHandle>` 维护活跃实例。打开后台标签或改变侧栏分类仅查询，不调用 Pi 的 newSession / switchSession；一个会话不能被多个实例同时写。闲置实例可释放，下一次明确发送时从绑定文件重建。
+以 `Map<sessionId, AgentSessionHandle>` 维护活跃实例。打开后台标签或改变侧栏分类仅查询，不调用引擎的新建 / 切换会话接口；一个会话不能被多个实例同时写。闲置实例可释放，下一次明确发送时从绑定文件重建。
 
-创建必须显式传入 canonical cwd、应用独立的 Pi agentDir / sessionDir、SessionManager、模型设置与受控资源加载器；不默认借用用户全局 `~/.pi` 里的扩展、凭据和会话。导入外部 Pi 文件时复制到应用管理区，原文件保持外部所有权。
+创建必须显式传入 canonical cwd、应用独立的引擎配置 / 会话目录、会话管理、模型设置与受控资源加载器；不默认借用用户全局配置目录里的扩展、凭据和会话。导入外部会话文件时复制到应用管理区，原文件保持外部所有权。
 
-先订阅再 `prompt()`。适配 `message_end` 为消息提交；不能将低层 `agent_end` 当作产品成功。当前版本需结合 `agent_settled`、`prompt()` 结果、停止意图和实际错误决定最终状态；无模型请求的扩展命令也要核对 handled 路径。调用 `abort()` 后确认 idle 才结束取消；关闭标签不调用 `dispose()`。[SDK 生命周期依据](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/docs/sdk.md)。
+先订阅事件再提交请求。以引擎的消息完成事件作为消息提交；不能把低层“Agent 结束”事件直接当作产品成功，需结合请求结果、停止意图和实际错误决定最终状态，无模型请求的扩展命令也要核对处理路径。请求停止后确认引擎空闲才结束取消；关闭标签不销毁实例。具体事件名在选定引擎后补充。
 
-Pi 自行保存模型上下文，应用 DB 保存请求意图、运行控制和展示投影。跨两个介质的恢复与对账在 [会话文档](session-storage.md)定义，不保证崩溃后所有模型或外部工具恰好执行一次。
+执行引擎自行保存模型上下文，应用 DB 保存请求意图、运行控制和展示投影。跨两个介质的恢复与对账在 [会话文档](session-storage.md)定义，不保证崩溃后所有模型或外部工具恰好执行一次。
 
 同一个项目目录的写操作先串行化。移动 Coding 条目到另一产品分组只改变收纳；目录绑定保持原值。改工作目录须创建新 Coding 会话，选定摘要可引用过去会话，不能静默把旧上下文带到另一代码库。
 
@@ -145,7 +145,7 @@ Pi 自行保存模型上下文，应用 DB 保存请求意图、运行控制和�
 
 首版每个 Session 同时只允许一个活跃 Run，界面在生成中提供停止；不先实现隐式排队。不同 Session 的并发由宿主限制，M0 以两条受控测试 Run 验证隔离，实际默认值在性能验证后记录。
 
-工具注册表声明工具名、输入输出 schema、读取 / 写入 / 外部动作、取消、幂等和所需资料范围。模型无法自行注册 Shell。Pi 的 cwd 是路径基准，不是 OS 沙盒；扩展与 Pi 同进程运行，拥有相同系统权限，因此只加载审核过的扩展。宿主与 Pi 扩展必须落实产品授权，覆盖动态工具、MCP 和嵌套调用；工具 annotations 只是提示，未覆盖的路径禁止作为“受控模式”发布。[扩展边界](https://github.com/earendil-works/pi/blob/v1.5.0/packages/coding-agent/docs/extensions.md)。
+工具注册表声明工具名、输入输出 schema、读取 / 写入 / 外部动作、取消、幂等和所需资料范围。模型无法自行注册 Shell。执行引擎的 cwd 是路径基准，不是 OS 沙盒；扩展与引擎同进程运行，拥有相同系统权限，因此只加载审核过的扩展。宿主与引擎扩展必须落实产品授权，覆盖动态工具、MCP 和嵌套调用；工具 annotations 只是提示，未覆盖的路径禁止作为“受控模式”发布。
 
 待确认记录包含实际操作、目标、参数摘要、输入 hash、策略版本和 Run ID。确认后由同一执行服务继续，两个窗口点确认通过 revision 拒绝第二次执行。已经授权的匹配范围可在本次运行复用；参数、目标或策略变化后重新判断。外部写入失败若结果不明，先核对结果，不自动再次执行。
 
@@ -177,7 +177,7 @@ src/
   shared/contracts/            # 协议与领域 DTO
 agent-runtime/
   src/chat/                    # 普通聊天与 Java 官方人物适配
-  src/pi/                      # 统一 Agent 的 Pi Adapter 与扩展
+  src/engine/                  # 统一 Agent 的执行引擎适配层与扩展
   src/learning/                # 教学编排与可选 DeepTutor worker 适配
   src/tools/                   # Coding、资料与网页工具执行
   src/workflows/               # 节点执行
@@ -191,14 +191,14 @@ tests/
   contracts/ storage/ runtime/ # 未来测试，与现有测试并存
 ```
 
-构建把 `agent-runtime` 与前端隔开，Pi 及 Node 模块不能进入 Vite WebView bundle。新增包管理、构建命令及资源路径在 M0 验证后写回 README。
+构建把 `agent-runtime` 与前端隔开，执行引擎及 Node 模块不能进入 Vite WebView bundle。新增包管理、构建命令及资源路径在 M0 验证后写回 README。
 
 代码拆分遵循 [仓库迭代约定](../AGENTS.md)。2026-10-04 顶部栏迭代已将原 900 行控制器、777 行状态模块和 960 行工作台测试按职责拆分；该轮结束时控制器为 355 行、领域状态为 438 行，原有 71 项测试完整保留，新增场景后共 85 项。此为历史整理记录，当前行数与测试数量以本轮检查为准。菜单弹窗、内容动作、类型、存储和迁移已有独立模块，测试按行为拆分。新增模块仍默认 500 行档，不向控制器集中 Agent 或存储逻辑。
 
 ## 升级与回退
 
-协议、DB schema、普通消息格式、Pi SDK / 原文件格式与投影版本分别记录，不共用一个 app version 代替。宿主握手拒绝不兼容 Agent 包。Schema 迁移失败不覆盖旧库；应用版本回退时不能用旧 writer 打开新 schema，先导出或恢复独立备份。
+协议、DB schema、普通消息格式、执行引擎 SDK / 原文件格式与投影版本分别记录，不共用一个 app version 代替。宿主握手拒绝不兼容 Agent 包。Schema 迁移失败不覆盖旧库；应用版本回退时不能用旧 writer 打开新 schema，先导出或恢复独立备份。
 
-Pi 升级需用固定样例覆盖通用与 Coding 会话历史、分支、压缩、错误、取消、扩展与文件恢复；结果不通过时保留旧锁定版本及资源，不在用户已有会话上试升级。
+执行引擎升级需用固定样例覆盖通用与 Coding 会话历史、分支、压缩、错误、取消、扩展与文件恢复；结果不通过时保留旧锁定版本及资源，不在用户已有会话上试升级。
 
 对应任务见 [开发清单](iteration-backlog.md)，故障、事件和原生包验收见 [验收与交付](acceptance.md)。

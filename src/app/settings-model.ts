@@ -31,7 +31,7 @@ export const settingsCatalog: readonly SettingsEntry[] = [
   { id: "screenshots", title: "应用快照", group: "集成", icon: "expand", description: "配置快照的发送目标、格式和文本内容。", keywords: "截屏 截图 Live2D 提示音" },
   { id: "browser", title: "浏览器", group: "集成", icon: "home", description: "配置网页、本地地址和批注截图偏好。", keywords: "URL 链接 浏览历史 密码 自动化" },
   { id: "connections", title: "设备与 SSH", group: "集成", icon: "link", description: "管理远程主机、端口和身份文件引用。", keywords: "连接 控制设备 远程 服务器" },
-  { id: "coding", title: "Coding 与 Pi", group: "Coding", icon: "code", description: "管理项目目录、Pi 资源和编辑验证默认值。", keywords: "Node 工作区 工具 沙盒 模型" },
+  { id: "coding", title: "Coding", group: "Coding", icon: "code", description: "管理项目目录、Agent 资源和编辑验证默认值。", keywords: "Node 工作区 工具 沙盒 模型" },
   { id: "hooks", title: "钩子", group: "Coding", icon: "workflow", description: "管理运行生命周期的事件、命令与超时配置。", keywords: "执行 事件 扩展 生命周期" },
   { id: "review", title: "代码审查", group: "Coding", icon: "search", description: "配置代码与安全审查的触发和报告规则。", keywords: "PR GitHub 严重级别 自动 手动" },
   { id: "git", title: "Git", group: "Coding", icon: "code", description: "配置分支、Pull Request、提交和审查默认值。", keywords: "前缀 合并 草稿 推送 指令" },
@@ -39,7 +39,7 @@ export const settingsCatalog: readonly SettingsEntry[] = [
   { id: "data", title: "数据与备份", group: "内容管理", icon: "book", description: "导出设置和工作台索引，管理本机设置备份。", keywords: "JSON 同步 云端 导入 重置 恢复 保存" },
   { id: "archive", title: "归档", group: "内容管理", icon: "archive", description: "收起暂时不用的内容，需要时再继续。", keywords: "会话 页面 空间 项目 分组 恢复 历史" },
   { id: "trash", title: "回收站", group: "内容管理", icon: "trash", description: "查看已删除的内容，恢复到删除前的位置。", keywords: "删除 恢复 会话 页面 空间 项目 分组" },
-  { id: "about", title: "关于 NekoPapa", group: "产品", icon: "help", description: "带桌面角色的个人 Agent 工作台。", keywords: "版本 本地 数据 账号 普通 Coding Pi" },
+  { id: "about", title: "关于 NekoPapa", group: "产品", icon: "help", description: "带桌面角色的个人 Agent 工作台。", keywords: "版本 本地 数据 账号 普通 Coding" },
 ];
 
 export function settingEntry(id: string): SettingsEntry | undefined {

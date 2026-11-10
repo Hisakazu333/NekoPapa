@@ -1,5 +1,6 @@
 import type { ConfigurationValues } from "./configuration-types";
-import { applyAppearanceAccent } from "./appearance-preferences";
+import { applyAppearanceAccent, resolveAppearanceTheme } from "./appearance-preferences";
+import { applyThemeColors, normalizeThemeId, resolveThemeColors } from "./appearance-themes";
 
 const systemMode = window.matchMedia("(prefers-color-scheme: dark)");
 let current: ConfigurationValues;
@@ -13,7 +14,10 @@ export function applyAppearance(values: ConfigurationValues): void {
   current = values;
   const root = document.documentElement;
   root.dataset.theme = values.mode === "system" ? systemMode.matches ? "dark" : "light" : String(values.mode);
-  applyAppearanceAccent(root, values.accent);
+  // The colour theme rebuilds the neutral ramp for the mode on screen.
+  const colors = resolveThemeColors(values, resolveAppearanceTheme(values.mode, systemMode.matches));
+  applyThemeColors(root, colors, normalizeThemeId(values.theme));
+  applyAppearanceAccent(root, values.accent, colors?.accent);
   root.dataset.density = String(values.density);
   root.dataset.reducedMotion = String(values.reducedMotion);
   root.style.setProperty("--app-font", fonts[String(values.font)] ?? fonts.system);

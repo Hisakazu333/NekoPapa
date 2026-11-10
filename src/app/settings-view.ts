@@ -38,7 +38,7 @@ function sectionBody(store: WorkspaceStore, section: SettingsSection, configurat
   if (section === "characters") return characterSettings(store);
   if (section === "archive" || section === "trash") return renderCollection(store, section);
   if (section === "shortcuts") return shortcutSettings(configuration);
-  return `<section class="settings-block settings-about"><img src="/brand/nekopapa-app-icon-v1-128.png" width="52" height="52" alt="NekoPapa Logo" /><h2>NekoPapa</h2><p>普通陪伴与 Coding 会话，收纳在同一个桌面工作台。</p><div class="settings-option-group">${settingRow("本机保存", "当前保存内容索引、归档、回收站与导航偏好。", `<span class="settings-value">${store.storageAvailable ? "可用" : "保存失败"}</span>`)}${settingRow("账号", "账号登录尚未接入。", '<span class="settings-value">未登录</span>')}${settingRow("Agent 能力", "聊天正文、Pi Coding 与 Live2D 将在后续接入。", '<span class="settings-value">开发中</span>')}</div></section>`;
+  return `<section class="settings-block settings-about"><img src="/brand/nekopapa-app-icon-v1-128.png" width="52" height="52" alt="NekoPapa Logo" /><h2>NekoPapa</h2><p>普通陪伴与 Coding 会话，收纳在同一个桌面工作台。</p><div class="settings-option-group">${settingRow("本机保存", "当前保存内容索引、归档、回收站与导航偏好。", `<span class="settings-value">${store.storageAvailable ? "可用" : "保存失败"}</span>`)}${settingRow("账号", "账号登录尚未接入。", '<span class="settings-value">未登录</span>')}${settingRow("Agent 能力", "聊天正文、Coding 执行层与 Live2D 将在后续接入。", '<span class="settings-value">开发中</span>')}</div></section>`;
 }
 
 export function renderSettingsShell(store: WorkspaceStore, navigation: SettingsNavigation, configuration: ConfigurationView): string {

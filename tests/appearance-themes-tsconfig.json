@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/app" },
+  "include": ["../src/app/appearance-themes.ts", "../src/app/appearance-preferences.ts"]
+}

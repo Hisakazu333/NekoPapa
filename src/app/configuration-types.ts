@@ -24,7 +24,7 @@ export interface ConfigurationField {
   /** Empty-state hint inside text and directory inputs. */
   placeholder?: string;
   required?: boolean;
-  format?: "url" | "environment" | "branch" | "host" | "accent";
+  format?: "url" | "environment" | "branch" | "host" | "accent" | "color";
 }
 export interface ConfigurationBlock {
   title: string;

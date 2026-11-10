@@ -9,7 +9,8 @@ import { RadioCard } from "@/components/base/radio/radio-card";
 import { RadioGroup } from "@/components/base/radio/radio";
 import { Switch } from "@/components/base/switch/switch";
 import { toast } from "@/components/base/toast/toast";
-import { APPEARANCE_ACCENTS, normalizeAppearanceAccent, normalizeAppearanceMode, type AppearanceAccent, type AppearanceMode } from "@/app/appearance-preferences";
+import { APPEARANCE_ACCENTS, normalizeAppearanceAccent, normalizeAppearanceMode, type AppearanceAccent, type AppearanceMode, type NamedAppearanceAccent } from "@/app/appearance-preferences";
+import { normalizeThemeColor, normalizeThemeId, resolveThemeColors } from "@/app/appearance-themes";
 import { saveConfigurationDraft } from "@/app/configuration-draft";
 import type { ConfigurationValues } from "@/app/configuration-types";
 import { applyThemeWithTransition, useThemeMode } from "@/components/application/theme/theme-toggle";
@@ -17,6 +18,7 @@ import { applyAppearance } from "@/app/appearance";
 import { useConfiguration } from "@/hooks/use-configuration";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
 import { useSettingsDraft } from "./settings-draft-context";
+import { AppearanceThemeSection, THEME_DRAFT_KEYS, type ThemeDraft } from "./appearance-theme-section";
 
 const modeOptions = [
   { id: "light", label: "浅色" },
@@ -30,14 +32,20 @@ const densityOptions = [
   ["comfortable", "舒适"], ["compact", "紧凑"],
 ] as const;
 
-const accentColors: Record<Exclude<AppearanceAccent, `#${string}`>, string> = {
+const accentColors: Record<NamedAppearanceAccent, string> = {
   green: "#6f7b63",
   blue: "#597fa7",
   purple: "#8771a3",
   orange: "#a8754f",
 };
 const accentByColor = new Map(Object.entries(accentColors).map(([id, color]) => [color, id as AppearanceAccent]));
-const accentHex = (value: AppearanceAccent) => value.startsWith("#") ? value : accentColors[value as keyof typeof accentColors];
+/** "theme" shows the theme's accent for the mode on screen, or the default green. */
+const accentHex = (value: AppearanceAccent, themeAccent = "") => value.startsWith("#") ? value : value === "theme" ? themeAccent || accentColors.green : accentColors[value as NamedAppearanceAccent];
+const readThemeDraft = (values: ConfigurationValues): ThemeDraft => ({
+  theme: normalizeThemeId(values.theme),
+  backgroundLight: normalizeThemeColor(values.backgroundLight), foregroundLight: normalizeThemeColor(values.foregroundLight),
+  backgroundDark: normalizeThemeColor(values.backgroundDark), foregroundDark: normalizeThemeColor(values.foregroundDark),
+});
 
 const themePreview = {
   light: { label: "浅色", description: "明亮的工作区背景" },
@@ -86,7 +94,7 @@ function ThemeThumbnail({ mode }: { mode: AppearanceMode }) {
   </span>;
 }
 
-const fieldLabels: Record<string, string> = { mode: "主题模式", font: "字体", density: "界面密度", reducedMotion: "减少动态效果" };
+const fieldLabels: Record<string, string> = { mode: "主题模式", font: "字体", density: "界面密度", reducedMotion: "减少动态效果", theme: "主题", backgroundLight: "浅色背景", foregroundLight: "浅色前景", backgroundDark: "深色背景", foregroundDark: "深色前景" };
 
 const equal = (left: ConfigurationValues, right: ConfigurationValues) => JSON.stringify(left) === JSON.stringify(right);
 
@@ -100,6 +108,8 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
   const [font, setFont] = useState(String(data.groups.appearance.font ?? "system"));
   const [density, setDensity] = useState(String(data.groups.appearance.density ?? "comfortable"));
   const [reducedMotion, setReducedMotion] = useState(data.groups.appearance.reducedMotion === true);
+  // The theme draft keeps colours as typed; only complete HEX values apply to the preview.
+  const [themeDraft, setThemeDraft] = useState<ThemeDraft>(() => readThemeDraft(data.groups.appearance));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [conflicts, setConflicts] = useState<string[]>([]);
   const [status, setStatus] = useState("");
@@ -108,7 +118,9 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     || accent !== normalizeAppearanceAccent(base.accent)
     || font !== String(base.font ?? "system")
     || density !== String(base.density ?? "comfortable")
-    || reducedMotion !== (base.reducedMotion === true);
+    || reducedMotion !== (base.reducedMotion === true)
+    || THEME_DRAFT_KEYS.some((key) => themeDraft[key] !== readThemeDraft(base)[key]);
+  const themeAccent = resolveThemeColors(themeDraft as unknown as ConfigurationValues, currentTheme)?.accent;
   const clearDraft = useSettingsDraft("appearance", dirty);
   const updated = !equal(data.groups.appearance, base);
 
@@ -121,6 +133,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
       setFont(String(current.font ?? "system"));
       setDensity(String(current.density ?? "comfortable"));
       setReducedMotion(current.reducedMotion === true);
+      setThemeDraft(readThemeDraft(current));
       savedAppearance.current = current;
     }
   }, [data, dirty, updated]);
@@ -135,6 +148,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     setFont(String(current.font ?? "system"));
     setDensity(String(current.density ?? "comfortable"));
     setReducedMotion(current.reducedMotion === true);
+    setThemeDraft(readThemeDraft(current));
     setErrors({});
     setConflicts([]);
     setStatus("已载入当前保存的外观。");
@@ -142,7 +156,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
   };
 
   const save = (overwrite = false) => {
-    const draft = { ...base, mode, accent, font, density, reducedMotion };
+    const draft = { ...base, mode, accent, font, density, reducedMotion, ...themeDraft };
     const result = saveConfigurationDraft(store, "appearance", draft, base, overwrite);
     refresh();
     setErrors(result.errors);
@@ -157,6 +171,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
     setFont(String(result.values.font ?? "system"));
     setDensity(String(result.values.density ?? "comfortable"));
     setReducedMotion(result.values.reducedMotion === true);
+    setThemeDraft(readThemeDraft(result.values));
     savedAppearance.current = result.values;
     clearDraft();
     setStatus("");
@@ -184,7 +199,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
                   if (next !== "system" && next !== "light" && next !== "dark") return;
                   const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
                   const resolved = next === "system" ? systemDark ? "dark" : "light" : next;
-                  applyAppearance({ ...base, mode: next, accent: accentHex(accent), font, density, reducedMotion });
+                  applyAppearance({ ...base, mode: next, accent, font, density, reducedMotion, ...themeDraft });
                   const interaction = themeInteraction.current;
                   themeInteraction.current = { origin: null, element: null };
                   void applyThemeWithTransition(resolved, { persist: false, animate: !reducedMotion, ...interaction, duration: 820 });
@@ -218,20 +233,33 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
             </SettingsCard>
           </section>
 
+          <AppearanceThemeSection draft={themeDraft} mode={currentTheme === "dark" ? "dark" : "light"}
+            error={THEME_DRAFT_KEYS.map((key) => errors[key] && `${fieldLabels[key]}：${errors[key]}`).find(Boolean) || undefined}
+            onChange={({ followAccent, ...next }) => {
+              const nextDraft = { ...themeDraft, ...next };
+              const nextAccent = followAccent ? "theme" : accent;
+              setThemeDraft(nextDraft);
+              if (followAccent) setAccent("theme");
+              // Half-typed colours are left out of the preview until they are complete.
+              const preview = Object.fromEntries(THEME_DRAFT_KEYS.map((key) => [key, key === "theme" ? nextDraft.theme : normalizeThemeColor(nextDraft[key])]));
+              applyAppearance({ ...base, mode, accent: nextAccent, font, density, reducedMotion, ...preview });
+              setErrors({}); setConflicts([]); setStatus("");
+            }} />
+
           <section className="flex flex-col gap-2" aria-label="强调色">
             <SettingsSectionLabel>强调色</SettingsSectionLabel>
             <SettingsCard>
               <div className="grid min-w-0 gap-5 p-3 lg:grid-cols-[minmax(0,280px)_minmax(0,1fr)]">
                 <div className="flex flex-col gap-1">
                   <p className="text-body-regular text-text-primary">强调色</p>
-                  <p className="text-body-2-regular text-text-secondary">用于选中状态、焦点和强调控件。</p>
+                  <p className="text-body-2-regular text-text-secondary">用于选中状态、焦点和强调控件。{accent === "theme" ? "当前跟随主题。" : ""}</p>
                   <ColorPicker
                     aria-label="强调色"
-                    value={parseColor(accentHex(accent))}
+                    value={parseColor(accentHex(accent, themeAccent))}
                     onChange={(color) => {
                       const next = color.toString("hex").toLowerCase();
                       setAccent(accentByColor.get(next) ?? next as AppearanceAccent);
-                      applyAppearance({ ...base, mode, accent: next, font, density, reducedMotion });
+                      applyAppearance({ ...base, mode, accent: next, font, density, reducedMotion, ...themeDraft });
                       setErrors({}); setConflicts([]); setStatus("");
                     }}
                     swatches={APPEARANCE_ACCENTS.map(({ id }) => accentColors[id])}
@@ -255,7 +283,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
             <Button variant="secondary" size="small" className="self-start" onClick={retry}>重试保存当前外观</Button>
           </div>}
           {errors.form && <p role="alert" className="text-body-regular text-text-error-primary">{errors.form}</p>}
-          {Object.entries(errors).filter(([field]) => field !== "form" && field !== "accent").map(([field, message]) => (
+          {Object.entries(errors).filter(([field]) => field !== "form" && field !== "accent" && !(THEME_DRAFT_KEYS as readonly string[]).includes(field)).map(([field, message]) => (
             <p key={field} role="alert" className="text-body-regular text-text-error-primary">{fieldLabels[field] ?? field}：{message}</p>
           ))}
           {conflicts.length > 0 && <div className="flex flex-col gap-3 rounded-xl border border-border-error-default p-3" aria-label="解决外观冲突">

@@ -5,15 +5,15 @@ const toggle = (key: string, label: string, hint: string, initial = false): Fiel
 const text = (key: string, label: string, hint: string, maxLength = 500, initial = ""): Field => ({ key, label, hint, initial, maxLength, type: "text", control: "input" });
 
 export const codingConfiguration: readonly ConfigurationSchema[] = [
-  { id: "coding", effect: "runtime", scope: "Coding 默认值 · Pi 适配层和运行进程尚未接入；不改变已有项目或执行命令。", blocks: [
-    { title: "项目与 Pi", fields: [
+  { id: "coding", effect: "runtime", scope: "Coding 默认值 · Coding 执行层尚未接入；不改变已有项目或执行命令。", blocks: [
+    { title: "项目与运行时", fields: [
       { ...text("directory", "默认工作目录", "留空时由新 Coding 会话选择；不会自动绑定已有会话。"), control: "directory" },
       text("executable", "Node.js 可执行文件", "留空使用未来随应用提供的运行时。"),
-      text("resources", "Pi 资源目录", "存放扩展、技能和提示模板的目录。"),
+      text("resources", "Agent 资源目录", "存放扩展、技能和提示模板的目录。"),
       select("modelId", "Coding 默认模型", "", [["", "沿用 Agent 默认"]], "来自已保存的模型连接配置。"),
     ] },
     { title: "编辑与验证", fields: [
-      toggle("confirmEdits", "写入文件前确认", "交给 Pi 适配层执行。", true),
+      toggle("confirmEdits", "写入文件前确认", "由 Coding 执行层接入后执行。", true),
       toggle("verifyChanges", "修改后运行验证", "按项目定义的验证命令运行。", true),
       { ...text("instructions", "Coding 指令", "补充项目工作习惯；不能取代仓库中的指令。", 12000), type: "textarea", control: "textarea" },
     ] },

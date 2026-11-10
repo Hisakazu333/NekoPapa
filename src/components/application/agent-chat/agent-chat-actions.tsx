@@ -2,7 +2,7 @@
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
-import { RiCheckLine, RiGlobalLine, RiLayoutRightLine, RiMoreFill, RiUploadLine } from "@remixicon/react";
+import { RiCheckLine, RiLayoutRightLine, RiMoreFill, RiUploadLine } from "@remixicon/react";
 import { useEffect, useState } from "react";
 
 import {
@@ -14,13 +14,17 @@ import {
 } from "@/components/base/dropdown/dropdown";
 import { cx } from "@/utils/cx";
 import { toolbarIconButtonClass as ACTION_BUTTON, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";
+import type { ChatTool } from "@/app/chat-tools";
+import { ChatToolButtons } from "./tools/chat-tool-buttons";
+import { ChatPluginsButton } from "./tools/chat-plugins-button";
 
 /**
  * The controls in the top right of the chat surface: share the open chat, and
  * a menu of the actions that apply to it.
  *
  * Every entry does something the starter can actually do — copy, download,
- * mark, delete. Nothing here is a placeholder waiting on a backend, because a
+ * mark, delete. Until the chat has a message there is nothing to share or
+ * act on, so both stay hidden instead of showing as dimmed buttons. Nothing here is a placeholder waiting on a backend, because a
  * control that looks live and does nothing is worse than no control.
  */
 
@@ -41,6 +45,9 @@ export interface AgentChatActionsProps {
   /** Built-in browser toggle; it shares the right-hand area with the side panel. */
   browserOpen?: boolean;
   onToggleBrowser?: () => void;
+  /** Title-bar tools (目录 / 终端 / 更改 / 文件); omitted where the surface has no right-hand area. */
+  activeTool?: ChatTool | null;
+  onToggleTool?: (tool: ChatTool) => void;
   className?: string;
 }
 
@@ -56,6 +63,8 @@ export function AgentChatActions({
   onTogglePanel,
   browserOpen = false,
   onToggleBrowser,
+  activeTool = null,
+  onToggleTool,
   className,
 }: AgentChatActionsProps) {
   const localize = useTemplateCopy();
@@ -92,7 +101,10 @@ export function AgentChatActions({
 
   return localize((
     <div className={cx("flex shrink-0 items-center gap-0.5", className)}>
-      <button
+      {onToggleTool && <ChatToolButtons active={activeTool} onToggle={onToggleTool} browserOpen={browserOpen} onToggleBrowser={onToggleBrowser} />}
+      {onToggleTool && <ChatPluginsButton />}
+      {/* Share and the chat menu act on the open chat, so an empty chat has neither. */}
+      {!disabled && <button
         type="button"
         onClick={share}
         disabled={disabled}
@@ -105,9 +117,9 @@ export function AgentChatActions({
         ) : (
           <RiUploadLine className={toolbarIconClass} aria-hidden />
         )}
-      </button>
+      </button>}
 
-      {showThreadMenu && <Dropdown isOpen={menuOpen} onOpenChange={setMenuOpen}>
+      {showThreadMenu && !disabled && <Dropdown isOpen={menuOpen} onOpenChange={setMenuOpen}>
         <DropdownTrigger
           aria-label="对话的更多操作"
           isDisabled={disabled}
@@ -140,11 +152,6 @@ export function AgentChatActions({
           </DropdownGroup>
         </DropdownPopover>
       </Dropdown>}
-      {onToggleBrowser && <button type="button" onClick={onToggleBrowser} aria-pressed={browserOpen}
-        aria-controls="chat-auxiliary-workspace" aria-label={browserOpen ? "关闭浏览器" : "打开浏览器"} title={browserOpen ? "关闭浏览器" : "打开浏览器"}
-        className={cx(ACTION_BUTTON, browserOpen && "bg-background-primary-hover text-text-primary")}>
-        <RiGlobalLine className={toolbarIconClass} aria-hidden />
-      </button>}
       {onTogglePanel && <button type="button" onClick={onTogglePanel} aria-pressed={panelOpen}
         aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料）"}
         className={cx(ACTION_BUTTON, panelOpen && "bg-background-primary-hover text-text-primary")}>

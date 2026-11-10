@@ -9,7 +9,8 @@ export const APPEARANCE_ACCENTS = [
 ] as const;
 
 export type NamedAppearanceAccent = (typeof APPEARANCE_ACCENTS)[number]["id"];
-export type AppearanceAccent = NamedAppearanceAccent | `#${string}`;
+/** "theme" follows the colour theme's accent (the default theme's is green). */
+export type AppearanceAccent = NamedAppearanceAccent | "theme" | `#${string}`;
 export type ResolvedAppearanceTheme = "light" | "dark";
 
 const appearanceAccentIds = new Set<string>(APPEARANCE_ACCENTS.map(({ id }) => id));
@@ -20,7 +21,7 @@ export function normalizeAppearanceMode(value: unknown): AppearanceMode {
 
 export function normalizeAppearanceAccent(value: unknown): AppearanceAccent {
   if (typeof value !== "string") return "green";
-  if (appearanceAccentIds.has(value)) return value as AppearanceAccent;
+  if (appearanceAccentIds.has(value) || value === "theme") return value as AppearanceAccent;
   return /^#[\da-f]{6}$/i.test(value) ? value.toLowerCase() as AppearanceAccent : "green";
 }
 
@@ -61,8 +62,10 @@ function clearCustomAccentRamp(root: AppearanceRoot) {
   root.style?.removeProperty("--focus-color");
 }
 
-export function applyAppearanceAccent(root: AppearanceRoot, accent: unknown): AppearanceAccent {
-  const normalizedAccent = normalizeAppearanceAccent(accent);
+/** `themeAccent` is the colour theme's accent, used when the accent is "theme". */
+export function applyAppearanceAccent(root: AppearanceRoot, accent: unknown, themeAccent = ""): AppearanceAccent {
+  const chosen = normalizeAppearanceAccent(accent);
+  const normalizedAccent = chosen === "theme" ? normalizeAppearanceAccent(themeAccent || "green") : chosen;
   if (normalizedAccent.startsWith("#")) {
     root.dataset.accent = "custom";
     setCustomAccentRamp(root, normalizedAccent);

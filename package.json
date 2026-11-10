@@ -24,6 +24,8 @@
     "@remixicon/react": "^4.9.0",
     "@tauri-apps/api": "2.12.1",
     "@tauri-apps/plugin-dialog": "2.8.4",
+    "@xterm/addon-fit": "^0.10.0",
+    "@xterm/xterm": "^5.5.0",
     "ai": "^7.0.164",
     "motion": "^12.43.0",
     "react": "^19.3.1",
