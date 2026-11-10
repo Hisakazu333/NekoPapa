@@ -54,9 +54,9 @@
 
 ## 登录与设置的页面职责
 
-登录是独立应用页面，从账号菜单的登录动作进入；页面沿用同一背景、排版、按钮、图标和主题，卡片使用官方安装的 `auth/auth-card.tsx`（本项目增加 `form` 插槽，替换示例的邮箱表单、社交登录与注册切换）。登录不作为设置分类，不嵌入设置弹窗，也不另开桌面窗口。`AccountPageProvider` 以 `#login` 和浏览器历史管理页面状态；登录页显示时 AgentChat 保持挂载并设为不可交互。返回原工作台或联系人时保留会话、草稿与对象身份，并把焦点交回有效入口。
+登录是独立应用页面，从账号菜单的登录动作进入；页面沿用同一背景、排版、按钮、图标和主题，卡片使用官方安装的 `auth/auth-card.tsx`（本项目用 `form` 插槽接入手机号登录、短信注册和 NekoBuddy 扫码）。登录不作为设置分类，不嵌入设置弹窗，也不另开桌面窗口。`AccountPageProvider` 以 `#login` 和浏览器历史管理页面状态；登录页显示时 AgentChat 保持挂载并设为不可交互。返回原工作台或联系人时保留会话、草稿与对象身份，并把焦点交回有效入口。
 
-设置负责本机资料、外观、模型与 API、工具、备份及其他真实配置。登录身份与本机资料独立，修改本机姓名不代表已登录。后端重构期间账号传输保持关闭；登录页面显示真实未开放状态，不渲染可扫描的假二维码，不制造余额、头像、登录用户或登录成功。扫码、过期、取消、错误和重试状态在实际认证服务接入后按契约逐项验收。
+设置负责本机资料、外观、模型与 API、工具、备份及其他真实配置。登录身份与本机资料独立，修改本机姓名不代表已登录。手机号和密码使用 BoardUI Input，短信使用 Input OTP，方式切换和注册用 LinkButton；扫码入口用 SocialButton 的自定义品牌与描边样式。后端未配置时显示对应的不可用状态，二维码只由真实设备会话数据生成。
 
 “设置”只在账号菜单中出现一次（账号组：登录、本机资料、设置），侧栏底部只保留账号按钮。账号菜单“偏好”的外观行使用调色盘图标与“外观”标签，右侧是跟随系统、浅色、深色三个图标的 BoardUI SegmentedControl；强调色在下一行以色样提供选择，并用可访问名称标明颜色，不使用 emoji。主题和强调色均使用同一份本机外观配置：改变选择后立即保存并作用于整个界面，跟随系统会响应操作系统的明暗模式；重启后从配置恢复。语言使用已安装的 BoardUI `Select`，选项使用 SVG 国旗。支持语言与实际翻译范围一致，不填充尚未实现的语言。
 
@@ -64,7 +64,7 @@
 
 标题栏右侧工具按钮依次为目录、终端、更改、浏览器、文件与“插件与工具”（拼图图标，BoardUI Popover）：弹层分两块：上方“DeepSeek Harness 插件”说明 dsh 插件是 TypeScript / JavaScript 模块（导出 `apply(ctx)`，由 Cordis 配置加载），与技能、MCP 不同，执行层接入前不会加载；下方两个按钮分别进入设置“开发 → Cordis 插件”和打开 GitHub 搜索；下方“MCP、技能与连接器”只列出设置“MCP 与连接器”“技能”中实际保存的配置并标“未运行”，说明 Coding 执行层尚未接入，底部两个按钮进入对应设置页；“在 GitHub 搜索 DeepSeek Harness 插件”按钮只在系统浏览器中打开 GitHub 仓库搜索（桌面版经 `open_external_url` 命令，仅接受 http(s)），应用内不抓取、不展示搜索结果，也不需要 GitHub 授权；没有配置时显示空状态，不生成示例条目。
 
-底部悬浮栏（导航布局为“底部悬浮栏”时）沿用侧栏的浮层质感：`bg-background-secondary-default/85` + `backdrop-blur-xl`、`border-border-button-white`、`shadow-sidebar`、22px 圆角；图标块 40px、12px 圆角，选中项与侧栏选中相同（accent 渐变、白色图标、`shadow-nav-selected`），名称提示使用 `bg-background-primary-default` 与 `text-caption-1-medium`。面板（对话 / 快速搜索 / 更多）使用 BoardUI Popover，锚定整条悬浮栏、`placement="top"`、10px 间距，面板打开时对应图标显示 hover 底色；账号头像复用 `DashboardAccountMenu` 的收起样式，菜单向上弹出。
+底部悬浮栏（导航布局为“底部悬浮栏”时）沿用侧栏的浮层质感：`bg-background-secondary-default/85` + `backdrop-blur-xl`、`border-border-button-white`、`shadow-sidebar`、22px 圆角；图标块 40px、12px 圆角，选中项与侧栏选中相同（accent 渐变、白色图标、`shadow-nav-selected`），名称提示使用 `bg-background-primary-default` 与 `text-caption-1-medium`。面板（对话 / 快速搜索 / 更多）使用 BoardUI Popover，锚定整条悬浮栏、`placement="top"`、10px 间距，面板打开时对应图标显示 hover 底色；账号头像复用 `DashboardAccountMenu`，在 40px 图标块内居中，菜单向上以头像按钮为锚点。菜单打开期间暂停整个悬浮栏的放大。对话当前行使用 `bg-background-tertiary-hover`，时间徽标使用 `bg-background-secondary-default` 和 `text-text-primary/80`。
 
 macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的 40px 工具行：交通灯右侧安全区之后直接是返回、前进、新建对话，空白拖动区设置 `data-tauri-drag-region`，工具按钮不设置拖动属性；聊天页把分享和更多操作放进这条窗口栏，工作台与对话标题路径保留在聊天面板顶部；联系人页不重复显示聊天标题。工作区从标题栏下方开始；标题栏不再重复 NekoPapa 图标和名称，品牌识别只保留在侧栏顶部。完整浏览器页面也在应用顶部左侧显示返回、前进和新建对话，不仿制系统窗口按钮；路径继续放在聊天面板顶部。嵌入式模板预览不额外增加应用工具栏，沿用面板内标题及操作。窗口栏的返回、前进、新建对话与右侧分享、更多操作共用 [toolbar-icon-button.tsx](../src/components/application/dashboard/toolbar-icon-button.tsx) 的轻量图标按钮（沿用 BoardUI Chat Starter 头部操作的 28px、`rounded-md`、次级图标色与悬停底色，补充焦点环），导航按钮附 BoardUI `Tooltip`，有快捷键的按钮在提示中附 BoardUI `Kbd`（如“隐藏侧栏 ⌘B”）；标题栏最左侧是隐藏 / 显示侧栏按钮，与返回、前进之间以分隔线区分；聊天页的新建对话加号放在对话标签之后；右侧的目录 / 终端 / 更改 / 浏览器 / 文件是同款按钮的开关版本 `ToolbarToggleButton`（React Aria ToggleButton，选中时用悬停底色），对应面板共用 [tool-panel-frame.tsx](../src/components/application/agent-chat/tools/tool-panel-frame.tsx) 的标题行（图标、名称、项目与分支、操作、关闭）与居中说明；差异的增删行使用 `status-lime` / `status-rose` 语义色，文件状态用 BoardUI `Chip`，终端配色在运行时取自主题 token；前进与新建之间以分隔线区分；不在窗口栏使用带边框阴影的 `IconButton`。新建对话由窗口栏加号和聊天历史面板共同提供，搜索继续由侧栏快速搜索和系统快捷键提供。涉及这些区域时必须检查原生配置并在 Tauri 实测；浏览器布局验收仅证明 Web 页面。
 
@@ -82,7 +82,7 @@ macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的
 
 - 表单页：每个配置块是 `SettingsSectionLabel` + `SettingsCard`，字段是 `SettingsRow`（左侧标签与说明，右侧紧凑控件）。开关用 `Switch`，短选项（标签合计不超过 10 字）用 `SegmentedControl`，其余选项用紧凑 `Select`；数字、滑块、目录、长文本与标签列表分别用 `NumberField`、`Slider`、输入 + 选择、`Textarea`、`TagGroup`。所选选项的说明（`optionHints`）显示在该行说明里。
 - 列表页（模型、MCP 与连接器、技能、Cordis 插件、设备、钩子）：沿用官方 Tools 页的字母方块行、`…` 下拉菜单（编辑 / 删除）、虚线新增行和空状态卡片；方块颜色复用 Chip 状态色，状态点只表示“服务未接入”，不显示伪造的已连接状态。MCP 页用 `PillTab` 按类型筛选。
-- 模型配置按“连接服务”和“选择模型”分为两个 SettingsCard。密钥来源靠近服务商，预设地址和接口归入“连接详情”，名称和上下文窗口归入“更多设置”。模型 ID 输入框与 BoardUI 次要按钮“连接并获取模型”同排或换行，服务返回后在输入框下方显示可滚动的模型列表，模型较多时可筛选。进度与错误用行内状态说明。
+- 模型配置按“连接服务”和“添加模型”分为两个 SettingsCard。密钥来源靠近服务商，预设地址和接口归入“连接详情”，名称和上下文窗口归入“更多设置”。已添加的模型可查看、移除、设为默认；可手动输入或粘贴多行 ID，服务返回的模型用 BoardUI Checkbox 勾选，列表较长时可筛选。进度与错误用行内状态说明。
 - 模型列表的 `…` 菜单在编辑 / 删除之外提供“测试连接”（`PlugIcon`），结果作为行内一行说明显示在记录下方：检查中为 `text-text-tertiary`，成功为 `text-text-secondary`，失败为 `text-text-error-primary`；只显示真实请求结果。
 - 代码面板的“在编辑器中打开”（`tools/open-in-editor-button.tsx`）是更改 / 文件面板头部的次要图标按钮，按钮名称为“用{编辑器}打开”，仅在桌面版出现；并排差异视图（`tools/diff-split.tsx`）复用统一视图的增删行背景与行号样式。
 - 工作台 coding 界面参照 BoardUI Pro AI Chat 模板的布局思路（状态栏、面板切换、附件卡片），未安装或复制其源码（本机无 Pro 授权），只用已安装的 SegmentedControl、图标与语义 token 组合：状态栏为 `text-caption-1-regular` + `text-text-tertiary`，可点按项悬停 `bg-background-secondary-hover`；文件卡片为 `rounded-xl` + `border-separator-border` + `bg-background-secondary-default`，图标底块 `bg-background-tertiary-default`。
