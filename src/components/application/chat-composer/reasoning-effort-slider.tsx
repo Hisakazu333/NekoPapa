@@ -1,26 +1,32 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
-import { PIXEL_PAW_BLOCKS, PixelPawIcon } from "@/components/foundations/icons/pixel-paw";
+import { PixelPawIcon } from "@/components/foundations/icons/pixel-paw";
 import { cx } from "@/utils/cx";
 
 /*
- * NekoBuddy's own effort slider (design-mockups/ai-chat-gpt effort-slider.js):
- * a 64px pill with an 8px-inset bed, the accent fill reaching the thumb's
- * far edge, one dot per stop and a 44px white thumb carrying the pixel paw.
- * Dragging follows the pointer continuously and the label switches live;
- * releasing snaps to the nearest stop and commits it, a cancelled drag
- * returns to the committed stop. Keys step one stop at a time through the
- * native range input, which also names the value for assistive tech.
- * At the top stop the fill turns into the accent gradient and, with motion
- * allowed, white pixels drift and three pixel paws build up block by block.
+ * 推理档位 track for the model menu's reasoning panel: a 40px pill whose
+ * fill sits 4px in and runs to the far edge of a white pill thumb carrying
+ * the pixel paw. The panel shows the level name; while dragging, the slider
+ * reports the stop under the thumb through onPreview.
+ * Its look rises with the level: none when the first stop turns thinking
+ * off, solid accent on the lower half, an accent gradient with a few
+ * twinkling pixel blocks above it, and a deep gradient full of pixel blocks
+ * at the top stop. Unfilled stops show a 4px pixel each.
+ *
+ * Pressing anywhere on the track moves the thumb there and dragging follows
+ * the pointer; releasing snaps to the nearest stop and commits it, a
+ * cancelled drag returns to the committed stop. Keys step one stop at a time
+ * through the native range input, which also names the value for assistive
+ * tech. With reduced motion the pixels stay still.
  */
 
-const INSET = 8;
-const THUMB = 44;
+const INSET = 4;
+const THUMB = 48;
+const HALF = THUMB / 2;
 
-const PIXELS = Array.from({ length: 18 }, (_, index) => ({
-  x: 6 + index * 4.7, y: 18 + (index * 19) % 60, size: (index % 3) + 3, delay: -index * 0.21,
+/** Pixel blocks as % of the track; the first ten also show on the upper half. */
+const PIXELS = Array.from({ length: 26 }, (_, index) => ({
+  x: 4 + ((index * 37) % 90), y: 22 + ((index * 23) % 50), size: index % 3 === 0 ? 4 : index % 3 === 1 ? 3 : 2, delay: -((index * 0.43) % 2.6),
 }));
-const PRINTS = Array.from({ length: 3 }, (_, index) => ({ x: 22 + index * 22, y: index % 2 ? 51 : 22, delay: -0.8 - index * 1.05 }));
 
 function useReducedMotion() {
   const [reduced, setReduced] = useState(() => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -34,16 +40,20 @@ function useReducedMotion() {
   return reduced;
 }
 
-export function ReasoningEffortSlider({ labels, value, onChange, label, firstIsOff = false }: {
+export function ReasoningEffortSlider({ labels, value, onChange, onPreview, label, firstIsOff = false, description }: {
   /** Stop names, faster to smarter. */
   labels: readonly string[];
-  /** The first stop turns thinking off, so it draws faded. */
+  /** The first stop turns thinking off, so it draws no fill. */
   firstIsOff?: boolean;
   /** Committed stop index. */
   value: number;
   onChange: (index: number) => void;
+  /** The stop under the thumb while dragging (the committed one otherwise). */
+  onPreview?: (index: number) => void;
   /** Accessible name of the range. */
   label: string;
+  /** What the committed level does, as the range's description. */
+  description?: string;
 }) {
   const last = Math.max(1, labels.length - 1);
   const track = useRef<HTMLDivElement>(null);
@@ -55,14 +65,11 @@ export function ReasoningEffortSlider({ labels, value, onChange, label, firstIsO
   const reduced = useReducedMotion();
   useEffect(() => { if (!drag.current) setProgress(value / last); }, [value, last]);
 
-  const geometry = () => {
-    const width = track.current?.clientWidth ?? 0;
-    const minimum = INSET + THUMB / 2;
-    return { left: track.current?.getBoundingClientRect().left ?? 0, minimum, travel: Math.max(1, width - minimum * 2) };
-  };
+  const travel = (width: number) => Math.max(1, width - (INSET + HALF) * 2);
   const at = (clientX: number, offset: number) => {
-    const { left, minimum, travel } = geometry();
-    return Math.max(0, Math.min(1, (clientX - left - minimum - offset) / travel));
+    const box = track.current?.getBoundingClientRect();
+    if (!box) return progress;
+    return Math.max(0, Math.min(1, (clientX - box.left - INSET - HALF - offset) / travel(box.width)));
   };
   const finish = (commit: boolean) => {
     const current = drag.current;
@@ -81,11 +88,11 @@ export function ReasoningEffortSlider({ labels, value, onChange, label, firstIsO
     event.preventDefault();
     range.current?.focus({ preventScroll: true });
     setKeyboard(false);
-    const { left, minimum, travel } = geometry();
-    const center = minimum + progress * travel;
-    const local = event.clientX - left;
+    const box = event.currentTarget.getBoundingClientRect();
+    const center = INSET + HALF + progress * travel(box.width);
+    const local = event.clientX - box.left;
     // Grabbing the thumb keeps it under the finger; elsewhere it jumps there.
-    const offset = Math.abs(local - center) <= THUMB / 2 ? local - center : 0;
+    const offset = Math.abs(local - center) <= HALF ? local - center : 0;
     drag.current = { pointerId: event.pointerId, offset };
     setDragging(true);
     try { event.currentTarget.setPointerCapture(event.pointerId); } catch { /* the drag still follows window moves */ }
@@ -96,52 +103,39 @@ export function ReasoningEffortSlider({ labels, value, onChange, label, firstIsO
   };
 
   const shown = Math.round(progress * last);
-  const energy = progress >= 0.985;
-  const animate = energy && !reduced;
-  // Thumb centre and fill end share one geometry (see the mockup's paint()).
-  const thumbX = `calc(${INSET + THUMB / 2}px + ${progress} * (100% - ${(INSET + THUMB / 2) * 2}px))`;
+  const off = firstIsOff && shown === 0;
+  useEffect(() => { onPreview?.(shown); }, [shown, onPreview]);
+  const tier = off ? "off" : shown === last ? "max" : shown / last >= 0.5 ? "high" : "low";
+  const pixels = tier === "max" ? PIXELS : tier === "high" ? PIXELS.slice(0, 10) : [];
+  const center = (ratio: number) => `calc(${INSET + HALF}px + ${ratio} * (100% - ${(INSET + HALF) * 2}px))`;
+  const ease = !dragging && "duration-200 ease-[cubic-bezier(.2,.9,.3,1)] motion-reduce:transition-none";
 
-  return <div className="flex w-full flex-col items-center gap-3">
-    <div className="relative flex min-h-8 items-center justify-center gap-1.5">
-      <PixelPawIcon className={cx("size-5 text-accent-500 transition-opacity duration-200", energy ? "opacity-80" : "opacity-0")} />
-      <output aria-live="polite" className={cx("text-title-3-semibold transition-colors duration-200", energy ? "text-accent-600" : "text-text-primary")}>{labels[shown]}</output>
+  return <div ref={track} onPointerDown={down} onPointerMove={move}
+    onPointerUp={(event) => { if (drag.current?.pointerId === event.pointerId) finish(true); }}
+    onPointerCancel={(event) => { if (drag.current?.pointerId === event.pointerId) finish(false); }}
+    onLostPointerCapture={(event) => { if (drag.current?.pointerId === event.pointerId) finish(false); }}
+    className={cx("@container relative h-10 w-full touch-none select-none rounded-full bg-background-tertiary-default", dragging ? "cursor-grabbing" : "cursor-pointer")}>
+    {labels.map((name, index) => <i key={name} aria-hidden style={{ insetInlineStart: center(index / last) }}
+      className="pointer-events-none absolute top-1/2 size-1 -translate-x-1/2 -translate-y-1/2 bg-foreground-icon-quaternary rtl:translate-x-1/2" />)}
+    <div aria-hidden style={{ width: off ? 0 : `calc(${center(progress)} + ${HALF - INSET}px)`, insetBlock: INSET, insetInlineStart: INSET }}
+      className={cx("absolute overflow-hidden rounded-full", ease && "transition-[width]", ease,
+        tier === "max" ? "bg-linear-to-r from-accent-800 via-accent-600 to-accent-400"
+          : tier === "high" ? "bg-linear-to-r from-accent-400 to-accent-600" : "bg-accent-500")}>
+      <div className="absolute inset-y-0 start-0 w-[100cqw]">
+        {pixels.map((pixel, index) => <i key={index}
+          className={cx("absolute bg-control-indicator-background", reduced ? "opacity-60" : "opacity-0 animate-[neko-pixel-twinkle_2.6s_steps(4,end)_infinite]")}
+          style={{ left: `${pixel.x}%`, top: `${pixel.y}%`, width: pixel.size, height: pixel.size, animationDelay: `${pixel.delay}s` }} />)}
+      </div>
     </div>
-    <div ref={track} onPointerDown={down} onPointerMove={move}
-      onPointerUp={(event) => { if (drag.current?.pointerId === event.pointerId) finish(true); }}
-      onPointerCancel={(event) => { if (drag.current?.pointerId === event.pointerId) finish(false); }}
-      onLostPointerCapture={(event) => { if (drag.current?.pointerId === event.pointerId) finish(false); }}
-      className={cx("relative h-16 w-full touch-none select-none rounded-full border border-separator-border bg-background-primary-default/80 shadow-xs",
-        dragging ? "cursor-grabbing" : "cursor-grab", keyboard && "ring-2 ring-border-focus-ring")}>
-      <div aria-hidden className="absolute inset-2 overflow-hidden rounded-full bg-background-tertiary-default">
-        <div style={{ width: `calc(${thumbX} + ${THUMB / 2 - INSET}px)` }}
-          className={cx("absolute inset-y-0 start-0 overflow-hidden rounded-full",
-            !dragging && "transition-[width,background-color] duration-200 ease-[cubic-bezier(.2,.9,.3,1)]",
-            energy ? "bg-linear-[110deg] from-accent-700 via-accent-400 to-accent-200" : firstIsOff && shown === 0 ? "bg-accent-500/20" : "bg-accent-500")}>
-          {animate && <>
-            {PIXELS.map((pixel, index) => <i key={index} className="absolute rounded-[1px] bg-control-indicator-background opacity-0 motion-safe:animate-[neko-pixel-flow_4.2s_ease-in-out_infinite]"
-              style={{ left: `${pixel.x}%`, top: `${pixel.y}%`, width: pixel.size, height: pixel.size, animationDelay: `${pixel.delay}s` }} />)}
-            {PRINTS.map((print, index) => <svg key={index} viewBox="0 0 28 28" className="absolute size-[21px] fill-control-indicator-background" shapeRendering="crispEdges"
-              style={{ left: `${print.x}%`, top: `${print.y}%` }}>
-              {PIXEL_PAW_BLOCKS.map(([x, y], order) => <rect key={order} x={x} y={y} width={4} height={4}
-                className="opacity-0 motion-safe:animate-[neko-paw-build_4.2s_ease-in-out_infinite]" style={{ animationDelay: `${print.delay + order * 0.03}s` }} />)}
-            </svg>)}
-          </>}
-        </div>
-      </div>
-      <div aria-hidden className={cx("pointer-events-none absolute inset-y-0 flex items-center justify-between transition-opacity duration-200", energy ? "opacity-10" : "opacity-100")}
-        style={{ insetInline: INSET + THUMB / 2 }}>
-        {labels.map((name) => <i key={name} className="-mx-[3px] size-1.5 rounded-full bg-background-primary-default opacity-40" />)}
-      </div>
-      <div aria-hidden style={{ insetInlineStart: thumbX }}
-        className={cx("pointer-events-none absolute top-1/2 grid size-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border border-separator-border bg-control-indicator-background shadow-md rtl:translate-x-1/2",
-          !dragging && "transition-[inset-inline-start] duration-200 ease-[cubic-bezier(.2,1.12,.36,1)]")}>
-        <PixelPawIcon className={cx("size-5 transition-colors", firstIsOff && shown === 0 ? "text-foreground-icon-tertiary" : "text-accent-500")} />
-      </div>
-      <input ref={range} type="range" min={0} max={last} step={1} value={value} aria-label={label} aria-valuetext={labels[value]}
-        onChange={(event) => { if (!drag.current) onChange(Number(event.target.value)); }}
-        onKeyDown={() => setKeyboard(true)} onBlur={() => setKeyboard(false)}
-        onClick={(event) => event.preventDefault()}
-        className="pointer-events-none absolute inset-0 size-full appearance-none opacity-0" />
+    <div aria-hidden style={{ insetInlineStart: center(progress) }}
+      className={cx("pointer-events-none absolute top-1/2 grid h-8 w-12 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-control-indicator-background shadow-md rtl:translate-x-1/2",
+        ease && "transition-[inset-inline-start,scale]", ease, dragging && "scale-110", keyboard && "ring-2 ring-border-focus-ring")}>
+      <PixelPawIcon className={cx("size-4 transition-colors", off ? "text-foreground-icon-quaternary" : "text-accent-500")} />
     </div>
+    <input ref={range} type="range" min={0} max={last} step={1} value={value} aria-label={label} aria-valuetext={labels[value]} aria-description={description}
+      onChange={(event) => { if (!drag.current) onChange(Number(event.target.value)); }}
+      onKeyDown={() => setKeyboard(true)} onBlur={() => setKeyboard(false)}
+      onClick={(event) => event.preventDefault()}
+      className="pointer-events-none absolute inset-0 size-full appearance-none opacity-0" />
   </div>;
 }

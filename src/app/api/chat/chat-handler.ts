@@ -13,12 +13,15 @@ import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-c
 import { chatReplyMetadata } from "../../usage/chat-usage";
 import { readChatModelProfile } from "../../models/chat-model-profile";
 import { reasoningCallOptions, reasoningOption } from "../../models/reasoning-level";
+import { serviceVendor } from "../../models/model-vendors";
 import { PROFILE_PROVIDER_NAME, profileProvider, resolveProvider, type Provider } from "./providers";
 import type { ChatRuntime } from "./runtime";
 
 /** Bumped when the contract below changes in a way templates can depend on. */
 const RUNTIME_CONTRACT = 1;
 const INSTRUCTIONS_LIMIT = 12000;
+/** Built-in providers that reach a vendor's own API, by the reasoning table's vendor ids. */
+const BUILT_IN_VENDORS: Partial<Record<string, string>> = { openai: "openai", anthropic: "anthropic", google: "gemini", deepseek: "deepseek" };
 
 /** Keep the assistant's identity and capability claims aligned with this chat. */
 function systemPrompt(provider: Provider, contact?: ChatContactMetadata, group?: GroupContext, instructions?: string) {
@@ -105,9 +108,14 @@ export function createChatHandlers(runtime: ChatRuntime) {
     // 推理档位 from the model picker: a level the answering model documents;
     // absent means nothing is sent and the service's default applies.
     const submittedReasoning = (body as { reasoning?: unknown }).reasoning;
-    const reasoningLevel = submittedReasoning === undefined ? undefined : reasoningOption(provider.modelId, submittedReasoning);
+    // The level table belongs to the vendor actually answering: a saved
+    // profile's endpoint host, or the built-in provider the environment named.
+    const reasoningVendor = profile
+      ? (profile.provider === "anthropic") === (serviceVendor(profile.endpoint) === "anthropic") ? serviceVendor(profile.endpoint) : undefined
+      : runtime.env("AI_BASE_URL")?.trim() ? undefined : BUILT_IN_VENDORS[provider.id];
+    const reasoningLevel = submittedReasoning === undefined ? undefined : reasoningOption(provider.modelId, reasoningVendor, submittedReasoning);
     if (submittedReasoning !== undefined && !reasoningLevel) {
-      return Response.json({ error: "invalid_reasoning", message: `${provider.modelId} does not offer that reasoning level.` }, { status: 400 });
+      return Response.json({ error: "invalid_reasoning", message: `${provider.modelId} does not offer that reasoning level on this service.` }, { status: 400 });
     }
     // Saved OpenAI-compatible profiles take the model's own fields; the
     // Anthropic and built-in providers map the SDK's standard setting.

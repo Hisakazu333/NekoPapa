@@ -35,8 +35,9 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
   const record = selected && !selected.runtime ? data.collections.models.find((entry) => entry.id === selected.connectionId) : undefined;
   const profile = record && selected ? chatModelProfile(record, selected.model).profile : undefined;
   const instructions = String(data.groups.personalization?.instructions ?? "").trim();
-  // 推理档位 stays with this chat; a level the chosen model does not offer is not sent.
-  const reasoning = reasoningOption(selected?.model, state.reasoning);
+  // 推理档位 stays with this chat; a level the chosen model does not offer on
+  // its service (judged by the endpoint's host) is not sent.
+  const reasoning = reasoningOption(selected?.model, selected?.vendor, state.reasoning);
   const requestBody = { ...(profile ? { profile } : {}), ...(instructions ? { instructions } : {}),
     ...(reasoning ? { reasoning: reasoning.id } : {}) };
   const draftBlockReason = composerDraftBlockReason(state.draft);
@@ -49,7 +50,7 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     modelBlockReason,
     /** The level chosen for the selected model; undefined sends nothing. */
     reasoning,
-    reasoningProfile: reasoningProfile(selected?.model),
+    reasoningProfile: reasoningProfile(selected?.model, selected?.vendor),
     /** Sets the level, or clears it back to the service's default. */
     setReasoning: (level: string | undefined) => update((previous) => ({ ...previous, reasoning: level })),
     draftBlockReason,

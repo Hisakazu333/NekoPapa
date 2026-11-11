@@ -1,7 +1,7 @@
 import type { ConfigurationRecord } from "../settings/configuration-types";
 import { connectionModelIds } from "./model-connection-models";
 import { chatModelProfile } from "./chat-model-profile";
-import { modelVendor, vendorForEndpoint } from "./model-vendors";
+import { modelVendor, serviceVendor } from "./model-vendors";
 
 export interface ComposerModelOption {
   id: string;
@@ -9,7 +9,7 @@ export interface ComposerModelOption {
   model: string;
   /** The picker's group: the vendor whose public address the profile uses, else its interface type. */
   provider: string;
-  /** Vendor preset id when the endpoint is a known vendor's address. */
+  /** Vendor preset id when the endpoint is on a known vendor's host (it decides the 推理档位 table). */
   vendor?: string;
   runtime: boolean;
   connectionId?: string;
@@ -27,7 +27,7 @@ export function composerModels(records: readonly ConfigurationRecord[], runtime:
   }] : [];
   for (const record of records) {
     const ids = connectionModelIds(record.values);
-    const vendor = modelVendor(vendorForEndpoint(String(record.values.endpoint ?? "")));
+    const vendor = modelVendor(serviceVendor(String(record.values.endpoint ?? "")) ?? "");
     for (const [index, model] of ids.entries()) {
       result.push({ id: index === 0 ? record.id : `${record.id}:${model}`, connectionId: record.id,
         name: ids.length === 1 ? String(record.values.name || model) : model, model,

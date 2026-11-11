@@ -247,45 +247,66 @@ test("selected model is sent with the connection's credential and its own known 
   assert.match(profiles.chatModelProfile(saved, "removed").reason, /已从这份配置中移除/);
 });
 
-test("推理档位按模型：默认不发送，所选档位作为 reasoning_effort 发出，模型不提供的档位被拒绝", async (t) => {
-  const { endpoint, seen } = await fakeServer(t);
-  const profile = { provider: "compatible", endpoint, model: "gpt-5.1", credential: "" };
+test("推理档位按服务与模型：默认不发送，所选档位作为 reasoning_effort 发出，服务或模型不提供的档位被拒绝", async (t) => {
+  const { endpoint } = await fakeServer(t);
+  const sent = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    if (!String(url).startsWith("https://api.openai.com/")) return original(url, init);
+    sent.push(JSON.parse(init.body));
+    const sse = `data: ${JSON.stringify({ id: "o", object: "chat.completion.chunk", created: 0, model: "m", choices: [{ index: 0, delta: { role: "assistant", content: "好" }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`;
+    return new Response(sse, { status: 200, headers: { "content-type": "text/event-stream" } });
+  };
+  t.after(() => { globalThis.fetch = original; });
+  const profile = { provider: "compatible", endpoint: "https://api.openai.com/v1", model: "gpt-5.1", credential: "" };
   for (const extra of [{}, { reasoning: "high" }, { reasoning: "none" }]) {
     const response = await route.POST(post("/api/chat", { messages, profile, ...extra }));
     assert.equal(response.status, 200);
-    assert.match(await response.text(), /配置回复/);
+    await response.text();
   }
-  const [plain, high, none] = seen.filter((entry) => entry.path === "/v1/chat/completions");
-  assert.equal(plain.body.reasoning_effort, undefined);
-  assert.equal(high.body.reasoning_effort, "high");
-  assert.equal(none.body.reasoning_effort, "none");
-  // gpt-5.1 has no xhigh, and an unknown model has no levels at all.
-  for (const [model, reasoning] of [["gpt-5.1", "xhigh"], ["gpt-5.1", "turbo"], ["tiny-model", "high"]]) {
-    const rejected = await route.POST(post("/api/chat", { messages, profile: { ...profile, model }, reasoning }));
+  assert.deepEqual(sent.map((body) => body.reasoning_effort), [undefined, "high", "none"]);
+  // gpt-5.1 has no xhigh, an unknown model has no levels, and the same model
+  // behind another server (a gateway, a local server) takes that server's parameters.
+  for (const [target, reasoning] of [[profile, "xhigh"], [profile, "turbo"], [{ ...profile, model: "tiny-model" }, "high"], [{ ...profile, endpoint }, "high"]]) {
+    const rejected = await route.POST(post("/api/chat", { messages, profile: target, reasoning }));
     assert.equal(rejected.status, 400);
     assert.equal((await rejected.json()).error, "invalid_reasoning");
   }
 });
 
 test("推理档位表只列各模型文档写明的档位，由快到慢", () => {
-  const ids = (model) => reasoningLevel.reasoningProfile(model)?.levels.map((level) => level.id);
-  assert.deepEqual(ids("glm-5.3"), ["low", "high", "max"]);
-  assert.deepEqual(ids("glm-5.3-flash"), ["low", "high", "max"]);
-  assert.equal(reasoningLevel.reasoningProfile("glm-5.3").defaultId, "max");
-  assert.deepEqual(ids("glm-5.2"), ["none", "high", "max"]);
-  assert.deepEqual(ids("glm-4.6"), ["off", "auto"]);
-  assert.deepEqual(ids("deepseek-v4-pro"), ["off", "low", "high", "max"]);
-  assert.deepEqual(ids("gpt-5"), ["minimal", "low", "medium", "high"]);
-  assert.deepEqual(ids("gpt-5.2"), ["none", "low", "medium", "high", "xhigh"]);
-  assert.deepEqual(ids("gpt-5.1-codex"), ["low", "medium", "high"]);
-  assert.deepEqual(ids("o4-mini"), ["low", "medium", "high"]);
-  assert.deepEqual(ids("openai/gpt-5.2"), ["none", "low", "medium", "high", "xhigh"]);
-  assert.equal(reasoningLevel.reasoningProfile("gpt-5.2-pro"), undefined);
-  assert.equal(reasoningLevel.reasoningProfile("deepseek-chat"), undefined);
-  assert.equal(reasoningLevel.reasoningProfile("tiny-model"), undefined);
+  const { reasoningProfile, reasoningOption, reasoningCallOptions } = reasoningLevel;
+  const ids = (vendor, model) => reasoningProfile(model, vendor)?.levels.map((level) => level.id);
+  assert.deepEqual(ids("zhipu", "glm-5.3"), ["low", "high", "max"]);
+  assert.deepEqual(ids("zhipu", "glm-5.3-flash"), ["low", "high", "max"]);
+  assert.equal(reasoningProfile("glm-5.3", "zhipu").defaultId, "max");
+  assert.deepEqual(ids("zhipu", "glm-5.2"), ["none", "high", "max"]);
+  assert.deepEqual(ids("zhipu", "glm-4.6"), ["off", "auto"]);
+  assert.deepEqual(ids("zhipu", "glm-4.7"), ["off", "auto"]);
+  assert.deepEqual(ids("deepseek", "deepseek-v4-pro"), ["off", "low", "high", "max"]);
+  assert.deepEqual(ids("deepseek", "deepseek-flash"), ["off", "low", "high", "max"]);
+  assert.deepEqual(ids("openai", "gpt-5"), ["minimal", "low", "medium", "high"]);
+  assert.deepEqual(ids("openai", "gpt-5.2"), ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(ids("openai", "gpt-5.1-codex"), ["low", "medium", "high"]);
+  assert.deepEqual(ids("openai", "o4-mini"), ["low", "medium", "high"]);
+  // The same model name on another service, or an unverified variant, offers nothing.
+  assert.equal(ids("openrouter", "deepseek-v4-pro"), undefined);
+  assert.equal(ids(undefined, "glm-5.3"), undefined);
+  assert.equal(ids("zhipu", "gpt-5.2"), undefined);
+  assert.equal(ids("openai", "gpt-5.2-pro"), undefined);
+  assert.equal(ids("deepseek", "deepseek-chat"), undefined);
+  assert.equal(ids("deepseek", "deepseek-v4.1-flash"), undefined);
+  assert.equal(ids("dashscope", "qwen3.8-max"), undefined);
+  assert.deepEqual(ids("dashscope", "qwen3-235b-a22b"), ["off", "on"]);
+  assert.equal(ids("openai", "tiny-model"), undefined);
+  // The vendor is read from the endpoint's host, with or without the version path.
+  for (const [endpoint, vendor] of [["https://api.deepseek.com", "deepseek"], ["https://api.deepseek.com/v1/", "deepseek"], ["https://api.z.ai/api/paas/v4", "zhipu"],
+    ["https://openrouter.ai/api/v1", "openrouter"], ["http://localhost:11434/v1", "ollama"], ["http://127.0.0.1:9/v1", undefined], ["not a url", undefined]]) {
+    assert.equal(vendors.serviceVendor(endpoint), vendor, endpoint);
+  }
   // Anthropic and built-in providers take the SDK's standard setting.
-  assert.deepEqual(reasoningLevel.reasoningCallOptions(reasoningLevel.reasoningOption("claude-sonnet-4-5", "medium"), "sdk"), { reasoning: "medium" });
-  assert.deepEqual(reasoningLevel.reasoningCallOptions(reasoningLevel.reasoningOption("deepseek-v4-pro", "off"), "sdk"), { reasoning: "none" });
+  assert.deepEqual(reasoningCallOptions(reasoningOption("claude-sonnet-4-5", "anthropic", "medium"), "sdk"), { reasoning: "medium" });
+  assert.deepEqual(reasoningCallOptions(reasoningOption("deepseek-v4-pro", "deepseek", "off"), "sdk"), { reasoning: "none" });
   assert.deepEqual(reasoningLevel.reasoningCallOptions(undefined, "compatible"), {});
 });
 

@@ -362,15 +362,8 @@ input[type="search"]::-webkit-search-cancel-button {
   }
 }
 
-/* NekoBuddy effort slider at the top stop (design-mockups/ai-chat-gpt style.css). */
-@keyframes neko-pixel-flow {
-  0%, 100% { opacity: 0; transform: translate(-14px, 2px) scale(0.65); }
-  32% { opacity: 0.5; transform: translate(0, 0) scale(1); }
-  78% { opacity: 0.18; transform: translate(18px, -2px) scale(0.75); }
-}
-
-@keyframes neko-paw-build {
-  0%, 14% { opacity: 0; transform: translate(-10px, 3px) scale(0.45); }
-  31%, 66% { opacity: 1; transform: translate(0, 0) scale(1); }
-  92%, 100% { opacity: 0; transform: translate(8px, -3px) scale(0.7); }
+/* Reasoning slider pixel blocks (reasoning-effort-slider.tsx). */
+@keyframes neko-pixel-twinkle {
+  0%, 100% { opacity: 0; }
+  40%, 60% { opacity: 0.9; }
 }

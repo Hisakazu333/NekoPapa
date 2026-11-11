@@ -57,6 +57,40 @@ export function vendorForEndpoint(endpoint: string): string {
   return MODEL_VENDORS.find((entry) => normalize(entry.endpoint) === target)?.id ?? CUSTOM_VENDOR;
 }
 
+/** Other official hosts a vendor answers on (its international site, say). */
+const HOST_ALIASES: Record<string, readonly string[]> = {
+  zhipu: ["api.z.ai"],
+  dashscope: ["dashscope-intl.aliyuncs.com"],
+  moonshot: ["api.moonshot.ai"],
+};
+
+const hostOf = (endpoint: string) => {
+  try {
+    const url = new URL(endpoint.trim());
+    const host = url.hostname.toLowerCase().replace(/^localhost$/, "127.0.0.1");
+    return { host, port: url.port };
+  } catch {
+    return undefined;
+  }
+};
+
+/**
+ * The vendor whose service this endpoint reaches, judged by host alone so a
+ * path written with or without the version segment (`api.deepseek.com` and
+ * `api.deepseek.com/v1`) is the same service. Local servers also match the
+ * port. Unknown hosts (gateways, self-hosted servers) give undefined: their
+ * parameters are their own, not the original vendor's.
+ */
+export function serviceVendor(endpoint: string | undefined): string | undefined {
+  const target = hostOf(String(endpoint ?? ""));
+  if (!target) return undefined;
+  return MODEL_VENDORS.find((entry) => {
+    const preset = hostOf(entry.endpoint)!;
+    if (entry.region === "local") return preset.host === target.host && preset.port === target.port;
+    return preset.host === target.host || (HOST_ALIASES[entry.id] ?? []).includes(target.host);
+  })?.id;
+}
+
 export function modelVendor(id: string): ModelVendor | undefined {
   return MODEL_VENDORS.find((entry) => entry.id === id);
 }
