@@ -4,13 +4,13 @@ import {
   ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert,
   CircleCheck, CircleHelp, CircleStop, Cloud, CloudUpload, Code, Compass, Contact, Copy, Cpu,
   Command, CornerDownLeft, Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
-  FileLock, FileText, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
+  FileArchive, FileAudio, FileCode, FileLock, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
   GraduationCap, History, House, Image, ImagePlus, Info, Keyboard, Languages, Laptop, Layers,
   LayoutGrid, LayoutPanelLeft, Library, Lightbulb, Link, Link2, List, ListChecks, LogIn,
   Mail, MailCheck, MailOpen, Map, Menu, MessageCircle, MessageCircleHeart, MessageSquareText,
   MessageSquareWarning, MessagesSquare, Mic, Minus, Monitor, Moon,
   NotebookPen, Palette, PanelLeft, PanelLeftClose, PanelLeftOpen, PanelRight, PanelTop,
-  Paperclip, Pencil, PencilLine, Pin, PinOff, Plug, Plus, Puzzle, RectangleHorizontal,
+  Paperclip, Pencil, Presentation, PencilLine, Pin, PinOff, Plug, Plus, Puzzle, RectangleHorizontal,
   RefreshCw, RotateCcw, Search, Settings, Settings2, ShieldAlert, ShieldCheck,
   ScanLine, ShieldEllipsis, ShieldUser, Smartphone, Smile, Sparkle, Square, SquarePen, SquareTerminal,
   StickyNote, Sun, Tablet, Terminal, Trash2, Undo2, Upload, User, UserCog, UserPlus, Users,
@@ -102,6 +102,12 @@ export const EllipsisVerticalIcon = outline(EllipsisVertical);
 export const ExternalLinkIcon = outline(ExternalLink);
 export const FileIcon = outline(File);
 export const FileLockIcon = outline(FileLock);
+export const FileArchiveIcon = outline(FileArchive);
+export const FileAudioIcon = outline(FileAudio);
+export const FileCodeIcon = outline(FileCode);
+export const FileSpreadsheetIcon = outline(FileSpreadsheet);
+export const FileVideoIcon = outline(FileVideo);
+export const PresentationIcon = outline(Presentation);
 export const FileTextIcon = outline(FileText);
 export const FolderIcon = outline(Folder);
 export const FolderOpenIcon = outline(FolderOpen);

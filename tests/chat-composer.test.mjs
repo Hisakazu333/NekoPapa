@@ -222,3 +222,14 @@ test("a connection contributes each configured model without duplicating the API
   const remaining = [{ ...records[0], values: { ...records[0].values, additionalModels: "third" } }];
   assert.match(model.composerModelBlockReason(options[1].id, model.composerModels(remaining, {}), remaining), /已移除/);
 });
+
+test("the model picker groups saved profiles by the vendor whose address they use, else by interface type", () => {
+  const options = model.composerModels([
+    { id: "glm", values: { name: "智谱", model: "glm-4.6", provider: "compatible", endpoint: "https://open.bigmodel.cn/api/paas/v4/" } },
+    { id: "ds", values: { name: "DeepSeek", model: "deepseek-chat", provider: "compatible", endpoint: "https://api.deepseek.com/v1" } },
+    { id: "own", values: { name: "自建", model: "m", provider: "compatible", endpoint: "https://llm.example/v1" } },
+  ], {});
+  assert.deepEqual(options.map((entry) => [entry.provider, entry.vendor]), [["智谱 GLM", "zhipu"], ["DeepSeek", "deepseek"], ["OpenAI 兼容接口", undefined]]);
+  assert.deepEqual(model.filterComposerModels(options, "", "智谱 GLM").map((entry) => entry.id), ["glm"]);
+  assert.deepEqual(model.filterComposerModels(options, "deepseek").map((entry) => entry.id), ["ds"]);
+});

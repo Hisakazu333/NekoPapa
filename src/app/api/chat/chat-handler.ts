@@ -12,7 +12,8 @@ import type { ChatContactMetadata } from "../../../components/application/agent-
 import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-companion-service";
 import { chatReplyMetadata } from "../../usage/chat-usage";
 import { readChatModelProfile } from "../../models/chat-model-profile";
-import { profileProvider, resolveProvider, type Provider } from "./providers";
+import { reasoningCallOptions, reasoningOption } from "../../models/reasoning-level";
+import { PROFILE_PROVIDER_NAME, profileProvider, resolveProvider, type Provider } from "./providers";
 import type { ChatRuntime } from "./runtime";
 
 /** Bumped when the contract below changes in a way templates can depend on. */
@@ -101,6 +102,16 @@ export function createChatHandlers(runtime: ChatRuntime) {
     if (!provider) return Response.json({ error: "missing_api_key", message: reason }, { status: 503 });
     const submittedInstructions = (body as { instructions?: unknown }).instructions;
     const instructions = typeof submittedInstructions === "string" ? submittedInstructions.trim().slice(0, INSTRUCTIONS_LIMIT) : undefined;
+    // 推理档位 from the model picker: a level the answering model documents;
+    // absent means nothing is sent and the service's default applies.
+    const submittedReasoning = (body as { reasoning?: unknown }).reasoning;
+    const reasoningLevel = submittedReasoning === undefined ? undefined : reasoningOption(provider.modelId, submittedReasoning);
+    if (submittedReasoning !== undefined && !reasoningLevel) {
+      return Response.json({ error: "invalid_reasoning", message: `${provider.modelId} does not offer that reasoning level.` }, { status: 400 });
+    }
+    // Saved OpenAI-compatible profiles take the model's own fields; the
+    // Anthropic and built-in providers map the SDK's standard setting.
+    const reasoning = reasoningCallOptions(reasoningLevel, profile && profile.provider !== "anthropic" ? "compatible" : "sdk");
 
     // Validate before converting. `convertToModelMessages` throws on a message
     // missing `parts`, on a null entry, and on an unknown role — and it throws
@@ -117,6 +128,8 @@ export function createChatHandlers(runtime: ChatRuntime) {
     const result = streamText({
       model: provider.model,
       system: systemPrompt(provider, contact, group, instructions),
+      ...(reasoning.reasoning ? { reasoning: reasoning.reasoning } : {}),
+      ...(reasoning.compatible ? { providerOptions: { [PROFILE_PROVIDER_NAME]: reasoning.compatible } } : {}),
       // Earlier replies' reasoning stays on screen but is not sent back:
       // providers such as DeepSeek reject it in the input.
       messages: await convertToModelMessages(validated.data.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") }))),

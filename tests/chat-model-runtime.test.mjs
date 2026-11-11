@@ -10,7 +10,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 // 设置 → 模型与 API profiles answering chat, 测试连接, chat links and the split diff.
 const output = mkdtempSync(join(tmpdir(), "nekopapa-chat-model-runtime-"));
-let route, profiles, links, address, diffRows, vendors, blocks;
+let route, profiles, links, address, diffRows, vendors, blocks, reasoningLevel;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./chat-model-runtime-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
@@ -27,6 +27,7 @@ try {
   diffRows = await import(pathToFileURL(join(output, "app/projects/diff-rows.js")));
   vendors = await import(pathToFileURL(join(output, "app/models/model-vendors.js")));
   blocks = await import(pathToFileURL(join(output, "app/chat/message-blocks.js")));
+  reasoningLevel = await import(pathToFileURL(join(output, "app/models/reasoning-level.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 const messages = [{ id: "user-1", role: "user", parts: [{ type: "text", text: "你好" }] }];
@@ -244,4 +245,77 @@ test("selected model is sent with the connection's credential and its own known 
   assert.equal(second.credential, first.credential);
   assert.equal(second.contextWindow, undefined);
   assert.match(profiles.chatModelProfile(saved, "removed").reason, /已从这份配置中移除/);
+});
+
+test("推理档位按模型：默认不发送，所选档位作为 reasoning_effort 发出，模型不提供的档位被拒绝", async (t) => {
+  const { endpoint, seen } = await fakeServer(t);
+  const profile = { provider: "compatible", endpoint, model: "gpt-5.1", credential: "" };
+  for (const extra of [{}, { reasoning: "high" }, { reasoning: "none" }]) {
+    const response = await route.POST(post("/api/chat", { messages, profile, ...extra }));
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /配置回复/);
+  }
+  const [plain, high, none] = seen.filter((entry) => entry.path === "/v1/chat/completions");
+  assert.equal(plain.body.reasoning_effort, undefined);
+  assert.equal(high.body.reasoning_effort, "high");
+  assert.equal(none.body.reasoning_effort, "none");
+  // gpt-5.1 has no xhigh, and an unknown model has no levels at all.
+  for (const [model, reasoning] of [["gpt-5.1", "xhigh"], ["gpt-5.1", "turbo"], ["tiny-model", "high"]]) {
+    const rejected = await route.POST(post("/api/chat", { messages, profile: { ...profile, model }, reasoning }));
+    assert.equal(rejected.status, 400);
+    assert.equal((await rejected.json()).error, "invalid_reasoning");
+  }
+});
+
+test("推理档位表只列各模型文档写明的档位，由快到慢", () => {
+  const ids = (model) => reasoningLevel.reasoningProfile(model)?.levels.map((level) => level.id);
+  assert.deepEqual(ids("glm-5.3"), ["low", "high", "max"]);
+  assert.deepEqual(ids("glm-5.3-flash"), ["low", "high", "max"]);
+  assert.equal(reasoningLevel.reasoningProfile("glm-5.3").defaultId, "max");
+  assert.deepEqual(ids("glm-5.2"), ["none", "high", "max"]);
+  assert.deepEqual(ids("glm-4.6"), ["off", "auto"]);
+  assert.deepEqual(ids("deepseek-v4-pro"), ["off", "low", "high", "max"]);
+  assert.deepEqual(ids("gpt-5"), ["minimal", "low", "medium", "high"]);
+  assert.deepEqual(ids("gpt-5.2"), ["none", "low", "medium", "high", "xhigh"]);
+  assert.deepEqual(ids("gpt-5.1-codex"), ["low", "medium", "high"]);
+  assert.deepEqual(ids("o4-mini"), ["low", "medium", "high"]);
+  assert.deepEqual(ids("openai/gpt-5.2"), ["none", "low", "medium", "high", "xhigh"]);
+  assert.equal(reasoningLevel.reasoningProfile("gpt-5.2-pro"), undefined);
+  assert.equal(reasoningLevel.reasoningProfile("deepseek-chat"), undefined);
+  assert.equal(reasoningLevel.reasoningProfile("tiny-model"), undefined);
+  // Anthropic and built-in providers take the SDK's standard setting.
+  assert.deepEqual(reasoningLevel.reasoningCallOptions(reasoningLevel.reasoningOption("claude-sonnet-4-5", "medium"), "sdk"), { reasoning: "medium" });
+  assert.deepEqual(reasoningLevel.reasoningCallOptions(reasoningLevel.reasoningOption("deepseek-v4-pro", "off"), "sdk"), { reasoning: "none" });
+  assert.deepEqual(reasoningLevel.reasoningCallOptions(undefined, "compatible"), {});
+});
+
+test("推理档位经完整路由写进智谱与 DeepSeek 请求体：GLM-5.3 只发强度、不发关闭", async (t) => {
+  const sent = [];
+  const original = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    if (!/^https:\/\/(open\.bigmodel\.cn|api\.deepseek\.com)\//.test(String(url))) return original(url, init);
+    sent.push(JSON.parse(init.body));
+    const sse = `data: ${JSON.stringify({ id: "z", object: "chat.completion.chunk", created: 0, model: "m", choices: [{ index: 0, delta: { role: "assistant", content: "好" }, finish_reason: "stop" }] })}\n\ndata: [DONE]\n\n`;
+    return new Response(sse, { status: 200, headers: { "content-type": "text/event-stream" } });
+  };
+  t.after(() => { globalThis.fetch = original; });
+  const zhipu = (model) => ({ provider: "compatible", endpoint: "https://open.bigmodel.cn/api/paas/v4", model, credential: "" });
+  const deepseek = { provider: "compatible", endpoint: "https://api.deepseek.com/v1", model: "deepseek-v4-pro", credential: "" };
+  const cases = [[zhipu("glm-5.3"), undefined], [zhipu("glm-5.3"), "low"], [zhipu("glm-5.2"), "none"], [zhipu("glm-4.6"), "off"], [deepseek, "off"], [deepseek, "max"]];
+  for (const [profile, reasoning] of cases) {
+    const response = await route.POST(post("/api/chat", { messages, profile, ...(reasoning ? { reasoning } : {}) }));
+    assert.equal(response.status, 200);
+    await response.text();
+  }
+  const fields = sent.map((body) => ({ effort: body.reasoning_effort, thinking: body.thinking?.type }));
+  assert.deepEqual(fields, [
+    { effort: undefined, thinking: undefined },
+    { effort: "low", thinking: undefined },
+    { effort: "none", thinking: undefined },
+    { effort: undefined, thinking: "disabled" },
+    { effort: undefined, thinking: "disabled" },
+    { effort: "max", thinking: "enabled" },
+  ]);
+  const rejected = await route.POST(post("/api/chat", { messages, profile: zhipu("glm-5.3"), reasoning: "off" }));
+  assert.equal(rejected.status, 400);
 });

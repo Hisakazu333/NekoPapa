@@ -9,7 +9,7 @@ import { cx } from "@/utils/cx";
 import { TranscriptViewport } from "./transcript-viewport";
 import { ChatHome } from "./chat-home";
 import { messageReasoning, messageText } from "./thread-storage";
-import { ChatStatusBar } from "./chat-status-bar";
+import { ComposerStatusTab } from "./composer-status-tab";
 import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
 
@@ -118,8 +118,8 @@ export function ChatConversation({
           name={contact?.name ?? "NekoPapa"}
           disabled={sendDisabled}
           sendBlockedReason={sendBlockedReason}
+          status={contact ? undefined : <ComposerStatusTab project={projectInfo} usage={usage} onOpenChanges={onOpenChanges} />}
         />}
-        {!empty && !contact && <ChatStatusBar project={projectInfo} usage={usage} onOpenChanges={onOpenChanges} />}
       </div>
     </div>
   </>;

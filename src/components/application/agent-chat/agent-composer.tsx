@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import type { ComposerContext } from "@/app/chat/chat-composer-draft";
 import { ContactComposer } from "../contacts/contact-composer";
 
 /** Workbench and contacts share the same composer controls and draft contract. */
-export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfigure, busy, activityLabel, disabled, sendBlockedReason, composer, name, officialCompanion, context }: {
+export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfigure, busy, activityLabel, disabled, sendBlockedReason, composer, name, officialCompanion, context, status }: {
   value: string;
   onValueChange: (value: string) => void;
   onSubmit: () => void;
@@ -17,8 +18,10 @@ export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfig
   name: string;
   officialCompanion?: boolean;
   context: ComposerContext;
+  /** Status tab content beside the mode menu: project, branch, context meter. */
+  status?: ReactNode;
 }) {
   return <ContactComposer name={name} value={value} onChange={onValueChange} onSend={onSubmit} onStop={onStop}
     onConfigure={onConfigure} busy={busy} activityLabel={activityLabel} ready={!disabled} sendBlockedReason={sendBlockedReason}
-    composer={composer} officialCompanion={officialCompanion} context={context} />;
+    composer={composer} officialCompanion={officialCompanion} context={context} status={status} />;
 }

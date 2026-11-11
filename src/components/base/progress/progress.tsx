@@ -151,6 +151,8 @@ export interface ProgressCircleProps extends Omit<AriaProgressBarProps, "childre
   size?: ProgressSize;
   /** Colour of the arc, from the text colour. Default accent. */
   className?: string;
+  /** Stroke class for the unfilled track, for rings on a surface the default track matches. */
+  trackClassName?: string;
 }
 
 /**
@@ -158,7 +160,7 @@ export interface ProgressCircleProps extends Omit<AriaProgressBarProps, "childre
  * it with `aria-label`. The arc draws by stroke-dashoffset, a paint-only
  * change on a few pixels of SVG, eased like the bar.
  */
-export function ProgressCircle({ size = "md", isIndeterminate, className, ...props }: ProgressCircleProps) {
+export function ProgressCircle({ size = "md", isIndeterminate, className, trackClassName = "stroke-border-button-default", ...props }: ProgressCircleProps) {
   const { box, line, spinner } = styles.ring[size];
   const radius = (box - line) / 2;
   const circumference = 2 * Math.PI * radius;
@@ -176,7 +178,7 @@ export function ProgressCircle({ size = "md", isIndeterminate, className, ...pro
             viewBox={`0 0 ${box} ${box}`}
             className={cx("-rotate-90 text-accent-500", className)}
           >
-            <circle cx={box / 2} cy={box / 2} r={radius} fill="none" strokeWidth={line} className="stroke-border-button-default" />
+            <circle cx={box / 2} cy={box / 2} r={radius} fill="none" strokeWidth={line} className={trackClassName} />
             <circle
               cx={box / 2}
               cy={box / 2}

@@ -1,36 +1,26 @@
-import type { ComponentType, ReactNode } from "react";
-import { FolderIcon, GitBranchIcon, MonitorIcon } from "@/components/foundations/icons/app-icons";
+import { FolderIcon, GitBranchIcon, LaptopIcon } from "@/components/foundations/icons/app-icons";
 import { gitBranchLabel, type GitState } from "@/hooks/use-git-status";
 import type { Project } from "@/app/projects/projects";
-import { WorkPanelSection } from "./work-panel-section";
+import { WorkPanelRow, WorkPanelSection } from "./work-panel-section";
 
-type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
-
-function Row({ icon: RowIcon, label, value }: { icon: Icon; label: ReactNode; value?: ReactNode }) {
-  return <li className="flex min-h-9 items-center gap-2.5 py-1">
-    <RowIcon className="size-[18px] shrink-0 text-foreground-icon-secondary" aria-hidden />
-    <div className="min-w-0 flex-1">
-      <p className="truncate text-body-2-regular text-text-primary">{label}</p>
-      {value && <p className="truncate text-caption-1-regular text-text-secondary">{value}</p>}
-    </div>
-  </li>;
-}
-
+/** 环境: this computer, the chat's project folder and its Git branch, as read from the folder. */
 export function ChatEnvironment({ project, git }: { project?: Project; git: GitState }) {
   const root = project?.folders[0];
   const status = git.kind === "ready" ? git.status : undefined;
-  const branch = gitBranchLabel(git);
-  const sync = status && (status.ahead || status.behind) ? ` · ↑${status.ahead} ↓${status.behind}` : "";
+  const sync = status && (status.ahead || status.behind) ? `↑${status.ahead} ↓${status.behind}` : undefined;
 
-  return <WorkPanelSection title="环境" defaultExpanded>
+  return <WorkPanelSection title="环境">
     <ul className="flex flex-col">
-      <Row icon={MonitorIcon} label="本电脑" />
+      <WorkPanelRow icon={LaptopIcon} label="本电脑" />
       {project && root
         ? <>
-          <Row icon={FolderIcon} label={<span translate="no">{project.name}</span>} value={<span translate="no" title={root}>{root}</span>} />
-          <Row icon={GitBranchIcon} label={<span translate="no">{branch}{sync}</span>} value={git.kind === "error" ? git.message : status?.upstream && <span translate="no">{status.upstream}</span>} />
+          <WorkPanelRow icon={FolderIcon} title={root}
+            label={<><span translate="no">{project.name}</span><span translate="no" className="text-text-tertiary"> · {root.replace(/^\/Users\/[^/]+/, "~")}</span></>} />
+          <WorkPanelRow icon={GitBranchIcon} label={<span translate="no">{gitBranchLabel(git)}</span>}
+            detail={git.kind === "error" ? git.message : status?.upstream ? <span translate="no">跟踪 {status.upstream}</span> : undefined}
+            end={sync && <span translate="no" className="tabular-nums">{sync}</span>} />
         </>
-        : <Row icon={FolderIcon} label="未归入项目" value="在输入框或侧栏选择项目" />}
+        : <WorkPanelRow icon={FolderIcon} label="未归入项目" detail="在输入框或侧栏选择项目后，显示文件夹与分支" />}
     </ul>
   </WorkPanelSection>;
 }

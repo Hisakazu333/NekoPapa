@@ -69,7 +69,7 @@ export function ChatSidePanel({ project, onClose, view, onSelectView, usage, mes
       </button>
     </div>
     {view === "history" && <AgentChatHistory {...history} className="min-h-0 w-full flex-1 rounded-none bg-transparent p-0" />}
-    {view === "code" && <ChatWorkEnvironment project={project} usage={usage} onOpenChanges={() => onSelectView("changes")} />}
+    {view === "code" && <ChatWorkEnvironment project={project} usage={usage} onOpenChanges={() => onSelectView("changes")} className="px-1" />}
     {tool && <ChatToolPanel tool={tool} project={project} messages={messages} messageAt={messageAt} scrollRef={scrollRef} onSwitch={onSelectView} />}
     {view === "study" && <div className="min-h-0 flex-1 overflow-y-auto">
       <Planned status="NekoBuddy 后端未连接" detail="学习与知识库由 NekoBuddy 后端提供。接入后，这里跟随当前对话显示相关资料与学习进度；当前不会上传或读取资料。" items={[

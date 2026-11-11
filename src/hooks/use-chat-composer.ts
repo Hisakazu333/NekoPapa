@@ -3,9 +3,10 @@ import { addComposerFiles, buildComposerText, composerDraftBlockReason, createCo
 import { composerModelBlockReason, composerModels, type ComposerModelOption, type ComposerRuntimeModel } from "@/app/models/composer-model";
 import { addPageElement, type PageElement } from "@/app/browser/browser-pick";
 import { chatModelProfile } from "@/app/models/chat-model-profile";
+import { reasoningOption, reasoningProfile } from "@/app/models/reasoning-level";
 import { useConfiguration } from "./use-configuration";
 
-interface DraftState { draft: ComposerDraft; selectedModel?: ComposerModelOption; error?: string }
+interface DraftState { draft: ComposerDraft; selectedModel?: ComposerModelOption; reasoning?: string; error?: string }
 
 /** Each mounted chat owns its drafts; switching a workbench thread keeps its own key. */
 export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, context: ComposerContext = "custom") {
@@ -34,7 +35,10 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
   const record = selected && !selected.runtime ? data.collections.models.find((entry) => entry.id === selected.connectionId) : undefined;
   const profile = record && selected ? chatModelProfile(record, selected.model).profile : undefined;
   const instructions = String(data.groups.personalization?.instructions ?? "").trim();
-  const requestBody = { ...(profile ? { profile } : {}), ...(instructions ? { instructions } : {}) };
+  // 推理档位 stays with this chat; a level the chosen model does not offer is not sent.
+  const reasoning = reasoningOption(selected?.model, state.reasoning);
+  const requestBody = { ...(profile ? { profile } : {}), ...(instructions ? { instructions } : {}),
+    ...(reasoning ? { reasoning: reasoning.id } : {}) };
   const draftBlockReason = composerDraftBlockReason(state.draft);
   return {
     draft: state.draft,
@@ -43,6 +47,11 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     selected,
     selectedModelId: selected?.id,
     modelBlockReason,
+    /** The level chosen for the selected model; undefined sends nothing. */
+    reasoning,
+    reasoningProfile: reasoningProfile(selected?.model),
+    /** Sets the level, or clears it back to the service's default. */
+    setReasoning: (level: string | undefined) => update((previous) => ({ ...previous, reasoning: level })),
     draftBlockReason,
     blockReason: draftBlockReason ?? modelBlockReason,
     /** A saved profile answers, so the runtime's own key is not needed. */

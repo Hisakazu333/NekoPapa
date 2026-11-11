@@ -318,6 +318,15 @@ input[type="search"]::-webkit-search-cancel-button {
   color: inherit;
 }
 
+/* Composer attachment tile: a picked file lands with a short lift and unblur. */
+@keyframes bui-tile-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.94);
+    filter: blur(3px);
+  }
+}
+
 /* Composer Loader (components/application/composer-loader): the light band
  * orbiting the composer while the agent works. Dash segments on a
  * pathLength-normalized SVG stroke — the offset laps once per duration. */
@@ -351,4 +360,17 @@ input[type="search"]::-webkit-search-cancel-button {
   to {
     translate: 250% 0;
   }
+}
+
+/* NekoBuddy effort slider at the top stop (design-mockups/ai-chat-gpt style.css). */
+@keyframes neko-pixel-flow {
+  0%, 100% { opacity: 0; transform: translate(-14px, 2px) scale(0.65); }
+  32% { opacity: 0.5; transform: translate(0, 0) scale(1); }
+  78% { opacity: 0.18; transform: translate(18px, -2px) scale(0.75); }
+}
+
+@keyframes neko-paw-build {
+  0%, 14% { opacity: 0; transform: translate(-10px, 3px) scale(0.45); }
+  31%, 66% { opacity: 1; transform: translate(0, 0) scale(1); }
+  92%, 100% { opacity: 0; transform: translate(8px, -3px) scale(0.7); }
 }

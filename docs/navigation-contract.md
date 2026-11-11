@@ -823,3 +823,31 @@
 
 - 「智能与工具」恢复两个设置页及原有分类 ID，目录回到 30 项。页面显示未接入状态；Live2D 可切换查看本机与账号模型说明。截图、录屏授权、模型文件操作和桌宠运行代码仍已移除。
 - 独立浏览器在 `localhost:1495` 验证两个入口、模型来源切换、无运行操作和 Escape 退出。前端 523 项测试、签名 Release 构建和 `git diff --check` 通过；未操作用户的工作台数据。
+
+### 对照 BoardUI 重做环境与上下文、输入框状态条与附件（2026-11-11）
+
+- 用户反馈“组件写得还不够好”，并附了 Claude Code 的环境 / 上下文面板截图和 Agent Limits Card、Agent Progress、Composer、Composer Attachments、Composer Panel、Task List、Web Search 等页面。逐页查看后，Task List 与 Web Search 也属于 Pro（官方 `add` 拒绝安装），均按页面说明自行实现，不复制源码。
+- 环境与上下文：由各自带边框的折叠卡片改为同一表面上的分隔区块（环境 / 上下文 / 连接器 › / 更改 › / 服务器），“更改”不再是孤立按钮；上下文改为 Agent Limits Card 式读数、分段条与图例，数据仍只来自最近一次回复报告的 Token 与发送时配置的上限。
+- 输入框：输入框下方的独立状态栏并入卡片顶部的状态标签条（Composer Panel 式），`chat-status-bar.tsx` 改名为 `composer-status-tab.tsx`；输入框随内容增高到 10 行；发送受阻原因移到卡片下方。附件改为 56px 图块（Composer Attachments 式），新增 7 个文件类型图标。
+- 模型菜单左栏按实际服务商分组（`ComposerModelOption.vendor`，由地址匹配服务商预设），不再列出未配置的接口类型，末尾增加“添加模型”。
+- 验证：`npm run test` 524/524（新增服务商分组 1 项），`npm run build`、`git diff --check` 通过。独立浏览器 `localhost:1495` 用本机临时假模型服务与临时配置发送一条消息，确认等待时 Composer Loader 光带、状态标签条 25% 环、环境与上下文浮层（已使用 25%，4,000 / 16k，分项 19% / 6.3% / 可用 75%）；之后删除该源中测试产生的两个存储键并停止假服务，未操作用户的 1420 与桌面数据。
+- 未验证：附件图块（浏览器面板无法选择本机文件）；深色模式下的状态标签条；桌面安装包（本轮未重新打包）。
+- 仍待 Agent 执行层：Agent Progress、Task List、Web Search 需要工具调用与步骤数据，当前不做演示数据。
+
+## 2026-11-11 上下文浮层与推理档位
+
+- 上下文环（`composer-status-tab.tsx`）：点按只打开 300px 的“上下文窗口”卡，不再弹出整个环境面板。未记录上限时环为虚线空环、标签为“N Token”，卡内不画占用条（之前会把已知分项画成满条，看似占满），并提供“去填写”。占比低于 10% 时保留一位小数（`formatShare`）。
+- 用量：`chatReplyMetadata` 读取 AI SDK 的 `outputTokenDetails.reasoningTokens`，存为 `usage.reasoningTokens`（不超过输出才保留）；上下文卡拆出“思考”与“回复正文”。旧记录无此字段时照旧显示“回复输出”。
+- 推理档位（本节初版按服务商分为档位 / 开关，已在同日下一节改为按模型能力表）。
+- 验证：`npm run test` 528/528（新增思考 Token、占比格式、推理档位请求与按服务档位共 4 项），`npm run build`、`git diff --check` 通过。独立浏览器 `localhost:1495` 用临时对话与临时模型配置确认：无上限时浮层只列分项与“去填写”；128k 上限时显示 4,000 / 128k (3.1%)、分段条与可用空间 97%；模型菜单通用服务五档、选“高”后按钮显示“· 高”，智谱只有默认 / 关闭 / 开启。之后删除临时存储键，未操作 1420 与桌面数据。
+- 未验证：真实智谱 / OpenAI 服务对档位参数的响应（未用真实密钥发送）；深色模式；桌面安装包。
+
+## 2026-11-11 推理档位按模型、上下文卡对齐 Agent Limits Card
+
+- 推理档位改为按模型 ID 的能力表（`reasoning-level.ts` 的 `reasoningProfile`），档位与默认值来自各家文档：智谱“深度思考”与 GLM-5.3 页（GLM-5.3 系列 `reasoning_effort` 为 low / high / max、默认 max，`thinking.type` 不能为 disabled，否则请求失败；GLM-5.2 可关闭，low / medium 按 high 处理；GLM-5 / 5.1 / 4.5 / 4.6 只有开关）、DeepSeek Thinking Mode（`thinking` 开关加 low / high / max，默认 high）、OpenAI 推理指南（各代可用值不同）。初版的“智谱 关闭”会让 glm-5.3 请求失败，已移除。
+- 选择器改为模型菜单底部的 Slider，未拖动不发送参数；请求体 `reasoning` 为档位 ID，服务端按应答模型校验（模型不提供该档位时 400 `invalid_reasoning`）。OpenAI 兼容配置经 provider options 发出 `reasoning_effort`、`thinking.type` 或 `enable_thinking`；Anthropic 与内置服务用 SDK 的 `reasoning`。
+- 上下文卡按 Agent Limits Card 的结构重排（可折叠标题行、始终显示的分段条、带占比列的图例）；新增 `useContextWindow`：回复未保存上限时用当前配置里同一模型 ID 的上下文窗口，并注明来源。状态条上下文环的底圈改为可见颜色。
+- 验证：`npm run test` 529/529（推理档位改为按模型的 3 项：路由发送与拒绝、能力表、经完整路由写进智谱 / DeepSeek 请求体），`npm run build` 通过。独立浏览器 `localhost:1495` 用临时配置确认：glm-5.3 滑块为 低 / 高 / 最高、默认停在最高，键盘左移到“低”后按钮显示“glm-5.3 · 低”并出现“恢复默认”；配置上限回填后浮层显示 3,609 / 128k (2.8%) 与思考分项；之后删除临时存储键。
+- 未验证：用真实密钥向智谱 / DeepSeek / OpenAI 发送；能力表之外的模型；深色模式。
+- 推理滑块换成 NekoBuddy 自有设计（`reasoning-effort-slider.tsx` + `pixel-paw.tsx`，`globals.css` 新增 `neko-pixel-flow`、`neko-paw-build`），依据 `NekoBuddy/design-mockups/ai-chat-gpt/effort-slider.js` 与 `style.css` 的尺寸、几何与满档动效，颜色改用 accent 色阶与语义 token；档位数量与名称仍来自所选模型的能力表。独立浏览器 `localhost:1495` 确认 glm-5.3 默认停在“最高”并播放满档动效，拖到最左吸附为“低”。
+

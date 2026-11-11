@@ -37,6 +37,11 @@ export function threadUsage(messages: readonly { role: string; metadata?: unknow
   return total;
 }
 
+/** A share of the context window: one decimal below 10% so a small share does not read as 0%. */
+export function formatShare(ratio: number): string {
+  return `${(ratio * 100).toFixed(ratio > 0 && ratio < 0.1 ? 1 : 0)}%`;
+}
+
 /** 1234 → "1,234"; 12345 → "12.3k"; 1234567 → "1.23M". */
 export function formatTokens(value: number): string {
   if (value < 10000) return value.toLocaleString("en-US");

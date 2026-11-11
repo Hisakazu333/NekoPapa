@@ -213,6 +213,9 @@ export function resolveProvider(runtime: ChatRuntime): Resolution {
   };
 }
 
+/** Provider-options key for a profile's OpenAI-compatible model; its extra keys go into the request body. */
+export const PROFILE_PROVIDER_NAME = "nekopapa-profile";
+
 const PROFILE_LABELS: Record<ChatModelProfile["provider"], string> = { compatible: "OpenAI 兼容接口", anthropic: "Anthropic", custom: "其他接口" };
 
 /**
@@ -228,6 +231,6 @@ export function profileProvider(profile: ChatModelProfile, runtime: ChatRuntime)
   // (`reasoning_content`) and asks for usage on streamed replies.
   const model = id === "anthropic"
     ? buildModel(id, apiKey, profile.model, profile.endpoint, runtime.fetch)
-    : createOpenAICompatible({ name: "nekopapa-profile", baseURL: profile.endpoint, apiKey, fetch: runtime.fetch, includeUsage: true }).chatModel(profile.model);
+    : createOpenAICompatible({ name: PROFILE_PROVIDER_NAME, baseURL: profile.endpoint, apiKey, fetch: runtime.fetch, includeUsage: true }).chatModel(profile.model);
   return { provider: { id, label: PROFILE_LABELS[profile.provider], modelId: profile.model, model } };
 }

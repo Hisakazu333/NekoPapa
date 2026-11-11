@@ -2,7 +2,7 @@ import { ComposerLoader } from "@/components/application/composer-loader/compose
 import { AgentThinking } from "@/components/application/agent-thinking/agent-thinking";
 import { ArrowUpIcon, SmileIcon, StopFilledIcon } from "@/components/foundations/icons/app-icons";
 import { useSendKey } from "@/hooks/use-send-key";
-import { useRef, useState, type KeyboardEvent } from "react";
+import { useLayoutEffect, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import { Button } from "@/components/base/buttons/button";
 import { Dropdown, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ComposerAddMenu } from "../chat-composer/composer-add-menu";
@@ -28,9 +28,27 @@ interface ContactComposerProps {
   sendBlockedReason?: string;
   officialCompanion?: boolean;
   context?: ComposerContext;
+  /** Status tab content after the mode menu, e.g. project, branch and context meter. */
+  status?: ReactNode;
 }
 
-export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, activityLabel, ready, composer, sendBlockedReason, officialCompanion, context }: ContactComposerProps) {
+/** The prompt grows a line at a time with its text, up to ten lines, then scrolls. */
+const MAX_LINES = 10;
+function useAutoGrow(ref: React.RefObject<HTMLTextAreaElement | null>, value: string) {
+  useLayoutEffect(() => {
+    const input = ref.current;
+    if (!input) return;
+    const style = getComputedStyle(input);
+    const line = parseFloat(style.lineHeight) || 20;
+    const padding = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    input.style.height = "auto";
+    const height = Math.min(input.scrollHeight, line * MAX_LINES + padding);
+    input.style.height = `${height}px`;
+    input.style.overflowY = input.scrollHeight > height ? "auto" : "hidden";
+  }, [ref, value]);
+}
+
+export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, activityLabel, ready, composer, sendBlockedReason, officialCompanion, context, status }: ContactComposerProps) {
   const composing = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [emojisOpen, setEmojisOpen] = useState(false);
@@ -39,16 +57,19 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   const canSend = ready && !busy && !blockedReason && Boolean(value.trim());
   const handleSendKey = useSendKey(composing);
   const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { handleSendKey(event, () => { if (canSend) onSend(); }); };
+  useAutoGrow(inputRef, value);
 
-  // Composer-panel layout (after BoardUI's Pro Composer Panel): a tray of
-  // conversation context sits behind the top of the input card; the card
-  // holds the text and the add / permission / model / emoji / send controls.
+  // Composer-panel layout (after BoardUI's Pro Composer Panel): a status tab
+  // tucked behind the top edge of the input card, inset from its sides with
+  // only its top corners round, holds the mode and where the chat works; the
+  // card holds the prompt and the add / permission / model / emoji / send
+  // controls. Why sending is blocked reads under the card.
   return <div className="relative mx-2 mb-2 flex shrink-0 flex-col">
     {activityLabel && <AgentThinking variant="wave" label={activityLabel} className="mx-3 mb-1 px-2 py-1" />}
-    <div aria-label="对话工具栏" className="mx-3 flex min-h-9 min-w-0 items-center gap-2 rounded-t-2xl bg-background-secondary-default px-2 pb-3 pt-1 -mb-2.5">
+    <div aria-label="对话工具栏" className="mx-4 -mb-3 flex min-h-[34px] min-w-0 items-center gap-1 rounded-t-2xl bg-background-tertiary-default px-1.5 pb-3 pt-1 sm:mx-7">
       <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />
       {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}
-      {blockedReason && <p role="status" title={blockedReason} className="ms-auto min-w-0 text-end text-caption-1-regular text-text-secondary">{blockedReason}</p>}
+      {status}
     </div>
     <ComposerLoader active={busy} radius={24} surface={false} className="z-1 rounded-3xl bg-background-full shadow-xs">
       <div className="relative flex flex-col gap-1 rounded-3xl border border-border-button-default p-2.5">
@@ -56,7 +77,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
         <textarea ref={inputRef} aria-label={`给${name}发消息`} placeholder={`给${name}发消息…`} value={value}
           onChange={(event) => onChange(event.target.value)} onKeyDown={onKeyDown}
           onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
-          className="max-h-48 min-h-12 w-full resize-none bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={2} />
+          className="w-full resize-none overflow-hidden bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={1} />
         <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-1 sm:gap-2">
           <ComposerAddMenu state={composer} disabled={busy} official={officialCompanion} />
           <ComposerPermissionMenu state={composer} disabled={busy} />
@@ -84,5 +105,6 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
         </div>
       </div>
     </ComposerLoader>
+    {blockedReason && <p role="status" title={blockedReason} className="mx-4 mt-1.5 truncate text-caption-1-regular text-text-tertiary sm:mx-7">{blockedReason}</p>}
   </div>;
 }

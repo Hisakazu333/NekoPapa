@@ -100,3 +100,18 @@ export function missingKeyReason(credential: string, desktop: boolean): string {
     ? `没有找到环境变量 ${credential}。把密钥来源改为“API Key”直接填写，或从已设置该变量的终端重新启动 NekoPapa。`
     : `浏览器预览的开发服务器没有读到 ${credential}。在启动开发服务器的终端运行 export ${credential}=你的密钥，再重启开发服务器。直接粘贴 API Key 请使用桌面应用。`;
 }
+
+/**
+ * The context window saved in 设置 → 模型与 API for a model id: the first
+ * profile whose main model it is and that has a window filled in. Used when a
+ * reply was recorded before its profile had a window.
+ */
+export function configuredContextWindow(records: readonly ConfigurationRecord[], model: string | undefined): number | undefined {
+  if (!model) return undefined;
+  for (const record of records) {
+    if (String(record.values.model ?? "").trim() !== model) continue;
+    const window = readContextWindow(record.values.contextWindow);
+    if (window) return window;
+  }
+  return undefined;
+}

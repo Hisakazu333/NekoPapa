@@ -160,3 +160,22 @@ test("上下文比例只使用同一条回复记录里的窗口，兼容历史�
   assert.equal(thread.contextUsageRatio(thread.threadUsage([{ ...reply, metadata: { ...reply.metadata, contextWindow: 500 } }]).latest), 2);
   assert.equal(thread.contextUsageRatio(thread.threadUsage([{ role: "assistant" }]).latest), undefined);
 });
+
+test("思考 Token 记为输出的一部分：读取 SDK 的 outputTokenDetails 与已保存的平铺字段，超出输出的计数丢弃", () => {
+  const sdk = { role: "assistant", metadata: { usage: { inputTokens: 114, outputTokens: 3495, totalTokens: 3609, outputTokenDetails: { reasoningTokens: 3300 } } } };
+  assert.deepEqual(thread.threadUsage([sdk]).latest.usage, { inputTokens: 114, outputTokens: 3495, reasoningTokens: 3300, totalTokens: 3609 });
+  const stored = { role: "assistant", metadata: { usage: { inputTokens: 114, outputTokens: 3495, reasoningTokens: 3300, totalTokens: 3609 } } };
+  assert.equal(thread.threadUsage([stored]).latest.usage.reasoningTokens, 3300);
+  const tooMany = { role: "assistant", metadata: { usage: { inputTokens: 10, outputTokens: 20, reasoningTokens: 50, totalTokens: 30 } } };
+  assert.equal(thread.threadUsage([tooMany]).latest.usage.reasoningTokens, undefined);
+  const noOutput = { role: "assistant", metadata: { usage: { totalTokens: 30, reasoningTokens: 5 } } };
+  assert.equal(thread.threadUsage([noOutput]).latest.usage.reasoningTokens, undefined);
+});
+
+test("上下文占比低于 10% 保留一位小数，避免小占用显示为 0%", () => {
+  assert.equal(thread.formatShare(0.25), "25%");
+  assert.equal(thread.formatShare(0.0282), "2.8%");
+  assert.equal(thread.formatShare(0.003), "0.3%");
+  assert.equal(thread.formatShare(0), "0%");
+  assert.equal(thread.formatShare(1.2), "120%");
+});
