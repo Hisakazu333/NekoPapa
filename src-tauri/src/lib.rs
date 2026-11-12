@@ -1,5 +1,6 @@
 mod account_auth;
 mod app_data;
+mod chat_db;
 mod browser_view;
 mod editor_open;
 mod external_link;
@@ -20,6 +21,7 @@ pub fn run() {
         // Terminal panel sessions (pseudo-terminals running the login shell).
         .manage(terminal::Terminals::default())
         .manage(account_auth::AccountAuth::default())
+        .manage(app_data::AppDataState::default())
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
@@ -33,6 +35,7 @@ pub fn run() {
             // NekoPapa's own folder: chat history files, cache, 设置 → 数据.
             app_data::app_data_read,
             app_data::app_data_write,
+            app_data::app_data_search,
             app_data::app_data_info,
             app_data::app_data_clear_cache,
             app_data::app_data_open,

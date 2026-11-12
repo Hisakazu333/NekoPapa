@@ -155,7 +155,7 @@ M2 重试限最新一轮，当前答案修订与旧答案分别保存；上下�
 
 ## 凭据和多窗口
 
-本机数据文件夹（`src-tauri/src/app_data.rs`）位于系统应用数据目录，分为 `data/`（以文件保存的存储，目前为聊天记录 `chat-threads.json`）、`files/`（附件与生成文件，预留）、`cache/`（可清理）和 `logs/`（预留）。前端只能按 `STORES` 白名单中的名称读写，不能传路径；写入先落临时文件、同步到磁盘后再重命名。`src/platform/app-data-bridge.ts` 在渲染前读取文件并在首次启动时从 WebView 存储迁移，`app-data-storage.ts` 以同步 `Storage` 形态提供内存读取与按顺序写盘，聊天历史的读取门禁、重试与跨入口处理保持不变；读取失败时历史不可写，写盘失败显示为聊天历史错误。浏览器预览不安装文件存储，继续使用 localStorage。
+本机数据文件夹（`src-tauri/src/app_data.rs`）位于系统应用数据目录，分为 `data/`（本机数据库 `workspace.sqlite`，目前存聊天记录，见 [本机数据模型](local-data-model.md)）、`files/`（附件与生成文件，预留）、`cache/`（可清理）和 `logs/`（预留）。前端只能按 `STORES` 白名单中的名称读写，不能传路径；聊天记录由 `chat_db.rs` 存入 SQLite：每次保存在一个事务中只重写内容有变化的会话，并同步重建消息文本行与 FTS5（trigram）全文索引；首次打开数据库时导入旧的 `data/chat-threads.json` 并将其改名为 `.migrated` 备份。快速搜索在桌面应用中经 `app_data_search` 查询全文索引。`src/platform/app-data-bridge.ts` 在渲染前读取文件并在首次启动时从 WebView 存储迁移，`app-data-storage.ts` 以同步 `Storage` 形态提供内存读取与按顺序写盘，聊天历史的读取门禁、重试与跨入口处理保持不变；读取失败时历史不可写，写盘失败显示为聊天历史错误。浏览器预览不安装文件存储，继续使用 localStorage。
 
 模型配置存储 provider、base URL、model ID、credentialRef 和能力信息；密钥由 Rust 的系统凭据适配器管理，首个目标为 macOS Keychain，其他平台另验收。Node 只获得当次所需凭据，前端显示连接状态与遮罩值；日志、导出和 localStorage 不存明文密钥。
 

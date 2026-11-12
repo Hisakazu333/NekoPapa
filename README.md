@@ -73,7 +73,7 @@ npm run desktop
 npm run dev
 ```
 
-打开 `http://127.0.0.1:1420`。浏览器与桌面 WebView 分别使用各自的本机存储，不能视作自动同步。桌面应用的聊天记录保存在系统应用数据目录（macOS：`~/Library/Application Support/app.nekopapa.desktop/data/chat-threads.json`），首次启动时从 WebView 存储迁移，原副本保留为备份；浏览器预览仍使用浏览器存储。
+打开 `http://127.0.0.1:1420`。浏览器与桌面 WebView 分别使用各自的本机存储，不能视作自动同步。桌面应用的聊天记录保存在系统应用数据目录（macOS：`~/Library/Application Support/app.nekopapa.desktop/data/workspace.sqlite`，SQLite），首次启动时从 WebView 存储（以及上一版的 `chat-threads.json`）迁移，原副本保留为备份；快速搜索会查找全部消息正文；浏览器预览仍使用浏览器存储。
 
 开发 / 预览服务器的聊天路由读取服务器环境中的模型配置，例如 `AI_PROVIDER`、`AI_API_KEY`、`AI_BASE_URL` 和 `CHAT_MODEL`；具体支持项见 [路由源码](src/app/api/chat/route.ts)。也可以在设置的“模型与 API”中配置服务地址、凭据和多个模型，再从聊天输入区选择。API Key 由宿主读取系统钥匙串，浏览器开发服务器使用环境变量。
 

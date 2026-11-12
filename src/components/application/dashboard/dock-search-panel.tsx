@@ -1,7 +1,8 @@
 import { useState, type KeyboardEvent } from "react";
 import { SearchIcon } from "@/components/foundations/icons/app-icons";
 import { DashboardSidebarSearchResults } from "./dashboard-sidebar-search-results";
-import { filterSidebarSearch, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
+import { filterSidebarSearch, mergeChatTextHits, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
+import { useChatTextSearch } from "./use-chat-text-search";
 
 /**
  * 快速搜索 in the dock's panel: the sidebar's search over chats, contacts,
@@ -16,7 +17,8 @@ export function DockSearchPanel({ entries, onSelect, onClose }: {
 }) {
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
-  const results = filterSidebarSearch(entries, query);
+  const chatTextHits = useChatTextSearch(query);
+  const results = mergeChatTextHits(filterSidebarSearch(entries, query), entries, chatTextHits);
   const choose = (entry: SidebarSearchEntry) => { if (onSelect?.(entry) !== false) onClose(); };
   const onKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "ArrowDown" && results.length) {

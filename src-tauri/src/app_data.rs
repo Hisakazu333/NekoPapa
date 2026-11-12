@@ -2,26 +2,33 @@
 //! e.g. ~/Library/Application Support/app.nekopapa.desktop on macOS), like
 //! ~/.codex or ~/.claude for those tools. Layout:
 //!
-//! - `data/`  — stores the app keeps as files instead of WebView storage
-//!   (chat history), one JSON file each, written atomically;
+//! - `data/`  — the local database `workspace.sqlite` (chat history, see
+//!   chat_db.rs and docs/local-data-model.md);
 //! - `files/` — attachments and generated files (reserved, not written yet);
 //! - `cache/` — anything that can be rebuilt; 设置 → 数据 can empty it;
 //! - `logs/`  — host logs (reserved).
 //!
 //! Only the store names in `STORES` can be read or written, so the front end
 //! never passes a path. The front end owns the contents and their checks
-//! (src/platform/app-data-storage.ts).
+//! (src/platform/app-data-storage.ts). The database is opened once, on first
+//! use, which also imports the JSON file the chat history used before.
 
+use crate::chat_db;
+use rusqlite::Connection;
 use serde::Serialize;
 use std::fs;
-use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use std::sync::Mutex;
 use tauri::{AppHandle, Manager, Runtime};
 
 pub const SECTIONS: [&str; 4] = ["data", "files", "cache", "logs"];
 pub const STORES: [&str; 1] = ["chat-threads"];
 const MAX_STORE: usize = 64 * 1024 * 1024;
+
+/// The open database; `None` until first use, and again after a failed open so the next call retries.
+#[derive(Default)]
+pub struct AppDataState(Mutex<Option<Connection>>);
 
 #[derive(Serialize, Debug, PartialEq)]
 pub struct StoreFile {
@@ -56,49 +63,34 @@ pub fn ensure_layout(root: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn store_path(root: &Path, name: &str) -> Result<PathBuf, String> {
-    if !STORES.contains(&name) {
-        return Err("未知的数据文件。".into());
-    }
-    Ok(root.join("data").join(format!("{name}.json")))
+fn check_store(name: &str) -> Result<(), String> {
+    if STORES.contains(&name) { Ok(()) } else { Err("未知的数据文件。".into()) }
 }
 
-/// Every store that exists; a missing file is simply absent from the list.
-pub fn read_stores(root: &Path) -> Result<Vec<StoreFile>, String> {
-    let mut stores = Vec::new();
-    for name in STORES {
-        let path = store_path(root, name)?;
-        match fs::read(&path) {
-            Ok(bytes) => {
-                let text = String::from_utf8(bytes).map_err(|_| format!("{name}.json 不是 UTF-8 文本。"))?;
-                stores.push(StoreFile { name: name.into(), text });
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-            Err(_) => return Err(format!("无法读取 {name}.json。")),
-        }
+/// Runs `job` on the database, opening it (and importing the old JSON file) first if needed.
+fn with_db<R: Runtime, T>(app: &AppHandle<R>, job: impl FnOnce(&mut Connection) -> Result<T, String>) -> Result<T, String> {
+    let root = root_of(app)?;
+    let state = app.state::<AppDataState>();
+    let mut guard = state.0.lock().map_err(|_| "本机数据库暂时不可用，请重启 NekoPapa。".to_string())?;
+    if guard.is_none() {
+        let data = root.join("data");
+        let mut conn = chat_db::open(&data.join(chat_db::DATABASE_FILE))?;
+        chat_db::import_legacy(&mut conn, &data)?;
+        *guard = Some(conn);
     }
-    Ok(stores)
+    job(guard.as_mut().expect("opened above"))
 }
 
-/// Writes beside the file, flushes it to disk, then renames over the old
-/// one, so a crash leaves either the old or the new contents, never half.
-pub fn write_store(root: &Path, name: &str, text: &str) -> Result<(), String> {
-    let path = store_path(root, name)?;
+pub fn read_stores(conn: &Connection) -> Result<Vec<StoreFile>, String> {
+    Ok(chat_db::read_envelope(conn)?.map(|text| StoreFile { name: STORES[0].into(), text }).into_iter().collect())
+}
+
+pub fn write_store(conn: &mut Connection, name: &str, text: &str) -> Result<(), String> {
+    check_store(name)?;
     if text.len() > MAX_STORE {
-        return Err(format!("{name}.json 超过 64 MB，未写入。"));
+        return Err("聊天记录超过 64 MB，未写入。".into());
     }
-    let temp = path.with_extension(format!("json.{}.tmp", std::process::id()));
-    let result = (|| {
-        let mut file = fs::File::create(&temp)?;
-        file.write_all(text.as_bytes())?;
-        file.sync_all()?;
-        fs::rename(&temp, &path)
-    })();
-    if result.is_err() {
-        let _ = fs::remove_file(&temp);
-        return Err(format!("无法写入 {name}.json，原文件保持不变。"));
-    }
-    Ok(())
+    chat_db::save_envelope(conn, text)
 }
 
 /// Size and file count of a folder; symbolic links are counted, never followed.
@@ -159,14 +151,18 @@ async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + S
 
 #[tauri::command]
 pub async fn app_data_read<R: Runtime>(app: AppHandle<R>) -> Result<Vec<StoreFile>, String> {
-    let root = root_of(&app)?;
-    blocking(move || read_stores(&root)).await
+    blocking(move || with_db(&app, |conn| read_stores(conn))).await
 }
 
 #[tauri::command]
 pub async fn app_data_write<R: Runtime>(app: AppHandle<R>, name: String, text: String) -> Result<(), String> {
-    let root = root_of(&app)?;
-    blocking(move || write_store(&root, &name, &text)).await
+    blocking(move || with_db(&app, |conn| write_store(conn, &name, &text))).await
+}
+
+/// Full-text search over every chat message (quick search).
+#[tauri::command]
+pub async fn app_data_search<R: Runtime>(app: AppHandle<R>, query: String, limit: Option<usize>) -> Result<Vec<chat_db::SearchHit>, String> {
+    blocking(move || with_db(&app, |conn| chat_db::search(conn, &query, limit.unwrap_or(20).min(50)))).await
 }
 
 #[tauri::command]

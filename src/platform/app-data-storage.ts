@@ -1,9 +1,10 @@
 /**
- * Storage for data the desktop app keeps as files in its own folder
- * (src-tauri/src/app_data.rs) instead of WebView storage, which is capped at
- * a few megabytes and cannot hold files. It keeps the synchronous `Storage`
- * shape the stores already use: the files are read once before the app
- * renders, reads come from memory, and every write goes to disk in order.
+ * Storage for data the desktop app keeps in its own folder — chat history in
+ * the local database (src-tauri/src/app_data.rs, chat_db.rs) — instead of
+ * WebView storage, which is capped at a few megabytes and cannot hold files.
+ * It keeps the synchronous `Storage` shape the stores already use: the data
+ * is read once before the app renders, reads come from memory, and every
+ * write goes to the host in order (which saves only the changed chats).
  * Keys that are not kept as files pass through to WebView storage.
  *
  * In the browser preview nothing is installed and `chatStorage()` is plain

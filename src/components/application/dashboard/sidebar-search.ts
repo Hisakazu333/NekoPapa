@@ -128,3 +128,23 @@ export function filterSidebarSearch(entries: SidebarSearchEntry[], query: string
     return terms.every((term) => text.includes(term));
   }).slice(0, limit);
 }
+
+/** A chat message the desktop full-text index matched (app_data_search). */
+export interface ChatTextHit { threadId: string; snippet: string }
+
+/**
+ * Adds chats the full-text index found to the in-memory results. The memory
+ * search covers each chat's last 4000 characters; the index covers every
+ * message. A chat already in the results keeps its place and shows the
+ * matched text; one only the index found joins the results after them.
+ */
+export function mergeChatTextHits(results: SidebarSearchEntry[], entries: SidebarSearchEntry[], hits: readonly ChatTextHit[], limit = 16) {
+  if (!hits.length) return results;
+  const snippets = new Map(hits.map((hit) => [`thread:${hit.threadId}`, hit.snippet]));
+  const shown = new Set(results.map((entry) => entry.id));
+  const withSnippets = results.map((entry) => snippets.has(entry.id) ? { ...entry, subtitle: snippets.get(entry.id)! } : entry);
+  const added = hits.map((hit) => entries.find((entry) => entry.id === `thread:${hit.threadId}`))
+    .filter((entry): entry is SidebarSearchEntry => Boolean(entry) && !shown.has(entry!.id))
+    .map((entry) => ({ ...entry, subtitle: snippets.get(entry.id)! }));
+  return [...withSnippets, ...added].slice(0, limit);
+}

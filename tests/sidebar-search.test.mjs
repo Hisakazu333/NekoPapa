@@ -15,7 +15,7 @@ try {
   search = await import(pathToFileURL(join(output, "components/application/dashboard/sidebar-search.js")));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
-const { buildSidebarSearchEntries, filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId } = search;
+const { buildSidebarSearchEntries, filterSidebarSearch, mergeChatTextHits, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId } = search;
 const message = (id, role, text) => ({ id, role, parts: [{ type: "text", text }] });
 const thread = (id, title, updatedAt, messages, contact) => ({ id, title, updatedAt, messages, messageAt: {}, ...(contact ? { contact } : {}) });
 
@@ -67,4 +67,19 @@ test("快速搜索快捷键按系统区分并忽略输入法、重复按键和�
   assert.equal(isSidebarQuickSearchShortcut(event("k", { ctrlKey: true, isComposing: true }), "Win32"), false);
   assert.equal(isSidebarQuickSearchShortcut(event("k", { ctrlKey: true, repeat: true }), "Win32"), false);
   assert.equal(sidebarSearchOptionId("thread:one"), "sidebar-search-option-thread%3Aone");
+});
+
+test("desktop full-text hits add chats the memory search missed and show the matched text", () => {
+  const entry = (id, title) => ({ id: `thread:${id}`, group: "聊天记录", title, subtitle: "最近一条", target: { type: "thread", id } });
+  const entries = [entry("a", "A"), entry("b", "B"), entry("c", "C")];
+  const results = [entries[1]];
+  assert.equal(mergeChatTextHits(results, entries, []), results);
+  const merged = mergeChatTextHits(results, entries, [
+    { threadId: "c", snippet: "…很早以前提到的内容…" },
+    { threadId: "b", snippet: "B 中命中的句子" },
+    { threadId: "gone", snippet: "已删除的会话" },
+  ]);
+  assert.deepEqual(merged.map((item) => [item.id, item.subtitle]), [["thread:b", "B 中命中的句子"], ["thread:c", "…很早以前提到的内容…"]]);
+  assert.equal(entries[2].subtitle, "最近一条", "entries are not mutated");
+  assert.equal(mergeChatTextHits(results, entries, [{ threadId: "c", snippet: "x" }], 1).length, 1);
 });

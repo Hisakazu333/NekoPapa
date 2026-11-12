@@ -52,3 +52,11 @@ export async function clearDataCache(): Promise<number> {
   try { return await invoke<number>("app_data_clear_cache"); }
   catch (error) { throw new Error(message(error, "无法清理缓存。")); }
 }
+
+export interface ChatSearchHit { threadId: string; messageId: string; snippet: string }
+
+/** Every chat message, through the local database's full-text index (desktop only). */
+export async function searchChatMessages(query: string, limit = 20): Promise<ChatSearchHit[]> {
+  try { return await invoke<ChatSearchHit[]>("app_data_search", { query, limit }); }
+  catch (error) { throw new Error(message(error, "无法搜索聊天记录。")); }
+}

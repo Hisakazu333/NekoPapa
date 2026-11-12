@@ -20,7 +20,8 @@ import { SidebarMoreMenu, type SidebarMoreEntry } from "./sidebar-more-menu";
 import { SidebarMailButton } from "./sidebar-mail-button";
 export { DASHBOARD_NAV, type DashboardNavItem, type DashboardNavKey } from "./sidebar-navigation";
 import { cx } from "@/utils/cx";
-import { filterSidebarSearch, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
+import { filterSidebarSearch, mergeChatTextHits, isSidebarQuickSearchShortcut, sidebarQuickSearchShortcut, sidebarSearchOptionId, type SidebarSearchEntry } from "./sidebar-search";
+import { useChatTextSearch } from "./use-chat-text-search";
 import { DashboardSidebarSearchResults } from "./dashboard-sidebar-search-results";
 import { useSidebarCollapse } from "./use-sidebar-collapse";
 
@@ -90,7 +91,8 @@ export function DashboardSidebar({
   const searchInputRef = useRef<HTMLInputElement>(null);
   const collapsed = mobile ? false : collapsedState;
   const normalizedQuery = query.trim().toLocaleLowerCase();
-  const searchResults = filterSidebarSearch(searchEntries, query);
+  const chatTextHits = useChatTextSearch(query);
+  const searchResults = mergeChatTextHits(filterSidebarSearch(searchEntries, query), searchEntries, chatTextHits);
   const chooseSearchResult = (entry: SidebarSearchEntry) => {
     if (onSearchSelect?.(entry) === false) return;
     deactivateSearch(false);

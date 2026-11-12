@@ -39,7 +39,7 @@ SQLite 不是引擎 transcript 的第二份权威。Coding 的消息表、活动
 
 ```text
 <appData>/
-├── workspace.sqlite               # 产品对象、普通消息、Run、草稿、索引
+├── data/workspace.sqlite          # 产品对象、普通消息、Run、草稿、索引（2026-11-12 已建，第 1 阶段只含聊天记录，见 local-data-model.md）
 ├── workspace.sqlite-wal / -shm    # SQLite 运行时文件，不单独复制当备份
 ├── runtime/
 │   └── agent-engine/                  # 应用专用执行引擎配置 / 资源区，凭据采用适配
