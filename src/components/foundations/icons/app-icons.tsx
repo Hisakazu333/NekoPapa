@@ -14,7 +14,7 @@ import {
   RefreshCw, RotateCcw, Search, Settings, Settings2, ShieldAlert, ShieldCheck,
   ScanLine, ShieldEllipsis, ShieldUser, Smartphone, Smile, Sparkle, Square, SquarePen, SquareTerminal,
   StickyNote, Sun, Tablet, Terminal, Trash2, Undo2, Upload, User, UserCog, UserPlus, Users,
-  Volume2, VolumeX, WandSparkles, Webhook, Wrench, X, Zap,
+  Volume2, VolumeX, WandSparkles, Webhook, Workflow, Wrench, X, Zap,
   type LucideIcon, type LucideProps,
 } from "lucide-react";
 
@@ -198,5 +198,6 @@ export const Volume2Icon = outline(Volume2);
 export const VolumeXIcon = outline(VolumeX);
 export const WandSparklesIcon = outline(WandSparkles);
 export const WebhookIcon = outline(Webhook);
+export const WorkflowIcon = outline(Workflow);
 export const WrenchIcon = outline(Wrench);
 export const XIcon = outline(X);

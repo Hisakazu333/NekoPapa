@@ -7,11 +7,12 @@ import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const output = mkdtempSync(join(tmpdir(), "nekopapa-local-storage-usage-"));
-let measureLocalStorage, formatStorageSize;
+let measureLocalStorage, formatStorageSize, storageBreakdown;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./local-storage-usage-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   ({ measureLocalStorage, formatStorageSize } = await import(pathToFileURL(join(output, "settings/local-storage-usage.js"))));
+  ({ storageBreakdown } = await import(pathToFileURL(join(output, "settings/storage-breakdown.js"))));
 } finally {
   rmSync(output, { recursive: true, force: true });
 }
@@ -54,4 +55,26 @@ test("存储大小以 KB / MB 显示，非零值不显示为 0", () => {
   assert.equal(formatStorageSize(10), "0.1 KB");
   assert.equal(formatStorageSize(1536), "1.5 KB");
   assert.equal(formatStorageSize(3 * 1024 * 1024), "3 MB");
+});
+
+test("用量条分组：每个字节只归入一组，桌面端聊天记录取数据文件夹，WebView 中的旧副本计入其他", () => {
+  const local = measureLocalStorage(storageOf({
+    "nekopapa.settings.v1": "ab", "nekopapa.settings.v1.previous": "c", "nekopapa.projects.v1": "d",
+    "nekopapa:chat-threads:v1": "eeee", "nekopapa.contacts.v1": "ff", "nekopapa.mystery": "g",
+  }));
+  const sizes = (breakdown) => Object.fromEntries(breakdown.groups.map((group) => [group.id, group.bytes]));
+  const browser = storageBreakdown(local);
+  assert.deepEqual(Object.keys(sizes(browser)), ["chats", "contacts", "settings", "other"]);
+  assert.equal(browser.totalBytes, local.totalBytes);
+  assert.equal(sizes(browser).chats, local.categories.find((category) => category.id === "chats").bytes);
+
+  const folder = { sections: [{ id: "data", bytes: 5000 }, { id: "files", bytes: 7 }, { id: "cache", bytes: 300 }, { id: "logs", bytes: 3 }] };
+  const desktop = storageBreakdown(local, folder);
+  assert.equal(sizes(desktop).chats, 5000);
+  assert.equal(sizes(desktop).cache, 300);
+  const webViewChats = local.categories.find((category) => category.id === "chats").bytes;
+  const webViewOther = local.categories.find((category) => category.id === "other").bytes;
+  assert.equal(sizes(desktop).other, webViewChats + webViewOther + 10);
+  assert.equal(desktop.totalBytes, local.totalBytes + 5000 + 300 + 10);
+  assert.equal(storageBreakdown(null).totalBytes, 0);
 });

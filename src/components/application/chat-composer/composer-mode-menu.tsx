@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { BookOpenIcon, BotIcon, CheckIcon, MessageCircleHeartIcon, UserCogIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
+import { useState } from "react";
+import { BookOpenIcon, CheckIcon, MessageCircleHeartIcon, UserCogIcon, WandSparklesIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownDivider, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { composerModesForContext, selectComposerMode, type ComposerContext, type ComposerMode } from "@/app/chat/chat-composer-draft";
@@ -7,7 +7,13 @@ import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 import { COMPOSER_MENU_TRIGGER } from "./composer-trigger-styles";
 
-const modeIcons = { auto: WandSparklesIcon, chat: MessageCircleHeartIcon, study: BookOpenIcon, professional: UserCogIcon, agent: BotIcon };
+const modeIcons = { auto: WandSparklesIcon, chat: MessageCircleHeartIcon, study: BookOpenIcon, professional: UserCogIcon };
+
+/**
+ * A contact chat's mode (聊天 / 学习 / 专业协助, as the contact allows). The
+ * workbench has no mode menu: it always routes automatically. The composer
+ * hook keeps the draft's mode inside the context's modes.
+ */
 
 export function ComposerModeMenu({ state, context = "custom", disabled, className }: {
   state: ChatComposerState;
@@ -19,11 +25,6 @@ export function ComposerModeMenu({ state, context = "custom", disabled, classNam
   const modes = composerModesForContext(context);
   const mode = modes.find((entry) => entry.id === state.draft.mode) ?? modes[0];
   const ModeIcon = modeIcons[mode.id];
-
-  useEffect(() => {
-    if (modes.some((entry) => entry.id === state.draft.mode)) return;
-    state.setDraft((draft) => ({ ...draft, mode: modes[0].id }));
-  }, [modes, state.draft.mode, state.setDraft]);
 
   return <Dropdown isOpen={open} onOpenChange={setOpen}>
     <DropdownTrigger aria-label={`对话模式：${mode.label}`} isDisabled={disabled}
@@ -48,7 +49,7 @@ export function ComposerModeMenu({ state, context = "custom", disabled, classNam
       </DropdownGroup>
       <DropdownDivider />
       <p className="px-2 pb-1 text-caption-1-regular text-text-tertiary">
-        {context === "official" ? "官方人物仅支持聊天和学习。" : context === "workspace" ? "Auto 路由、学习与 Agent 执行服务尚未接入。" : "专业协助使用此联系人的提示词；学习服务尚未接入。"}
+        {context === "official" ? "官方人物仅支持聊天和学习。" : "专业协助使用此联系人的提示词；学习服务尚未接入。"}
       </p>
     </DropdownPopover>
   </Dropdown>;

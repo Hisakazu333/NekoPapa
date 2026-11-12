@@ -1,5 +1,6 @@
 import type { UIMessage } from "ai";
 import { parseStoredChatContact, type ChatContactMetadata } from "./chat-contact";
+import { chatStorage, DataFolderError } from "../../../platform/app-data-storage";
 
 export type { ChatContactMetadata } from "./chat-contact";
 
@@ -94,7 +95,7 @@ export function readThreads(storage?: ReadStorage): ThreadReadResult {
   let threads: StoredThread[] = [];
   let source: ThreadReadResult["source"] = "unavailable";
   try {
-    const target = storage ?? globalThis.localStorage;
+    const target = storage ?? chatStorage();
     const currentRaw = target.getItem(CHAT_STORAGE_KEY);
     if (currentRaw !== null) {
       const current = parseThreads(currentRaw);
@@ -110,8 +111,8 @@ export function readThreads(storage?: ReadStorage): ThreadReadResult {
       if (source !== "current") source = "legacy";
     } else if (source !== "current") source = "empty";
     return { threads, source, writable: true, error: null };
-  } catch {
-    return { threads, source, writable: false, error: "无法安全读取聊天历史，已阻止覆盖原数据。请保留当前页面并检查浏览器存储。" };
+  } catch (error) {
+    return { threads, source, writable: false, error: error instanceof DataFolderError ? error.message : "无法安全读取聊天历史，已阻止覆盖原数据。请保留当前页面并检查浏览器存储。" };
   }
 }
 
@@ -127,7 +128,7 @@ export function writeThreads(threads: StoredThread[], writable: boolean, storage
     });
     const raw = JSON.stringify({ version: 1, legacyMigrated: true, threads: serializable });
     parseThreads(raw);
-    const target = storage ?? globalThis.localStorage;
+    const target = storage ?? chatStorage();
     target.setItem(CHAT_STORAGE_KEY, raw);
     return { saved: true, error: null };
   } catch {

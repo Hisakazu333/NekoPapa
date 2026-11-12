@@ -38,6 +38,7 @@ export class ChatHistoryStore {
   private readonly listeners = new Set<() => void>();
   private pending: Mutation[] = [];
   private readonly deletedContacts = new Set<string>();
+  private storageError: string | null = null;
 
   constructor(private readonly storage?: HistoryStorage) {}
 
@@ -174,6 +175,17 @@ export class ChatHistoryStore {
       ready: true, writable: true,
       error: this.pending.length ? this.snapshot.error : null,
     });
+  };
+
+  /**
+   * A write to the data folder finishes after the save returned (desktop).
+   * Its failure is shown like a failed save; 重试 writes the history again.
+   */
+  reportStorageError = (error: string | null) => {
+    if (!this.snapshot.ready || this.snapshot.error === error) return;
+    if (error === null && this.snapshot.error !== this.storageError) return;
+    this.storageError = error;
+    this.publish({ ...this.snapshot, error });
   };
 
   retryHistory = () => {

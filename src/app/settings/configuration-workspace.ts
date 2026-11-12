@@ -8,12 +8,6 @@ export const workspaceConfiguration: readonly ConfigurationSchema[] = [
   // Conversation settings take effect immediately; the desktop blocks wait for the Tauri host.
   { id: "general", effect: "immediate", scope: "常规 · 新对话与输入设置保存后立即生效。", blocks: [
     { title: "新建对话", fields: [
-      { ...select("defaultMode", "默认模式", "auto", [["auto", "Auto"], ["chat", "聊天"], ["study", "学习"], ["agent", "Agent"]]), optionHints: {
-        auto: "根据任务选择聊天、学习或 Agent。自动路由服务接入前，Auto 模式不能发送。",
-        chat: "普通对话，连接模型后即可使用。",
-        study: "讲解、练习与复习。学习服务接入前不能发送。",
-        agent: "通用任务与 Coding。执行服务接入前不能发送。",
-      } },
       { ...select("projectFolder", "项目文件夹", "inherit", [["inherit", "沿用当前项目"], ["none", "不使用项目文件夹"]]), optionHints: {
         inherit: "在某个项目里新建对话时，新对话仍归入该项目。",
         none: "新对话默认不归入项目；可在首页工具栏或侧栏项目中选择。",

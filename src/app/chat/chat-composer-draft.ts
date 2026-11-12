@@ -1,4 +1,5 @@
 import { pageElementText, type PageElement } from "../browser/browser-pick";
+import { DEFAULT_PERMISSION_MODE, PERMISSION_MODES, isPermissionMode, type PermissionMode } from "../settings/permission-modes";
 
 /** Frontend draft only. Files stay in memory; selecting an output never runs a tool. */
 export interface ComposerAttachment {
@@ -11,15 +12,18 @@ export interface ComposerAttachment {
 }
 
 export type ComposerArtifact = "document" | "spreadsheet" | "presentation" | "code";
-export type ComposerMode = "auto" | "chat" | "study" | "agent" | "professional";
+/**
+ * The workbench always routes automatically ("auto": chat until study and the
+ * Agent runtime exist, then the router picks); contacts choose between the
+ * modes their character allows.
+ */
+export type ComposerMode = "auto" | "chat" | "study" | "professional";
 export type ComposerContext = "workspace" | "custom" | "official";
-export type ComposerPermission = "ask" | "read" | "auto";
+export type ComposerPermission = PermissionMode;
 export interface ComposerDraft {
   attachments: ComposerAttachment[];
   /** Elements picked in the built-in browser; sent as text with the message. */
   pageElements: PageElement[];
-  /** Browser-safe project folder label; the host resolves a real path later. */
-  projectDirectory: string;
   goal: string;
   planning: boolean;
   artifact: ComposerArtifact | null;
@@ -28,21 +32,17 @@ export interface ComposerDraft {
 }
 
 export const composerModes: { id: ComposerMode; label: string; description: string }[] = [
-  { id: "auto", label: "Auto", description: "学习与 Agent 接入前按聊天回复" },
+  { id: "auto", label: "自动", description: "按任务自动选择聊天、学习或 Agent；接入前按聊天回复" },
   { id: "chat", label: "聊天", description: "日常交流与休息陪伴" },
   { id: "study", label: "学习", description: "课程、编程与专业知识学习" },
-  { id: "agent", label: "Agent", description: "处理通用任务与编程项目" },
   { id: "professional", label: "专业协助", description: "使用自建联系人的专业提示词" },
 ];
-export const composerPermissions: { id: ComposerPermission; label: string; description: string }[] = [
-  { id: "ask", label: "每次询问", description: "执行工具操作前先询问" },
-  { id: "read", label: "仅查看", description: "只允许读取，禁止修改与执行" },
-  { id: "auto", label: "自动", description: "常规操作自动处理，敏感操作仍需确认" },
-];
+/** The same modes as 设置 → 权限规则, whose choice is the default for new chats. */
+export const composerPermissions = PERMISSION_MODES;
 
 const contextModes: Record<ComposerContext, typeof composerModes> = {
-  workspace: composerModes.filter((mode) => mode.id !== "professional"),
-  custom: composerModes.filter((mode) => mode.id !== "auto" && mode.id !== "agent"),
+  workspace: composerModes.filter((mode) => mode.id === "auto"),
+  custom: composerModes.filter((mode) => mode.id !== "auto"),
   official: composerModes.filter((mode) => mode.id === "chat" || mode.id === "study"),
 };
 
@@ -69,32 +69,17 @@ export const COMPOSER_FILE_LIMIT = 10;
 export const COMPOSER_FILE_MAX_BYTES = 10 * 1024 * 1024;
 export const COMPOSER_TOTAL_MAX_BYTES = 25 * 1024 * 1024;
 
-/** `workspaceMode` is General → 新建对话 → 默认模式; contacts always start in chat. */
-export function createComposerDraft(context: ComposerContext = "custom", workspaceMode: ComposerMode = "auto"): ComposerDraft {
-  const allowed = composerModesForContext(context).some((mode) => mode.id === workspaceMode);
-  return { attachments: [], pageElements: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: context === "workspace" ? (allowed ? workspaceMode : "auto") : "chat", permission: "ask" };
-}
-
-export function projectDirectoryFromFiles(files: readonly Pick<File, "webkitRelativePath">[]): string {
-  const path = files.find((file) => file.webkitRelativePath)?.webkitRelativePath ?? "";
-  return path.split("/")[0] ?? "";
-}
-
-export function selectComposerProjectDirectory(
-  draft: ComposerDraft,
-  files: readonly Pick<File, "webkitRelativePath">[],
-): ComposerDraft {
-  if (!files.length) return draft;
-  const name = projectDirectoryFromFiles(files);
-  return name ? { ...draft, projectDirectory: name } : draft;
-}
-
-export function clearComposerProjectDirectory(draft: ComposerDraft): ComposerDraft {
-  return draft.projectDirectory ? { ...draft, projectDirectory: "" } : draft;
+/** The workbench starts in automatic routing, contacts in chat; `permission` is 设置 → 权限规则 → 权限模式. */
+export function createComposerDraft(context: ComposerContext = "custom", permission: unknown = DEFAULT_PERMISSION_MODE): ComposerDraft {
+  return {
+    attachments: [], pageElements: [], goal: "", planning: false, artifact: null,
+    mode: context === "workspace" ? "auto" : "chat",
+    permission: isPermissionMode(permission) ? permission : DEFAULT_PERMISSION_MODE,
+  };
 }
 
 export function selectComposerMode(draft: ComposerDraft, mode: ComposerMode): ComposerDraft {
-  return { ...draft, mode, projectDirectory: mode === "agent" ? draft.projectDirectory : "" };
+  return { ...draft, mode };
 }
 
 export function addComposerFiles(current: ComposerAttachment[], files: readonly File[]) {
@@ -127,7 +112,6 @@ export function composerDraftBlockReason(draft: ComposerDraft): string | undefin
   // Chat is the only connected mode, so Auto routes every message there
   // until study and Agent execution exist; it never claims to have picked them.
   if (draft.mode === "study") return "学习模式已选好，等待学习服务接入。";
-  if (draft.mode === "agent") return "Agent 模式已选好，等待通用任务与 Coding 执行服务接入。";
   if (draft.attachments.length) return "文件已选好，附件发送尚未接入。移除附件后可继续文字聊天。";
   if (draft.artifact) return "已选择输出形式，文件生成尚未接入。移除后可继续文字聊天。";
   return undefined;
@@ -135,7 +119,6 @@ export function composerDraftBlockReason(draft: ComposerDraft): string | undefin
 
 export function buildComposerText(input: string, draft: ComposerDraft): string {
   const parts = [input.trim()];
-  if (draft.projectDirectory) parts.push(`项目目录：${draft.projectDirectory}`);
   if (draft.goal) parts.push(`本次目标：${draft.goal}`);
   if (draft.planning) parts.push("请先给出分步计划，说明需要澄清的问题，暂不执行操作。");
   for (const element of draft.pageElements ?? []) parts.push(pageElementText(element));

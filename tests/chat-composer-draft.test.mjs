@@ -35,7 +35,7 @@ test("每个输入区拥有独立空草稿，修改文件、目标和产物不�
   first.goal = "理解课程";
   first.planning = true;
   first.artifact = "document";
-  assert.deepEqual(second, { attachments: [], pageElements: [], projectDirectory: "", goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
+  assert.deepEqual(second, { attachments: [], pageElements: [], goal: "", planning: false, artifact: null, mode: "chat", permission: "ask" });
 });
 
 test("添加文件保留原File内容、稳定ID和文件夹路径，移除时其他文件身份不变", async () => {
@@ -139,13 +139,10 @@ test("输出形式未接入时保留原消息草稿并阻止发送", () => {
   }
 });
 
-test("常规设置的默认模式只作用于工作台新草稿；联系人仍从聊天开始，不允许的模式回退到 Auto", () => {
+test("工作台新草稿总是自动路由，联系人从聊天开始；第二个参数只决定权限模式", () => {
   assert.equal(createComposerDraft("workspace").mode, "auto");
-  assert.equal(createComposerDraft("workspace", "chat").mode, "chat");
-  assert.equal(createComposerDraft("workspace", "study").mode, "study");
-  assert.equal(createComposerDraft("workspace", "agent").mode, "agent");
-  assert.equal(createComposerDraft("workspace", "professional").mode, "auto");
-  assert.equal(createComposerDraft("workspace", "bogus").mode, "auto");
-  assert.equal(createComposerDraft("custom", "agent").mode, "chat");
-  assert.equal(createComposerDraft("official", "study").mode, "chat");
+  assert.equal(createComposerDraft("workspace", "acceptEdits").mode, "auto");
+  assert.equal(createComposerDraft("workspace", "acceptEdits").permission, "acceptEdits");
+  assert.equal(createComposerDraft("custom", "plan").mode, "chat");
+  assert.equal(createComposerDraft("official", "bogus").permission, "ask");
 });

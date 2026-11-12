@@ -108,7 +108,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
           <div className="chat-home__composer-actions">
             <div className="flex flex-wrap items-center gap-1">
               <ComposerAddMenu state={composer} official={official} />
-              <ComposerPermissionMenu state={composer} />
+              {!selectedContact && <ComposerPermissionMenu state={composer} />}
             </div>
             <div className="chat-home__send-actions">
               {!official && <ComposerModelMenu state={composer} onConfigure={(target) => onOpenSettings("model", target)} />}
@@ -121,7 +121,7 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
 
         <div className="chat-home__toolbar">
           <div className="chat-home__toolbar-group">
-            <ComposerModeMenu state={composer} context={selectedContact?.kind ?? "workspace"} className="chat-home__toolbar-button" />
+            {selectedContact && <ComposerModeMenu state={composer} context={selectedContact.kind} className="chat-home__toolbar-button" />}
             <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" title="填入灵感提示" onClick={fillIdea}><SparkleIcon aria-hidden /></button>
             <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><PlugIcon aria-hidden /></button>
           </div>

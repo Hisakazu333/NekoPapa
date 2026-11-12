@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src", "types": ["node"] },
+  "include": ["../src/app/chat/chart-spec.ts", "../src/app/chat/message-blocks.ts", "../src/app/chat/code-highlight.ts", "../src/app/chat/markdown-blocks.ts", "../src/app/api/chat/reply-format-prompt.ts"]
+}

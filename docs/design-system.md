@@ -34,7 +34,9 @@
 
 正文和控件使用 Inter 的系统回退栈，中文由可用系统字体回退；代码使用 JetBrains Mono 的等宽回退栈。正文 `text-body-*` 为 14 / 20，辅助正文 `text-body-2-*` 为 13 / 18，说明 `text-caption-1-*` 为 12 / 16；标题使用对应 `text-title-*` 或 `text-display-*`。当前工作台问候的衬线字体与自适应字号来自 [chat-home.css](../src/styles/chat-home.css)，是该区域已有的展示样式，不把整套控件改成衬线。首页按自身宽度（容器查询，`cqi`）而非窗口宽度缩放：内容最宽 768px，问候 28–40px，猫图标为问候字号的 1.3 倍；宽度不足 560px 时改用紧凑间距并隐藏“给你一点灵感”标签。
 
-图表与统计使用已有 chart 语义：空格子、空闲日和占比轨道用 `bg-chart-track`，单一数值的深浅用 `accent-*`（个人资料与消耗统计的热力图）；分类系列用 `--color-chart-1` 至 `--color-chart-9`（桑基图来源按位置取色），中性节点用 `chart-neutral`。统计卡在 `@container` 内按卡片宽度换列（如 `@2xl:grid-cols-4`），不要用视口断点，设置弹窗内的宽度远小于视口。
+图表与统计使用已有 chart 语义：空格子、空闲日和占比轨道用 `bg-chart-track`，单一数值的深浅用 `accent-*`（个人资料与消耗统计的热力图）；分类系列用 `--color-chart-1` 至 `--color-chart-9`（桑基图来源按位置取色），中性节点用 `chart-neutral`。设置 → 数据与备份的存储用量条为 `h-6 rounded-full bg-chart-track` 容器内按字节比例 `flex-grow` 的分段（`gap-0.5`，非零分段至少 `min-w-1.5`），分组色依次为 `chart-1` 至 `chart-5`，图例为 8px 圆点 + `text-body-2-medium` 名称 + `text-caption-1-regular text-text-tertiary` 大小。统计卡在 `@container` 内按卡片宽度换列（如 `@2xl:grid-cols-4`），不要用视口断点，设置弹窗内的宽度远小于视口。
+
+对话回复（`agent-chat/message-*.tsx`）：正文由 react-markdown + remark-gfm 渲染，不渲染原始 HTML，标题保持回复字号（`role="heading"` 的段落），表格放在可横向滚动的圆角边框容器里；公式用 KaTeX（`\( \)` / `\[ \]` 先转换为 `$` / `$$`）。代码块完成后用 shiki 按 github-light / github-dark 两套颜色着色，颜色随 `useThemeMode()` 切换，未知语言保持纯文本。` ```mermaid ` 用 Mermaid（strict、按主题切换）画图，可切回代码；` ```chart ` JSON 由 `chart-spec.ts` 校验后绘制为 SVG 柱 / 线 / 面积 / 饼图，系列颜色用 `--color-chart-1` 至 `--color-chart-5`，可切到数据表。图或图表画不出来时回退为代码块并在其上方用 `text-text-error-primary` 说明原因。
 
 通知（toast）区域带 `data-react-aria-top-layer`，这是 React Aria 为 toast 保留的顶层标记：设置等弹窗打开时，弹窗外的内容会被设为 `inert`，只有顶层元素保持可点，点击它也不会被当作点在弹窗外。新增类似的全局浮层时沿用该标记，不要用提高 z-index 代替。
 
@@ -50,7 +52,7 @@
 
 普通功能图标统一从 [app-icons.tsx](../src/components/foundations/icons/app-icons.tsx) 引用：底层为 `lucide-react`（锁定 1.61.0）的线性图标，统一以 24 格 1.5 描边（随尺寸缩放：16px 约 1px、20px 约 1.25px），页面不直接引用 `lucide-react`，需要新图标时先加到该文件；只有“已置顶”和“停止回复”用实心（`PinFilledIcon`、`StopFilledIcon`），GitHub 标志使用 Octicons `mark-github` 路径。尺寸由对应组件决定。2026-11-10 起替换原 `@remixicon/react`，该依赖已移除。展开箭头使用仓库现有 [chevrons.tsx](../src/components/foundations/icons/chevrons.tsx)。模型供应商和附件插件使用已核实并随包保存的 BoardUI SVG，资源来源与路径见源码说明；装饰插画、Logo、人物头像与 Live2D 模型各有资源所有者，不能把供应商品牌图标当作普通功能图标替代。
 
-输入框参照 BoardUI Composer Panel（Pro，未安装源码）：上方一条 `bg-background-secondary-default` 托盘放模式菜单、项目目录与不可发送原因，下方 `rounded-3xl` 卡片放草稿摘要、textarea 与附件 / 权限 / 模型 / 表情 / 发送按钮，托盘以负外边距衬在卡片后面。联系人单聊（`contacts/contact-composer.tsx`）已采用该结构。
+输入框参照 BoardUI Composer Panel（Pro，未安装源码）：上方一条 `bg-background-secondary-default` 托盘放模式菜单（仅联系人单聊）与不可发送原因，下方 `rounded-3xl` 卡片放草稿摘要、textarea 与附件 / 权限 / 模型 / 表情 / 发送按钮，托盘以负外边距衬在卡片后面。联系人单聊（`contacts/contact-composer.tsx`）已采用该结构。
 
 ## 登录与设置的页面职责
 

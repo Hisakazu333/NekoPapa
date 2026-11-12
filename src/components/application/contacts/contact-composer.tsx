@@ -10,7 +10,6 @@ import { ComposerModelMenu } from "../chat-composer/composer-model-menu";
 import { ComposerDraftSummary } from "../chat-composer/composer-draft-summary";
 import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
-import { ProjectDirectorySelector } from "../chat-composer/project-directory-selector";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import type { ComposerContext } from "@/app/chat/chat-composer-draft";
 
@@ -67,8 +66,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   return <div className="relative mx-2 mb-2 flex shrink-0 flex-col">
     {activityLabel && <AgentThinking variant="wave" label={activityLabel} className="mx-3 mb-1 px-2 py-1" />}
     <div aria-label="对话工具栏" className="mx-4 -mb-3 flex min-h-[34px] min-w-0 items-center gap-1 rounded-t-2xl bg-background-tertiary-default px-1.5 pb-3 pt-1 sm:mx-7">
-      <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />
-      {composerContext === "workspace" && composer.draft.mode === "agent" && <ProjectDirectorySelector state={composer} disabled={busy} />}
+      {composerContext !== "workspace" && <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />}
       {status}
     </div>
     <ComposerLoader active={busy} radius={24} surface={false} className="z-1 rounded-3xl bg-background-full shadow-xs">
@@ -80,7 +78,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
           className="w-full resize-none overflow-hidden bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={1} />
         <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-1 sm:gap-2">
           <ComposerAddMenu state={composer} disabled={busy} official={officialCompanion} />
-          <ComposerPermissionMenu state={composer} disabled={busy} />
+          {composerContext === "workspace" && <ComposerPermissionMenu state={composer} disabled={busy} />}
           <div className="min-w-0 flex-1" />
           {!officialCompanion && <ComposerModelMenu state={composer} onConfigure={onConfigure} disabled={busy} />}
           <Dropdown isOpen={emojisOpen} onOpenChange={setEmojisOpen}>

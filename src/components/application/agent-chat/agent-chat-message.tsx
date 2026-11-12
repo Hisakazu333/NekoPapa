@@ -3,13 +3,13 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
 import { CheckIcon, CopyIcon, Volume2Icon, VolumeXIcon } from "@/components/foundations/icons/app-icons";
-import { motion, useReducedMotion } from "motion/react";
-import { memo, useEffect, useMemo, useState, type ReactNode } from "react";
+import { memo, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import { cx } from "@/utils/cx";
 import { LinkedText } from "./message-links";
 import { splitMessageBlocks } from "@/app/chat/message-blocks";
-import { MessageCodeBlock } from "./message-code-block";
+import { MessageMarkdown } from "./message-markdown";
+import { MessageRichBlock } from "./message-rich-block";
 import { MessageReasoning } from "./message-reasoning";
 
 /**
@@ -17,7 +17,7 @@ import { MessageReasoning } from "./message-reasoning";
  *
  * Assistant replies arrive a paragraph at a time, each softening in out of a
  * blur as it first appears and then only growing, so nothing already on screen
- * ever re-animates.
+ * ever re-animates (message-markdown.tsx).
  *
  * The action row is deliberately mounted at all times and revealed on hover or
  * focus. Rendering it only on hover would make it unreachable by keyboard and
@@ -35,7 +35,8 @@ export interface AgentMessageProps {
   reasoning?: string;
 }
 
-export function AgentMessage({ role, text, streaming = false, at, reasoning = "" }: AgentMessageProps) {
+/** Memoized: while one reply streams, the earlier turns do not re-render. */
+export const AgentMessage = memo(function AgentMessage({ role, text, streaming = false, at, reasoning = "" }: AgentMessageProps) {
   const localize = useTemplateCopy();
   if (!text && !reasoning.trim()) return null;
 
@@ -54,78 +55,20 @@ export function AgentMessage({ role, text, streaming = false, at, reasoning = ""
       <MessageActions text={text} at={at} hidden={streaming} />
     </div>
   ));
-}
+});
 
-/** Prose as streamed paragraphs; fenced code as code cards. */
+/** Prose as Markdown; fenced blocks as code, diagrams, charts or math (message-rich-block). */
 function ReplyBlocks({ text }: { text: string }) {
-  const blocks = useMemo(() => splitMessageBlocks(text), [text]);
+  // Rendering new tokens yields to scrolling and input; the text catches up
+  // in the next idle frame instead of blocking the transcript.
+  const shown = useDeferredValue(text);
+  const blocks = useMemo(() => splitMessageBlocks(shown), [shown]);
   return <div className="flex flex-col gap-3">
     {blocks.map((block, index) => block.kind === "code"
-      ? <MessageCodeBlock key={index} lang={block.lang} code={block.code} complete={block.complete} />
-      : <StreamedText key={index} text={block.text} />)}
+      ? <MessageRichBlock key={index} lang={block.lang} code={block.code} complete={block.complete} />
+      : <MessageMarkdown key={index} text={block.text} />)}
   </div>;
 }
-
-/**
- * Paragraphs, each softening in once as it first appears.
- *
- * The animation deliberately lives at the line level rather than the word
- * level. Animating words looks worse in practice: a token arrives as a
- * fragment, the blur-in plays on that fragment, and then the fragment mutates
- * to the finished word with no transition — which reads as a stutter. It also
- * forces a swap from animated spans back to plain text when the stream ends,
- * and everything mid-flight snaps at once.
- *
- * A line mounts exactly once and then only grows, so nothing ever restarts or
- * snaps. Evenness of the text itself comes from the server, which releases
- * whole words on a steady tick (see `smoothStream` in the route).
- */
-export function StreamedText({ text, paragraphs = false }: { text: string; paragraphs?: boolean }) {
-  const localize = useTemplateCopy();
-  const reduceMotion = useReducedMotion();
-  const lines = useMemo(() => text.split(paragraphs ? /\n\s*\n/ : "\n").filter((line) => line.trim() !== ""), [text, paragraphs]);
-
-  return localize((
-    <div className="flex flex-col gap-3">
-      {lines.map((line, index) => (
-        <Line key={index} text={line} animate={!reduceMotion} />
-      ))}
-    </div>
-  ));
-}
-
-/**
- * At module scope so their identity is stable. A line re-renders on every
- * token of the reply — dozens of times a second — and handing Motion a fresh
- * object literal each time invites it to re-evaluate a target that has not
- * actually changed.
- */
-const LINE_HIDDEN = { opacity: 0, filter: "blur(5px)", y: 4 };
-const LINE_SHOWN = { opacity: 1, filter: "blur(0px)", y: 0 };
-const LINE_TRANSITION = { duration: 0.42, ease: [0.22, 0.61, 0.36, 1] } as const;
-
-/**
- * A settled line keeps `filter: blur(0px)` rather than losing the filter
- * altogether — Motion owns that property once it animates it, and a `style`
- * override does not win it back. At one filtered element per paragraph the
- * cost is invisible; it was only a problem when every word carried its own.
- *
- * memo matters here: without it every paragraph re-renders on each token of
- * the reply, which is wasted work for the lines that are already finished.
- */
-const Line = memo(function Line({ text, animate }: { text: string; animate: boolean }) {
-  return (
-    <motion.p
-      initial={animate ? LINE_HIDDEN : false}
-      animate={LINE_SHOWN}
-      transition={LINE_TRANSITION}
-      translate="no"
-      className="text-body-regular break-words text-text-primary"
-    >
-      <LinkedText text={text} />
-    </motion.p>
-  );
-});
 
 function MessageActions({ text, at, hidden }: { text: string; at?: number; hidden: boolean }) {
   const localize = useTemplateCopy();

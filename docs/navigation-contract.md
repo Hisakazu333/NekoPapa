@@ -859,3 +859,25 @@
 - 2026-11-12 扩展位阶段 1（`docs/plugin-slots.md`）：工作面板标签与命令面板的视图命令改由注册表 `src/app/plugins/slot-registry.ts` 提供（贡献 ID `nekopapa.core/<本地 ID>`，视图 ID 与旧存储键不变），用户布局以贡献 ID 存于 `nekopapa.slot-layout.v1`（`{slot:{order,hidden}}`，未知 ID 保留原位，损坏时备份到 `.corrupt`）。“历史”“工具”不可隐藏；当前视图被隐藏时回到“历史”并提示；入口为标签右键菜单与 设置 → 工作区 → 界面布局（恢复默认）。同时修正右侧展开按钮把点击事件当作视图 ID 传入、导致面板空白的问题。验证：`npm run test` 537/537（新增 `tests/slot-layout.test.mjs` 8 项）、`npm run build`、`git diff --check`；独立浏览器 `localhost:1495` 实测右键与 Shift+F10 隐藏 / 移动 / 显示、隐藏后焦点、命令面板同步、重载保持、设置页隐藏当前视图回退、恢复默认、损坏记录备份与提示，之后删除临时存储键。工具快捷键与桌面宿主未单独回归。
 - 2026-11-12 界面插件（扩展位阶段 2 核心流程，参照 DeepSeek Harness 的位置自建，不运行 DSH / Cordis 插件包）：设置 → 插件 → 界面插件从文件夹读取 `nekopapa-plugin.json`（Rust `plugin_manifest_read`，开发服务器同路径镜像），校验后经用户确认启用，记录存于 `nekopapa.ui-plugins.v1`；启用插件向工作面板添加 `status` 视图（视图 ID = 贡献 ID）、向命令面板“插件”分段添加 `openView` / `openUrl` 命令；启动时重新读取文件夹，清单丢失或损坏即停用并提示，修复后恢复；插件停用或移除时当前视图回到“历史”。工作面板新增“更多工具”菜单。顺带修正命令面板中设置与工具命令无法被搜索的问题（补 `textValue`）。验证：`npm run test` 546/546（新增 `tests/ui-plugins.test.mjs` 9 项）、`npm run build`、`git diff --check`、`cargo check`、`cargo test plugin_manifest` 4 项、`npm run desktop:build`；独立浏览器 `localhost:1495` 实测错误清单逐条列出、确认后启用、命令面板执行插件命令打开插件视图、停用时回退“历史”并提示、清单损坏后重载自动停用并显示原因，之后删除临时存储键与临时插件文件夹。桌面宿主中的文件夹选择与移除按钮未在界面点测。
 - 2026-11-12 界面插件设置页（扩展位 `settings.section` 与 `openSettings`）：清单可声明最多 2 个设置页（`boolean` / `string` / `number` / `select` 字段，拒绝像密码、令牌、密钥的字段），页面 ID 为贡献 ID，列在设置“插件”分组末尾；值经字段校验后立即存于 `nekopapa.ui-plugin-settings.v1`，移除插件时清除。`openSettings` 命令打开对应页；`openUrl` 可在固定 https 站点的路径、查询或片段中读取 `{settings.<key>}`，缺值时打开设置页并提示。“Cordis 插件”从“开发”移入“插件”分组（ID 不变）。验证：`npm run test`（新增 `tests/ui-plugin-settings.test.mjs` 5 项，编译辅助抽到 `tests/ui-plugins-compile.mjs`）、`npm run build`、`git diff --check`；独立浏览器 `localhost:1495` 实测确认页列出设置页、导航出现插件设置页、缺“仓库”时命令提示并打开设置页、填写后命令打开 `https://github.com/acme/notes/tree/dev`（替换 `window.open` 记录，未真正打开）、`openSettings` 命令打开设置页、恢复默认清空、停用后导航项消失、移除后设置值清除，之后删除临时存储键与插件文件夹。设置页打开时插件被停用的说明状态与桌面宿主未点测。
+
+### 2026-11-12 输入框模式与权限、回复可视化
+
+- 工作台输入框不再提供模式菜单，始终自动路由；联系人单聊保留模式菜单（官方人物：聊天 / 学习；自建联系人另有专业）。草稿换上下文时模式收回到该上下文可用的模式。设置 → 常规的“默认模式”已移除，读取旧配置时有效的旧值被忽略，无效值报“general：默认模式值无效。”。
+- 权限菜单只在工作台显示，选项为每次询问 / 自动接受编辑 / 仅计划 / 完全访问，与设置 → 权限规则共用 `src/app/settings/permission-modes.ts`；新对话取设置中的默认值，菜单改动只对当前对话生效。Agent 与 Coding 执行层未接入，选择只保存，不授予权限。项目目录选择器已从输入框托盘移除。
+- 回复正文按 Markdown 渲染（含表格、任务列表、KaTeX 公式），代码块高亮，` ```mermaid ` 与 ` ```chart ` 画图，画不出时回退为带原因的代码块。
+- 验证：`npm run test`、`npm run build`、`git diff --check`；独立浏览器 `localhost:1495` 实测表格、公式、TypeScript 高亮、Mermaid 流程图（深色）、分组柱状图、饼图与错误回退，首页无模式按钮、权限菜单列出四项与说明，之后清除测试数据。桌面宿主未点测。
+- 流式回复的滚动卡顿：正文按顶层 Markdown 块（`src/app/chat/markdown-blocks.ts`）拆开并逐块缓存，流式时只重新解析、排版最后一个仍在增长的块；含引用式链接或脚注时整段保持一个文档。回复渲染使用 `useDeferredValue` 让位于滚动和输入，`AgentMessage` 缓存后流式时较早的消息不再重渲染。
+- 模型此前不知道对话能画图：系统提示词新增 `src/app/api/chat/reply-format-prompt.ts`，说明 Markdown、公式、` ```mermaid ` 与 ` ```chart ` 的格式和限制（图表限制与 `CHART_LIMITS` 由测试对齐），只在有助于回答时使用，不为图表编造数据。
+- 验证补充：558 项测试通过、`npm run build`、`git diff --check`；`localhost:1495` 以临时会话确认标题、行内与块公式、列表、表格、引用式链接与柱状图仍正确呈现，之后删除临时会话。真实模型流式下的滚动流畅度与模型是否主动使用图表未实测。
+
+### 2026-11-12 本机数据文件夹
+
+- 桌面应用拥有自己的数据文件夹（系统应用数据目录，macOS 为 `~/Library/Application Support/app.nekopapa.desktop/`），含 `data/`、`files/`、`cache/`、`logs/`。聊天记录（原 `nekopapa:chat-threads:v1`）改存 `data/chat-threads.json`，不再受 WebView 存储容量限制；联系人、设置等其他键仍在 WebView 存储。会话 ID、消息格式与文件内容格式与原存储键一致。
+- 启动时先读文件再渲染；文件不存在而 WebView 中有聊天记录时迁移为文件，WebView 副本保留为备份且不再读取。读取失败（或旧记录无法读取以迁移）时聊天历史不可写并显示原因，不会用空历史覆盖文件；写盘失败显示为聊天历史错误，“重试”重新写入，原文件保持不变。只有一个主窗口，不需要跨窗口同步。
+- 设置 → 数据与备份 新增“本机数据文件夹”：位置、各部分文件数与大小、打开文件夹、清理缓存。`files/` 与 `logs/` 目前只建立目录，附件与日志尚未写入。
+- 验证：`cargo test --manifest-path src-tauri/Cargo.toml`（含 4 项数据文件夹测试：目录与读写、名称白名单、失败保留原文件、用量与只清理缓存且不跟随链接）、`cargo check`、562 项 `npm run test`（新增 4 项文件存储测试）、`npm run build`、`git diff --check`；`localhost:1495` 确认数据页在浏览器中显示“只在桌面应用中提供”。为不触碰用户本机聊天记录，未在桌面宿主中实际启动迁移与写盘，打开文件夹与清理缓存按钮未在宿主中点测。
+
+### 2026-11-12 存储页改版
+
+- 设置 → 数据与备份 顶部改为“此设备”：总占用、重新计算、按分组着色的用量条与图例，原明细表收进“应用存储占用明细”（默认收起，按钮带 `aria-expanded`）；“各文件夹的存储用量”只保留应用数据文件夹一行（位置、总大小、浏览），清理缓存独立成卡片。设置备份导出与导入不变。
+- 验证：`npm run test`（新增分组计算测试）、`npm run build`、`git diff --check`；`localhost:1495` 以 1280×860 查看深色主题下的总量、用量条、图例、明细展开与浏览器存储说明。桌面应用中的文件夹大小、浏览与清理缓存未点测。

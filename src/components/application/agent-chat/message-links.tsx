@@ -10,6 +10,8 @@ type OpenLink = (url: string) => void;
 const openSystem: OpenLink = (url) => { void openExternal(url).catch(() => undefined); };
 const MessageLinkContext = createContext<OpenLink>(openSystem);
 export const MessageLinkProvider = MessageLinkContext.Provider;
+/** The link opener of the surrounding transcript (markdown links use it too). */
+export const useOpenMessageLink = () => useContext(MessageLinkContext);
 
 /**
  * The workbench's link opener: the built-in browser when 设置 → 浏览器 says

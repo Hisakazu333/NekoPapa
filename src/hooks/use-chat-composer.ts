@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { addComposerFiles, buildComposerText, composerDraftBlockReason, createComposerDraft, type ComposerContext, type ComposerDraft, type ComposerMode } from "@/app/chat/chat-composer-draft";
+import { addComposerFiles, buildComposerText, composerDraftBlockReason, composerModesForContext, createComposerDraft, type ComposerContext, type ComposerDraft } from "@/app/chat/chat-composer-draft";
 import { composerModelBlockReason, composerModels, type ComposerModelOption, type ComposerRuntimeModel } from "@/app/models/composer-model";
 import { addPageElement, type PageElement } from "@/app/browser/browser-pick";
 import { chatModelProfile } from "@/app/models/chat-model-profile";
@@ -12,12 +12,17 @@ interface DraftState { draft: ComposerDraft; selectedModel?: ComposerModelOption
 export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, context: ComposerContext = "custom") {
   const { data } = useConfiguration();
   const [states, setStates] = useState<Record<string, DraftState>>({});
-  // New drafts start in General → 新建对话 → 默认模式; drafts already open keep their mode.
-  const defaultMode = data.groups.general.defaultMode as ComposerMode;
-  const fresh = () => ({ draft: createComposerDraft(context, defaultMode) });
-  const state = states[scope] ?? fresh();
+  // New drafts take 设置 → 权限规则 → 权限模式; drafts already open keep their own choice.
+  const fresh = () => ({ draft: createComposerDraft(context, data.groups.permissions.mode) });
+  // The home composer keeps one draft while a contact is picked and cleared; a
+  // mode the current context does not offer (study after leaving a contact)
+  // reads as that context's first mode, so the workbench is always 自动.
+  const modes = composerModesForContext(context);
+  const fit = (previous: DraftState): DraftState => modes.some((mode) => mode.id === previous.draft.mode)
+    ? previous : { ...previous, draft: { ...previous.draft, mode: modes[0].id } };
+  const state = fit(states[scope] ?? fresh());
   const update = (change: (previous: DraftState) => DraftState) => {
-    setStates((all) => ({ ...all, [scope]: change(all[scope] ?? fresh()) }));
+    setStates((all) => ({ ...all, [scope]: change(fit(all[scope] ?? fresh())) }));
   };
   const models = composerModels(data.collections.models, runtime);
   // Without a runtime provider, the first usable saved profile answers until another is picked.

@@ -31,3 +31,20 @@ export function splitMessageBlocks(text: string): MessageBlock[] {
   flush();
   return blocks;
 }
+
+const DISPLAY_MATH = /(^|[^\\])\\\[([\s\S]+?)\\\]/g;
+const DISPLAY_LINE = /^[ \t]*\$\$(?!\s*$)(.+?)\$\$[ \t]*$/gm;
+const INLINE_MATH =/(^|[^\\])\\\(([\s\S]+?)\\\)/g;
+
+/**
+ * Models often write LaTeX as \( … \) and \[ … \]; the Markdown math syntax
+ * is $ … $ and $$ … $$. Converts the former outside inline code so both
+ * render. An escaped "\\(" stays as written.
+ */
+export function normalizeMathDelimiters(text: string): string {
+  return text.split(/(`+[^`\n]*`+)/).map((part, index) => index % 2 === 1 ? part : part
+    // A line that is only $$ … $$ is display math, not inline.
+    .replace(DISPLAY_LINE, (_, body: string) => `$$\n${body.trim()}\n$$`)
+    .replace(DISPLAY_MATH, (_, before: string, body: string) => `${before}\n$$\n${body.trim()}\n$$\n`)
+    .replace(INLINE_MATH, (_, before: string, body: string) => `${before}$${body.trim()}$`)).join("");
+}

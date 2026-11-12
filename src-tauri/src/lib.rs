@@ -1,4 +1,5 @@
 mod account_auth;
+mod app_data;
 mod browser_view;
 mod editor_open;
 mod external_link;
@@ -29,6 +30,12 @@ pub fn run() {
             account_auth::device::account_device_poll,
             account_auth::account_cancel,
             account_auth::account_logout,
+            // NekoPapa's own folder: chat history files, cache, 设置 → 数据.
+            app_data::app_data_read,
+            app_data::app_data_write,
+            app_data::app_data_info,
+            app_data::app_data_clear_cache,
+            app_data::app_data_open,
             project_folder::inspect_project_folder,
             local_models::probe_local_models,
             // Read-only project views for the files and changes panels.

@@ -8,6 +8,7 @@ import {
 } from "ai";
 import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
 import { groupSystemPrompt, resolveGroupContext, type GroupContext } from "./group-context";
+import { REPLY_FORMAT_PROMPT } from "./reply-format-prompt";
 import type { ChatContactMetadata } from "../../../components/application/agent-chat/chat-contact";
 import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-companion-service";
 import { chatReplyMetadata } from "../../usage/chat-usage";
@@ -31,6 +32,7 @@ function systemPrompt(provider: Provider, contact?: ChatContactMetadata, group?:
     contactSystemPrompt(contact),
     groupSystemPrompt(group, contact),
     `This conversation is answered by ${provider.label} using ${provider.modelId}.`,
+    REPLY_FORMAT_PROMPT,
   ].filter(Boolean).join("\n");
 }
 

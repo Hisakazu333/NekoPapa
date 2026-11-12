@@ -10,6 +10,8 @@ import { cx } from "@/utils/cx";
 import { SettingsCard, SettingsRow, SettingsSectionLabel } from "./settings-rows";
 import { readLocalStorageUsage, StorageOverview } from "./settings-storage-overview";
 import { useSettingsDraft } from "./settings-draft-context";
+import { DataFolderSection, useDataFolder } from "./settings-data-folder";
+import { storageBreakdown } from "@/app/settings/storage-breakdown";
 
 type Feedback = { text: string; error?: boolean };
 const modeLabels: Record<string, string> = { system: "跟随系统", light: "浅色", dark: "深色" };
@@ -38,7 +40,11 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
   const [feedback, setFeedback] = useState<Feedback>();
   useSettingsDraft("data", Boolean(preview || reading));
   // Re-measure whenever this window's settings change (save, import, retry).
-  const usage = useMemo(() => readLocalStorageUsage(), [data, storageAvailable]);
+  const folder = useDataFolder();
+  const [measured, setMeasured] = useState(0);
+  const usage = useMemo(() => readLocalStorageUsage(), [data, storageAvailable, measured, folder.info]);
+  const breakdown = useMemo(() => storageBreakdown(usage, folder.info), [usage, folder.info]);
+  const remeasure = () => { setMeasured((count) => count + 1); void folder.refresh(); };
 
   useEffect(() => () => { selection.current++; }, []);
 
@@ -116,7 +122,8 @@ export function DataSettingsPanel({ onClose }: { onClose: () => void }) {
     <>
       <ModalBody>
         <div className="flex flex-col gap-6">
-          <StorageOverview usage={usage} />
+          <StorageOverview usage={usage} breakdown={breakdown} loading={folder.loading} onRefresh={remeasure} chatsInDataFolder={folder.available} />
+          <DataFolderSection folder={folder} />
 
           <section className="flex flex-col gap-2" aria-labelledby="settings-backup-heading">
             <div className="flex flex-col gap-0.5">

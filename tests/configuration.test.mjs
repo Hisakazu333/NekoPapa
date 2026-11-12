@@ -33,10 +33,16 @@ test("每类配置均可完整校验，新增字段在旧版本 1 数据中使�
   assert.equal(Object.keys(old.value.groups).length, 19);
   // Backups written before the General, privacy and development pages existed load their defaults.
   assert.equal(old.value.groups.general.sendKey, "enter");
-  assert.equal(old.value.groups.general.defaultMode, "auto");
   assert.equal(old.value.groups.general.projectFolder, "inherit");
   const generalFields = configurationSchemas.find((schema) => schema.id === "general").blocks.flatMap((block) => block.fields);
-  assert.equal(validateFields(generalFields, { ...configurationDefaults().groups.general, defaultMode: "professional" }).ok, false);
+  assert.equal(validateFields(generalFields, { ...configurationDefaults().groups.general, defaultMode: "auto" }).ok, false);
+  // 默认模式 was retired: saved values are dropped on read, an invalid one still rejects the data.
+  const retired = validateConfiguration({ version: 1, groups: { general: { defaultMode: "agent", sendKey: "mod-enter" } }, collections: {} });
+  assert.equal(retired.ok, true);
+  assert.equal(retired.value.groups.general.sendKey, "mod-enter");
+  assert.equal(Object.hasOwn(retired.value.groups.general, "defaultMode"), false);
+  assert.equal(validateConfiguration({ version: 1, groups: { general: { defaultMode: "bogus" } }, collections: {} }).ok, false);
+  assert.equal(validateConfiguration({ version: 1, groups: { permissions: { mode: "full" } }, collections: {} }).value.groups.permissions.mode, "full");
   assert.equal(old.value.groups.privacy.usageStats, false);
   assert.equal(old.value.groups.permissions.mode, "ask");
   assert.equal(old.value.groups.permissions.deny, "rm -rf");

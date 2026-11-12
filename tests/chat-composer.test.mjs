@@ -26,7 +26,7 @@ const file = (name, size = 10, modified = 100, path = "") => ({ name, size, last
 test("each chat starts with separate draft state and explicit asking policy", () => {
   const first = draft.createComposerDraft();
   first.attachments.push(file("one"));
-  first.permission = "auto";
+  first.permission = "full";
   const second = draft.createComposerDraft();
   assert.equal(second.permission, "ask");
   assert.equal(second.mode, "chat");
@@ -34,7 +34,7 @@ test("each chat starts with separate draft state and explicit asking policy", ()
   assert.equal(draft.composerDraftBlockReason(second), undefined);
 });
 
-test("workbench defaults to Auto while contact draft defaults remain chat and state is isolated", () => {
+test("workbench defaults to automatic routing while contact draft defaults remain chat and state is isolated", () => {
   const workspace = draft.createComposerDraft("workspace");
   const custom = draft.createComposerDraft("custom");
   const official = draft.createComposerDraft("official");
@@ -43,8 +43,8 @@ test("workbench defaults to Auto while contact draft defaults remain chat and st
   assert.equal(official.mode, "chat");
   assert.equal(draft.createComposerDraft().mode, "chat");
   workspace.attachments.push(file("only-workbench.txt"));
-  workspace.permission = "auto";
-  workspace.mode = "agent";
+  workspace.permission = "full";
+  workspace.mode = "study";
   for (const contactDraft of [custom, official]) {
     assert.equal(contactDraft.mode, "chat");
     assert.equal(contactDraft.permission, "ask");
@@ -54,23 +54,14 @@ test("workbench defaults to Auto while contact draft defaults remain chat and st
   assert.equal(freshWorkspace.mode, "auto");
   assert.equal(freshWorkspace.permission, "ask");
   assert.deepEqual(freshWorkspace.attachments, []);
-  assert.equal(freshWorkspace.projectDirectory, "");
 });
 
-test("project directory selection keeps only a browser-safe folder label and clears outside Agent mode", () => {
-  assert.equal(draft.projectDirectoryFromFiles([file("index.ts", 1, 1, "neko-app/src/index.ts")]), "neko-app");
-  assert.equal(draft.projectDirectoryFromFiles([file("index.ts")]), "");
-  const selected = { ...draft.createComposerDraft("workspace"), projectDirectory: "neko-app" };
-  assert.match(draft.buildComposerText("检查项目", selected), /项目目录：neko-app/);
-  assert.equal(draft.selectComposerProjectDirectory(selected, []), selected, "cancel keeps the previous directory");
-  assert.equal(draft.selectComposerProjectDirectory(selected, [file("index.ts")]), selected, "a file without a folder path keeps the previous directory");
-  const replaced = draft.selectComposerProjectDirectory(selected, [file("other.ts", 1, 1, "other-app/src/other.ts")]);
-  assert.equal(replaced.projectDirectory, "other-app");
-  assert.equal(draft.clearComposerProjectDirectory(replaced).projectDirectory, "");
-  const chat = draft.selectComposerMode(selected, "chat");
-  assert.equal(chat.projectDirectory, "");
-  const agent = draft.selectComposerMode(chat, "agent");
-  assert.equal(agent.projectDirectory, "");
+test("new drafts take the permission mode from 设置 → 权限规则; unknown or retired values fall back to asking", () => {
+  assert.deepEqual(draft.composerPermissions.map((entry) => entry.id), ["ask", "acceptEdits", "plan", "full"]);
+  assert.equal(draft.createComposerDraft("workspace", "plan").permission, "plan");
+  assert.equal(draft.createComposerDraft("workspace", "full").permission, "full");
+  for (const retired of ["read", "auto", undefined, "constructor"]) assert.equal(draft.createComposerDraft("workspace", retired).permission, "ask");
+  assert.equal(draft.selectComposerMode(draft.createComposerDraft("custom"), "study").mode, "study");
 });
 
 test("file selection retains actual file and stable existing identities, without upload or data URLs", () => {
@@ -128,14 +119,10 @@ test("official contacts only expose chat and study; selecting study cannot fall 
   assert.equal(draft.composerDraftBlockReason(state), undefined);
 });
 
-test("workbench uses one Agent mode for general tasks and Coding while contacts keep their allowed modes", () => {
-  assert.deepEqual(draft.modesForWorkspace().map((entry) => entry.id), ["auto", "chat", "study", "agent"]);
-  const autoMode = draft.modesForWorkspace().find((entry) => entry.id === "auto");
-  assert.equal(autoMode.label, "Auto");
-  assert.equal(autoMode.description, "学习与 Agent 接入前按聊天回复");
-  const agentMode = draft.modesForWorkspace().find((entry) => entry.id === "agent");
-  assert.equal(agentMode.label, "Agent");
-  assert.equal(agentMode.description, "处理通用任务与编程项目");
+test("the workbench only routes automatically while contacts keep their allowed modes", () => {
+  assert.deepEqual(draft.modesForWorkspace().map((entry) => entry.id), ["auto"]);
+  assert.match(draft.modesForWorkspace()[0].description, /接入前按聊天回复/);
+  assert.equal(draft.composerDraftBlockReason(draft.createComposerDraft("workspace")), undefined);
   assert.equal(draft.composerModesForContext("workspace"), draft.modesForWorkspace());
   assert.equal(draft.composerModesForContext("custom"), draft.modesForContact(false));
   assert.equal(draft.composerModesForContext("official"), draft.modesForContact(true));
@@ -144,8 +131,8 @@ test("workbench uses one Agent mode for general tasks and Coding while contacts 
 
 test("unconnected execution modes block ordinary chat without modifying message intent or selected files", () => {
   const selected = draft.addComposerFiles([], [file("project.ts")]).attachments;
-  const state = { ...draft.createComposerDraft(), attachments: selected, goal: "修复项目", planning: true, permission: "read" };
-  for (const [mode, service] of [["auto", /附件发送尚未接入/], ["study", /学习服务接入/], ["agent", /通用任务与 Coding 执行服务接入/]]) {
+  const state = { ...draft.createComposerDraft(), attachments: selected, goal: "修复项目", planning: true, permission: "plan" };
+  for (const [mode, service] of [["auto", /附件发送尚未接入/], ["study", /学习服务接入/]]) {
     state.mode = mode;
     const before = structuredClone({ ...state, attachments: state.attachments.map(({ file, ...metadata }) => metadata) });
     assert.match(draft.composerDraftBlockReason(state), service);
@@ -165,18 +152,18 @@ test("automatic task routing and automatic tool permission remain independent ch
   const state = draft.createComposerDraft();
   assert.equal(state.mode, "chat");
   assert.equal(state.permission, "ask");
-  state.permission = "auto";
+  state.permission = "full";
   assert.equal(state.mode, "chat");
   assert.equal(draft.composerDraftBlockReason(state), undefined);
   // Until study and Agent exist, Auto answers as chat, so it sends like chat does.
   state.mode = "auto";
-  assert.equal(state.permission, "auto");
+  assert.equal(state.permission, "full");
   assert.equal(draft.composerDraftBlockReason(state), undefined);
-  state.permission = "read";
+  state.permission = "plan";
   assert.equal(state.mode, "auto");
   assert.equal(draft.composerDraftBlockReason(state), undefined);
   state.mode = "chat";
-  assert.equal(state.permission, "read");
+  assert.equal(state.permission, "plan");
   assert.equal(draft.composerDraftBlockReason(state), undefined);
 });
 

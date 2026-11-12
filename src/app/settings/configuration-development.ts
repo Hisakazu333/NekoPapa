@@ -1,4 +1,5 @@
 import type { ConfigurationSchema, ConfigurationField as Field } from "./configuration-types";
+import { DEFAULT_PERMISSION_MODE, PERMISSION_MODES } from "./permission-modes";
 
 const select = (key: string, label: string, initial: string, options: Field["options"], hint = "", control: Field["control"] = "select"): Field => ({ key, label, hint, initial, options, type: "select", control });
 const toggle = (key: string, label: string, hint: string, initial = false): Field => ({ key, label, hint, initial, type: "boolean", control: "switch" });
@@ -9,8 +10,9 @@ const number = (key: string, label: string, hint: string, initial: number, min: 
 export const developmentConfiguration: readonly ConfigurationSchema[] = [
   { id: "permissions", effect: "runtime", scope: "Coding 权限规则 · 执行器尚未接入；规则只作为默认值保存，不会授予或撤销任何权限。", blocks: [
     { title: "默认模式", fields: [
-      { ...select("mode", "权限模式", "ask", [["ask", "每次询问"], ["acceptEdits", "自动接受编辑"], ["plan", "仅计划"]]),
-        optionHints: { ask: "读取以外的操作都先询问。", acceptEdits: "工作目录内的文件修改直接应用，命令仍然询问。", plan: "只分析和提出计划，不修改文件或运行命令。" } },
+      // The same modes as the composer's 权限 menu; this is the default for new chats.
+      { ...select("mode", "权限模式", DEFAULT_PERMISSION_MODE, PERMISSION_MODES.map((mode) => [mode.id, mode.label] as const), "新对话的默认值，可在输入框的权限菜单中按对话调整。"),
+        optionHints: Object.fromEntries(PERMISSION_MODES.map((mode) => [mode.id, mode.description])) },
       toggle("sandbox", "在沙箱中运行命令", "限制命令只能访问工作目录和允许的网络。", true),
     ] },
     { title: "命令规则", fields: [

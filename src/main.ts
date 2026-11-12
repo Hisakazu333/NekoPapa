@@ -8,9 +8,13 @@ import { WorkspaceSettingsProvider } from "@/components/application/settings/wor
 import { AccountPageProvider } from "@/components/application/account/account-page-provider";
 import { ApplicationLanguageProvider } from "@/components/application/language/application-language";
 import { Toaster } from "@/components/base/toast/toast";
+import { prepareAppData } from "./platform/app-data-bridge";
 
 const root = document.getElementById("app");
 if (!root) throw new Error("Application root is missing");
+
+// Desktop: chat history is read from the data folder before anything renders.
+await prepareAppData();
 
 const renderer = createRoot(root);
 renderer.render(createElement(AccountPageProvider, null,

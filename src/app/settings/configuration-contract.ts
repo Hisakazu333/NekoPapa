@@ -117,6 +117,12 @@ export function validateConfiguration(input: unknown): ValidationResult<Configur
       const { language: _legacyLanguage, ...appearance } = groupValues;
       groupValues = appearance;
     }
+    // 新建对话 → 默认模式 was retired when the workbench went to automatic routing (2026-11-12).
+    if (schema.id === "general" && object(groupValues) && Object.hasOwn(groupValues, "defaultMode")) {
+      if (!["auto", "chat", "study", "agent"].includes(String(groupValues.defaultMode))) return { ok: false, errors: { file: "general：默认模式值无效。" } };
+      const { defaultMode: _retiredMode, ...general } = groupValues;
+      groupValues = general;
+    }
     const result = validateFields(fields, groupValues);
     if (!result.ok) return { ok: false, errors: { file: `${schema.id}：${Object.values(result.errors)[0]}` } };
     next.groups[schema.id] = result.value;
