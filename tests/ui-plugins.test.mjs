@@ -54,7 +54,7 @@ test("slots: later stages warn and are not applied, unknown slots and unsupporte
   assert.match(later.warnings.join(), /sidebar\.destination.*暂不支持/);
   assert.match(errors(manifest({ contributes: { "sidebar.everything": [] } })), /未知扩展位/);
   assert.match(errors(manifest({ contributes: { constructor: [] } })), /未知扩展位/);
-  assert.match(errors(manifest({ contributes: { "workPanel.view": [{ id: "x", title: "X", content: { kind: "frame", src: "index.html" } }] } })), /沙箱视图/);
+  assert.match(errors(manifest({ contributes: { "workPanel.view": [{ id: "x", title: "X", content: { kind: "frame", src: "index.html" } }] } })), /content\.entry/);
   assert.match(errors(manifest({ contributes: { "settings.section": [] } })), /没有当前可用的贡献/);
 });
 

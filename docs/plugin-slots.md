@@ -1,6 +1,6 @@
 # 插件扩展位设计方案
 
-更新日期：2026-11-12。阶段 1（注册表与用户布局）和阶段 2 的核心流程（本地清单、`workPanel.view` 的 `status` 视图、`command.palette` 命令）已实现，见文末“实际落地”；其余扩展位、权限与沙箱仍是设计草案，实现时以届时源码和本文修订为准。Agent 运行时与 Coding 执行层仍未接入，本文不改变这一事实。
+更新日期：2026-11-13。阶段 1（注册表与用户布局）、阶段 2 的核心流程（本地清单、`workPanel.view` 的 `status` 视图、`command.palette` 命令、插件设置页）和阶段 3 的沙箱视图（`workPanel.view` 的 `frame` 内容与桥接）已实现，见各阶段的“实际落地”；其余扩展位、权限与沙箱仍是设计草案，实现时以届时源码和本文修订为准。Agent 运行时与 Coding 执行层仍未接入，本文不改变这一事实。
 
 依据的当前事实见 [导航职责](navigation-map.md)、[设置分类与接入清单](settings-map.md)、[当前设计系统](design-system.md) 与 [Agent 产品研究](research/agent-products.md)；迭代约束见 [AGENTS.md](../AGENTS.md)。
 
@@ -179,7 +179,7 @@ interface SlotRegistry {
 
 - **插件不碰 `invoke`。** 所有原生能力经宿主桥接，桥接按清单权限逐次检查；插件拿到的是结果，不是 Tauri 句柄。
 - **清单读取。** 阶段 2 新增只读命令（拟定名 `plugin_manifest_read`）：从用户选择的文件夹读取并校验 `nekopapa-plugin.json`，返回规范化清单；不执行文件夹中的任何代码。文件夹选择沿用现有 `dialog:allow-open`。浏览器预览没有该能力，设置页显示“需要桌面应用”。
-- **自定义界面需要沙箱。** 当前 CSP（`script-src 'self'`，无 `frame-src`）不允许加载插件脚本，这是有意的。阶段 3 若开放 `frame` 内容，方案是：Rust 注册专用协议（如 `nekopapa-plugin://<插件 ID>/`）只提供该插件文件夹内的静态文件并附带独立 CSP；主窗口 CSP 仅为该协议增加 `frame-src`；iframe 使用 `sandbox="allow-scripts"`（不含 `allow-same-origin`）；与宿主只通过 `postMessage` 桥接，消息按权限校验。主题 token 由宿主以 CSS 变量注入，插件页面不复制颜色值。该阶段需同时通过 `cargo check`、`cargo test` 与 `npm run desktop:build -- --debug`。
+- **自定义界面需要沙箱。** 主窗口 CSP 仍是 `script-src 'self'`，不加载插件脚本；2026-11-13 起只为插件协议增加 `frame-src`（实际落地见阶段 3）。原方案：Rust 注册专用协议（如 `nekopapa-plugin://<插件 ID>/`）只提供该插件文件夹内的静态文件并附带独立 CSP；主窗口 CSP 仅为该协议增加 `frame-src`；iframe 使用 `sandbox="allow-scripts"`（不含 `allow-same-origin`）；与宿主只通过 `postMessage` 桥接，消息按权限校验。主题 token 由宿主以 CSS 变量注入，插件页面不复制颜色值。该阶段需同时通过 `cargo check`、`cargo test` 与 `npm run desktop:build -- --debug`。
 - **不新增窗口。** 插件视图只出现在主窗口的扩展位中；多窗口、原生快捷键和拖动区域不对插件开放。
 
 ## 与现有设置记录的关系
@@ -241,6 +241,24 @@ interface SlotRegistry {
 - 验证追加 Rust 单元测试、`cargo check`、桌面调试构建中的真实文件夹选择；浏览器预览显示“需要桌面应用”。
 
 ### 阶段 3：沙箱视图与更多扩展位
+
+**沙箱视图实际落地（2026-11-13）。**
+
+- 清单：`workPanel.view` 的 `content` 可写 `{ "kind": "frame", "entry": "ui/index.html" }`。`entry` 是插件文件夹内的 .html 相对路径，每段只用字母、数字、`.`、`_`、`-`，不能以 `.` 开头，最多 12 层（`src/app/plugins/plugin-frame-paths.ts`）。`list` 仍未开放；确认卡写明会在沙箱中运行插件自己的页面。
+- 宿主：Rust 注册 `nekopapa-plugin` 协议（`src-tauri/src/plugin_frame.rs`）。macOS / Linux 为 `nekopapa-plugin://localhost/<插件 ID>/<路径>`，Windows 为 `http://nekopapa-plugin.localhost/…`。前端在显示视图前调用 `plugin_frame_allow`，宿主重新读取该文件夹的清单并核对 id 后才提供文件；插件停用或移除时调用 `plugin_frame_revoke`。只提供已知类型（html、js、css、json、图片、字体等，不含 wasm）、不超过 8 MB、不含隐藏路径段、不经符号链接跳出文件夹的文件。每个响应带独立 CSP：只允许本插件目录与 `/__sdk/` 的脚本、样式、图片和字体，`connect-src` / `frame-src` / `worker-src` / `object-src` / `form-action` / `base-uri` 全为 `'none'`，不允许内联脚本。主窗口 CSP 只增加 `frame-src nekopapa-plugin: http://nekopapa-plugin.localhost`。浏览器预览由 `scripts/plugin-frame-api.ts` 镜像（`/api/plugins/frame-allow`、`/plugin-frame/<id>/…`、`/__sdk/plugin-bridge.js`）。
+- 隔离：iframe 只有 `sandbox="allow-scripts"`（来源不透明，读不到主窗口、存储与 Cookie，不能弹窗、提交表单或导航顶层），`allow=""`，`referrerPolicy="no-referrer"`。已核对 Tauri 2.12 源码：Tauri 自己的初始化脚本（含 IPC 必需的随机 invoke key）只注入主框架，所以插件页面即使经 WebKit 消息通道发出 IPC 也会被拒绝。注意：Tauri 把已注册的自定义协议视为“本地来源”，安全性依赖 invoke key 不进入 iframe，宿主不得把它或任何 Tauri 句柄传给插件。
+- 桥接（`src/app/plugins/plugin-bridge.ts`；页面侧 SDK 为 `src-tauri/src/plugin_bridge_sdk.js`，由协议在 `/__sdk/plugin-bridge.js` 提供，页面用 `<script src="/__sdk/plugin-bridge.js">` 引入后使用 `window.nekopapa`）：
+  - 每次页面加载，宿主建立一个新的 MessageChannel，把一个端口连同上下文（插件 ID、视图 ID、已授予权限）和主题交给 iframe；之后所有消息只走这个端口。
+  - 已开放的方法：`context.get`、`settings.get`（只返回本插件设置的生效值）、`link.open`（需已授予 `link.open`，只接受 https，不能带用户名密码）、`ui.notify`（最多 200 字，两秒一条）。
+  - `chat.read`、`chat.draft`、`project.read` 回答 `not_available`，未知方法回答 `unknown_method`。
+  - 主题以 `--np-*` 变量注入（背景、文字、边框、分隔线、焦点环、图标和字体，取自语义 token），切换深浅色时推送。
+- 视图在前置条件不满足时只显示原因、不加载页面；宿主拒绝提供文件夹时显示“无法打开插件页面”和原因。
+- 验证：
+  - `cargo test` 新增 5 项：只提供已允许插件的文件、核对清单归属、拒绝路径穿越 / 隐藏文件 / 未知类型 / 外链、提供 SDK、路径拆分。
+  - `tests/ui-plugin-frames.test.mjs` 8 项：清单入口规则、贡献与存储、路径与 CSP、桥接权限 / 限流 / 未开放方法、主题变量。
+  - 浏览器预览：用临时测试插件走通“读取清单 → 确认卡 → 启用 → ⋯ 打开视图”，宿主返回正确的 CSP。内置浏览器面板会拦截一切来源不透明的 iframe（`ERR_BLOCKED_BY_CLIENT`，普通 `/chat.html` 加沙箱同样被拦），所以视图本身在该面板里显示为空白。另用一个仅供诊断、带 `allow-same-origin` 的临时 iframe 验证了：内联脚本与联网被 CSP 拦截，SDK 握手、主题变量与切换、权限拒绝、未开放方法、通知均正常。测试插件与记录验证后已移除。
+  - 桌面宿主中的实际显示与隔离尚未点测。
+
 
 - 专用协议 + iframe 沙箱 + `postMessage` 桥接，开放 `frame` / `list` 内容与 `chat.read`、`chat.draft`、`project.read` 权限。
 - 开放 `sidebar.destination`（插件页面作为工作区页，可固定）、`titlebar.action`（默认收进插件弹层）、`composer.add`（只改草稿）。

@@ -52,14 +52,14 @@ export function PluginReviewCard({ folder, check, replaces, onEnable, onCancel }
       <p className="text-body-2-medium text-text-primary">会添加</p>
       <ul className={LIST}>
         {manifest.views.map((view) => { const Icon = pluginIcon(view.icon); return <li key={view.id} className="flex items-center gap-2">
-          <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />工作面板标签“{view.title}”</li>; })}
+          <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />右侧面板视图“{view.title}”{view.content.kind === "frame" ? `（在沙箱中运行插件自己的页面 ${view.content.entry}，不能联网，也不能访问应用和本机文件）` : ""}</li>; })}
         {manifest.commands.map((command) => <li key={command.id} className="flex items-center gap-2">
           <span className="size-4 shrink-0" aria-hidden />命令面板“{command.title}”{"openUrl" in command.action ? `（打开 ${new URL(command.action.openUrl.replace(/\{[^{}]*\}/g, "x")).host}）` : ""}</li>)}
         {manifest.settings.map((section) => { const Icon = pluginIcon(section.icon); return <li key={section.id} className="flex items-center gap-2">
           <Icon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />设置页“{section.title}”（{section.fields.length} 项，值只保存在这台设备上）</li>; })}
       </ul>
       {warnings.length > 0 && <ul className={`${LIST} list-disc ps-5 text-text-tertiary`}>{warnings.map((warning) => <li key={warning}>{warning}</li>)}</ul>}
-      <p className="text-caption-1-regular text-text-tertiary">NekoPapa 只读取这个文件夹里的 nekopapa-plugin.json，用自己的界面显示上面的内容，不运行插件里的任何代码。{replaces ? `启用后会替换已添加的“${replaces}”。` : ""}</p>
+      <p className="text-caption-1-regular text-text-tertiary">NekoPapa 读取这个文件夹里的 nekopapa-plugin.json，命令与设置页用自己的界面显示；插件自己的页面只在沙箱视图里运行，碰不到应用和本机文件。{replaces ? `启用后会替换已添加的“${replaces}”。` : ""}</p>
     </div>
     <div className="flex justify-end gap-2">
       <Button variant="secondary" size="small" onClick={onCancel}>取消</Button>

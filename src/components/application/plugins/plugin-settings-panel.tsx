@@ -72,7 +72,7 @@ export function UiPluginSettingsPage({ pageId, onClose, onManage }: { pageId: Pl
         <SettingsCard>
           <SettingsFields fields={fields} values={values} errors={errors} onChange={change} prefix={`plugin-settings-${page.id.replace(/[^a-z0-9-]/g, "-")}`} />
         </SettingsCard>
-        <p className="px-3 text-body-2-regular text-text-tertiary">改动立即保存，只保存在这台设备上。NekoPapa 不运行插件代码；这些值目前只用于填写插件命令打开的网址。移除插件时一并清除。</p>
+        <p className="px-3 text-body-2-regular text-text-tertiary">改动立即保存，只保存在这台设备上。这些值用于填写插件命令打开的网址，插件自己的页面也可以读取（只能读本插件的值）。移除插件时一并清除。</p>
       </div>
     </ModalBody>
     <ModalFooter>

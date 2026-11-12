@@ -43,6 +43,7 @@
 - **权限规则**：Coding 会话的权限模式（每次询问 / 自动接受编辑 / 仅计划 / 完全访问，作为新对话输入框权限菜单的默认值；桌面应用中归入项目的工作台对话按它决定工具调用是否需要审批）、沙箱、允许 / 需确认 / 禁止的命令、额外目录、受保护文件与网络域名；沙箱与命令 / 目录 / 文件 / 域名规则只保存，尚未执行。
 - **上下文与指令**：项目指令文件、额外指令、Git 状态、`.gitignore`、忽略文件与自动压缩阈值；不读取项目文件。
 - **技能**：管理 `kind = skill` 的扩展记录，只填写名称和包含 SKILL.md 的本地目录；保存不读取或执行目录。页面下方“在本机发现”在打开时扫描 `~/.claude/skills`（Claude Code）、`~/.codex/skills`（Codex）、`~/.agents/skills`（Agent Skills）中带 SKILL.md 的直接子文件夹，只读取 SKILL.md 开头 4 KB 的 `name` / `description`，列出名称、来源、说明与路径；由用户逐个“添加”或“全部添加”，添加后成为普通技能记录（路径以 `~/…` 保存），已保存的目录标“已添加”，可重新扫描。桌面版由 `src-tauri/src/skill_discovery.rs` 扫描，浏览器预览由开发服务器 `scripts/skill-discovery-api.ts` 镜像；其他页面显示不可读取本机文件夹。
+- **界面插件**：从本地文件夹读取 `nekopapa-plugin.json`，确认权限后启用；右侧视图可以是 NekoPapa 显示的说明，也可以是插件自己的网页（沙箱 iframe，不能联网，也碰不到应用和本机文件，经桥接按授权调用，见 [插件扩展位](plugin-slots.md)）。记录存于本机 `nekopapa.ui-plugins.v1`。
 - **Cordis 插件**：独立集合 `plugins`（与技能、MCP 分开），保存 DeepSeek Harness 插件的 Cordis 配置条目：名称、来源（本地模块的绝对路径 / npm 包名）、模块（Cordis `name`）、可选实例 ID（Cordis `id`，字母数字 `-` `_`）、“执行层接入后加载”开关（关闭写为 `disabled: true`）与原样保存的 YAML 配置（`config`）。列表下方“Cordis 补丁预览”由已保存条目生成 `- insert:` 补丁供复制（格式参照 dsh README，未经 dsh 校验；实例 ID 重复时提示），并提供 GitHub 搜索按钮。保存不安装、不导入、不运行插件，也不写入 `$DSH_HOME`。旧数据与旧备份没有该集合时按空列表读取。
 - **生命周期钩子**：搜索、增删改事件、命令与超时；保存不执行命令。
 - **编辑器与终端**：保存后立即生效：外部编辑器用于更改 / 文件面板的“在编辑器中打开”（桌面版，macOS `open -a`，JetBrains 依次尝试已安装的 IDE）；差异视图（统一 / 并排）、自动换行和显示空白字符作用于更改与文件预览；Shell（系统默认、zsh、bash、fish、PowerShell）与终端字号作用于终端面板，切换 Shell 后新开会话生效。命令超时属于 Agent 执行层，尚未使用。

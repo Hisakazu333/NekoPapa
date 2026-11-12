@@ -2,7 +2,7 @@ import { useMemo, useSyncExternalStore } from "react";
 import { toast } from "@/components/base/toast/toast";
 import { checkPluginManifest, type PluginManifest } from "@/app/plugins/plugin-manifest";
 import { pluginContributions, type PluginContributions } from "@/app/plugins/plugin-contributions";
-import { readPluginFolder } from "@/app/plugins/plugin-host";
+import { readPluginFolder, revokePluginFrame } from "@/app/plugins/plugin-host";
 import { WORK_PANEL_VIEWS, type WorkPanelViewContribution } from "@/app/plugins/slot-registry";
 import {
   addPlugin, readPluginRecords, refreshPlugin, removePlugin, setPluginEnabled, writePluginRecords,
@@ -25,6 +25,11 @@ let state: State | undefined;
 const listeners = new Set<() => void>();
 
 function set(records: PluginRecord[], refreshing = state?.refreshing ?? false) {
+  // A plugin turned off or removed stops being served to frames at once.
+  const enabled = new Set(records.filter((record) => record.enabled).map((record) => record.id));
+  for (const record of state?.records ?? []) {
+    if (record.enabled && !enabled.has(record.id) && record.manifest.views.some((view) => view.content.kind === "frame")) void revokePluginFrame(record.id).catch(() => undefined);
+  }
   state = { records, contributions: pluginContributions(records), refreshing };
   listeners.forEach((listener) => listener());
 }

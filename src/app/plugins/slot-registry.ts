@@ -8,6 +8,7 @@
  */
 
 import type { PluginIconName, PluginRequirement } from "./plugin-manifest";
+import type { PluginSettingField } from "./plugin-settings";
 
 export type SlotId = "workPanel.view" | "command.palette";
 
@@ -47,6 +48,8 @@ export interface WorkPanelViewContribution extends SlotContribution {
   plugin?: PluginSource;
   /** A plugin view's declared status text. */
   status?: string;
+  /** A plugin view's page, shown in a sandboxed frame; `folder` is the plugin folder. */
+  frame?: { entry: string; folder: string; granted: string[]; fields: PluginSettingField[] };
 }
 
 /** A command palette entry that opens a work panel view (hidden with that view). */

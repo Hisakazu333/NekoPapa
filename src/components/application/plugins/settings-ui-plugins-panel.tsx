@@ -75,7 +75,7 @@ export function UiPluginsSettingsPanel({ onClose }: { onClose: () => void }) {
   return <>
     <ModalBody>
       <div className="flex flex-col gap-5">
-        <p className="text-body-2-regular text-text-secondary">界面插件是一个带 nekopapa-plugin.json 的文件夹，声明它往工作面板、命令面板和设置添加的标签、命令与设置页。NekoPapa 用自己的界面显示这些内容，不运行插件代码；侧栏入口、沙箱视图等位置会在后续版本开放。</p>
+        <p className="text-body-2-regular text-text-secondary">界面插件是一个带 nekopapa-plugin.json 的文件夹，声明它往右侧面板、命令面板和设置添加的视图、命令与设置页。命令和设置页由 NekoPapa 自己显示；右侧视图可以是插件自己的网页，在沙箱里运行，不能联网，也不能访问应用、你的数据和本机文件，只能通过你授予的权限请求 NekoPapa 做事。侧栏入口等位置会在后续版本开放。</p>
         {pending
           ? <PluginReviewCard folder={pending.folder} check={pending.check} replaces={replaces} onEnable={enable} onCancel={close} />
           : <div ref={addRef} className="flex flex-col gap-2">

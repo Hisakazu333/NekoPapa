@@ -1,4 +1,4 @@
-import type { RefObject } from "react";
+import { useState, type RefObject } from "react";
 import type { UIMessage } from "ai";
 import { AgentMessage } from "@/components/application/agent-chat/agent-chat-message";
 import { AgentComposer } from "@/components/application/agent-chat/agent-composer";
@@ -12,6 +12,8 @@ import { messageReasoning, messageText } from "./thread-storage";
 import { ComposerStatusTab } from "./composer-status-tab";
 import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
+import { ConversationViewBar, type ConversationView } from "./trajectory/conversation-view-bar";
+import { TrajectoryView } from "./trajectory/trajectory-view";
 
 export interface ChatConversationProps {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -46,8 +48,9 @@ export interface ChatConversationProps {
 
 /**
  * The open chat's body: the home screen while it is empty, otherwise the
- * transcript with the composer pinned underneath. State stays with AgentChat;
- * this only lays it out.
+ * 对话 / 轨迹 views of the same chat with the composer pinned underneath.
+ * State stays with AgentChat; this only lays it out. The view resets to 对话
+ * when another chat opens.
  */
 export function ChatConversation({
   scrollRef, conversationId, active, messages, messageAt, busy, showThinking, error, historyError, onRetryHistory,
@@ -55,8 +58,18 @@ export function ChatConversation({
   contact, onSelectContact, onClearContact, project, onProjectChange, projectInfo, onOpenChanges, usage,
 }: ChatConversationProps) {
   const empty = messages.length === 0;
+  const [viewState, setViewState] = useState<{ id: string; view: ConversationView }>({ id: conversationId, view: "chat" });
+  const view = viewState.id === conversationId && !empty ? viewState.view : "chat";
+  const setView = (next: ConversationView) => setViewState({ id: conversationId, view: next });
+  const jumpTo = (messageId: string) => {
+    setView("chat");
+    // The transcript mounts again at the latest message; jump once that settled.
+    requestAnimationFrame(() => requestAnimationFrame(() =>
+      scrollRef.current?.querySelector(`[data-message-id="${CSS.escape(messageId)}"]`)?.scrollIntoView({ block: "start" })));
+  };
   return <>
-    <TranscriptViewport viewportRef={scrollRef} conversationId={conversationId} busy={busy} active={active} showLatest={!empty}>
+    {!empty && <ConversationViewBar view={view} onChange={setView} />}
+    {view === "trace" ? <TrajectoryView messages={messages} messageAt={messageAt} onJump={jumpTo} /> : <TranscriptViewport viewportRef={scrollRef} conversationId={conversationId} busy={busy} active={active} showLatest={!empty}>
       <div className={cx(
         "mx-auto flex w-full flex-col gap-5 pb-6 pt-6",
         empty ? "flex-1 max-w-[1000px] justify-center px-5 sm:px-10 lg:px-12" : "max-w-3xl px-4",
@@ -96,7 +109,7 @@ export function ChatConversation({
           </p>
         )}
       </div>
-    </TranscriptViewport>
+    </TranscriptViewport>}
 
     <div className="shrink-0 px-3 pb-3">
       <div className="mx-auto w-full max-w-3xl">

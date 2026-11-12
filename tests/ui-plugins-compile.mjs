@@ -24,6 +24,8 @@ export async function compilePluginModules() {
       records: await load("plugin-records"),
       contributions: await load("plugin-contributions"),
       settings: await load("plugin-settings"),
+      bridge: await load("plugin-bridge"),
+      paths: await load("plugin-frame-paths"),
     };
   } finally {
     rmSync(output, { recursive: true, force: true });

@@ -43,7 +43,8 @@ export function pluginContributions(records: readonly PluginRecord[]): PluginCon
     const fields = manifest.settings.flatMap((section) => section.fields);
     for (const view of manifest.views) {
       views.push({
-        id: view.id, view: view.id as PluginViewId, label: view.title, status: view.content.text,
+        id: view.id, view: view.id as PluginViewId, label: view.title,
+        ...(view.content.kind === "status" ? { status: view.content.text } : { frame: { entry: view.content.entry, folder: record.folder, granted: record.granted, fields } }),
         plugin: { pluginId: manifest.id, pluginName: manifest.name, ...(view.icon ? { icon: view.icon } : {}), requires: [...manifest.requires, ...view.requires] },
       });
     }

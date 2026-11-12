@@ -16,6 +16,7 @@ import { REPLY_FORMAT_PROMPT } from "./reply-format-prompt";
 import type { ChatContactMetadata } from "../../../components/application/agent-chat/chat-contact";
 import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-companion-service";
 import { chatReplyMetadata } from "../../usage/chat-usage";
+import { createTraceRecorder } from "../../agent/trace-recorder";
 import { readChatModelProfile } from "../../models/chat-model-profile";
 import { reasoningCallOptions, reasoningOption } from "../../models/reasoning-level";
 import { serviceVendor } from "../../models/model-vendors";
@@ -176,16 +177,18 @@ export function createChatHandlers(runtime: ChatRuntime) {
       abortSignal: req.signal,
     });
 
+    const trace = createTraceRecorder();
     return createUIMessageStreamResponse({
       stream: toUIMessageStream({
         stream: result.stream,
         // Reasoning models' thinking shows folded above the answer.
         sendReasoning: true,
         // Token counts the provider reported for this reply, saved with the
-        // chat history so the profile page can sum real usage.
+        // chat history so the profile page can sum real usage; and each
+        // step's and tool call's timing, for the 轨迹 view.
         messageMetadata: ({ part }) => part.type === "finish"
           ? chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label, contextWindow: profile?.contextWindow })
-          : undefined,
+          : trace(part),
       }),
     });
   }

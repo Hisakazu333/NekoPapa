@@ -10,6 +10,7 @@ mod external_link;
 mod local_models;
 mod credential_store;
 mod model_proxy;
+mod plugin_frame;
 mod plugin_manifest;
 mod project_folder;
 mod project_workspace;
@@ -26,6 +27,11 @@ pub fn run() {
         .manage(account_auth::AccountAuth::default())
         .manage(app_data::AppDataState::default())
         .manage(agent_command::AgentCommands::default())
+        // Interface plugins' frame views: static files of allowed plugin folders.
+        .manage(plugin_frame::PluginFrames::default())
+        .register_asynchronous_uri_scheme_protocol(plugin_frame::SCHEME, |ctx, request, responder| {
+            plugin_frame::handle(ctx.app_handle(), request, responder)
+        })
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
@@ -63,6 +69,9 @@ pub fn run() {
             skill_discovery::scan_skill_folders,
             // 设置 → 界面插件: reads one plugin's nekopapa-plugin.json, nothing else.
             plugin_manifest::plugin_manifest_read,
+            // Which plugin folders the nekopapa-plugin:// scheme may serve.
+            plugin_frame::plugin_frame_allow,
+            plugin_frame::plugin_frame_revoke,
             // Links that leave the app open in the system browser.
             external_link::open_external_url,
             terminal::terminal_open,

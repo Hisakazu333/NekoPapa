@@ -20,6 +20,11 @@
 - 每次写入前在 `<appData>/data/snapshots/` 保存原内容；改动卡的“撤销”只在文件仍是 Agent 写入后的内容时恢复，否则拒绝，避免覆盖他人的修改。命令在登录 shell 中运行，无输入，默认 120 秒、最多 600 秒超时，停止回复会结束其进程组，每路输出保留前 64 KB。
 - 这是第 2 阶段的第一步：独立 Node.js Agent 进程、子任务、终端面板接入与自动路由仍按下文计划实施；当前工具循环不代表这些已完成。
 
+### 界面插件沙箱视图（当前，2026-11-13）
+
+- 插件页面由 Rust 的 `nekopapa-plugin` 协议（`src-tauri/src/plugin_frame.rs`）只从前端允许过、清单 id 核对过的插件文件夹提供静态文件，每个响应带禁止联网、内联脚本、子框架和表单的 CSP；主窗口 CSP 只为该协议增加 `frame-src`。
+- 页面在 `sandbox="allow-scripts"` 的 iframe 中运行，没有 Tauri invoke key（Tauri 只向主框架注入），只能经宿主交给它的 MessagePort 调用 `src/app/plugins/plugin-bridge.ts` 校验过的方法。详见 [插件扩展位](plugin-slots.md) 阶段 3。
+
 联系人是产品中的人物与用户配置对象。自建联系人可配置专业提示词；官方人物提示词由 Java 管理，桌面只持有公开资料，不允许用户编辑，仅用于单人聊天与学习。选中聊天联系人不等于切换后端账号的常驻人物。当前官方聊天服务未接入，不能通过通用模型设置绕过限制，详见 [Java 人物服务](official-companion-service.md)。
 
 项目未建立 Session SQLite 或 Agent 运行进程；桌面工具已有独立窗口与 Tauri 应用数据目录，模型密钥由系统钥匙串管理。账号已按现有 Java API 准备无默认网络 transport 的客户端适配，生产连接未启用，本轮未发真实账号请求。下面的运行桥接仍是计划，不能把浏览器存储或 `WorkspaceStore` 当 Agent 运行时，也不把执行引擎 SDK 放进 WebView。

@@ -1,5 +1,6 @@
 import { CORE_PLUGIN, contributionId } from "./slot-registry";
 import { readSettingFields, templateKeys, urlTemplateProblem, type PluginSettingField } from "./plugin-settings";
+import { isFrameEntry } from "./plugin-frame-paths";
 
 /**
  * Interface plugin manifests (`nekopapa-plugin.json`, docs/plugin-slots.md).
@@ -50,13 +51,15 @@ const LATER_SLOTS: Record<string, string> = {
 };
 
 export interface PluginStatusContent { kind: "status"; text: string }
+/** A page from the plugin folder, shown in a sandboxed frame (docs/plugin-slots.md, stage 3). */
+export interface PluginFrameContent { kind: "frame"; entry: string }
 export interface PluginView {
   /** `<plugin id>/<local id>`, also the work panel view id. */
   id: string;
   localId: string;
   title: string;
   icon?: PluginIconName;
-  content: PluginStatusContent;
+  content: PluginStatusContent | PluginFrameContent;
   requires: PluginRequirement[];
 }
 /** A settings page in 设置 → 插件; its values stay on this device. */
@@ -239,10 +242,14 @@ function readView(entry: unknown, where: string, pluginId: string, fail: (messag
   const title = text(entry.title, LIMITS.title);
   if (!title) fail(`${where}.title 必填，最多 ${LIMITS.title} 个字符。`);
   const content = isObject(entry.content) ? entry.content : undefined;
-  let status: PluginStatusContent | undefined;
+  let status: PluginView["content"] | undefined;
   if (!content) fail(`${where}.content 必填。`);
-  else if (content.kind === "list" || content.kind === "frame") fail(`${where}.content.kind “${content.kind}” 需要沙箱视图，暂不支持；目前只支持 “status”。`);
-  else if (content.kind !== "status") fail(`${where}.content.kind 只能是 “status”。`);
+  else if (content.kind === "list") fail(`${where}.content.kind “list” 暂不支持；可用 “status” 或 “frame”。`);
+  else if (content.kind === "frame") {
+    const entry = typeof content.entry === "string" ? content.entry : "";
+    if (!isFrameEntry(entry)) fail(`${where}.content.entry 必须是插件文件夹内的 .html 相对路径（只用字母、数字、“.”“_”“-”，不能以“.”开头，最多 12 层）。`);
+    else status = { kind: "frame", entry };
+  } else if (content.kind !== "status") fail(`${where}.content.kind 只能是 “status” 或 “frame”。`);
   else {
     const body = text(content.text, LIMITS.text);
     if (!body) fail(`${where}.content.text 必填，最多 ${LIMITS.text} 个字符。`);
