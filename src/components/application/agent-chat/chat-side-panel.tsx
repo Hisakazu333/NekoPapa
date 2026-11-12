@@ -5,19 +5,15 @@ import { CHAT_TOOLS } from "@/app/chat/chat-tools";
 import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { StatusDot } from "@/components/base/badges/status-dot";
-import { PillTab, PillTabList } from "@/components/base/tabs/pill-tab";
 import { AgentChatHistory, type AgentChatHistoryProps } from "./agent-chat-history";
 import { ChatWorkEnvironment } from "./tools/chat-work-environment";
 import { ChatToolPanel } from "./tools/chat-tool-panel";
 import type { WorkPanelView } from "./use-browser-placement";
+import { WorkPanelTabs } from "./work-panel-tabs";
+import { useWorkPanelViews } from "@/hooks/use-ui-plugins";
+import { PluginViewPanel } from "@/components/application/plugins/plugin-view-panel";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
-const TABS = [
-  { id: "history", label: "历史" },
-  { id: "code", label: "代码" },
-  { id: "study", label: "资料" },
-  { id: "outline", label: "工具" },
-] as const;
 
 function Planned({ status, detail, items }: { status: string; detail: string; items: { icon: Icon; title: string; description: string }[] }) {
   return <div className="flex flex-col gap-3">
@@ -42,7 +38,8 @@ function Planned({ status, detail, items }: { status: string; detail: string; it
 
 /**
  * The right-hand work panel keeps the same navigation and close control
- * while switching between history, environment, study and project tools.
+ * while switching between history, environment, study and project tools;
+ * the tabs come from the extension registry in the user's layout.
  */
 export function ChatSidePanel({ project, onClose, view, onSelectView, usage, messages, messageAt, scrollRef, ...history }: Omit<AgentChatHistoryProps, "onClose" | "className"> & {
   project?: Project;
@@ -56,13 +53,10 @@ export function ChatSidePanel({ project, onClose, view, onSelectView, usage, mes
   scrollRef: RefObject<HTMLDivElement | null>;
 }) {
   const tool = CHAT_TOOLS.find((candidate) => candidate === view);
+  const pluginView = useWorkPanelViews().find((entry) => entry.plugin && entry.view === view);
   return <div className="flex h-full w-full flex-col gap-3 overflow-hidden rounded-3xl bg-background-secondary-default p-3">
     <div className="flex items-center justify-between gap-2">
-      <PillTabList aria-label="工作面板" className="flex gap-0.5">
-        {TABS.map(({ id, label }) => <PillTab key={id} variant="gray"
-          isSelected={id === "outline" ? tool !== undefined : view === id}
-          onSelect={() => onSelectView(id === "outline" ? tool ?? id : id)}>{label}</PillTab>)}
-      </PillTabList>
+      <WorkPanelTabs view={view} onSelectView={onSelectView} />
       <button type="button" onClick={onClose} aria-label="关闭辅助工作区" title="关闭辅助工作区"
         className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
         <XIcon className="size-5" aria-hidden />
@@ -71,6 +65,7 @@ export function ChatSidePanel({ project, onClose, view, onSelectView, usage, mes
     {view === "history" && <AgentChatHistory {...history} className="min-h-0 w-full flex-1 rounded-none bg-transparent p-0" />}
     {view === "code" && <ChatWorkEnvironment project={project} usage={usage} onOpenChanges={() => onSelectView("changes")} className="px-1" />}
     {tool && <ChatToolPanel tool={tool} project={project} messages={messages} messageAt={messageAt} scrollRef={scrollRef} onSwitch={onSelectView} />}
+    {pluginView && <PluginViewPanel entry={pluginView} />}
     {view === "study" && <div className="min-h-0 flex-1 overflow-y-auto">
       <Planned status="NekoBuddy 后端未连接" detail="学习与知识库由 NekoBuddy 后端提供。接入后，这里跟随当前对话显示相关资料与学习进度；当前不会上传或读取资料。" items={[
         { icon: BookOpenIcon, title: "引用资料", description: "回答引用的知识库原文，并标明出处。" },

@@ -1,7 +1,7 @@
 import type { ComponentType, SVGProps } from "react";
 import {
-  ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Bell, Book, BookOpen, BookUser, Bot, Brain, Camera, ChevronUp, GripHorizontal,
-  ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert,
+  ArrowDown, ArrowLeft, ArrowRight, ArrowUp, ArrowUpRight, Bell, Book, BookOpen, BookUser, Bot, Brain, Camera, ChevronUp, GripHorizontal,
+  ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff,
   CircleCheck, CircleHelp, CircleStop, Cloud, CloudUpload, Code, Compass, Contact, Copy, Cpu,
   Command, CornerDownLeft, Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
   FileArchive, FileAudio, FileCode, FileLock, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
@@ -63,6 +63,7 @@ export const StopFilledIcon = outline(Square, true);
 
 export const ArrowLeftIcon = outline(ArrowLeft);
 export const ArrowRightIcon = outline(ArrowRight);
+export const ArrowDownIcon = outline(ArrowDown);
 export const ArrowUpIcon = outline(ArrowUp);
 export const ArrowUpRightIcon = outline(ArrowUpRight);
 export const BellIcon = outline(Bell);
@@ -167,6 +168,8 @@ export const RectangleHorizontalIcon = outline(RectangleHorizontal);
 export const RefreshCwIcon = outline(RefreshCw);
 export const RotateCcwIcon = outline(RotateCcw);
 export const ZapIcon = outline(Zap);
+export const EyeIcon = outline(Eye);
+export const EyeOffIcon = outline(EyeOff);
 export const SearchIcon = outline(Search);
 export const SettingsIcon = outline(Settings);
 export const Settings2Icon = outline(Settings2);

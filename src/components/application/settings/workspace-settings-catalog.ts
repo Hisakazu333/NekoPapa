@@ -1,7 +1,10 @@
-import { BookOpenIcon, BotIcon, CameraIcon, ChartColumnIcon, CodeIcon, CpuIcon, DatabaseIcon, GitBranchIcon, GitMergeIcon, GlobeIcon, HistoryIcon, InfoIcon, KeyboardIcon, LayersIcon, MicIcon, MonitorIcon, PaletteIcon, PlugIcon, PuzzleIcon, Settings2Icon, ShieldCheckIcon, ShieldEllipsisIcon, ShieldUserIcon, SquareTerminalIcon, TerminalIcon, UserIcon, WandSparklesIcon, WebhookIcon, WrenchIcon } from "@/components/foundations/icons/app-icons";
+import { BookOpenIcon, BotIcon, CameraIcon, ChartColumnIcon, CodeIcon, CpuIcon, DatabaseIcon, GitBranchIcon, GitMergeIcon, GlobeIcon, HistoryIcon, InfoIcon, KeyboardIcon, LayersIcon, LayoutPanelLeftIcon, MicIcon, MonitorIcon, PaletteIcon, PlugIcon, PuzzleIcon, Settings2Icon, ShieldCheckIcon, ShieldEllipsisIcon, ShieldUserIcon, SquareTerminalIcon, TerminalIcon, UserIcon, WandSparklesIcon, WebhookIcon, WrenchIcon } from "@/components/foundations/icons/app-icons";
 import type { ConfigurationGroup } from "@/app/settings/configuration-types";
+import type { PluginSettingsPageId } from "@/app/plugins/slot-registry";
 
-export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "plugins" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage" | "screen-island";
+export type SettingsSection = ConfigurationGroup | "model" | "tools" | "skills" | "plugins" | "data" | "connections" | "hooks" | "shortcuts" | "about" | "usage" | "screen-island" | "layout" | "ui-plugins";
+/** A built-in section, or an enabled interface plugin's settings page (listed under 插件). */
+export type SettingsPage = SettingsSection | PluginSettingsPageId;
 
 interface SettingsSectionEntry {
   label: string;
@@ -15,6 +18,8 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   profile: { label: "个人资料", title: "个人资料", description: "你的身份、NekoPapa 账号和本机活跃记录。", icon: UserIcon },
   usage: { label: "消耗统计", title: "消耗统计", description: "本机记录的 Token 用量、活跃日与流向。", icon: ChartColumnIcon },
   appearance: { label: "外观", title: "外观偏好", description: "选择当前工作区的主题模式。", icon: PaletteIcon },
+  layout: { label: "界面布局", title: "界面布局", description: "工作面板标签的显示与顺序，只保存在这台设备上。", icon: LayoutPanelLeftIcon },
+  "ui-plugins": { label: "界面插件", title: "界面插件", description: "从文件夹添加插件，向工作面板、命令面板和设置添加标签、命令与设置页。", icon: PuzzleIcon },
   model: { label: "模型与 API", title: "模型与自定义 API", description: "管理本机模型连接配置。", icon: CpuIcon },
   agent: { label: "Agent", title: "Agent 默认值", description: "保存新运行的模型、回复和权限偏好。", icon: BotIcon },
   personalization: { label: "个性化", title: "个性化与记忆", description: "保存自定义指令与未来的记忆策略。", icon: WandSparklesIcon },
@@ -43,11 +48,15 @@ export const settingsSections: Record<SettingsSection, SettingsSectionEntry> = {
   about: { label: "关于", title: "关于 NekoPapa", description: "应用版本与项目支持。", icon: InfoIcon },
 };
 
+/** The group that also lists enabled interface plugins' settings pages. */
+export const PLUGIN_SETTINGS_GROUP = "插件";
+
 export const settingsGroups: readonly { label: string; sections: readonly SettingsSection[] }[] = [
-  { label: "工作区", sections: ["general", "profile", "usage", "appearance", "data", "privacy"] },
+  { label: "工作区", sections: ["general", "profile", "usage", "appearance", "layout", "data", "privacy"] },
   { label: "智能与工具", sections: ["model", "agent", "personalization", "voice", "tools", "screen-island", "desktop"] },
   { label: "桌面与设备", sections: ["computer", "history", "screenshots", "browser", "connections"] },
-  { label: "开发", sections: ["coding", "permissions", "context", "skills", "plugins", "hooks", "editor", "review", "git", "worktrees"] },
+  { label: PLUGIN_SETTINGS_GROUP, sections: ["ui-plugins", "plugins"] },
+  { label: "开发", sections: ["coding", "permissions", "context", "skills", "hooks", "editor", "review", "git", "worktrees"] },
   { label: "应用", sections: ["shortcuts", "about"] },
 ];
 

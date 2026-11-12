@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src" },
+  "include": ["../src/app/plugins/plugin-manifest.ts", "../src/app/plugins/plugin-records.ts", "../src/app/plugins/plugin-contributions.ts", "../src/app/plugins/plugin-settings.ts", "../src/app/plugins/slot-registry.ts"]
+}

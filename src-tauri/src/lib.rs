@@ -5,6 +5,7 @@ mod external_link;
 mod local_models;
 mod credential_store;
 mod model_proxy;
+mod plugin_manifest;
 mod project_folder;
 mod project_workspace;
 mod skill_discovery;
@@ -39,6 +40,8 @@ pub fn run() {
             editor_open::open_in_editor,
             // 设置 → 技能: lists skill folders already on this computer.
             skill_discovery::scan_skill_folders,
+            // 设置 → 界面插件: reads one plugin's nekopapa-plugin.json, nothing else.
+            plugin_manifest::plugin_manifest_read,
             // Links that leave the app open in the system browser.
             external_link::open_external_url,
             terminal::terminal_open,

@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src" },
+  "include": ["../src/app/plugins/slot-layout.ts", "../src/app/plugins/slot-registry.ts"]
+}

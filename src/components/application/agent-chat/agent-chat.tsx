@@ -457,7 +457,7 @@ export function AgentChat({
       </section>}
       {/* The chat stays mounted behind the browser tab, so its scroll and draft survive. */}
       <div style={{ display: placement.browserTabActive ? "none" : "flex" }} className="min-h-0 min-w-0 flex-1">
-      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={openWorkPanel} onClose={placement.closeAuxiliary}
+      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={() => openWorkPanel()} onClose={placement.closeAuxiliary}
         widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
         mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
         panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={<ChatAuxiliaryPanel project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}
@@ -482,7 +482,7 @@ export function AgentChat({
       </div>
       <BrowserDragLayer drag={browserDrag.drag} />
       <WorkspaceCommandPalette enabled={page === "chat"} threads={allThreads} onSelectThread={selectThread} onNewChat={startNewChat}
-        onOpenTool={openWorkPanel} onToggleBrowser={placement.toggleBrowser} onTogglePanel={toggleWorkPanel} />
+        onOpenView={openWorkPanel} onToggleBrowser={placement.toggleBrowser} onTogglePanel={toggleWorkPanel} />
     </MacWindowFrame>
   </MessageLinkProvider>);
 }

@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import type { ChatTool } from "@/app/chat/chat-tools";
+import type { PluginViewId } from "@/app/plugins/slot-registry";
 
 type ChatAuxiliary = "panel" | "browser" | null;
-export type WorkPanelView = "history" | "code" | "study" | ChatTool;
+/** Built-in views, the tools, or an enabled interface plugin's view. */
+export type WorkPanelView = "history" | "code" | "study" | ChatTool | PluginViewId;
 
 /**
  * Where the built-in browser lives: in the right-hand area beside the chat

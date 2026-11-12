@@ -1,9 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { SettingsModal } from "./settings-modal";
 import { SettingsOpenerContext } from "./settings-opener";
-import type { SettingsSection } from "./workspace-settings-catalog";
+import type { SettingsPage } from "./workspace-settings-catalog";
 
-export type OpenWorkspaceSettings = (section: SettingsSection, returnFocusTarget?: HTMLElement | null) => void;
+export type OpenWorkspaceSettings = (section: SettingsPage, returnFocusTarget?: HTMLElement | null) => void;
 
 const SettingsContext = createContext<OpenWorkspaceSettings>(() => {});
 
@@ -12,7 +12,7 @@ export function useWorkspaceSettings() {
 }
 
 export function WorkspaceSettingsProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<{ open: boolean; page: SettingsSection; id: number }>({ open: false, page: "general", id: 0 });
+  const [session, setSession] = useState<{ open: boolean; page: SettingsPage; id: number }>({ open: false, page: "general", id: 0 });
   const returnFocus = useRef<HTMLElement | null>(null);
   const requestCloseRef = useRef<(() => void) | null>(null);
   const sessionOpen = useRef(session.open);

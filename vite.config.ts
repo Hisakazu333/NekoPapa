@@ -7,6 +7,7 @@ import { projectFolderApi } from "./scripts/project-folder-api";
 import { localModelsApi } from "./scripts/local-models-api";
 import { projectWorkspaceApi } from "./scripts/project-workspace-api";
 import { skillDiscoveryApi } from "./scripts/skill-discovery-api";
+import { pluginManifestApi } from "./scripts/plugin-manifest-api";
 
 // The official runtime reads these server variables; none are defined in the client bundle.
 const runtimeVariables = [
@@ -21,7 +22,7 @@ export default defineConfig(({ mode }) => {
     if (process.env[name] === undefined && environment[name] !== undefined) process.env[name] = environment[name];
   }
   return {
-    plugins: [tailwindcss(), boarduiChatApi({ GET, POST, TEST }), projectFolderApi(), localModelsApi(), projectWorkspaceApi(), skillDiscoveryApi()],
+    plugins: [tailwindcss(), boarduiChatApi({ GET, POST, TEST }), projectFolderApi(), localModelsApi(), projectWorkspaceApi(), skillDiscoveryApi(), pluginManifestApi()],
     resolve: { alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     } },

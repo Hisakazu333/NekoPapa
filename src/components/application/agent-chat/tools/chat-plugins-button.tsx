@@ -23,7 +23,7 @@ const detailOf = (record: ConfigurationRecord) => String((record.values.transpor
  * 插件与工具, in two parts that are different things. DeepSeek Harness
  * plugins are JS / TS modules (`apply(ctx)`, loaded by Cordis config); none
  * can be installed before the execution layer exists, so that part only
- * explains this, links to 设置 → 开发 → Cordis 插件 and to GitHub search. Below it are the MCP services,
+ * explains this, links to 设置 → 插件 → Cordis 插件 and to GitHub search. Below it are the MCP services,
  * skill folders and connectors saved under 设置 →
  * MCP 与连接器 and 设置 → 技能, as the open chat would get them. Nothing runs
  * them yet — the Coding 执行层 is not connected — so each says so instead of
@@ -56,7 +56,7 @@ export function ChatPluginsButton() {
       <section aria-label="DeepSeek Harness 插件" className="flex flex-col gap-2">
         <h3 className="text-caption-1-medium text-text-tertiary">DeepSeek Harness 插件</h3>
         <p className="text-body-2-regular text-text-secondary">
-          dsh 插件是 TypeScript / JavaScript 模块（导出 <code translate="no" className="font-mono text-caption-1-regular">apply(ctx)</code>，由 Cordis 配置加载），与技能和 MCP 不同。可在设置 → 开发 → Cordis 插件中保存配置条目；执行层接入前不会加载。
+          dsh 插件是 TypeScript / JavaScript 模块（导出 <code translate="no" className="font-mono text-caption-1-regular">apply(ctx)</code>，由 Cordis 配置加载），与技能和 MCP 不同。可在设置 → 插件 → Cordis 插件中保存配置条目；执行层接入前不会加载。
         </p>
         <div className="flex gap-2">
           <Button size="small" variant="secondary" leadingIcon={SettingsIcon} className="flex-1" onClick={() => manage("plugins")}

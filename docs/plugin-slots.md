@@ -1,6 +1,6 @@
 # 插件扩展位设计方案
 
-更新日期：2026-11-11。本文是**设计草案**，没有对应的运行时代码：当前客户端没有任何 UI 扩展位、插件注册表或插件加载器，下文的清单格式、接口和存储键都是拟定内容，实现时以届时源码和本文修订为准。Agent 运行时与 Coding 执行层仍未接入，本文不改变这一事实。
+更新日期：2026-11-12。阶段 1（注册表与用户布局）和阶段 2 的核心流程（本地清单、`workPanel.view` 的 `status` 视图、`command.palette` 命令）已实现，见文末“实际落地”；其余扩展位、权限与沙箱仍是设计草案，实现时以届时源码和本文修订为准。Agent 运行时与 Coding 执行层仍未接入，本文不改变这一事实。
 
 依据的当前事实见 [导航职责](navigation-map.md)、[设置分类与接入清单](settings-map.md)、[当前设计系统](design-system.md) 与 [Agent 产品研究](research/agent-products.md)；迭代约束见 [AGENTS.md](../AGENTS.md)。
 
@@ -10,7 +10,7 @@
 
 不做：
 
-- 不搬入 Cordis 或 DeepSeek Harness 的插件框架。研究结论已写明“借鉴事件与恢复边界，不直接搬入插件框架”；本方案只借鉴“宿主声明扩展位、插件声明贡献”的形态。DeepSeek Harness 的具体 UI 插件接口本轮未逐项核对其源码，下文不声称与之兼容。
+- 不搬入 Cordis 或 DeepSeek Harness 的插件框架。研究结论已写明“借鉴事件与恢复边界，不直接搬入插件框架”；本方案只借鉴“宿主声明扩展位、插件声明贡献”的形态。2026-11-12 已核对 DeepSeek Harness 源码（`docs/subsystems/slots.md`、`client-modules.md`、`ui-entry-customization`）：它的界面插件是带 `dsh.client` 的 npm 包，由 Cordis `apply(ctx)` 以 `ctx.slots.register()` 注册 React 组件，需要 DSH 宿主与 Agent 运行时加载执行。NekoPapa 不运行这些包，只参照它的位置与交互（工作面板“更多”菜单列出收起的入口、侧栏入口可固定、会话视图标签等）自建声明式扩展位，不声称与 DSH 插件包兼容。
 - 不引入新的前端框架、组件库或第二套样式；扩展位由宿主用现有 BoardUI 组件渲染。
 - 不让插件代码直接调用 Tauri `invoke`、读写 `localStorage` 或操作宿主 DOM。
 - 不为演示塞入示例插件或假数据。没有安装插件时，扩展位只呈现内置内容。
@@ -75,9 +75,9 @@
 “由用户自己调整”在第一阶段就落地，并且同样作用于内置内容：
 
 - 每个扩展位的条目可**隐藏**与**排序**；侧栏目的地与标题栏动作可**固定**。
-- 偏好以贡献 ID 为键保存在本机 `nekopapa.slot-layout.v1`（拟定），格式 `{ [slotId]: { order: string[], hidden: string[] } }`；未知 ID 忽略但保留，读写失败时按默认布局显示且不影响本次操作——与 `nekopapa.sidebar-hidden.v1` 的处理一致。
+- 偏好以贡献 ID 为键保存在本机 `nekopapa.slot-layout.v1`（阶段 1 已使用），格式 `{ [slotId]: { order: string[], hidden: string[] } }`；未知 ID 忽略但保留，读写失败时按默认布局显示且不影响本次操作——与 `nekopapa.sidebar-hidden.v1` 的处理一致。
 - 侧栏固定继续使用 `nekopapa.sidebar-pins.v1`，插件目的地的固定值写入其贡献 ID；旧值不迁移。
-- 入口：设置 → 插件 → “布局”页，以及各扩展位就地的右键菜单（“隐藏”“移到前面”）。不可隐藏的条目（“历史”“对话”）在界面上明确标出。
+- 入口：设置 → 工作区 → “界面布局”页，以及各扩展位就地的右键菜单（“隐藏”“向前移 / 向后移”）。不可隐藏的条目（“历史”“工具”“对话”）在界面上明确标出原因。布局是本机界面偏好，不放进“Cordis 插件”配置页。
 
 ## 插件清单（manifest）草案
 
@@ -192,7 +192,7 @@ interface SlotRegistry {
 
 界面插件的启用记录拟作为配置存储（`nekopapa.settings.v1`）中的新集合 `uiPlugins`，字段为插件 ID、清单路径、启用、已确认的权限、清单校验结果；由此复用现有的备份、恢复与损坏数据处理。插件自己的设置值存放在 `uiPluginSettings[<插件 ID>]`，按清单字段校验。现有的“插件与工具”弹层改为同时列出界面插件（名称、启用状态、贡献数）与 Cordis / MCP 配置，三者分节说明，不混为一类。
 
-设置目录新增分组“插件”（拟定，位于“开发”之前）：固定页“插件管理”“布局”，其后是各已启用插件的 `settings.section`。现有的“开发 → Cordis 插件”保留原位置和 ID `plugins`。
+设置目录新增分组“插件”（位于“开发”之前）：固定页“界面插件”“Cordis 插件”，其后是各已启用插件的 `settings.section`。“界面布局”留在“工作区”。2026-11-12 起“Cordis 插件”从“开发”移入“插件”分组，ID 仍为 `plugins`。
 
 ## 分阶段落地
 
@@ -214,7 +214,26 @@ interface SlotRegistry {
 
 验证：注册表、ID 规则与布局读写的 Node 单元测试（损坏数据、未知 ID、写入失败）；工作面板旧行为回归（视图记忆、工具快捷键、关闭焦点）；浏览器中验证右键菜单、键盘操作与重载恢复；`npm run test`、`npm run build`、`git diff --check`。同步更新导航职责与设计系统文档。
 
+**阶段 1 实际落地（2026-11-12）。** 代码在 `src/app/plugins/slot-registry.ts`（注册表与 ID 规则）、`slot-layout.ts`（布局读写与排列，纯函数）、`src/hooks/use-slot-layout.ts`（窗口内共享一份布局，损坏或未保存时提示）、`work-panel-tabs.tsx`（标签与右键菜单）与 `settings-layout-panel.tsx`。与上文计划的差异：
+
+- 贡献直接记录现有视图 ID（`view: "history" | "code" | "study" | "outline"`），没有另建别名表；存储键与视图 ID 不变。
+- “工具”也不可隐藏：终端、更改、文件有快捷键直达，打开时需要这个标签承载选中状态。
+- 命令面板里“打开历史 / 代码与环境 / 资料”来自注册表，并随对应标签隐藏；四个工具命令仍来自 `CHAT_TOOLS`，因为“工具”不可隐藏。
+- 布局页放在 设置 → 工作区 → 界面布局，而不是“插件”分类。
+- 右键菜单中隐藏当前标签后，焦点移到相邻标签；当前视图被隐藏（菜单或设置页）时回到“历史”并提示。
+
 ### 阶段 2：本地清单与声明式贡献（桌面）
+
+**实际落地（2026-11-12，核心流程）。** 设置 → 插件 → 界面插件（`settings-ui-plugins-panel.tsx`）：桌面版用系统文件夹窗口选择，浏览器预览输入完整路径经开发服务器读取；Rust 命令 `plugin_manifest_read`（`src-tauri/src/plugin_manifest.rs`，开发服务器镜像 `scripts/plugin-manifest-api.ts`）只读文件夹根下的 `nekopapa-plugin.json`（拒绝指向外部的符号链接、超过 256 KB 或非 UTF-8）。清单在前端校验（`src/app/plugins/plugin-manifest.ts`）：错误逐条列出且不能启用；`chat.read` 等未开放权限与 `sidebar.destination` 等未开放扩展位作为提示列出、不生效；`network` / `shell` / `credentials` 直接拒绝；`engines.nekopapa` 目前只支持 `>=x.y.z`；图标只能取 25 个宿主图标名。确认页（`plugin-review-card.tsx`）列出权限、前置条件、会添加的标签与命令、关联的 Cordis 模块，启用后写入。与计划的差异：
+
+- 插件记录存于本机 `nekopapa.ui-plugins.v1`（`plugin-records.ts`，损坏时备份到 `.corrupt`），没有并入 `nekopapa.settings.v1`，因此暂不在“数据与备份”的导出里。
+- 每次启动重新读取已添加插件的文件夹：清单丢失、损坏、改了 id 或请求新权限时停用并提示原因；之后修好再读取会恢复启用；用户自己停用的插件不被改动。
+- 启用插件的视图以贡献 ID 作为工作面板视图 ID（`WorkPanelView` 增加 `${string}/${string}`），参与界面布局的隐藏与排序；视图内容由宿主绘制（`plugin-view-panel.tsx`），标明来源插件，前置条件不满足时用黄色 StatusDot 写明原因。命令进入命令面板“插件”分段（`openView` / `openUrl`，后者需要 `link.open`），前置条件不满足时禁用并说明。
+- 工作面板标签后新增“更多工具”菜单（参照 DSH 右侧栏的“更多”）：列出已隐藏的标签（选中即重新显示并打开），以及“界面布局设置…”“管理界面插件…”。
+- 插件设置页（同日第二轮）：清单 `contributes["settings.section"]` 每个插件最多 2 页，每页最多 12 个字段，类型为 `boolean` / `string` / `number` / `select`（`src/app/plugins/plugin-settings.ts`）。同一插件的各页共用一组 key；key 或标签像密码、令牌、密钥时拒绝。页面 ID 即贡献 ID，列在设置“插件”分组末尾，用共享的 `SettingsFields` 行绘制（`plugin-settings-panel.tsx`）：改动校验后立即保存，“恢复默认”清除本页的值。值存于本机 `nekopapa.ui-plugin-settings.v1`（损坏时备份到 `.corrupt`），移除插件时一并清除，停用时保留。值目前只有一个读取方：`openUrl` 可在路径、查询或片段里写 `{settings.<key>}`，主机部分必须写死；运行时逐个百分号编码（保留 `/`），结果离开原站点即拒绝；值为空时命令面板写明缺哪项，执行后打开对应设置页并提示。`openSettings` 动作打开插件自己的设置页。开着的设置页所属插件被停用或移除时，该页改为说明并提供“管理界面插件…”。
+- 尚未完成：桌面宿主里的文件夹选择尚未实际点测；插件设置值不在“数据与备份”导出中。
+
+原计划：
 
 - 设置 → 插件 → “从文件夹添加”：桌面版经 `plugin_manifest_read` 读取并校验清单，展示权限与贡献，确认后写入 `uiPlugins`；校验失败逐项说明，不保存。
 - 开放 `settings.section`（字段复用 `ConfigurationField` 与现有校验）、`workPanel.view` 的 `status` 内容、`command.palette` 的 `openView` / `openSettings` / `openUrl` 动作。

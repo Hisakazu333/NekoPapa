@@ -1,7 +1,7 @@
 import type { ConfigurationField as Field, ConfigurationRecord, ConfigurationValues, ValidationResult } from "./configuration-types";
 
 /**
- * 设置 → 开发 → Cordis 插件. A DeepSeek Harness (dsh) plugin is a TS / JS
+ * 设置 → 插件 → Cordis 插件. A DeepSeek Harness (dsh) plugin is a TS / JS
  * module (`export function apply(ctx)`) that Cordis loads from a config entry:
  * a module path or npm package as `name`, an optional instance `id`, its
  * `config`, and whether it is `disabled`. NekoPapa only keeps these entries on

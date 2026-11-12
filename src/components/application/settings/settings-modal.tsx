@@ -15,12 +15,17 @@ import { DesktopPetSettings, ScreenIslandSettings } from "./desktop-tool-setting
 import { DataSettingsPanel } from "./nekopapa-data-settings";
 import { ModelSettingsPanel } from "./nekopapa-model-settings";
 import { PluginSettingsPanel, SkillSettingsPanel, ToolSettingsPanel } from "./nekopapa-tool-settings";
+import { LayoutSettingsPanel } from "./settings-layout-panel";
+import { UiPluginsSettingsPanel } from "@/components/application/plugins/settings-ui-plugins-panel";
+import { UiPluginSettingsPage, pluginSettingsEntry } from "@/components/application/plugins/plugin-settings-panel";
+import { isPluginSettingsPage } from "@/app/plugins/slot-registry";
+import { usePluginContributions } from "@/hooks/use-ui-plugins";
 import { AboutSettingsPanel, GeneralSettingsPanel, ShortcutsSettingsPanel } from "./workspace-settings-info";
-import { settingsGroups, settingsSections, type SettingsSection } from "./workspace-settings-catalog";
+import { PLUGIN_SETTINGS_GROUP, settingsGroups, settingsSections, type SettingsPage } from "./workspace-settings-catalog";
 import { SettingsDraftProvider } from "./settings-draft-context";
 import { hasUnsavedSettingsDrafts, updateSettingsDraft } from "@/app/settings/settings-draft-state";
 
-export type SettingsPage = SettingsSection;
+export type { SettingsPage };
 
 export interface SettingsModalProps {
   isOpen: boolean;
@@ -38,10 +43,12 @@ function SettingsFocusReturn({ onAfterClose }: Pick<SettingsModalProps, "onAfter
   return null;
 }
 
-function SettingsPanel({ page, onClose }: {
+function SettingsPanel({ page, onClose, onNavigate }: {
   page: SettingsPage;
   onClose: () => void;
+  onNavigate: (page: SettingsPage) => void;
 }) {
+  if (isPluginSettingsPage(page)) return <UiPluginSettingsPage pageId={page} onClose={onClose} onManage={() => onNavigate("ui-plugins")} />;
   switch (page) {
     case "general": return <GeneralSettingsPanel onClose={onClose} />;
     case "profile": return <ProfileSettingsPanel onClose={onClose} />;
@@ -56,6 +63,8 @@ function SettingsPanel({ page, onClose }: {
     case "data": return <DataSettingsPanel onClose={onClose} />;
     case "connections": return <ConnectionsSettingsPanel onClose={onClose} />;
     case "hooks": return <HooksSettingsPanel onClose={onClose} />;
+    case "layout": return <LayoutSettingsPanel onClose={onClose} />;
+    case "ui-plugins": return <UiPluginsSettingsPanel onClose={onClose} />;
     case "shortcuts": return <ShortcutsSettingsPanel onClose={onClose} />;
     case "about": return <AboutSettingsPanel onClose={onClose} />;
     default: return <ConfigurationGroupPanel group={page} onClose={onClose} />;
@@ -102,7 +111,15 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
     setVisited((current) => current.includes(defaultPage) ? current : [...current, defaultPage]);
   }, [defaultPage, isOpen]);
 
-  const selected = settingsSections[page];
+  // Enabled interface plugins add their settings pages under 插件.
+  const pluginPages = usePluginContributions().settings;
+  const entryOf = (section: SettingsPage) => isPluginSettingsPage(section)
+    ? pluginSettingsEntry(pluginPages.find((candidate) => candidate.id === section))
+    : settingsSections[section];
+  const groups = settingsGroups.map((group) => group.label === PLUGIN_SETTINGS_GROUP
+    ? { ...group, sections: [...group.sections, ...pluginPages.map((entry) => entry.id)] as readonly SettingsPage[] }
+    : group);
+  const selected = entryOf(page);
 
   return localize((
     <ModalOverlay
@@ -121,11 +138,11 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
         <ModalDialog aria-label="NekoPapa 设置" className="h-full flex-row gap-0 py-0">
           <SettingsFocusReturn onAfterClose={onAfterClose} />
           <nav aria-label="设置分类" className="flex w-14 shrink-0 flex-col gap-5 overflow-y-auto overscroll-contain border-e border-separator-border bg-background-secondary-default p-2.5 sm:w-60">
-            {settingsGroups.map((group) => <div key={group.label} className="flex flex-col gap-1.5 pt-1">
+            {groups.map((group) => <div key={group.label} className="flex flex-col gap-1.5 pt-1">
               <span className="hidden ps-2 text-body-2-medium text-text-tertiary sm:block">{group.label}</span>
               <div className="flex flex-col gap-1">
                 {group.sections.map((section) => {
-                  const entry = settingsSections[section];
+                  const entry = entryOf(section);
                   const active = section === page;
                   return <button
                     key={section}
@@ -151,14 +168,14 @@ export function SettingsModal({ isOpen, onClose, defaultPage = "general", onAfte
             {visited.map((section) => <section
               key={section}
               ref={(node) => { if (section === page) activePanel.current = node; }}
-              aria-label={settingsSections[section].title}
+              aria-label={entryOf(section).title}
               tabIndex={-1}
               hidden={section !== page}
               style={{ display: section === page ? "flex" : "none" }}
               className="min-h-0 flex-1 flex-col gap-4 pb-6 outline-none"
             >
               <SettingsDraftProvider value={reportDraft}>
-              <SettingsPanel page={section} onClose={requestClose} />
+              <SettingsPanel page={section} onClose={requestClose} onNavigate={navigate} />
               </SettingsDraftProvider>
             </section>)}
           </div>
