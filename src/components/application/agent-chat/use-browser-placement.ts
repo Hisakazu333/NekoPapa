@@ -18,7 +18,8 @@ export type WorkPanelView = "history" | "code" | "study" | ChatTool | PluginView
  */
 export function useBrowserPlacement(chatId: string) {
   const [auxiliary, setAuxiliary] = useState<ChatAuxiliary>(null);
-  const [panelView, setPanelView] = useState<WorkPanelView>("history");
+  // The pane the right-hand area opens to without a choice (dragging it open): 环境与上下文.
+  const [panelView, setPanelView] = useState<WorkPanelView>("code");
   // null: no browser tab. `active`: the tab is the one shown.
   const [browserTab, setBrowserTab] = useState<{ active: boolean } | null>(null);
   const [shownChat, setShownChat] = useState(chatId);
@@ -37,6 +38,12 @@ export function useBrowserPlacement(chatId: string) {
     else setAuxiliary((current) => current === "panel" ? null : "panel");
   }, [browserTab?.active, openWorkPanel]);
   const closeAuxiliary = useCallback(() => setAuxiliary(null), []);
+  const panelShown = auxiliary === "panel" && !browserTab?.active;
+  /** A title-bar pane button or its shortcut: opens that pane, or closes it when it is the one shown. */
+  const togglePanelView = useCallback((view: WorkPanelView) => {
+    if (panelShown && panelView === view) setAuxiliary(null);
+    else openWorkPanel(view);
+  }, [panelShown, panelView, openWorkPanel]);
 
   const moveToTab = useCallback(() => {
     setAuxiliary((current) => current === "browser" ? null : current);
@@ -68,7 +75,10 @@ export function useBrowserPlacement(chatId: string) {
     /** The browser is on screen, in either place. */
     browserShown: auxiliary === "browser" || browserTab?.active === true,
     panelView,
+    /** The pane on screen in the right-hand area or the browser tab, if any. */
+    shownPane: browserTab?.active || auxiliary === "browser" ? "browser" as const : panelShown ? panelView : null,
     openWorkPanel,
+    togglePanelView,
     toggleWorkPanel,
     closeAuxiliary,
     toggleBrowser,

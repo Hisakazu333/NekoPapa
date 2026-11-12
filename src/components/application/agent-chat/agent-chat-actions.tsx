@@ -1,33 +1,23 @@
 "use client";
 
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
-
-import { CheckIcon, EllipsisIcon, GlobeIcon, PanelRightIcon, UploadIcon } from "@/components/foundations/icons/app-icons";
-import { useEffect, useState } from "react";
-
-import {
-  Dropdown,
-  DropdownGroup,
-  DropdownItem,
-  DropdownPopover,
-  DropdownTrigger,
-} from "@/components/base/dropdown/dropdown";
 import { cx } from "@/utils/cx";
-import { ToolbarToggleButton, toolbarIconButtonClass as ACTION_BUTTON, toolbarIconClass } from "@/components/application/dashboard/toolbar-icon-button";
 import { ChatPluginsButton } from "./tools/chat-plugins-button";
+import { ChatPaneButtons, type ChatPaneControls } from "./chat-pane-buttons";
+import { ChatMoreMenu } from "./chat-more-menu";
 
 /**
- * The controls in the top right of the chat surface: share the open chat, and
- * a menu of the actions that apply to it.
+ * The controls in the top right of the chat surface, after Claude's desktop
+ * app: one button per pane (目录, 终端, 更改, 浏览器, 文件), the interface
+ * plugins, and ⋯ with the other panes and the open chat's actions.
  *
- * Every entry does something the starter can actually do — copy, download,
- * mark, delete. Until the chat has a message there is nothing to share or
- * act on, so both stay hidden instead of showing as dimmed buttons. Nothing here is a placeholder waiting on a backend, because a
- * control that looks live and does nothing is worse than no control.
+ * Every entry does something the app can actually do. Until the chat has a
+ * message there is nothing to copy or act on, so those rows stay out of ⋯
+ * instead of showing dimmed.
  */
 
 export interface AgentChatActionsProps {
-  /** Plain-text transcript of the open chat, for share and copy. */
+  /** Plain-text transcript of the open chat, for copying. */
   transcript: string;
   onExport: () => void;
   onToggleUnread: () => void;
@@ -37,13 +27,22 @@ export interface AgentChatActionsProps {
   disabled?: boolean;
   /** Contact-owned history is managed from the contacts workspace. */
   showThreadMenu?: boolean;
-  /** Side panel (历史 / 代码 / 资料 / 工具) toggle; omitted where the surface has no panel. */
-  panelOpen?: boolean;
-  onTogglePanel?: () => void;
-  /** Built-in browser toggle; it shares the right-hand area with the side panel. */
-  browserOpen?: boolean;
-  onToggleBrowser?: () => void;
+  /** The right-hand panes; omitted where the surface has none. */
+  panes?: ChatPaneControls;
   className?: string;
+}
+
+/** The Web Share sheet where the browser has one, the clipboard everywhere else. */
+async function shareText(text: string): Promise<boolean> {
+  if (!text) return false;
+  try {
+    if (navigator.share) { await navigator.share({ text }); return false; }
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    // A dismissed share sheet and a refused clipboard both land here; neither is worth an interruption.
+    return false;
+  }
 }
 
 export function AgentChatActions({
@@ -54,103 +53,17 @@ export function AgentChatActions({
   deleteDisabled = false,
   disabled = false,
   showThreadMenu = true,
-  panelOpen = false,
-  onTogglePanel,
-  browserOpen = false,
-  onToggleBrowser,
+  panes,
   className,
 }: AgentChatActionsProps) {
   const localize = useTemplateCopy();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [shared, setShared] = useState(false);
-
-  useEffect(() => {
-    if (!shared) return;
-    const timer = setTimeout(() => setShared(false), 1600);
-    return () => clearTimeout(timer);
-  }, [shared]);
-
-  const share = async () => {
-    if (!transcript) return;
-    // The Web Share sheet where the browser has one, the clipboard everywhere
-    // else. Both leave the transcript on the device.
-    try {
-      if (navigator.share) {
-        await navigator.share({ text: transcript });
-        return;
-      }
-      await navigator.clipboard.writeText(transcript);
-      setShared(true);
-    } catch {
-      // A dismissed share sheet and a refused clipboard both land here, and
-      // neither is worth interrupting the reader over.
-    }
-  };
-
-  const choose = (action: () => void) => () => {
-    setMenuOpen(false);
-    action();
-  };
-
   return localize((
     <div className={cx("flex shrink-0 items-center gap-0.5", className)}>
-      {onToggleBrowser && <ToolbarToggleButton icon={GlobeIcon} isSelected={browserOpen} onChange={onToggleBrowser}
-        label={browserOpen ? "关闭浏览器" : "打开浏览器"} />}
-      {onTogglePanel && <ChatPluginsButton />}
-      {/* Share and the chat menu act on the open chat, so an empty chat has neither. */}
-      {!disabled && <button
-        type="button"
-        onClick={share}
-        disabled={disabled}
-        aria-label={shared ? "已复制对话文本" : "分享对话"}
-        title={shared ? "已复制对话文本" : "分享对话（复制为文本）"}
-        className={ACTION_BUTTON}
-      >
-        {shared ? (
-          <CheckIcon className={toolbarIconClass} aria-hidden />
-        ) : (
-          <UploadIcon className={toolbarIconClass} aria-hidden />
-        )}
-      </button>}
-
-      {showThreadMenu && !disabled && <Dropdown isOpen={menuOpen} onOpenChange={setMenuOpen}>
-        <DropdownTrigger
-          aria-label="对话的更多操作"
-          isDisabled={disabled}
-          className={cx(ACTION_BUTTON, menuOpen && "bg-background-primary-hover text-text-primary")}
-        >
-          <EllipsisIcon className={toolbarIconClass} aria-hidden />
-        </DropdownTrigger>
-
-        <DropdownPopover
-          aria-label="对话的更多操作"
-          placement="bottom end"
-          className="w-[190px] p-2"
-        >
-          <DropdownGroup>
-            <DropdownItem onSelect={choose(onExport)} className="px-2 py-1.5">
-              <span className="truncate text-body-medium whitespace-nowrap text-text-primary">
-                导出对话
-              </span>
-            </DropdownItem>
-            <DropdownItem onSelect={choose(onToggleUnread)} className="px-2 py-1.5">
-              <span className="truncate text-body-medium whitespace-nowrap text-text-primary">
-                标为未读
-              </span>
-            </DropdownItem>
-            <DropdownItem disabled={deleteDisabled} onSelect={choose(onDelete)} className="px-2 py-1.5">
-              <span className="truncate text-body-medium whitespace-nowrap text-text-error-primary">
-                删除对话
-              </span>
-            </DropdownItem>
-          </DropdownGroup>
-        </DropdownPopover>
-      </Dropdown>}
-      {onTogglePanel && <button type="button" onClick={onTogglePanel} aria-pressed={panelOpen}
-        aria-controls="chat-auxiliary-workspace" aria-label={panelOpen ? "关闭工作面板" : "打开工作面板"} title={panelOpen ? "关闭工作面板" : "打开工作面板（历史、代码、资料、工具）"}
-        className={cx(ACTION_BUTTON, panelOpen && "bg-background-primary-hover text-text-primary")}>
-        <PanelRightIcon className={toolbarIconClass} aria-hidden />
-      </button>}
+      {panes && <ChatPaneButtons panes={panes} />}
+      {panes && <ChatPluginsButton />}
+      {(panes || !disabled) && <ChatMoreMenu panes={panes} thread={{
+        onShare: () => shareText(transcript), onExport, onToggleUnread, onDelete, deleteDisabled, showThreadMenu, empty: disabled,
+      }} />}
     </div>
   ));
 }

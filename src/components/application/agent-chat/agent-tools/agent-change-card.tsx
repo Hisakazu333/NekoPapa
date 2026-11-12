@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRightIcon, FileCodeIcon, RotateCcwIcon } from "@/components/foundations/icons/app-icons";
+import { ArrowUpRightIcon, ChevronRightIcon, FileCodeIcon, RotateCcwIcon } from "@/components/foundations/icons/app-icons";
+import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
+import { focusChange } from "@/app/agent/project-change-events";
 import { Button } from "@/components/base/buttons/button";
 import { parseUnifiedDiff } from "@/app/projects/project-workspace";
 import type { FileChange } from "@/app/agent/agent-host";
@@ -31,7 +33,7 @@ function useUndo(snapshot: string, enabled: boolean) {
   return { state, undo };
 }
 
-/** A file the Agent created or changed: path, line counts, the diff, and 撤销. */
+/** A file the Agent created or changed: path, line counts, the diff, 在“更改”中查看 and 撤销. */
 export function AgentChangeCard({ change }: { change: FileChange }) {
   const { canUndo } = useAgentToolActions();
   const diff = useMemo(() => parseUnifiedDiff(change.diff), [change.diff]);
@@ -50,11 +52,12 @@ export function AgentChangeCard({ change }: { change: FileChange }) {
         </span>
         <ChevronRightIcon className={cx("size-3.5 shrink-0 text-text-tertiary transition-transform", open && "rotate-90")} aria-hidden />
       </button>
+      <ToolbarIconButton icon={ArrowUpRightIcon} label="在“更改”中查看" onPress={() => focusChange(change.path)} />
       {canUndo && <UndoControl state={state} onUndo={undo} />}
     </header>
     {state.kind === "error" && <p role="alert" className="border-t border-separator-border px-3 py-1.5 text-caption-1-regular text-text-error-primary">{state.message}</p>}
     {open && (diff.lines.length > 0
-      ? <div className="flex max-h-96 flex-col"><DiffText lines={diff.lines} split={false} wrap={editor.wrap} whitespace={editor.whitespace} /></div>
+      ? <div className="flex max-h-96 flex-col"><DiffText lines={diff.lines} split={false} wrap={editor.wrap} whitespace={editor.whitespace} path={change.path} /></div>
       : <p className="border-t border-separator-border px-3 py-2 text-caption-1-regular text-text-tertiary">内容没有变化。</p>)}
   </section>;
 }

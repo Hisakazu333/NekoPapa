@@ -71,22 +71,26 @@ export function contributionId(pluginId: string, localId: string): string {
 
 const core = (localId: string) => contributionId(CORE_PLUGIN, localId);
 
-/** The work panel's tabs, in their default order. */
+/**
+ * The right-hand area's views, in their default order. 工具 stands for the
+ * panes with their own title-bar button (目录, 终端, 更改, 文件); the rest are
+ * listed, in this order, in the title bar's ⋯.
+ */
 export const WORK_PANEL_VIEWS: readonly WorkPanelViewContribution[] = [
   { id: core("history"), view: "history", label: "历史", required: true, requiredReason: "其他视图被隐藏或失效时回到这里。" },
-  { id: core("code"), view: "code", label: "代码" },
+  { id: core("code"), view: "code", label: "环境与上下文" },
   { id: core("study"), view: "study", label: "资料" },
-  { id: core("tools"), view: "outline", label: "工具", required: true, requiredReason: "终端、更改和文件有快捷键直达，打开时需要这个标签。" },
+  { id: core("tools"), view: "outline", label: "工具", required: true, requiredReason: "目录、终端、更改和文件在标题栏有自己的按钮和快捷键。" },
 ];
 
 /** Command palette entries that open a view; each is hidden with its view. */
 export const VIEW_COMMANDS: readonly ViewCommandContribution[] = [
   { id: core("open-history"), opens: "history", label: "打开历史" },
-  { id: core("open-code"), opens: "code", label: "打开代码与环境" },
+  { id: core("open-code"), opens: "code", label: "打开环境与上下文" },
   { id: core("open-study"), opens: "study", label: "打开资料" },
 ];
 
 export const SLOT_LABELS: Record<SlotId, string> = {
-  "workPanel.view": "工作面板标签",
+  "workPanel.view": "右侧面板视图",
   "command.palette": "命令面板",
 };

@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src", "types": ["node"] },
+  "include": ["../src/app/projects/file-language.ts", "../src/app/projects/git-marks.ts", "../src/app/projects/project-workspace.ts"]
+}

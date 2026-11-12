@@ -1,7 +1,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { CheckIcon, CodeIcon, CopyIcon } from "@/components/foundations/icons/app-icons";
-import { highlightCode, type HighlightLines } from "@/app/chat/code-highlight";
 import { useThemeMode } from "@/components/application/theme/theme-toggle";
+import { CodeTokens, useHighlightedLines } from "./code-tokens";
 import { cx } from "@/utils/cx";
 
 /**
@@ -21,21 +21,15 @@ export function MessageCodeBlock({ lang, code, complete, notice, actions }: {
   actions?: ReactNode;
 }) {
   const [copied, setCopied] = useState(false);
-  const [tokens, setTokens] = useState<{ code: string; lines: HighlightLines }>();
-  const theme = useThemeMode();
+  const dark = useThemeMode() === "dark";
   useEffect(() => {
     if (!copied) return;
     const timer = setTimeout(() => setCopied(false), 1600);
     return () => clearTimeout(timer);
   }, [copied]);
-  useEffect(() => {
-    if (!complete) return;
-    let live = true;
-    void highlightCode(code.replace(/\n$/, ""), lang).then((lines) => { if (live && lines) setTokens({ code, lines }); });
-    return () => { live = false; };
-  }, [code, complete, lang]);
-  const lines = code.replace(/\n$/, "").split("\n");
-  const highlighted = complete && tokens?.code === code ? tokens.lines : undefined;
+  const text = code.replace(/\n$/, "");
+  const lines = text.split("\n");
+  const highlighted = useHighlightedLines(text, lang, complete);
   const copy = () => { void navigator.clipboard?.writeText(code).then(() => setCopied(true), () => undefined); };
 
   return <figure className="overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
@@ -56,10 +50,7 @@ export function MessageCodeBlock({ lang, code, complete, notice, actions }: {
     <div translate="no" className="flex max-h-[480px] overflow-auto font-mono text-caption-1-regular leading-5">
       <pre aria-hidden className="sticky start-0 shrink-0 select-none bg-background-primary-default py-2 ps-3 pe-3 text-end text-text-tertiary">{lines.map((_, index) => index + 1).join("\n")}</pre>
       <pre className="flex-1 py-2 pe-4 text-text-primary"><code>{highlighted
-        ? highlighted.map((line, index) => <span key={index}>{line.map((token, at) => {
-          const color = theme === "dark" ? token.dark : token.light;
-          return <span key={at} style={color ? { color } : undefined}>{token.content}</span>;
-        })}{index < highlighted.length - 1 ? "\n" : ""}</span>)
+        ? highlighted.map((line, index) => <span key={index}><CodeTokens tokens={line} dark={dark} />{index < highlighted.length - 1 ? "\n" : ""}</span>)
         : lines.join("\n")}</code></pre>
     </div>
   </figure>;

@@ -31,7 +31,7 @@ export function AgentApprovalCard({ name, input, approvalId, reason }: { name: s
       <code translate="no" className="min-w-0 break-all font-mono text-caption-1-regular text-text-primary">{command ? field(input, "command") : path}</code>
     </div>
     {reason && <p className="px-3 pb-2 text-caption-1-regular text-text-tertiary">{reason}</p>}
-    {lines.length > 0 && <div className="flex max-h-64 flex-col"><DiffText lines={lines} wrap /></div>}
+    {lines.length > 0 && <div className="flex max-h-64 flex-col"><DiffText lines={lines} wrap path={path} /></div>}
     <footer className="flex items-center justify-end gap-2 border-t border-separator-border px-3 py-2">
       {!canRespond && <span className="me-auto text-caption-1-regular text-text-tertiary">回复结束后可以确认</span>}
       <Button variant="secondary" size="small" disabled={!canRespond} onClick={() => respond(approvalId, false)}>拒绝</Button>

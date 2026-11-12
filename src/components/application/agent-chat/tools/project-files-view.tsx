@@ -14,6 +14,13 @@ import { OpenInEditorButton, openInEditor } from "./open-in-editor-button";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
 import { ToolPanelMessage } from "./tool-panel-frame";
 import { toast } from "@/components/base/toast/toast";
+import { Chip } from "@/components/base/badges/chip";
+import { MENU_ITEM_ACTIVE } from "@/components/base/dropdown/menu-styles";
+import { dirMarked, fileMark } from "@/app/projects/git-marks";
+import { CHANGE_LABEL, CHANGE_TEXT } from "./git-change-label";
+import { fileTypeIcon } from "./file-type-icon";
+import { useGitMarks } from "./use-git-marks";
+import { cx } from "@/utils/cx";
 
 type Folder = { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; listing: ProjectListing };
 type Preview = { path: string; state: { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; file: ProjectFile } };
@@ -50,6 +57,9 @@ function ProjectFileTree({ root, onActions }: { root: string; onActions: (action
   const [folders, setFolders] = useState<Record<string, Folder>>({});
   const [open, setOpen] = useState<Set<string>>(() => new Set([""]));
   const [preview, setPreview] = useState<Preview>();
+  /** The file last opened, kept highlighted in the tree after 返回. */
+  const [current, setCurrent] = useState<string>();
+  const { marks, refresh: refreshMarks } = useGitMarks(root);
   const { external: editor } = useEditorPreferences();
   /** The row a right-click landed on; the menu acts on it. */
   const target = useRef<string | undefined>(undefined);
@@ -66,12 +76,13 @@ function ProjectFileTree({ root, onActions }: { root: string; onActions: (action
 
   useEffect(() => { void load(""); }, [load]);
 
-  const reload = useCallback(() => { for (const dir of open) void load(dir); }, [open, load]);
+  const reload = useCallback(() => { for (const dir of open) void load(dir); refreshMarks(); }, [open, load, refreshMarks]);
   useEffect(() => {
     onActions(<ToolbarIconButton icon={RefreshCwIcon} label="刷新文件" onPress={reload} />);
   }, [onActions, reload]);
 
   const show = async (path: string) => {
+    setCurrent(path);
     setPreview({ path, state: { kind: "loading" } });
     try {
       const file = await projectWorkspace.read(root, path);
@@ -97,9 +108,14 @@ function ProjectFileTree({ root, onActions }: { root: string; onActions: (action
     return <>
       {folder.listing.entries.map((entry) => {
         entries.set(entry.path, entry);
+        const change = entry.kind === "dir" ? undefined : fileMark(marks, entry.path);
+        const folderChanged = entry.kind === "dir" && dirMarked(marks, entry.path);
         return <TreeViewItem key={entry.path} id={entry.path} label={entry.name}
-          icon={entry.kind === "link" ? LinkIcon : undefined}
-          trailingContent={entry.kind === "file" ? <span className="tabular-nums">{formatBytes(entry.size)}</span> : undefined}>
+          icon={entry.kind === "link" ? LinkIcon : entry.kind === "file" ? fileTypeIcon(entry.path) : undefined}
+          className={cx(change && CHANGE_TEXT[change], folderChanged && "text-status-blue-text", entry.path === current && MENU_ITEM_ACTIVE)}
+          trailingContent={change ? <Chip variant="caption" color={CHANGE_LABEL[change][2]} aria-label={CHANGE_LABEL[change][1]} className="w-5 px-0 font-mono">{CHANGE_LABEL[change][0]}</Chip>
+            : folderChanged ? <span aria-label="包含更改" className="me-1.5 inline-block size-1.5 rounded-full bg-status-blue-text" />
+              : entry.kind === "file" ? <span className="tabular-nums">{formatBytes(entry.size)}</span> : undefined}>
           {entry.kind === "dir" ? items(entry.path) : null}
         </TreeViewItem>;
       })}
@@ -129,7 +145,13 @@ function ProjectFileTree({ root, onActions }: { root: string; onActions: (action
     <ContextMenuTrigger>
       <TreeView aria-label="项目文件" size="sm" selectionMode="none" className="rounded-none border-0 bg-transparent p-0"
         expandedKeys={open} onExpandedChange={expand}
-        onAction={(key) => { const entry = entries.get(String(key)); if (entry && entry.kind !== "dir") void show(entry.path); }}>
+        onAction={(key) => {
+          const entry = entries.get(String(key));
+          if (!entry) return;
+          // A folder row opens or closes like its arrow, as in an editor's file tree.
+          if (entry.kind === "dir") { const next = new Set<Key>(open); if (!next.delete(entry.path)) next.add(entry.path); expand(next); }
+          else void show(entry.path);
+        }}>
         {tree}
       </TreeView>
       <ContextMenu aria-label="文件操作" onAction={act}>
@@ -159,6 +181,6 @@ function FilePreview({ root, preview, onBack }: { root: string; preview: Preview
       ? <ToolPanelMessage icon={FileIcon} title="文件太大，不在这里预览" detail="只预览 512 KB 以内的文本文件。" />
       : state.file.binary || state.file.text === undefined
         ? <ToolPanelMessage icon={FileIcon} title="这是二进制文件" detail="只预览文本文件。" />
-        : <FileText text={state.file.text} wrap={wrap} />)}
+        : <FileText text={state.file.text} wrap={wrap} path={preview.path} />)}
   </div>;
 }

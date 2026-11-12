@@ -21,8 +21,8 @@
 | --- | --- | --- | --- |
 | 标题栏对话标签 | [chat-title-tabs.tsx](../src/components/application/agent-chat/chat-title-tabs.tsx)、[chat-workspace-tabs.ts](../src/components/application/agent-chat/chat-workspace-tabs.ts) | 每个标签是一个已打开的对话（`thread.id`），像浏览器标签，带前进 / 后退历史 | **不是**“对话 / 轨迹”这种同一会话内的视图切换；不能把插件视图塞成对话标签，否则破坏“标签 = 对话 ID”的契约 |
 | 会话内视图标签（对话 / 轨迹） | 无 | 当前对话区只有一种视图（消息记录） | 需要新建；“轨迹”依赖 Agent 运行事件，当前没有数据来源 |
-| 工作面板 | [chat-side-panel.tsx](../src/components/application/agent-chat/chat-side-panel.tsx) 的 `TABS`；视图类型 `WorkPanelView`（[use-browser-placement.ts](../src/components/application/agent-chat/use-browser-placement.ts)） | PillTab 切换“历史 / 代码 / 资料 / 工具”；隐藏后记住所选视图；“资料”已用黄色 StatusDot 呈现“后端未连接” | 已是按 ID 切换的视图容器，并已有真实不可用状态的写法，最适合作为第一个扩展位 |
-| 工作面板“工具” | [chat-tool-panel.tsx](../src/components/application/agent-chat/tools/chat-tool-panel.tsx)、[chat-tools.ts](../src/app/chat/chat-tools.ts) | SegmentedControl 切换目录 / 终端 / 更改 / 文件；三项有固定快捷键 | 与工作面板视图合并考虑；插件不分配快捷键 |
+| 工作面板 | [chat-side-panel.tsx](../src/components/application/agent-chat/chat-side-panel.tsx) 的 `TABS`；视图类型 `WorkPanelView`（[use-browser-placement.ts](../src/components/application/agent-chat/use-browser-placement.ts)） | （2026-11-13 起）“历史 / 环境与上下文 / 资料”与插件视图列在标题栏 ⋯，目录 / 终端 / 更改 / 文件各有标题栏按钮；隐藏后记住所选视图；“资料”已用黄色 StatusDot 呈现“后端未连接” | 已是按 ID 切换的视图容器，并已有真实不可用状态的写法，最适合作为第一个扩展位 |
+| 工作面板“工具” | [chat-tool-panel.tsx](../src/components/application/agent-chat/tools/chat-tool-panel.tsx)、[chat-tools.ts](../src/app/chat/chat-tools.ts) | （2026-11-13 起）标题栏一项一个按钮，不再有二级切换；三项有固定快捷键 | 与工作面板视图合并考虑；插件不分配快捷键 |
 | 标题栏动作 | [agent-chat-actions.tsx](../src/components/application/agent-chat/agent-chat-actions.tsx) | 浏览器开关、插件按钮（[chat-plugins-button.tsx](../src/components/application/agent-chat/tools/chat-plugins-button.tsx)）、分享与对话菜单 | 插件按钮是现成的“插件管理”入口 |
 | 侧栏“更多” | [sidebar-more-menu.tsx](../src/components/application/dashboard/sidebar-more-menu.tsx)，固定状态 [sidebar-pins.ts](../src/app/navigation/sidebar-pins.ts)（`nekopapa.sidebar-pins.v1`，ID 为 `space` / `knowledge` / `cabin`） | 条目为 `{ id, label, icon, onOpen }`，可固定到主导航；底部悬浮栏布局共用同一组目的地 | 已有 ID + 固定偏好，可承载插件页面入口 |
 | 输入区“+”菜单 | [composer-add-menu.tsx](../src/components/application/chat-composer/composer-add-menu.tsx) | “添加”组（文件、目标、计划）与“插件”组（`composerArtifacts`：文档、表格、演示、代码输出选择）；官方人物只保留文件 | “插件”分组名已存在，但内容是内置输出类型 |
@@ -45,7 +45,7 @@
 
 | 扩展位 ID | 位置 / 所属组件 | 插件可提供 | 约束 | 开放阶段 |
 | --- | --- | --- | --- | --- |
-| `workPanel.view` | 工作面板 PillTab，`ChatSidePanel` | 一个面板视图（标签 + 内容） | 视图 ID 进入 `WorkPanelView`；内置“历史”不可隐藏，作为失效视图的回退；关闭面板焦点回到“工作面板”开关 | 1（内置），2（声明式），3（自定义内容） |
+| `workPanel.view` | 标题栏 ⋯ 中的视图列表（`chat-more-menu.tsx`），内容在 `ChatSidePanel` | 一个面板视图（标签 + 内容） | 视图 ID 进入 `WorkPanelView`；内置“历史”不可隐藏，作为失效视图的回退；关闭面板焦点回到“工作面板”开关 | 1（内置），2（声明式），3（自定义内容） |
 | `command.palette` | 命令面板新增“插件”分段，`WorkspaceCommandPalette` | 命令（标题、图标、执行的宿主动作） | 执行沿用 `run()`：先关闭面板、焦点返回，再执行；不分配全局快捷键 | 1 |
 | `settings.section` | 设置目录新增“插件”分组，`settingsGroups` | 一个设置页，字段用 `ConfigurationField` 描述 | 不能渲染任意组件；值保存在插件自己的命名空间并进入设置备份；不能读写其他分类 | 2 |
 | `sidebar.destination` | 侧栏“更多”与底部悬浮栏，`SidebarMoreMenu` | 一个工作区页面入口（打开插件页面） | 可固定，固定 ID 与贡献 ID 一致；页面切换保持 AgentChat 挂载、会话与草稿不变 | 3 |

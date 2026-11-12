@@ -1,22 +1,31 @@
 import type { ComponentType, ReactNode } from "react";
-import { FolderIcon } from "@/components/foundations/icons/app-icons";
+import { FolderIcon, XIcon } from "@/components/foundations/icons/app-icons";
+import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
 
-/** Tool selector and actions within the work panel. */
-export function ToolPanelFrame({ title, tabs, detail, actions, children }: {
+/**
+ * One pane of the right-hand area, as in Claude's desktop app: a single
+ * header with the pane's icon and name, what it works on (the project,
+ * its branch), its own actions and close. There is no second row of tabs;
+ * the title-bar buttons and ⋯ switch panes.
+ */
+export function ToolPanelFrame({ title, icon: TitleIcon, detail, actions, onClose, children }: {
   title: string;
-  tabs: ReactNode;
-  /** e.g. the project and its folder. */
+  icon?: Icon;
+  /** e.g. the project and its branch. */
   detail?: ReactNode;
   actions?: ReactNode;
+  onClose: () => void;
   children: ReactNode;
 }) {
-  return <section aria-label={title} className="@container flex min-h-0 w-full flex-1 flex-col overflow-hidden border-t border-separator-border">
-    <header className="flex shrink-0 items-center gap-2 py-2">
-      {tabs}
-      <span className="min-w-0 flex-1 truncate text-caption-1-regular text-text-secondary">{detail}</span>
+  return <section aria-label={title} className="@container flex min-h-0 w-full flex-1 flex-col overflow-hidden">
+    <header className="flex h-11 shrink-0 items-center gap-2 border-b border-separator-border ps-3.5 pe-1.5">
+      {TitleIcon && <TitleIcon className="size-4 shrink-0 text-foreground-icon-secondary" aria-hidden />}
+      <h2 className="shrink-0 text-body-2-medium text-text-primary">{title}</h2>
+      <span className="min-w-0 flex-1 truncate text-caption-1-regular text-text-tertiary">{detail}</span>
       {actions}
+      <ToolbarIconButton icon={XIcon} label={`关闭${title}`} onPress={onClose} />
     </header>
     <div className="flex min-h-0 flex-1 flex-col">{children}</div>
   </section>;

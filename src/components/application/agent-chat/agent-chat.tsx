@@ -53,6 +53,8 @@ import { BrowserDragLayer, useBrowserDrag } from "./use-browser-drag";
 import { chatTabEntries } from "./chat-workspace-tabs";
 import { toChatContactRequest } from "./chat-contact";
 import { useAgentRun } from "./use-agent-run";
+import { onFocusChange } from "@/app/agent/project-change-events";
+import type { ChatTool } from "@/app/chat/chat-tools";
 import { AgentToolActionsContext } from "./agent-tools/agent-tool-actions";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
 import {
@@ -104,7 +106,7 @@ export function AgentChat({
   // The right-hand area holds either the side panel or the built-in browser;
   // the browser can also move to its own title-bar tab and be dragged back.
   const placement = useBrowserPlacement(activeId);
-  const { auxiliary, openWorkPanel, panelView, toggleWorkPanel } = placement;
+  const { auxiliary, openWorkPanel, toggleWorkPanel } = placement;
   const openHistory = useCallback(() => openWorkPanel("history"), [openWorkPanel]);
   const browserDrag = useBrowserDrag((zone) => zone === "tab" ? placement.moveToTab() : placement.moveToSide());
   const browserLabel = browserTabLabel(browser.url, browser.title);
@@ -381,10 +383,9 @@ export function AgentChat({
   const workspaceTitle = activeContact?.name ?? allThreads.find((thread) => thread.id === activeId)?.title ?? "新对话";
   const nativeWindow = !contained && isMacTauriWindow();
   const windowToolbar = !contained && page === "chat";
-  useChatToolShortcuts(page === "chat", (tool) => {
-    if (auxiliary === "panel" && panelView === tool && !placement.browserTabActive) placement.closeAuxiliary();
-    else openWorkPanel(tool);
-  });
+  useChatToolShortcuts(page === "chat", placement.togglePanelView);
+  // 在“更改”中查看 on a change card opens the pane; the pane opens the file.
+  useEffect(() => onFocusChange(() => openWorkPanel("changes")), [openWorkPanel]);
   // 新建对话 from the title bar leaves the browser tab for the new chat.
   const createChat = () => { placement.leaveBrowserTab(); windowNavigation.create(); };
   // 清理标签: closes the views only; saved chats stay in the sidebar under their project.
@@ -401,10 +402,8 @@ export function AgentChat({
     deleteDisabled: busy,
     disabled: messages.length === 0,
     showThreadMenu: !activeContact,
-    panelOpen: auxiliary === "panel" && !placement.browserTabActive,
-    onTogglePanel: toggleWorkPanel,
-    browserOpen: placement.browserShown,
-    onToggleBrowser: placement.toggleBrowser,
+    panes: { shown: placement.shownPane, open: openWorkPanel,
+      toggle: (pane: ChatTool | "browser") => pane === "browser" ? placement.toggleBrowser() : placement.togglePanelView(pane) },
   };
   const { workspaceHeader, windowActions } = createChatWindowChrome({
     title: workspaceTitle,

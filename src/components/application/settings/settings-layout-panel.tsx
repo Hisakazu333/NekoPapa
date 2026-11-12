@@ -32,13 +32,13 @@ export function LayoutSettingsPanel({ onClose }: { onClose: () => void }) {
                   disabled={!shown || index === 0} onClick={() => slot.move(entry, -1)} />
                 <Button variant="ghost" size="small" iconOnly leadingIcon={ArrowDownIcon} aria-label={`把“${entry.label}”向后移`}
                   disabled={!shown || index === slot.shown.length - 1} onClick={() => slot.move(entry, 1)} />
-                <Switch aria-label={`显示“${entry.label}”标签`} isSelected={shown} isDisabled={entry.required}
+                <Switch aria-label={`显示“${entry.label}”`} isSelected={shown} isDisabled={entry.required}
                   onChange={(next) => (next ? slot.show(entry) : slot.hide(entry))} />
               </div>
             </SettingsRow>;
           })}
         </SettingsCard>
-        <p className="text-body-2-regular text-text-tertiary">也可以在工作面板的标签上右键调整。布局只保存在这台设备上；目前只开放工作面板标签，其他位置会逐步开放。启用的界面插件的标签也列在这里。</p>
+        <p className="text-body-2-regular text-text-tertiary">这里的顺序就是标题栏 ⋯ 中列出的右侧视图顺序；隐藏的视图仍可从 ⋯ 打开。布局只保存在这台设备上；目前只开放右侧面板视图，其他位置会逐步开放。启用的界面插件的视图也列在这里。</p>
       </div>
     </ModalBody>
     <ModalFooter>

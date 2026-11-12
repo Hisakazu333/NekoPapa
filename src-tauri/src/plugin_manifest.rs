@@ -17,8 +17,8 @@ const MAX_MANIFEST: u64 = 256 * 1024;
 #[derive(Serialize, Debug, PartialEq)]
 pub struct ManifestFile {
     /// The folder as resolved on disk, stored with the plugin.
-    folder: String,
-    text: String,
+    pub(crate) folder: String,
+    pub(crate) text: String,
 }
 
 pub fn read_manifest(folder: &str) -> Result<ManifestFile, String> {

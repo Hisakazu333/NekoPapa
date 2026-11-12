@@ -4,7 +4,7 @@ import {
   ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff,
   CircleCheck, CircleHelp, CircleStop, Cloud, CloudUpload, Code, Compass, Contact, Copy, Cpu,
   Command, CornerDownLeft, Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
-  FileArchive, FileAudio, FileCode, FileLock, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
+  FileArchive, FileAudio, FileBraces, FileCode, FileCog, FileDiff, FileImage, FileLock, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
   GraduationCap, History, House, Image, ImagePlus, Info, Keyboard, Languages, Laptop, Layers,
   LayoutGrid, LayoutPanelLeft, Library, Lightbulb, Link, Link2, List, ListChecks, LogIn,
   Mail, MailCheck, MailOpen, Map, Menu, MessageCircle, MessageCircleHeart, MessageSquareText,
@@ -187,6 +187,10 @@ export const StickyNoteIcon = outline(StickyNote);
 export const SunIcon = outline(Sun);
 export const TabletIcon = outline(Tablet);
 export const TerminalIcon = outline(Terminal);
+export const FileDiffIcon = outline(FileDiff);
+export const FileBracesIcon = outline(FileBraces);
+export const FileCogIcon = outline(FileCog);
+export const FileImageIcon = outline(FileImage);
 export const Trash2Icon = outline(Trash2);
 export const Undo2Icon = outline(Undo2);
 export const UploadIcon = outline(Upload);

@@ -1,6 +1,11 @@
-import type { ComponentType, RefObject } from "react";
+import { useEffect, type ComponentType, type RefObject } from "react";
 import type { UIMessage } from "ai";
-import { BookOpenIcon, MessagesSquareIcon, NotebookPenIcon, XIcon } from "@/components/foundations/icons/app-icons";
+import { BookOpenIcon, HistoryIcon, MessagesSquareIcon, MonitorIcon, NotebookPenIcon } from "@/components/foundations/icons/app-icons";
+import { isPluginViewId } from "@/app/plugins/slot-registry";
+import { toast } from "@/components/base/toast/toast";
+import { useSlotLayout } from "@/hooks/use-slot-layout";
+import { pluginIcon } from "@/components/application/plugins/plugin-icons";
+import { ToolPanelFrame } from "./tools/tool-panel-frame";
 import { CHAT_TOOLS } from "@/app/chat/chat-tools";
 import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
@@ -9,7 +14,6 @@ import { AgentChatHistory, type AgentChatHistoryProps } from "./agent-chat-histo
 import { ChatWorkEnvironment } from "./tools/chat-work-environment";
 import { ChatToolPanel } from "./tools/chat-tool-panel";
 import type { WorkPanelView } from "./use-browser-placement";
-import { WorkPanelTabs } from "./work-panel-tabs";
 import { useWorkPanelViews } from "@/hooks/use-ui-plugins";
 import { PluginViewPanel } from "@/components/application/plugins/plugin-view-panel";
 
@@ -36,10 +40,18 @@ function Planned({ status, detail, items }: { status: string; detail: string; it
   </div>;
 }
 
+const VIEW_TITLES: Partial<Record<string, { title: string; icon: Icon }>> = {
+  history: { title: "历史", icon: HistoryIcon },
+  code: { title: "环境与上下文", icon: MonitorIcon },
+  study: { title: "资料", icon: BookOpenIcon },
+};
+
 /**
- * The right-hand work panel keeps the same navigation and close control
- * while switching between history, environment, study and project tools;
- * the tabs come from the extension registry in the user's layout.
+ * The right-hand area's panes other than the browser. Each pane has one
+ * header (its name, actions and close) and is opened from its title-bar
+ * button or from ⋯; there is no row of tabs. When the open pane's view is
+ * hidden in 设置 → 界面布局, or its plugin is turned off or removed, the
+ * area goes back to 历史 and says so.
  */
 export function ChatSidePanel({ project, onClose, view, onSelectView, usage, messages, messageAt, scrollRef, ...history }: Omit<AgentChatHistoryProps, "onClose" | "className"> & {
   project?: Project;
@@ -53,25 +65,35 @@ export function ChatSidePanel({ project, onClose, view, onSelectView, usage, mes
   scrollRef: RefObject<HTMLDivElement | null>;
 }) {
   const tool = CHAT_TOOLS.find((candidate) => candidate === view);
-  const pluginView = useWorkPanelViews().find((entry) => entry.plugin && entry.view === view);
-  return <div className="flex h-full w-full flex-col gap-3 overflow-hidden rounded-3xl bg-background-secondary-default p-3">
-    <div className="flex items-center justify-between gap-2">
-      <WorkPanelTabs view={view} onSelectView={onSelectView} />
-      <button type="button" onClick={onClose} aria-label="关闭辅助工作区" title="关闭辅助工作区"
-        className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-secondary outline-none hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-        <XIcon className="size-5" aria-hidden />
-      </button>
-    </div>
-    {view === "history" && <AgentChatHistory {...history} className="min-h-0 w-full flex-1 rounded-none bg-transparent p-0" />}
-    {view === "code" && <ChatWorkEnvironment project={project} usage={usage} onOpenChanges={() => onSelectView("changes")} className="px-1" />}
-    {tool && <ChatToolPanel tool={tool} project={project} messages={messages} messageAt={messageAt} scrollRef={scrollRef} onSwitch={onSelectView} />}
-    {pluginView && <PluginViewPanel entry={pluginView} />}
-    {view === "study" && <div className="min-h-0 flex-1 overflow-y-auto">
-      <Planned status="NekoBuddy 后端未连接" detail="学习与知识库由 NekoBuddy 后端提供。接入后，这里跟随当前对话显示相关资料与学习进度；当前不会上传或读取资料。" items={[
-        { icon: BookOpenIcon, title: "引用资料", description: "回答引用的知识库原文，并标明出处。" },
-        { icon: NotebookPenIcon, title: "学习笔记", description: "从对话整理的要点、错题与复习计划。" },
-        { icon: MessagesSquareIcon, title: "练习", description: "围绕当前主题出题、批改，并记录掌握情况。" },
-      ]} />
-    </div>}
+  const entries = useWorkPanelViews();
+  const slot = useSlotLayout("workPanel.view", entries);
+  const pluginView = entries.find((entry) => entry.plugin && entry.view === view);
+  const hiddenOpen = !tool && slot.hidden.find((entry) => entry.view === view)?.label;
+  const missing = isPluginViewId(view) && !pluginView;
+  useEffect(() => {
+    if (!hiddenOpen && !missing) return;
+    onSelectView("history");
+    if (hiddenOpen) toast.info(`已隐藏“${hiddenOpen}”`, { description: "右侧回到了“历史”。可在 ⋯ 或 设置 → 界面布局 中重新显示。" });
+    else toast.info("插件视图已关闭", { description: "提供它的界面插件已停用或移除，右侧回到了“历史”。" });
+  }, [hiddenOpen, missing, onSelectView]);
+
+  const frame = VIEW_TITLES[view];
+  return <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
+    {tool && <ChatToolPanel tool={tool} project={project} messages={messages} messageAt={messageAt} scrollRef={scrollRef} onClose={onClose} />}
+    {pluginView && <ToolPanelFrame title={pluginView.label} icon={pluginIcon(pluginView.plugin!.icon)} onClose={onClose}>
+      <div className="flex min-h-0 flex-1 flex-col p-3"><PluginViewPanel entry={pluginView} /></div>
+    </ToolPanelFrame>}
+    {frame && <ToolPanelFrame title={frame.title} icon={frame.icon} onClose={onClose}
+      detail={view === "code" && project ? <span translate="no">{project.name}</span> : undefined}>
+      {view === "history" && <AgentChatHistory {...history} className="min-h-0 w-full flex-1 rounded-none bg-transparent px-3 pt-2" />}
+      {view === "code" && <ChatWorkEnvironment project={project} usage={usage} onOpenChanges={() => onSelectView("changes")} className="px-4" />}
+      {view === "study" && <div className="min-h-0 flex-1 overflow-y-auto p-3">
+        <Planned status="NekoBuddy 后端未连接" detail="学习与知识库由 NekoBuddy 后端提供。接入后，这里跟随当前对话显示相关资料与学习进度；当前不会上传或读取资料。" items={[
+          { icon: BookOpenIcon, title: "引用资料", description: "回答引用的知识库原文，并标明出处。" },
+          { icon: NotebookPenIcon, title: "学习笔记", description: "从对话整理的要点、错题与复习计划。" },
+          { icon: MessagesSquareIcon, title: "练习", description: "围绕当前主题出题、批改，并记录掌握情况。" },
+        ]} />
+      </div>}
+    </ToolPanelFrame>}
   </div>;
 }

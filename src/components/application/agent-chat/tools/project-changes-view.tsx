@@ -1,9 +1,11 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ANY_PROJECT, onFocusChange, onProjectChange, takeFocusedChange } from "@/app/agent/project-change-events";
 import { ArrowLeftIcon, CircleCheckIcon, GitBranchIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
-import { parseGitStatus, parseUnifiedDiff, untrackedDiff, type ChangeKind, type FileDiff, type GitChange, type GitStatus } from "@/app/projects/project-workspace";
+import { parseGitStatus, parseUnifiedDiff, untrackedDiff, type FileDiff, type GitChange, type GitStatus } from "@/app/projects/project-workspace";
 import { projectWorkspace } from "@/app/projects/project-workspace-client";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
-import { Chip, type ChipColor } from "@/components/base/badges/chip";
+import { Chip } from "@/components/base/badges/chip";
+import { CHANGE_LABEL } from "./git-change-label";
 import { DiffText } from "./file-text";
 import { OpenInEditorButton } from "./open-in-editor-button";
 import { useEditorPreferences } from "@/hooks/use-editor-preferences";
@@ -12,21 +14,22 @@ import { ToolPanelMessage } from "./tool-panel-frame";
 type Load = { kind: "loading" } | { kind: "error"; message: string } | { kind: "norepo" } | { kind: "ready"; status: GitStatus };
 type Diff = { change: GitChange; state: { kind: "loading" } | { kind: "error"; message: string } | { kind: "ready"; diff: FileDiff } };
 
-const label: Record<ChangeKind, [string, string, ChipColor]> = {
-  modified: ["M", "已修改", "blue"], added: ["A", "新增", "lime"], deleted: ["D", "已删除", "rose"], renamed: ["R", "重命名", "purple"],
-  untracked: ["U", "未跟踪", "lime"], conflicted: ["!", "冲突", "orange"], typechange: ["T", "类型变化", "yellow"],
-};
 const message = (error: unknown) => error instanceof Error ? error.message : "读取失败。";
 
 /**
  * 更改: the project's uncommitted changes as Git reports them (staged and
  * unstaged together, against HEAD), refreshed on open, on 刷新 and when the
- * window regains focus. Choosing a file shows its diff. Read-only: nothing is
- * staged, committed or reverted from here.
+ * window regains focus, and after each Agent change in this project (the
+ * open diff reloads too). Choosing a file shows its diff; a change card in
+ * the chat can ask for one file, which opens once the status is read.
+ * Read-only: nothing is staged, committed or reverted from here.
  */
 export function ProjectChangesView({ root, onActions, onBranch }: { root: string; onActions: (actions: React.ReactNode) => void; onBranch: (branch?: string) => void }) {
   const [load, setLoad] = useState<Load>({ kind: "loading" });
   const [diff, setDiff] = useState<Diff>();
+  const [wanted, setWanted] = useState(takeFocusedChange);
+  const shown = useRef<GitChange | undefined>(undefined);
+  useEffect(() => { shown.current = diff?.change; }, [diff]);
 
   const refresh = useCallback(async () => {
     try {
@@ -46,6 +49,8 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
     window.addEventListener("focus", onFocus);
     return () => window.removeEventListener("focus", onFocus);
   }, [refresh]);
+  useEffect(() => onFocusChange(() => setWanted(takeFocusedChange())), []);
+
   useEffect(() => { onActions(<ToolbarIconButton icon={RefreshCwIcon} label="刷新更改" onPress={() => void refresh()} />); }, [onActions, refresh]);
 
   const open = async (change: GitChange) => {
@@ -62,6 +67,21 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
     }
   };
 
+  // The Agent wrote, ran or undid something here: re-read the list and the open diff.
+  const openLatest = useRef(open);
+  useEffect(() => { openLatest.current = open; });
+  useEffect(() => onProjectChange((changed) => {
+    if (changed !== root && changed !== ANY_PROJECT) return;
+    void refresh();
+    if (shown.current) void openLatest.current(shown.current);
+  }), [root, refresh]);
+  useEffect(() => {
+    if (!wanted || load.kind !== "ready") return;
+    const change = load.status.changes.find((candidate) => candidate.path === wanted);
+    setWanted(undefined);
+    if (change) void openLatest.current(change);
+  }, [wanted, load]);
+
   if (diff) return <DiffPane root={root} diff={diff} onBack={() => { setDiff(undefined); void refresh(); }} />;
   if (load.kind === "loading") return <ToolPanelMessage icon={GitBranchIcon} title="正在读取 Git 状态…" />;
   if (load.kind === "error") return <ToolPanelMessage tone="error" icon={GitBranchIcon} title="无法读取更改" detail={load.message} />;
@@ -77,7 +97,7 @@ export function ProjectChangesView({ root, onActions, onBranch }: { root: string
         <p className="shrink-0 px-4 pb-1 text-caption-1-medium text-text-secondary">{status.changes.length} 个文件有更改</p>
         <ul aria-label="有更改的文件" className="min-h-0 flex-1 overflow-auto px-2 pb-3">
           {status.changes.map((change) => {
-            const [letter, name, color] = label[change.kind];
+            const [letter, name, color] = CHANGE_LABEL[change.kind];
             const slash = change.path.lastIndexOf("/");
             return <li key={`${change.from ?? ""}>${change.path}`}>
               <button type="button" onClick={() => void open(change)} title={change.from ? `${change.from} → ${change.path}` : change.path}
@@ -114,6 +134,6 @@ function DiffPane({ root, diff, onBack }: { root: string; diff: Diff; onBack: ()
       ? <ToolPanelMessage icon={GitBranchIcon} title="二进制文件或文件太大" detail="这里只显示文本差异。" />
       : state.diff.lines.length === 0
         ? <ToolPanelMessage icon={GitBranchIcon} title="没有可显示的文本差异" detail={change.kind === "renamed" ? "文件只是改了名字。" : "可能只改了文件权限。"} />
-        : <DiffText lines={state.diff.lines} split={editor.split} wrap={editor.wrap} whitespace={editor.whitespace} />)}
+        : <DiffText lines={state.diff.lines} split={editor.split} wrap={editor.wrap} whitespace={editor.whitespace} path={change.path} />)}
   </div>;
 }
