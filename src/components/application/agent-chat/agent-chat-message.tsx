@@ -11,6 +11,10 @@ import { splitMessageBlocks } from "@/app/chat/message-blocks";
 import { MessageMarkdown } from "./message-markdown";
 import { MessageRichBlock } from "./message-rich-block";
 import { MessageReasoning } from "./message-reasoning";
+import type { UIMessage } from "ai";
+import { hasToolParts, messageSegments } from "@/app/agent/message-segments";
+import { AgentToolCard } from "./agent-tools/agent-tool-card";
+import { AgentPlanCard } from "./agent-tools/agent-plan-card";
 
 /**
  * One turn in the transcript.
@@ -33,12 +37,15 @@ export interface AgentMessageProps {
   at?: number;
   /** Reasoning the provider streamed before the answer, if any. */
   reasoning?: string;
+  /** The reply's parts, passed when it used tools: text and tool calls then show in order. */
+  parts?: UIMessage["parts"];
 }
 
 /** Memoized: while one reply streams, the earlier turns do not re-render. */
-export const AgentMessage = memo(function AgentMessage({ role, text, streaming = false, at, reasoning = "" }: AgentMessageProps) {
+export const AgentMessage = memo(function AgentMessage({ role, text, streaming = false, at, reasoning = "", parts }: AgentMessageProps) {
   const localize = useTemplateCopy();
-  if (!text && !reasoning.trim()) return null;
+  const tools = role === "assistant" && parts !== undefined && hasToolParts(parts);
+  if (!text && !reasoning.trim() && !tools) return null;
 
   if (role === "user") {
     return localize((
@@ -50,12 +57,22 @@ export const AgentMessage = memo(function AgentMessage({ role, text, streaming =
 
   return localize((
     <div className="group/message flex flex-col gap-1 px-1">
-      <MessageReasoning text={reasoning} streaming={streaming && !text} />
-      <ReplyBlocks text={text} />
+      <MessageReasoning text={reasoning} streaming={streaming && !text && !tools} />
+      {tools ? <ToolReply parts={parts} /> : <ReplyBlocks text={text} />}
       <MessageActions text={text} at={at} hidden={streaming} />
     </div>
   ));
 });
+
+/** A reply that used tools: its text runs, tool calls and task checklist in the order they happened. */
+function ToolReply({ parts }: { parts: UIMessage["parts"] }) {
+  const segments = useMemo(() => messageSegments(parts), [parts]);
+  return <div className="flex flex-col gap-2.5">
+    {segments.map((segment) => segment.kind === "text" ? <ReplyBlocks key={segment.key} text={segment.text} />
+      : segment.kind === "plan" ? <AgentPlanCard key={segment.key} steps={segment.steps} />
+        : <AgentToolCard key={segment.key} name={segment.name} part={segment.part} />)}
+  </div>;
+}
 
 /** Prose as Markdown; fenced blocks as code, diagrams, charts or math (message-rich-block). */
 function ReplyBlocks({ text }: { text: string }) {

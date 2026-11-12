@@ -58,7 +58,7 @@ pub(crate) fn root_of(root: &str) -> Result<PathBuf, String> {
 }
 
 /// A relative path inside the project, with no `..`, root or prefix parts.
-fn relative(path: &str) -> Result<PathBuf, String> {
+pub(crate) fn relative(path: &str) -> Result<PathBuf, String> {
     let candidate = Path::new(path);
     if path.len() > 4096 || candidate.components().any(|part| !matches!(part, Component::Normal(_) | Component::CurDir)) {
         return Err("路径无效。".into());
@@ -76,7 +76,7 @@ pub(crate) fn inside(root: &Path, path: &str) -> Result<PathBuf, String> {
     Ok(resolved)
 }
 
-fn slash(path: &Path) -> String {
+pub(crate) fn slash(path: &Path) -> String {
     path.components().map(|part| part.as_os_str().to_string_lossy()).collect::<Vec<_>>().join("/")
 }
 

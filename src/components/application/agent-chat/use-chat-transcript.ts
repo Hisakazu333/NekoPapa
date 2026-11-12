@@ -8,9 +8,11 @@ export function useChatTranscript(messages: UIMessage[], busy: boolean) {
   // status to "streaming" on that first non-text chunk. Gating the indicator on
   // "submitted" alone therefore hides it seconds before a word appears, leaving
   // an empty transcript. It stays up until real text exists.
+  // A tool call counts as the reply having started: its own card shows progress.
   const streamedText = useMemo(() => {
     const last = messages[messages.length - 1];
     if (!last || last.role !== "assistant") return "";
+    if (last.parts.some((part) => part.type.startsWith("tool-"))) return "tool";
     return last.parts
       .filter((part) => part.type === "text")
       .map((part) => part.text)

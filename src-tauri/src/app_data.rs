@@ -50,7 +50,7 @@ pub struct DataInfo {
     sections: Vec<SectionUsage>,
 }
 
-fn root_of<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
+pub(crate) fn root_of<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
     let root = app.path().app_data_dir().map_err(|_| "无法确定本机数据文件夹。".to_string())?;
     ensure_layout(&root)?;
     Ok(root)

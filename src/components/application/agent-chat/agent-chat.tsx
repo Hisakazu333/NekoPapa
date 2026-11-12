@@ -52,6 +52,8 @@ import { useBrowserPlacement } from "./use-browser-placement";
 import { BrowserDragLayer, useBrowserDrag } from "./use-browser-drag";
 import { chatTabEntries } from "./chat-workspace-tabs";
 import { toChatContactRequest } from "./chat-contact";
+import { useAgentRun } from "./use-agent-run";
+import { AgentToolActionsContext } from "./agent-tools/agent-tool-actions";
 import { ChatSessionMemory, emptyChatSession, type ChatSessionSnapshot } from "./chat-session-memory";
 import {
   deriveTitle, newThreadId, orderThreads, readThreads,
@@ -127,12 +129,15 @@ export function AgentChat({
 
   const [transport] = useState(createChatTransport);
 
-  const { messages, sendMessage, setMessages, status, stop, error } = useChat({
+  const { messages, sendMessage, setMessages, status, stop, error, addToolApprovalResponse } = useChat({
     transport,
   });
 
   const usage = useMemo(() => threadUsage(messages), [messages]);
   const busy = status === "submitted" || status === "streaming";
+  const agent = useAgentRun({ messages, busy, permission: composer.draft.permission, addToolApprovalResponse, sendMessage,
+    base: { ...composer.requestBody, ...(activeContact ? { contact: toChatContactRequest(activeContact) } : {}) },
+    project: activeContact ? undefined : resolveProject(projects, activeProject) });
 
   useEffect(() => {
     if (!selectedContact || !deletedIds.includes(selectedContact.id)) return;
@@ -237,7 +242,7 @@ export function AgentChat({
     const trimmed = text.trim();
     if (!trimmed || busy || !availability.ready || composerBlockedReason) return;
     setActiveUpdatedAt(Date.now());
-    void sendMessage({ text: activeContact?.kind === "official" ? trimmed : composer.prepareText(trimmed) }, { body: { ...composer.requestBody, ...(activeContact ? { contact: toChatContactRequest(activeContact) } : {}) } });
+    void sendMessage({ text: activeContact?.kind === "official" ? trimmed : composer.prepareText(trimmed) }, { body: agent.body });
     setInput("");
   };
 
@@ -468,13 +473,13 @@ export function AgentChat({
       }>
         <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
             {workspaceHeader}
-            <ChatConversation scrollRef={scrollRef} conversationId={activeId} active={page === "chat" && !placement.browserTabActive} messages={messages} messageAt={messageAt} busy={busy}
+            <AgentToolActionsContext value={agent.actions}><ChatConversation scrollRef={scrollRef} conversationId={activeId} active={page === "chat" && !placement.browserTabActive} messages={messages} messageAt={messageAt} busy={busy}
               showThinking={showThinking} error={error} historyError={historyError} onRetryHistory={retryHistory}
               input={input} onInputChange={setInput} onSubmit={submit} onStop={stop} composer={composer}
               onOpenSettings={openSettings} sendDisabled={!availability.ready || Boolean(composerBlockedReason)}
               sendBlockedReason={composerBlockedReason} contact={activeContact} onSelectContact={selectContact}
               onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject}
-              usage={usage} projectInfo={resolveProject(projects, activeProject)} onOpenChanges={() => openWorkPanel("changes")} />
+              usage={usage} projectInfo={resolveProject(projects, activeProject)} onOpenChanges={() => openWorkPanel("changes")} /></AgentToolActionsContext>
         </div>
 
       </ChatWorkspaceSplit>

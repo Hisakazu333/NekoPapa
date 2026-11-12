@@ -1,11 +1,15 @@
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
+  isStepCount,
   safeValidateUIMessages,
   smoothStream,
   streamText,
   toUIMessageStream,
 } from "ai";
+import { readAgentWorkspace, type AgentWorkspace } from "../../agent/agent-request";
+import { activeAgentTools, agentToolApproval, createAgentTools } from "../../agent/agent-tools";
+import { AGENT_UNAVAILABLE_PROMPT, agentSystemPrompt } from "../../agent/agent-prompt";
 import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
 import { groupSystemPrompt, resolveGroupContext, type GroupContext } from "./group-context";
 import { REPLY_FORMAT_PROMPT } from "./reply-format-prompt";
@@ -18,14 +22,16 @@ import { serviceVendor } from "../../models/model-vendors";
 import { PROFILE_PROVIDER_NAME, profileProvider, resolveProvider, type Provider } from "./providers";
 import type { ChatRuntime } from "./runtime";
 
-/** Bumped when the contract below changes in a way templates can depend on. */
-const RUNTIME_CONTRACT = 1;
+/** Bumped when the contract below changes in a way templates can depend on (2: project tools). */
+const RUNTIME_CONTRACT = 2;
+/** Model calls in one reply before it stops and reports, so a tool loop cannot run away. */
+const MAX_AGENT_STEPS = 30;
 const INSTRUCTIONS_LIMIT = 12000;
 /** Built-in providers that reach a vendor's own API, by the reasoning table's vendor ids. */
 const BUILT_IN_VENDORS: Partial<Record<string, string>> = { openai: "openai", anthropic: "anthropic", google: "gemini", deepseek: "deepseek" };
 
 /** Keep the assistant's identity and capability claims aligned with this chat. */
-function systemPrompt(provider: Provider, contact?: ChatContactMetadata, group?: GroupContext, instructions?: string) {
+function systemPrompt(provider: Provider, contact?: ChatContactMetadata, group?: GroupContext, instructions?: string, agent?: string) {
   return [
     // 设置 → 个性化: the user's own standing instructions, for every chat.
     instructions ? `The user's standing instructions for you:\n${instructions}` : "",
@@ -33,6 +39,7 @@ function systemPrompt(provider: Provider, contact?: ChatContactMetadata, group?:
     groupSystemPrompt(group, contact),
     `This conversation is answered by ${provider.label} using ${provider.modelId}.`,
     REPLY_FORMAT_PROMPT,
+    agent ?? "",
   ].filter(Boolean).join("\n");
 }
 
@@ -123,6 +130,21 @@ export function createChatHandlers(runtime: ChatRuntime) {
     // Anthropic and built-in providers map the SDK's standard setting.
     const reasoning = reasoningCallOptions(reasoningLevel, profile && profile.provider !== "anthropic" ? "compatible" : "sdk");
 
+    // The project this workbench chat works in. Tools exist only where the
+    // runtime can reach the computer (the desktop app) and never for contacts.
+    const submittedWorkspace = (body as { workspace?: unknown }).workspace;
+    const workspace: AgentWorkspace | undefined = submittedWorkspace === undefined ? undefined : readAgentWorkspace(submittedWorkspace);
+    if (submittedWorkspace !== undefined && (!workspace || contact)) {
+      return Response.json({ error: "invalid_workspace", message: "Expected a project folder, its name and a permission mode, outside contact chats." }, { status: 400 });
+    }
+    const agent = workspace && runtime.agent ? {
+      tools: createAgentTools(runtime.agent, workspace.root),
+      activeTools: activeAgentTools(workspace.permission),
+      toolApproval: agentToolApproval(workspace.permission),
+      stopWhen: isStepCount(MAX_AGENT_STEPS),
+    } : undefined;
+    const agentPrompt = workspace ? runtime.agent ? agentSystemPrompt(workspace.name, workspace.permission) : AGENT_UNAVAILABLE_PROMPT : undefined;
+
     // Validate before converting. `convertToModelMessages` throws on a message
     // missing `parts`, on a null entry, and on an unknown role — and it throws
     // outside any stream, so an unvalidated body would escape as a bare 500
@@ -137,7 +159,8 @@ export function createChatHandlers(runtime: ChatRuntime) {
 
     const result = streamText({
       model: provider.model,
-      system: systemPrompt(provider, contact, group, instructions),
+      system: systemPrompt(provider, contact, group, instructions, agentPrompt),
+      ...agent,
       ...(reasoning.reasoning ? { reasoning: reasoning.reasoning } : {}),
       ...(reasoning.compatible ? { providerOptions: { [PROFILE_PROVIDER_NAME]: reasoning.compatible } } : {}),
       // Earlier replies' reasoning stays on screen but is not sent back:

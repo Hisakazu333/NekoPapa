@@ -1,4 +1,7 @@
 mod account_auth;
+mod agent_command;
+mod agent_diff;
+mod agent_tools;
 mod app_data;
 mod chat_db;
 mod browser_view;
@@ -22,6 +25,7 @@ pub fn run() {
         .manage(terminal::Terminals::default())
         .manage(account_auth::AccountAuth::default())
         .manage(app_data::AppDataState::default())
+        .manage(agent_command::AgentCommands::default())
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
@@ -46,6 +50,13 @@ pub fn run() {
             project_workspace::project_read_file,
             project_workspace::project_git_status,
             project_workspace::project_git_diff,
+            agent_tools::agent_search,
+            agent_tools::agent_write_file,
+            agent_tools::agent_edit_file,
+            agent_tools::agent_snapshot_state,
+            agent_tools::agent_undo,
+            agent_command::agent_run_command,
+            agent_command::agent_cancel_command,
             // 设置 → 编辑器与终端 → 外部编辑器.
             editor_open::open_in_editor,
             // 设置 → 技能: lists skill folders already on this computer.

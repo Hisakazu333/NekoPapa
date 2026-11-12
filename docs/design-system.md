@@ -52,6 +52,8 @@
 
 普通功能图标统一从 [app-icons.tsx](../src/components/foundations/icons/app-icons.tsx) 引用：底层为 `lucide-react`（锁定 1.61.0）的线性图标，统一以 24 格 1.5 描边（随尺寸缩放：16px 约 1px、20px 约 1.25px），页面不直接引用 `lucide-react`，需要新图标时先加到该文件；只有“已置顶”和“停止回复”用实心（`PinFilledIcon`、`StopFilledIcon`），GitHub 标志使用 Octicons `mark-github` 路径。尺寸由对应组件决定。2026-11-10 起替换原 `@remixicon/react`，该依赖已移除。展开箭头使用仓库现有 [chevrons.tsx](../src/components/foundations/icons/chevrons.tsx)。模型供应商和附件插件使用已核实并随包保存的 BoardUI SVG，资源来源与路径见源码说明；装饰插画、Logo、人物头像与 Live2D 模型各有资源所有者，不能把供应商品牌图标当作普通功能图标替代。
 
+对话中的 Agent 工具卡片（`agent-chat/agent-tools/`）参照 BoardUI AI Chat 模板与 Agent Progress / Task List（均为 Pro，未安装源码），用现有基础组件自行组合，不复制 Pro 源码：读取、列目录、搜索为与“思考过程”同款的单行折叠（运行中 `SpinnerGlyph`，失败 `CircleAlertIcon` + 错误色）；审批卡、改动卡、命令卡与任务进度卡都是 `rounded-2xl border-separator-border bg-background-primary-default` 卡片，标题行高 36px。审批卡带 `shadow-card`，页脚右侧为 secondary“拒绝”与 primary“允许”（small），回复流式输出时禁用并说明原因；改动卡显示路径、“新建”、`+n`（`text-status-lime-text`）/`−n`（`text-status-rose-text`）、secondary xs“撤销”，差异复用更改面板的 `DiffText`；命令卡显示命令、结果（成功 / 退出码 / 超时 / 已停止）与耗时，失败时默认展开输出；任务进度卡以 `CircleCheckIcon`（完成、划线）、`ArrowRightIcon`（进行中）和描边圆（未开始）列出步骤，并显示 `完成数/总数 · 还剩 n 步`。所有内容来自工具调用的输入与宿主结果，没有示例数据。
+
 输入框参照 BoardUI Composer Panel（Pro，未安装源码）：上方一条 `bg-background-secondary-default` 托盘放模式菜单（仅联系人单聊）与不可发送原因，下方 `rounded-3xl` 卡片放草稿摘要、textarea 与附件 / 权限 / 模型 / 表情 / 发送按钮，托盘以负外边距衬在卡片后面。联系人单聊（`contacts/contact-composer.tsx`）已采用该结构。
 
 ## 登录与设置的页面职责

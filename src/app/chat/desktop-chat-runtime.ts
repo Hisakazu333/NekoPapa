@@ -65,7 +65,8 @@ async function desktopRuntime(credentials: string[]): Promise<ChatRuntime> {
     const id = keychainId(name);
     return id === undefined ? key(name) : env.secrets.includes(id) ? `{{nekopapa-secret:${id}}}` : undefined;
   };
-  return { env: (name) => env.plain[name] ?? key(name), credential: stored, desktop: true, fetch: hostFetch };
+  const { desktopAgentHost } = await import("../../platform/desktop-agent-host");
+  return { env: (name) => env.plain[name] ?? key(name), credential: stored, desktop: true, fetch: hostFetch, agent: desktopAgentHost };
 }
 
 const credentialOf = (body: unknown) => {

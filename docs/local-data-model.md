@@ -18,6 +18,7 @@ NekoPapa 是本地优先的个人助手：聊天、Coding、学习、笔记和�
 <appData>/                          # macOS：~/Library/Application Support/app.nekopapa.desktop/
 ├── data/
 │   ├── workspace.sqlite            # 本机数据库（WAL 模式，-wal / -shm 为运行时文件）
+│   ├── snapshots/                  # Agent 每次写入前的原内容（<编号>.json），供改动卡撤销；撤销后删除
 │   └── chat-threads.json.migrated  # 第 1 阶段迁移前的聊天记录文件，保留为备份
 ├── files/                          # 附件与生成的文件（第 3 阶段）
 ├── cache/                          # 可清理

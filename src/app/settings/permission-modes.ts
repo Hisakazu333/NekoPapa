@@ -2,8 +2,9 @@
  * The permission modes for work the Agent / Coding runtime does on the
  * user's machine, after the modes Claude Code and Codex offer. One list for
  * 设置 → 权限规则 (the default for new chats) and the composer's 权限 menu
- * (this chat). The runtime is not connected yet: the choice is saved as a
- * preference and grants nothing by itself.
+ * (this chat). In the desktop app a workbench chat in a project sends its
+ * mode with each request, and src/app/agent/agent-tools.ts decides from it
+ * which project tool calls wait for approval; elsewhere it grants nothing.
  */
 export type PermissionMode = "ask" | "acceptEdits" | "plan" | "full";
 

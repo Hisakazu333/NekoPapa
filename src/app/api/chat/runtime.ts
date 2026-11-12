@@ -3,6 +3,8 @@
  * environment; the desktop app answers from its host, which keeps every key
  * on the Rust side and puts it into the outgoing request itself.
  */
+import type { AgentHost } from "../../agent/agent-host";
+
 export interface ChatRuntime {
   /** Non-secret configuration (AI_PROVIDER, AI_BASE_URL, CHAT_MODEL) and, for
    *  the environment provider, the key or a stand-in the host replaces. */
@@ -13,4 +15,6 @@ export interface ChatRuntime {
   credential: (name: string) => string | undefined;
   /** The HTTP client model requests go through; the platform fetch when absent. */
   fetch?: typeof globalThis.fetch;
+  /** The project tools (desktop app only); without it a chat cannot touch the computer. */
+  agent?: AgentHost;
 }
