@@ -13,6 +13,12 @@ try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)), "--project", fileURLToPath(new URL("./message-content-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
   symlinkSync(fileURLToPath(new URL("../node_modules", import.meta.url)), join(output, "node_modules"), "dir");
+  // Compiled relative imports need their .js suffix to load as ES modules.
+  for (const name of readdirSync(output, { recursive: true })) {
+    const file = join(output, String(name));
+    if (file.includes("node_modules") || !file.endsWith(".js")) continue;
+    writeFileSync(file, readFileSync(file, "utf8").replace(/(from\s+|import\s*)(["'])(\.{1,2}\/[^"']+)\2/g, (_, prefix, quote, specifier) => `${prefix}${quote}${specifier.endsWith(".js") ? specifier : specifier + ".js"}${quote}`));
+  }
   chart = await import(pathToFileURL(join(output, "app/chat/chart-spec.js")));
   blocks = await import(pathToFileURL(join(output, "app/chat/message-blocks.js")));
   highlight = await import(pathToFileURL(join(output, "app/chat/code-highlight.js")));

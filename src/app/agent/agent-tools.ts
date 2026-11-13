@@ -18,7 +18,8 @@ const EDIT_TOOLS: AgentToolName[] = ["write_file", "edit_file"];
 
 /** Lines of a file sent to the model in one read; the model asks for the next range. */
 export const READ_LINES = 400;
-const MAX_READ_CHARS = 60_000;
+/** Characters of a file sent to the model in one read, so one minified file cannot fill the context. */
+export const MAX_READ_CHARS = 60_000;
 const MAX_MODEL_OUTPUT = 12_000;
 
 export interface ReadOutput { path: string; startLine: number; endLine: number; totalLines: number; text: string; note?: string }
@@ -28,6 +29,43 @@ const clip = (value: string, limit = MAX_MODEL_OUTPUT) =>
 
 const object = (properties: Record<string, JSONSchema7>, required: string[]): JSONSchema7 =>
   ({ type: "object", properties, required, additionalProperties: false });
+
+/**
+ * The lines from `start`, at most READ_LINES of them and at most
+ * MAX_READ_CHARS characters — cut on a line boundary, because half a line is
+ * indistinguishable from real code once the model reads it, and a line cut
+ * mid-token silently turns a correct file into a wrong fact. Stopping early
+ * says which limit did it and where to continue; only a single line longer
+ * than the whole budget comes back partial, and its note says so.
+ */
+function readRange(lines: readonly string[], start: number): { text: string; end: number; note?: string } {
+  const kept: string[] = [];
+  let size = 0;
+  let overChars = false;
+  let partialLine = false;
+  for (const line of lines.slice(start - 1, start - 1 + READ_LINES)) {
+    const cost = (kept.length > 0 ? 1 : 0) + line.length;
+    if (size + cost > MAX_READ_CHARS) {
+      overChars = true;
+      // Nothing kept yet: this one line is longer than the whole budget, so
+      // return its beginning and say plainly that the line is incomplete.
+      if (kept.length === 0) {
+        kept.push(line.slice(0, MAX_READ_CHARS));
+        partialLine = true;
+      }
+      break;
+    }
+    kept.push(line);
+    size += cost;
+  }
+  const end = start - 1 + kept.length;
+  const note = partialLine
+    ? `第 ${start} 行本身超过单次读取 ${MAX_READ_CHARS} 字符上限，这里只有它的前 ${MAX_READ_CHARS} 个字符，这一行不完整。`
+    : overChars
+      ? `单次读取最多 ${MAX_READ_CHARS} 字符，已在第 ${end} 行停止；继续读请传 startLine=${end + 1}，文件共 ${lines.length} 行。`
+      : undefined;
+  return { text: kept.join("\n"), end, note };
+}
 
 /** Tools that act in `root` through `host`. Paths are relative to the project folder. */
 export function createAgentTools(host: AgentHost, root: string): ToolSet {
@@ -41,7 +79,7 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
       },
     }),
     read_file: tool({
-      description: `Read a text file of the project, ${READ_LINES} lines at a time. Pass startLine to read further.`,
+      description: `Read a text file of the project, ${READ_LINES} lines or ${MAX_READ_CHARS} characters at a time, always in whole lines. Pass startLine to read further; the note says when a limit stopped it early and where to continue.`,
       inputSchema: jsonSchema<{ path: string; startLine?: number }>(object({
         path: { type: "string", description: "File relative to the project root." },
         startLine: { type: "integer", minimum: 1, description: "First line to return (1-based)." },
@@ -52,11 +90,15 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
           return { path, startLine: 0, endLine: 0, totalLines: 0, text: "", note: file.binary ? "二进制文件，无法以文本读取。" : "文件超过 512 KB，无法读取。" };
         }
         const lines = file.text.split("\n");
-        const start = Math.min(Math.max(1, Math.floor(startLine ?? 1)), Math.max(1, lines.length));
-        const slice = lines.slice(start - 1, start - 1 + READ_LINES).join("\n");
-        const text = slice.slice(0, MAX_READ_CHARS);
-        const end = start - 1 + text.split("\n").length;
-        return { path, startLine: start, endLine: end, totalLines: lines.length, text };
+        const asked = Math.floor(startLine ?? 1);
+        // Past the end: say so instead of quietly returning the last line as if
+        // it were the one asked for.
+        if (asked > lines.length) {
+          return { path, startLine: 0, endLine: 0, totalLines: lines.length, text: "", note: `文件只有 ${lines.length} 行，没有第 ${asked} 行。` };
+        }
+        const start = Math.max(1, asked);
+        const range = readRange(lines, start);
+        return { path, startLine: start, endLine: range.end, totalLines: lines.length, text: range.text, note: range.note };
       },
     }),
     search_files: tool({

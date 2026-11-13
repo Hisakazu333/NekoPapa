@@ -2,6 +2,7 @@ import { useState } from "react";
 import { addComposerFiles, buildComposerText, composerDraftBlockReason, composerModesForContext, createComposerDraft, type ComposerContext, type ComposerDraft } from "@/app/chat/chat-composer-draft";
 import { composerModelBlockReason, composerModels, type ComposerModelOption, type ComposerRuntimeModel } from "@/app/models/composer-model";
 import { addPageElement, type PageElement } from "@/app/browser/browser-pick";
+import { pageElementsPart } from "@/app/browser/page-element-part";
 import { chatModelProfile } from "@/app/models/chat-model-profile";
 import { reasoningOption, reasoningProfile } from "@/app/models/reasoning-level";
 import { useConfiguration } from "./use-configuration";
@@ -79,6 +80,16 @@ export function useChatComposer(scope: string, runtime: ComposerRuntimeModel, co
     }),
     clearError: () => update((previous) => ({ ...previous, error: undefined })),
     prepareText: (text: string) => buildComposerText(text, state.draft),
+    /**
+     * The message to send: the typed text (with goal and plan notes) as one
+     * part, the browser annotations as their own part. The annotations are
+     * sent once: they leave the draft here, like a sent attachment.
+     */
+    takeMessage: (text: string) => {
+      const annotations = pageElementsPart(state.draft.pageElements);
+      if (annotations) update((previous) => ({ ...previous, draft: { ...previous.draft, pageElements: [] } }));
+      return { parts: [{ type: "text" as const, text: buildComposerText(text, { ...state.draft, pageElements: [] }) }, ...(annotations ? [annotations] : [])] };
+    },
   };
 }
 

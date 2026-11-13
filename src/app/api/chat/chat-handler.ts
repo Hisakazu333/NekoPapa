@@ -9,7 +9,8 @@ import {
 } from "ai";
 import { readAgentWorkspace, type AgentWorkspace } from "../../agent/agent-request";
 import { activeAgentTools, agentToolApproval, createAgentTools } from "../../agent/agent-tools";
-import { AGENT_UNAVAILABLE_PROMPT, agentSystemPrompt } from "../../agent/agent-prompt";
+import { AGENT_UNAVAILABLE_PROMPT, agentSystemPrompt, NO_PROJECT_PROMPT } from "../../agent/agent-prompt";
+import { pageElementsPrompt, readPageElementsPart } from "../../browser/page-element-part";
 import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
 import { groupSystemPrompt, resolveGroupContext, type GroupContext } from "./group-context";
 import { REPLY_FORMAT_PROMPT } from "./reply-format-prompt";
@@ -144,7 +145,8 @@ export function createChatHandlers(runtime: ChatRuntime) {
       toolApproval: agentToolApproval(workspace.permission),
       stopWhen: isStepCount(MAX_AGENT_STEPS),
     } : undefined;
-    const agentPrompt = workspace ? runtime.agent ? agentSystemPrompt(workspace.name, workspace.permission) : AGENT_UNAVAILABLE_PROMPT : undefined;
+    const agentPrompt = workspace ? runtime.agent ? agentSystemPrompt(workspace.name, workspace.permission) : AGENT_UNAVAILABLE_PROMPT
+      : contact ? undefined : NO_PROJECT_PROMPT;
 
     // Validate before converting. `convertToModelMessages` throws on a message
     // missing `parts`, on a null entry, and on an unknown role — and it throws
@@ -166,7 +168,13 @@ export function createChatHandlers(runtime: ChatRuntime) {
       ...(reasoning.compatible ? { providerOptions: { [PROFILE_PROVIDER_NAME]: reasoning.compatible } } : {}),
       // Earlier replies' reasoning stays on screen but is not sent back:
       // providers such as DeepSeek reject it in the input.
-      messages: await convertToModelMessages(validated.data.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") }))),
+      messages: await convertToModelMessages(validated.data.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") })), {
+        // Browser annotations ride beside the typed text; the model reads them as text.
+        convertDataPart: (part) => {
+          const elements = readPageElementsPart(part);
+          return elements ? { type: "text", text: pageElementsPrompt(elements) } : undefined;
+        },
+      }),
       // Providers emit text in uneven bursts, and a burst of twenty words lands
       // as one repaint — which is what makes streamed text look like it stutters.
       // Releasing whole words on a steady tick turns that into an even flow, and

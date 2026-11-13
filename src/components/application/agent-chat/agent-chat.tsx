@@ -244,7 +244,7 @@ export function AgentChat({
     const trimmed = text.trim();
     if (!trimmed || busy || !availability.ready || composerBlockedReason) return;
     setActiveUpdatedAt(Date.now());
-    void sendMessage({ text: activeContact?.kind === "official" ? trimmed : composer.prepareText(trimmed) }, { body: agent.body });
+    void sendMessage(activeContact?.kind === "official" ? { text: trimmed } : composer.takeMessage(trimmed), { body: agent.body });
     setInput("");
   };
 
@@ -461,7 +461,7 @@ export function AgentChat({
       </section>}
       {/* The chat stays mounted behind the browser tab, so its scroll and draft survive. */}
       <div style={{ display: placement.browserTabActive ? "none" : "flex" }} className="min-h-0 min-w-0 flex-1">
-      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={() => openWorkPanel()} onClose={placement.closeAuxiliary}
+      <ChatWorkspaceSplit panelOpen={auxiliary !== null} onOpen={() => openWorkPanel("code")} onClose={placement.closeAuxiliary}
         widthKey={auxiliary ?? "panel"} defaultRatio={auxiliary === "browser" ? 0.5 : undefined}
         mainMinWidth={auxiliary === "browser" ? BROWSER_CHAT_MIN_WIDTH : undefined}
         panelLabel={auxiliary === "browser" ? "浏览器" : "辅助工作区"} panel={<ChatAuxiliaryPanel project={resolveProject(projects, activeProject)} messages={messages} messageAt={messageAt}

@@ -96,7 +96,7 @@ export function ChatConversation({
               role={message.role}
               text={messageText(message)}
               reasoning={message.role === "assistant" ? messageReasoning(message) : undefined}
-              parts={message.role === "assistant" ? message.parts : undefined}
+              parts={message.parts}
               streaming={busy && index === messages.length - 1}
               at={messageAt[message.id]}
             />

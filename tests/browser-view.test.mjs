@@ -155,7 +155,7 @@ test("the draft keeps five elements and replaces a re-picked one", () => {
   assert.deepEqual(replaced.map((item) => item.id), ["0", "2", "3", "4", "7"]);
 });
 
-test("an element is written into the message with page, selector, styles and HTML", () => {
+test("an element is written with page, selector and HTML, without its computed styles", () => {
   const element = { ...pick.readPickState(JSON.stringify(picked)).elements[0], id: "1" };
   const text = pick.pageElementText(element);
   assert.doesNotMatch(text, /批注：/);
@@ -164,6 +164,7 @@ test("an element is written into the message with page, selector, styles and HTM
     /改动样式：color: rgb\(0, 0, 0\) → #ec4899; opacity: （未设置） → 0.8/);
   assert.match(text, /网页元素：Docs（https:\/\/example.com\/docs）/);
   assert.match(text, /选择器：main > h1/);
-  assert.match(text, /font-size: 32px/);
+  assert.doesNotMatch(text, /font-size|样式：/);
+  assert.match(pick.pageElementText({ ...element, html: "x".repeat(3000) }), /HTML（前 1500 个字符）：/);
   assert.match(text, /```html\n<h1>Hello<\/h1>\n```/);
 });

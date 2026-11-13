@@ -54,6 +54,8 @@
 
 对话中的 Agent 工具卡片（`agent-chat/agent-tools/`）参照 BoardUI AI Chat 模板与 Agent Progress / Task List（均为 Pro，未安装源码），用现有基础组件自行组合，不复制 Pro 源码：读取、列目录、搜索为与“思考过程”同款的单行折叠（运行中 `SpinnerGlyph`，失败 `CircleAlertIcon` + 错误色）；审批卡、改动卡、命令卡与任务进度卡都是 `rounded-2xl border-separator-border bg-background-primary-default` 卡片，标题行高 36px。审批卡带 `shadow-card`，页脚右侧为 secondary“拒绝”与 primary“允许”（small），回复流式输出时禁用并说明原因；改动卡显示路径、“新建”、`+n`（`text-status-lime-text`）/`−n`（`text-status-rose-text`）、secondary xs“撤销”，差异复用更改面板的 `DiffText`；命令卡显示命令、结果（成功 / 退出码 / 超时 / 已停止）与耗时，失败时默认展开输出；任务进度卡以 `CircleCheckIcon`（完成、划线）、`ArrowRightIcon`（进行中）和描边圆（未开始）列出步骤，并显示 `完成数/总数 · 还剩 n 步`。所有内容来自工具调用的输入与宿主结果，没有示例数据。
 
+会话视图栏与“轨迹”（`agent-chat/trajectory/`）参照 DeepSeek Harness 的对话 / 轨迹切换，用现有组件组合：视图栏是 `PillTabList` + `PillTab variant="gray"`（`MessagesSquareIcon` 对话、`WorkflowIcon` 轨迹）和 `toolbarIconButtonClass` 的 ⋯ Dropdown；类型筛选同为 gray PillTab，搜索为 `Input size="small" type="search"` + `SearchIcon`。行首类型用 `Chip variant="caption"`：用户 blue、助手 purple、思考 gray、工具 orange；工具名与参数用等宽 caption，耗时右对齐 `tabular-nums`，出错 / 已拒绝用 `text-text-error-primary`。时间轴三道依次用 `bg-status-lime-text`（输入）、`bg-status-purple-text`（模型）、`bg-status-orange-text`（工具），轨道 `bg-background-primary-default`、16px 高，时间段 70% 不透明、悬停与选中 100%，选中加 `ring-border-focus-ring`。展开详情用 `bg-background-secondary-default` 的等宽 `pre`，“在对话中查看”为 secondary xs Button + `ArrowUpRightIcon`。空结果复用 `ToolPanelMessage`。
+
 输入框参照 BoardUI Composer Panel（Pro，未安装源码）：上方一条 `bg-background-secondary-default` 托盘放模式菜单（仅联系人单聊）与不可发送原因，下方 `rounded-3xl` 卡片放草稿摘要、textarea 与附件 / 权限 / 模型 / 表情 / 发送按钮，托盘以负外边距衬在卡片后面。联系人单聊（`contacts/contact-composer.tsx`）已采用该结构。
 
 ## 登录与设置的页面职责
@@ -98,3 +100,5 @@ macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的
 - 灵动岛和 Live2D 桌宠的设置页沿用 BoardUI 设置行和状态点。模型来源使用 `SegmentedControl` 切换说明；未接入的能力不呈现可执行按钮。
 
 内置浏览器的网页批注（`src-tauri/src/browser_pick.js`）运行在别人的网页里，读不到应用的 token，因此在脚本内镜像默认粉色强调色（accent-500 `#ec4899` / accent-600 `#db2777`）与悬浮栏的深色毛玻璃表面：批注卡片 18px 圆角、底部工具条 22px 圆角（与底部悬浮栏一致），编号标记、光标与应用里的批注图标（`AnnotateIcon`，取代系统指针样的 MousePointer2）共用同一个“批注标签”形状：圆角标签，左下尖角指向标记位置；标记 24px 高、白色 1.5px 描边加 1px 深色外圈，在浅色与深色网页上都清楚，13px 粗体编号后接评论开头，主操作“加入对话”使用粉色渐变（悬停保持渐变，只提亮）；工具条固定在底部，左侧的批注标签是拖动手柄（`grab` 光标），工具条文字不可选中；图标沿用 Lucide 1.5 描边。样式表在 `browser_pick_css.js`。用户改了强调色时批注仍为默认粉色，这是当前限制。
+
+发出的批注在用户气泡下方显示为右对齐的行列表（`message-page-elements.tsx`）：`bg-background-secondary-default` 圆角 `rounded-lg`、`AnnotateIcon`、批注内容用 `text-text-primary`，样式改动数与页面名用 `text-text-tertiary`，`text-caption-1-regular`；选择器与 HTML 不进气泡，只在悬停提示里显示网址与选择器。

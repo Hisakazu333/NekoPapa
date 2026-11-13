@@ -15,6 +15,7 @@ import type { UIMessage } from "ai";
 import { hasToolParts, messageSegments } from "@/app/agent/message-segments";
 import { AgentToolCard } from "./agent-tools/agent-tool-card";
 import { AgentPlanCard } from "./agent-tools/agent-plan-card";
+import { MessagePageElements } from "./message-page-elements";
 
 /**
  * One turn in the transcript.
@@ -37,7 +38,7 @@ export interface AgentMessageProps {
   at?: number;
   /** Reasoning the provider streamed before the answer, if any. */
   reasoning?: string;
-  /** The reply's parts, passed when it used tools: text and tool calls then show in order. */
+  /** The message's parts: a reply's tool calls show in order; a user message's browser annotations show under it. */
   parts?: UIMessage["parts"];
 }
 
@@ -49,9 +50,12 @@ export const AgentMessage = memo(function AgentMessage({ role, text, streaming =
 
   if (role === "user") {
     return localize((
-      <p className="ms-auto flex w-fit max-w-[75%] flex-col rounded-2xl bg-background-primary-default px-3 py-[11px] text-start text-body-regular break-words whitespace-pre-wrap text-text-primary shadow-card">
-        <span translate="no"><LinkedText text={text} /></span>
-      </p>
+      <div className="flex flex-col gap-1.5">
+        <p className="ms-auto flex w-fit max-w-[75%] flex-col rounded-2xl bg-background-primary-default px-3 py-[11px] text-start text-body-regular break-words whitespace-pre-wrap text-text-primary shadow-card">
+          <span translate="no"><LinkedText text={text} /></span>
+        </p>
+        {parts && <MessagePageElements parts={parts} />}
+      </div>
     ));
   }
 

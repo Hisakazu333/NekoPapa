@@ -59,7 +59,7 @@ export function readPickState(json: string): PickState {
   return elements.length ? { kind: "picked", elements } : { kind: "gone" };
 }
 
-function readElement(entry: unknown): Omit<PageElement, "id"> | undefined {
+export function readElement(entry: unknown): Omit<PageElement, "id"> | undefined {
   if (!entry || typeof entry !== "object") return undefined;
   const value = entry as Record<string, unknown>;
   const url = webUrl(value.url);
@@ -107,10 +107,20 @@ export function addPageElement(current: readonly PageElement[], element: Omit<Pa
   return { elements: [...rest, { ...element, id }] };
 }
 
-/** How an element is written into the message text. */
-export function pageElementText(element: PageElement): string {
-  const styles = Object.entries(element.styles).map(([name, value]) => `${name}: ${value}`).join("; ");
+/** HTML the model reads per element: enough to find it in the source, not the whole subtree. */
+export const PAGE_ELEMENT_HTML_SHOWN = 1500;
+
+/**
+ * How an element reads for the model (and in a group chat's text): the
+ * user's note and style edits first, then what locates it in the page and
+ * in the source — selector, visible text and the start of its HTML. The
+ * computed styles are left out: a full list per element filled the context
+ * without helping find or change anything.
+ */
+export function pageElementText(element: Omit<PageElement, "id">): string {
   const changed = Object.entries(element.changes ?? {}).map(([name, { from, to }]) => `${name}: ${from || "（未设置）"} → ${to}`).join("; ");
+  const html = element.html.slice(0, PAGE_ELEMENT_HTML_SHOWN);
+  const cut = element.htmlTruncated || element.html.length > html.length;
   return [
     element.comment && `批注：${element.comment}`,
     changed && `改动样式：${changed}`,
@@ -118,10 +128,9 @@ export function pageElementText(element: PageElement): string {
     `选择器：${element.selector || element.tag}`,
     `尺寸：${element.size.width}×${element.size.height}`,
     element.text && `文字：${element.text}`,
-    styles && `样式：${styles}`,
-    `HTML${element.htmlTruncated ? `（前 ${element.html.length} 个字符）` : ""}：`,
+    `HTML${cut ? `（前 ${html.length} 个字符）` : ""}：`,
     "```html",
-    element.html,
+    html,
     "```",
   ].filter(Boolean).join("\n");
 }

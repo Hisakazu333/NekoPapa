@@ -20,6 +20,25 @@
 - 每次写入前在 `<appData>/data/snapshots/` 保存原内容；改动卡的“撤销”只在文件仍是 Agent 写入后的内容时恢复，否则拒绝，避免覆盖他人的修改。命令在登录 shell 中运行，无输入，默认 120 秒、最多 600 秒超时，停止回复会结束其进程组，每路输出保留前 64 KB。
 - 这是第 2 阶段的第一步：独立 Node.js Agent 进程、子任务、终端面板接入与自动路由仍按下文计划实施；当前工具循环不代表这些已完成。
 
+### 代码高亮与长代码渲染（当前，2026-11-13）
+
+- 高亮在 Web Worker 中进行：`src/app/chat/code-highlight.ts` 把文本发给 `code-highlight.worker.ts`，由 `code-highlight-engine.ts` 的单个 Shiki 高亮器（两套主题，语言按需加载）返回词元；没有 Worker 的环境（Node 测试）直接调用同一引擎。Vite 设 `worker.format = "es"`。
+- 桌面 CSP 只允许 `script-src 'self'`，不能编译 WebAssembly；Shiki 的 Oniguruma 引擎启动失败时改用其 JavaScript 正则引擎（约慢 3.5 倍，但在 Worker 里不阻塞窗口）。没有为此放宽 CSP。
+- 文件预览与差异（`tools/file-text.tsx`）先渲染 300 行，滚到末尾附近（IntersectionObserver，根为该滚动框，提前 800px）每次再加 600 行，上限仍为 20000 行；页面内查找只能找到已渲染的行。
+- 流式回复时聊天 SDK 每次更新都浅拷贝消息的全部部件，`AgentToolCard` 按部件各字段是否相同做 memo，`FileText` / `DiffText` 也 memo，已完成的工具卡与其中的长差异不再随每个流式词重渲染。
+
+### 网页批注进入对话与系统提示（当前，2026-11-13）
+
+- 批注不再拼进用户正文：`useChatComposer().takeMessage(text)` 发出两个部件——用户输入（加目标 / 计划说明）的文本部件，和 `data-page-elements` 数据部件（`src/app/browser/page-element-part.ts`，最多 5 个元素，HTML 截到 1500 字符，不带计算样式）。批注随这次发送离开草稿，不再在之后每条消息里重复发送。
+- 服务端 `convertToModelMessages` 的 `convertDataPart` 先用 `readPageElementsPart` 重新校验（仅 http(s)、标签名白名单、字段限长），再转成 `[网页标注 n/m]` 文本给模型；用户气泡下方用 `MessagePageElements` 显示批注列表，正文只显示用户输入。旧对话里已拼进正文的批注保持原样。
+- 系统提示：工作台对话没有项目时加 `NO_PROJECT_PROMPT`（看不到文件、批注无法对应源码、不得猜路径或内容，需要代码时请用户选项目）；有项目时 `agentSystemPrompt` 要求先按批注的可见文字、aria-label、id 或特征 class 在项目里搜索并读到文件再说位置，搜不到直说，未读过的内容不凭记忆描述。联系人对话不加这两条。
+- 批注本身只有网页 DOM，没有源码位置；给开发页面附加“文件:行”需要页面框架侧的支持，尚未实现。
+
+### 对话轨迹（当前，2026-11-13）
+
+- 记录：`chat-handler.ts` 为每次请求建一个 `createTraceRecorder()`（`src/app/agent/trace-recorder.ts`），经 `toUIMessageStream` 的 `messageMetadata` 读取流事件：`start-step` / `finish-step` 记步骤开始、结束、输入 / 输出 Token 与结束原因，`tool-call` 与 `tool-result` / `tool-error` / `tool-output-denied` 记工具调用与回答时间和结果。补丁写入回复的 `metadata.trace = { steps, tools }`，客户端深合并（对象合并、数组替换），所以两者都是以 ID 为键的对象；步骤键带本次请求的开始时间，审批后继续的请求写入同一回复也不冲突。`finish` 仍写用量元数据。随对话一起保存，没有单独存储。
+- 投影：`src/app/agent/trajectory.ts` 的 `buildTrajectory(messages, messageAt)` 按 `step-start` 切分回复步骤，第 i 段对应 trace 中按开始时间排第 i 的步骤；模型耗时从步骤开始到步骤结束与首个工具调用中较早者；`readReplyTrace` 丢弃不完整的条目，旧回复没有 trace 时只出行。`filterRows`、`formatDuration`、`placeSegments`（压缩超过 5 秒的空档）供视图使用。界面在 `components/application/agent-chat/trajectory/`，由 `chat-conversation.tsx` 切换。
+
 ### 界面插件沙箱视图（当前，2026-11-13）
 
 - 插件页面由 Rust 的 `nekopapa-plugin` 协议（`src-tauri/src/plugin_frame.rs`）只从前端允许过、清单 id 核对过的插件文件夹提供静态文件，每个响应带禁止联网、内联脚本、子框架和表单的 CSP；主窗口 CSP 只为该协议增加 `frame-src`。

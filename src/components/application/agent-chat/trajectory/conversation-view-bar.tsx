@@ -17,7 +17,8 @@ export type ConversationView = "chat" | "trace";
 export function ConversationViewBar({ view, onChange }: { view: ConversationView; onChange: (view: ConversationView) => void }) {
   const [open, setOpen] = useState(false);
   const openSettings = useWorkspaceSettings();
-  return <div className="flex shrink-0 items-center gap-1 px-4 pt-2">
+  // Below lg the chat's navigation button floats at the top start (ChatWorkspaceHeader, compact); keep clear of it.
+  return <div className="flex shrink-0 items-center gap-1 px-4 pt-2 max-lg:ps-14 max-lg:pt-3">
     <PillTabList role="group" aria-label="会话视图" className="gap-0.5">
       <PillTab variant="gray" icon={MessagesSquareIcon} isSelected={view === "chat"} onSelect={() => onChange("chat")}>对话</PillTab>
       <PillTab variant="gray" icon={WorkflowIcon} isSelected={view === "trace"} onSelect={() => onChange("trace")}>轨迹</PillTab>

@@ -159,6 +159,47 @@ test("没有本机能力的运行时不提供工具并如实说明；无效的�
   assert.equal(withContact.status, 400);
 });
 
+test("读取超出上限时按整行截断，并说明截断原因与续读位置", async () => {
+  const files = {
+    // 500 lines of 200 characters: the 60,000-character budget stops before line 400.
+    "long.txt": Array.from({ length: 500 }, (_, index) => `${index + 1}:`.padEnd(200, "x")).join("\n"),
+    // One minified line longer than the whole budget.
+    "min.js": "a".repeat(tools.MAX_READ_CHARS + 10_000),
+    "ok.txt": "one\ntwo\n",
+  };
+  const host = {
+    read: async (root, path) => ({ path, size: files[path].length, text: files[path], binary: false, tooLarge: false }),
+    list: async () => ({ entries: [], truncated: false }),
+    search: async () => ({ hits: [], truncated: false }),
+    write: async () => { throw new Error("读取测试不应写入"); },
+    edit: async () => { throw new Error("读取测试不应写入"); },
+    run: async () => { throw new Error("读取测试不应运行命令"); },
+  };
+  const read = tools.createAgentTools(host, ROOT).read_file.execute;
+
+  const long = await read({ path: "long.txt" });
+  const returned = long.text.split("\n");
+  assert.equal(long.totalLines, 500);
+  assert.ok(long.endLine < 500, "字符上限应先于 400 行触发");
+  assert.equal(long.endLine, returned.length, "行号必须与返回的行数一致");
+  assert.ok(long.text.length <= tools.MAX_READ_CHARS);
+  assert.deepEqual(returned, files["long.txt"].split("\n").slice(0, returned.length), "每一行都必须是完整原文，不能有半行");
+  assert.match(long.note, /最多 60000 字符/);
+  assert.match(long.note, new RegExp(`startLine=${long.endLine + 1}`));
+
+  const minified = await read({ path: "min.js" });
+  assert.equal(minified.text.length, tools.MAX_READ_CHARS);
+  assert.match(minified.note, /这一行不完整/, "单行超限必须明确告知内容不完整");
+
+  const beyond = await read({ path: "ok.txt", startLine: 9 });
+  assert.equal(beyond.text, "");
+  assert.match(beyond.note, /只有 3 行/);
+
+  const normal = await read({ path: "ok.txt" });
+  assert.equal(normal.text, "one\ntwo\n");
+  assert.equal(normal.note, undefined, "未触发上限时不加提示");
+});
+
 test("权限模式决定哪些调用需要确认", () => {
   assert.equal(tools.agentToolApproval("ask").write_file, "user-approval");
   assert.equal(tools.agentToolApproval("ask").read_file, "not-applicable");

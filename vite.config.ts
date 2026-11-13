@@ -28,6 +28,8 @@ export default defineConfig(({ mode }) => {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     } },
     clearScreen: false,
+    // The highlight worker (src/app/chat/code-highlight.worker.ts) loads Shiki's languages on demand, which needs ES module workers.
+    worker: { format: "es" },
     server: {
       host: "127.0.0.1",
       port: 1420,

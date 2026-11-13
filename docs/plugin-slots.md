@@ -51,7 +51,7 @@
 | `sidebar.destination` | 侧栏“更多”与底部悬浮栏，`SidebarMoreMenu` | 一个工作区页面入口（打开插件页面） | 可固定，固定 ID 与贡献 ID 一致；页面切换保持 AgentChat 挂载、会话与草稿不变 | 3 |
 | `titlebar.action` | 标题栏动作区，`AgentChatActions` | 图标按钮：打开自己的面板视图或执行命令 | 每个插件最多一个；默认收在插件按钮弹层内，用户固定后才出现在标题栏 | 3 |
 | `composer.add` | 输入区“+”菜单“插件”分组，`ComposerAddMenu` | 菜单项：向当前草稿附加一段上下文或选项 | 只改草稿，不发送；官方人物会话不显示；草稿含当前不可执行的项时沿用“阻止发送并说明原因” | 3 |
-| `conversation.view` | 新建：对话区顶部的会话视图切换（对话 / 轨迹 / …） | 同一对话的另一种视图 | 以 `thread.id` 为输入，切换不新建对话、不改标题栏标签；“对话”固定第一且不可隐藏 | 4（需 Agent 运行事件） |
+| `conversation.view` | 对话区顶部的会话视图栏（`conversation-view-bar.tsx`）：核心已提供“对话 / 轨迹”，⋯ 进入界面插件管理 | 同一对话的另一种视图 | 以 `thread.id` 为输入，切换不新建对话、不改标题栏标签；“对话”固定第一且不可隐藏 | 核心视图已开放（2026-11-13）；插件视图仍为 4 |
 | `composer.model` | 模型菜单的供应商图标栏，`ComposerModelMenu` | 模型来源 | 必须由运行时确认可用后才列出，否则不出现在菜单 | 4（需运行时） |
 
 刻意不开放的位置：
@@ -266,7 +266,7 @@ interface SlotRegistry {
 
 ### 阶段 4：依赖 Agent 运行时
 
-- `conversation.view`：在对话区顶部加入“对话 / 轨迹 / …”视图切换；“轨迹”需要运行事件与投影（参照研究文档中 DeepSeek Harness 的“已提交事件 → 带水位读模型”）。没有事件来源前不加这条标签栏。
+- `conversation.view`：视图栏与核心的“对话 / 轨迹”已于 2026-11-13 开放。“轨迹”目前由保存的消息部件与回复的 `metadata.trace`（步骤与工具调用的时间、Token）投影而成（`src/app/agent/trajectory.ts`），不是独立事件日志；⋯ 暂只有“管理界面插件…”。插件提供的会话视图仍待 Agent 运行事件与读模型（参照 DeepSeek Harness 的“已提交事件 → 带水位读模型”）就绪后开放。
 - `composer.model`：运行时确认可用的模型来源。
 - `runtime.cordis` 关联生效：Coding 执行层接入后，界面插件与对应 Cordis 插件一同加载、一同停用。
 

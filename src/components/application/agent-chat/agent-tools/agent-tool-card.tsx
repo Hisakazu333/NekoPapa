@@ -1,3 +1,4 @@
+import { memo } from "react";
 import type { ToolUIPart } from "ai";
 import { FileTextIcon, FolderOpenIcon, SearchIcon, WrenchIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { readCommandResult, readFileChange, readSearchResult } from "@/app/agent/agent-host";
@@ -17,8 +18,12 @@ const record = (value: unknown) => value !== null && typeof value === "object" ?
  * approval, a file change with its diff, a command with its output, or a
  * one-line read / list / search. Everything shown comes from the call's own
  * input and the host's result saved with the message.
+ *
+ * Memoized by the part's fields: while a reply streams, the chat SDK copies
+ * every part of the message on each update, so without this every finished
+ * card (and a long diff in it) re-rendered on every streamed word.
  */
-export function AgentToolCard({ name, part }: { name: string; part: ToolUIPart }) {
+export const AgentToolCard = memo(function AgentToolCard({ name, part }: { name: string; part: ToolUIPart }) {
   const { state } = part;
   if (state === "approval-requested") {
     return <AgentApprovalCard name={name} input={part.input} approvalId={part.approval.id} reason={part.approval.requestReason} />;
@@ -43,6 +48,13 @@ export function AgentToolCard({ name, part }: { name: string; part: ToolUIPart }
   return <AgentToolRow icon={icon} running={!finished} title={toolTitle(name, part.input, finished)} detail={finished ? outputDetail(name, part.output) : undefined}>
     {finished ? <OutputDetail name={name} output={part.output} /> : undefined}
   </AgentToolRow>;
+}, (before, after) => before.name === after.name && samePart(before.part, after.part));
+
+/** Same fields, each the same value: a copy made by the SDK, not a change. */
+function samePart(a: ToolUIPart, b: ToolUIPart) {
+  if (a === b) return true;
+  const keys = Object.keys(a) as (keyof ToolUIPart)[];
+  return keys.length === Object.keys(b).length && keys.every((key) => a[key] === b[key]);
 }
 
 function outputDetail(name: string, output: unknown): string | undefined {
