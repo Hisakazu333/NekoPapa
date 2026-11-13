@@ -7,8 +7,9 @@ import type { Connect, Plugin } from "vite";
 /**
  * Project folder views for the browser preview (Vite dev and preview
  * servers), which cannot use the desktop host. Mirrors
- * src-tauri/src/project_workspace.rs: list a folder, read a text file, and
- * `git status` / `git diff`, read-only and confined to the project root.
+ * src-tauri/src/project_workspace.rs and project_files.rs: list a folder,
+ * index every file (for @ mentions), read a text file, and `git status` /
+ * `git diff`, read-only and confined to the project root.
  * JSON POSTs only, so other sites cannot read results without a CORS
  * preflight this server never answers.
  */
@@ -87,6 +88,32 @@ export async function readProject(root: unknown, path: unknown) {
   } finally { await handle.close(); }
 }
 
+const MAX_INDEX = 20_000;
+/** Folders the index never enters, as in project_files.rs. */
+const SKIPPED = new Set([".git", "node_modules", "target", "dist", "build", ".next", ".venv", "__pycache__"]);
+
+/** Every file under the root, folder by folder in name order, without following symlinks. */
+export async function indexProject(root: unknown) {
+  const base = await rootOf(root);
+  const paths: string[] = [];
+  const pending = [""];
+  while (pending.length > 0) {
+    const dir = pending.pop()!;
+    const entries = await readdir(join(base, dir), { withFileTypes: true }).catch(() => []);
+    entries.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    const folders: string[] = [];
+    for (const entry of entries) {
+      const path = dir ? `${dir}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) { if (!SKIPPED.has(entry.name)) folders.push(path); continue; }
+      if (!entry.isFile()) continue;
+      if (paths.length >= MAX_INDEX) return { paths, truncated: true };
+      paths.push(path);
+    }
+    pending.push(...folders.reverse());
+  }
+  return { paths, truncated: false };
+}
+
 function git(root: string, args: string[]): Promise<{ ok: boolean; stdout: string }> {
   return new Promise((resolve, reject) => {
     execFile("git", ["-C", root, "-c", "core.quotepath=false", "-c", "color.ui=false", ...args],
@@ -117,6 +144,7 @@ export async function gitDiff(root: unknown, path: unknown) {
 
 const routes: Record<string, (input: Record<string, unknown>) => Promise<unknown>> = {
   list: (input) => listProject(input.root, input.dir),
+  files: (input) => indexProject(input.root),
   read: (input) => readProject(input.root, input.path),
   "git-status": (input) => gitStatus(input.root),
   "git-diff": (input) => gitDiff(input.root, input.path),

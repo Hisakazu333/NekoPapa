@@ -120,6 +120,14 @@ export function readListing(value: unknown): ProjectListing {
   return { entries, truncated: value.truncated === true };
 }
 
+/** Every file of a project, relative to its root with `/`. */
+export interface FileIndex { paths: string[]; truncated: boolean }
+
+export function readFileIndex(value: unknown): FileIndex {
+  if (!isObject(value) || !Array.isArray(value.paths)) throw new Error("文件索引格式无效。");
+  return { paths: value.paths.filter((path): path is string => typeof path === "string" && path.length > 0), truncated: value.truncated === true };
+}
+
 export function readProjectFile(value: unknown): ProjectFile {
   if (!isObject(value) || typeof value.path !== "string") throw new Error("文件内容格式无效。");
   return {

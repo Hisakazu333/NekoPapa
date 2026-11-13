@@ -2055,6 +2055,7 @@ version = "0.1.0"
 dependencies = [
  "keyring",
  "portable-pty",
+ "regex",
  "reqwest",
  "rusqlite",
  "serde",

@@ -4,7 +4,7 @@ import type { ComposerContext } from "@/app/chat/chat-composer-draft";
 import { ContactComposer } from "../contacts/contact-composer";
 
 /** Workbench and contacts share the same composer controls and draft contract. */
-export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfigure, busy, activityLabel, disabled, sendBlockedReason, composer, name, officialCompanion, context, status }: {
+export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfigure, busy, activityLabel, disabled, sendBlockedReason, composer, name, officialCompanion, context, status, queueing, above, mentionRoot }: {
   value: string;
   onValueChange: (value: string) => void;
   onSubmit: () => void;
@@ -20,8 +20,11 @@ export function AgentComposer({ value, onValueChange, onSubmit, onStop, onConfig
   context: ComposerContext;
   /** Status tab content beside the mode menu: project, branch, context meter. */
   status?: ReactNode;
+  queueing?: boolean;
+  above?: ReactNode;
+  mentionRoot?: string;
 }) {
   return <ContactComposer name={name} value={value} onChange={onValueChange} onSend={onSubmit} onStop={onStop}
     onConfigure={onConfigure} busy={busy} activityLabel={activityLabel} ready={!disabled} sendBlockedReason={sendBlockedReason}
-    composer={composer} officialCompanion={officialCompanion} context={context} status={status} />;
+    composer={composer} officialCompanion={officialCompanion} context={context} status={status} queueing={queueing} above={above} mentionRoot={mentionRoot} />;
 }

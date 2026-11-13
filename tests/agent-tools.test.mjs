@@ -91,7 +91,7 @@ test("读取类工具直接执行，结果回到模型，再由模型作答", as
   const result = seen[1].messages.find((message) => message.role === "tool");
   assert.match(result.content, /one\\ntwo/);
   assert.match(seen[0].messages[0].content, /local project "demo"/);
-  assert.deepEqual(toolNames(seen[0]), ["edit_file", "list_files", "read_file", "run_command", "search_files", "update_plan", "write_file"]);
+  assert.deepEqual(toolNames(seen[0]), ["edit_file", "find_files", "list_files", "read_file", "run_command", "search_files", "update_plan", "write_file"]);
 });
 
 test("每次询问：写文件先请求确认，未确认前不写入；确认后写入并继续", async (t) => {
@@ -131,7 +131,7 @@ test("拒绝后不执行，模型得知被拒绝", async (t) => {
 });
 
 test("完全访问直接写入；仅计划不提供修改和命令工具", async (t) => {
-  const { profile, seen } = await scriptedModel(t, { name: "edit_file", input: { path: "a.txt", oldText: "old", newText: "new" } });
+  const { profile, seen } = await scriptedModel(t, { name: "edit_file", input: { path: "a.txt", edits: [{ oldText: "old", newText: "new" }] } });
   const { host, calls } = memoryHost();
   const { POST } = handler.createChatHandlers(runtime(host));
   await (await POST(post({ messages: userMessages, profile, workspace: workspace("full") }))).text();
@@ -139,7 +139,7 @@ test("完全访问直接写入；仅计划不提供修改和命令工具", async
 
   const planning = await scriptedModel(t);
   await (await POST(post({ messages: userMessages, profile: planning.profile, workspace: workspace("plan") }))).text();
-  assert.deepEqual(toolNames(planning.seen[0]), ["list_files", "read_file", "search_files", "update_plan"]);
+  assert.deepEqual(toolNames(planning.seen[0]), ["find_files", "list_files", "read_file", "search_files", "update_plan"]);
   assert.match(planning.seen[0].messages[0].content, /plan-only mode/);
   assert.equal(seen.length, 2);
 });
@@ -161,7 +161,7 @@ test("没有本机能力的运行时不提供工具并如实说明；无效的�
 
 test("读取超出上限时按整行截断，并说明截断原因与续读位置", async () => {
   const files = {
-    // 500 lines of 200 characters: the 60,000-character budget stops before line 400.
+    // 500 lines of 200 characters: the character budget stops before the line limit and the end.
     "long.txt": Array.from({ length: 500 }, (_, index) => `${index + 1}:`.padEnd(200, "x")).join("\n"),
     // One minified line longer than the whole budget.
     "min.js": "a".repeat(tools.MAX_READ_CHARS + 10_000),
@@ -180,11 +180,11 @@ test("读取超出上限时按整行截断，并说明截断原因与续读位�
   const long = await read({ path: "long.txt" });
   const returned = long.text.split("\n");
   assert.equal(long.totalLines, 500);
-  assert.ok(long.endLine < 500, "字符上限应先于 400 行触发");
+  assert.ok(long.endLine < 500 && long.endLine < tools.READ_LINES, "字符上限应先于行数上限触发");
   assert.equal(long.endLine, returned.length, "行号必须与返回的行数一致");
   assert.ok(long.text.length <= tools.MAX_READ_CHARS);
   assert.deepEqual(returned, files["long.txt"].split("\n").slice(0, returned.length), "每一行都必须是完整原文，不能有半行");
-  assert.match(long.note, /最多 60000 字符/);
+  assert.match(long.note, new RegExp(`最多 ${tools.MAX_READ_CHARS} 字符`));
   assert.match(long.note, new RegExp(`startLine=${long.endLine + 1}`));
 
   const minified = await read({ path: "min.js" });

@@ -12,6 +12,7 @@ mod credential_store;
 mod model_proxy;
 mod plugin_frame;
 mod plugin_manifest;
+mod project_files;
 mod project_folder;
 mod project_workspace;
 mod skill_discovery;
@@ -56,7 +57,8 @@ pub fn run() {
             project_workspace::project_read_file,
             project_workspace::project_git_status,
             project_workspace::project_git_diff,
-            agent_tools::agent_search,
+            project_files::agent_search,
+            project_files::project_list_files,
             agent_tools::agent_write_file,
             agent_tools::agent_edit_file,
             agent_tools::agent_snapshot_state,

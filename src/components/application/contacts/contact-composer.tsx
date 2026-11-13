@@ -8,6 +8,8 @@ import { Dropdown, DropdownPopover, DropdownTrigger } from "@/components/base/dr
 import { ComposerAddMenu } from "../chat-composer/composer-add-menu";
 import { ComposerModelMenu } from "../chat-composer/composer-model-menu";
 import { ComposerDraftSummary } from "../chat-composer/composer-draft-summary";
+import { ComposerMentionList } from "../chat-composer/composer-mention-list";
+import { useFileMention } from "@/hooks/use-file-mention";
 import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -29,6 +31,12 @@ interface ContactComposerProps {
   context?: ComposerContext;
   /** Status tab content after the mode menu, e.g. project, branch and context meter. */
   status?: ReactNode;
+  /** Sending stays open while busy: the message is queued (workbench chats). */
+  queueing?: boolean;
+  /** Shown above the composer, e.g. the queued messages. */
+  above?: ReactNode;
+  /** The chat's project folder: typing @ lists its files to mention. */
+  mentionRoot?: string;
 }
 
 /** The prompt grows a line at a time with its text, up to ten lines, then scrolls. */
@@ -47,15 +55,19 @@ function useAutoGrow(ref: React.RefObject<HTMLTextAreaElement | null>, value: st
   }, [ref, value]);
 }
 
-export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, activityLabel, ready, composer, sendBlockedReason, officialCompanion, context, status }: ContactComposerProps) {
+export function ContactComposer({ name, value, onChange, onSend, onStop, onConfigure, busy, activityLabel, ready, composer, sendBlockedReason, officialCompanion, context, status, queueing = false, above, mentionRoot }: ContactComposerProps) {
   const composing = useRef(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [emojisOpen, setEmojisOpen] = useState(false);
   const composerContext = context ?? (officialCompanion ? "official" : "custom");
   const blockedReason = (officialCompanion ? composer.draftBlockReason : composer.blockReason) ?? sendBlockedReason;
-  const canSend = ready && !busy && !blockedReason && Boolean(value.trim());
+  const canSend = ready && (!busy || queueing) && !blockedReason && Boolean(value.trim());
   const handleSendKey = useSendKey(composing);
-  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => { handleSendKey(event, () => { if (canSend) onSend(); }); };
+  const mention = useFileMention(inputRef, value, onChange, mentionRoot);
+  const onKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (mention.onKeyDown(event)) return;
+    handleSendKey(event, () => { if (canSend) onSend(); });
+  };
   useAutoGrow(inputRef, value);
 
   // Composer-panel layout (after BoardUI's Pro Composer Panel): a status tab
@@ -64,16 +76,20 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
   // card holds the prompt and the add / permission / model / emoji / send
   // controls. Why sending is blocked reads under the card.
   return <div className="relative mx-2 mb-2 flex shrink-0 flex-col">
+    {above}
     {activityLabel && <AgentThinking variant="wave" label={activityLabel} className="mx-3 mb-1 px-2 py-1" />}
     <div aria-label="对话工具栏" className="mx-4 -mb-3 flex min-h-[34px] min-w-0 items-center gap-1 rounded-t-2xl bg-background-tertiary-default px-1.5 pb-3 pt-1 sm:mx-7">
       {composerContext !== "workspace" && <ComposerModeMenu state={composer} context={composerContext} disabled={busy} />}
       {status}
     </div>
+    <ComposerMentionList mention={mention} />
     <ComposerLoader active={busy} radius={24} surface={false} className="z-1 rounded-3xl bg-background-full shadow-xs">
       <div className="relative flex flex-col gap-1 rounded-3xl border border-border-button-default p-2.5">
         <ComposerDraftSummary state={composer} disabled={busy} />
-        <textarea ref={inputRef} aria-label={`给${name}发消息`} placeholder={`给${name}发消息…`} value={value}
-          onChange={(event) => onChange(event.target.value)} onKeyDown={onKeyDown}
+        <textarea ref={inputRef} aria-label={`给${name}发消息`} placeholder={busy && queueing ? "补充说明或新的要求，会排队发送…" : `给${name}发消息…`} value={value}
+          onChange={(event) => { onChange(event.target.value); mention.track(); }} onKeyDown={onKeyDown} onSelect={mention.track}
+          {...(mentionRoot ? { role: "combobox", "aria-autocomplete": "list" as const, "aria-expanded": mention.open, "aria-controls": mention.open ? mention.listId : undefined,
+            "aria-activedescendant": mention.open && mention.results.length > 0 ? mention.optionId(mention.active) : undefined } : {})}
           onCompositionStart={() => { composing.current = true; }} onCompositionEnd={() => { composing.current = false; }}
           className="w-full resize-none overflow-hidden bg-transparent px-1.5 py-1.5 text-body-regular text-text-primary outline-none placeholder:text-text-tertiary" rows={1} />
         <div className="flex min-h-9 min-w-0 flex-wrap items-center gap-1 sm:gap-2">
@@ -98,6 +114,7 @@ export function ContactComposer({ name, value, onChange, onSend, onStop, onConfi
               </div>
             </DropdownPopover>
           </Dropdown>
+          {busy && queueing && value.trim() && <Button variant="secondary" iconOnly leadingIcon={ArrowUpIcon} aria-label="排队发送" title="排队发送：当前任务结束后发出" className="rounded-full" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
           {busy ? <Button variant="secondary" iconOnly leadingIcon={StopFilledIcon} aria-label="停止回复" className="rounded-full" onClick={onStop} />
             : <Button iconOnly leadingIcon={ArrowUpIcon} aria-label="发送消息" title="发送消息" className="rounded-full disabled:bg-background-primary-disabled disabled:text-text-tertiary" disabled={!canSend} onClick={() => { if (canSend && !composing.current) onSend(); }} />}
         </div>

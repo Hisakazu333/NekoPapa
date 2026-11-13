@@ -18,10 +18,14 @@ const MODE_RULES: Record<PermissionMode, string> = {
  */
 const ANNOTATION_RULE = "Messages may include web annotations ([网页标注 n/m]): elements the user picked in the built-in browser, with the page, selector, visible text and the start of the HTML. They do not say which source file renders the element. To find it, search the project for its visible text, aria-label, id or distinctive class names, read the matching file, and only then say where it is. If nothing matches, say so and do not guess.";
 
+/** `@path` in a message is a file the user pointed at with the composer's @ menu. */
+const MENTION_RULE = "A message may mention files as @path (relative to the project root), picked from the project with the composer's @ menu. Read the mentioned files before answering about them.";
+
 export function agentSystemPrompt(projectName: string, mode: PermissionMode): string {
   return [
     `You are working in the user's local project "${projectName}". Tools act inside that folder only; paths are relative to its root.`,
-    "Look before you change: list, search and read the relevant files first. Prefer edit_file for small changes to existing files.",
+    "Look before you change: find_files (glob) and search_files (text or regex, narrowed with include/path) locate code; read_file reads up to 2000 lines at once. Prefer edit_file for changes to existing files, with every change to one file in a single call (edits array).",
+    MENTION_RULE,
     "For a task with several steps, call update_plan with the whole checklist first and again as each step finishes.",
     "After changing code, run the project's own checks (tests, type-check or build) when it has them, and report the real result.",
     "Never claim a change, command or result that did not happen in a tool call in this conversation.",

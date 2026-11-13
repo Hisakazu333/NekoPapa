@@ -1,6 +1,7 @@
-//! The file tools the chat Agent calls inside a project folder: search the
-//! folder, write or edit a file, and undo one of those changes. Reading and
-//! listing reuse project_workspace.rs; commands live in agent_command.rs.
+//! The file tools the chat Agent calls inside a project folder: write or edit
+//! a file, and undo one of those changes. Reading and listing reuse
+//! project_workspace.rs, searching and finding files project_files.rs, and
+//! commands live in agent_command.rs.
 //!
 //! Every path is relative to the project root and is checked to stay inside
 //! it (no `..`, absolute paths or symlinks out). Before each change the file's
@@ -17,11 +18,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use tauri::{AppHandle, Runtime};
 
 const MAX_WRITE: usize = 2 * 1024 * 1024;
-const MAX_SEARCH_FILE: u64 = 1024 * 1024;
-const MAX_SEARCH_FILES: usize = 20_000;
-const MAX_LINE: usize = 240;
-/// Folders a search never enters: version control, dependencies and build output.
-const SKIPPED: [&str; 8] = [".git", "node_modules", "target", "dist", "build", ".next", ".venv", "__pycache__"];
+const MAX_EDITS: usize = 50;
 
 #[derive(Serialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -42,17 +39,14 @@ struct Snapshot {
     after: String,
 }
 
-#[derive(Serialize, Debug, PartialEq)]
-pub struct Hit {
-    path: String,
-    line: usize,
-    text: String,
-}
-
-#[derive(Serialize, Debug)]
-pub struct Search {
-    hits: Vec<Hit>,
-    truncated: bool,
+/// One replacement in an edit: `old` must occur exactly once, or `replace_all` replaces every occurrence.
+#[derive(Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Replacement {
+    pub old: String,
+    pub new: String,
+    #[serde(default)]
+    pub replace_all: bool,
 }
 
 /// A file path inside the root that may not exist yet: its nearest existing
@@ -122,18 +116,30 @@ pub fn write(store: &Path, root: &str, path: &str, text: &str) -> Result<Change,
     Ok(Change { path: snapshot.path, created: snapshot.before.is_none(), added: diff.added, removed: diff.removed, diff: diff.text, snapshot: id })
 }
 
-/// Replaces the one place `old` occurs in the file with `new`.
-pub fn edit(store: &Path, root: &str, path: &str, old: &str, new: &str) -> Result<Change, String> {
+/// Applies `edits` in order to the file's text and writes the result once,
+/// so a change of several places is one snapshot and one undo. Nothing is
+/// written if any edit does not apply; the error says which one and why.
+pub fn edit(store: &Path, root: &str, path: &str, edits: &[Replacement]) -> Result<Change, String> {
+    if edits.is_empty() || edits.len() > MAX_EDITS {
+        return Err(format!("一次修改需要 1 到 {MAX_EDITS} 处替换。"));
+    }
     let base = root_of(root)?;
-    let current = fs::read_to_string(inside(&base, path)?).map_err(|_| "无法以文本读取该文件。".to_string())?;
-    if old.is_empty() {
-        return Err("要替换的原文不能为空。".into());
+    let mut text = fs::read_to_string(inside(&base, path)?).map_err(|_| "无法以文本读取该文件。".to_string())?;
+    let many = edits.len() > 1;
+    for (index, replacement) in edits.iter().enumerate() {
+        let which = if many { format!("第 {} 处替换：", index + 1) } else { String::new() };
+        if replacement.old.is_empty() {
+            return Err(format!("{which}要替换的原文不能为空。"));
+        }
+        let count = text.matches(&replacement.old).count();
+        text = match count {
+            0 => return Err(format!("{which}文件中找不到要替换的原文，请先读取文件确认内容（前面的替换会先生效再查找）。")),
+            _ if replacement.replace_all => text.replace(&replacement.old, &replacement.new),
+            1 => text.replacen(&replacement.old, &replacement.new, 1),
+            count => return Err(format!("{which}原文在文件中出现了 {count} 次，请包含更多上下文使其唯一，或设 replaceAll。")),
+        };
     }
-    match current.matches(old).count() {
-        0 => Err("文件中找不到要替换的原文，请先读取文件确认内容。".into()),
-        1 => write(store, root, path, &current.replacen(old, new, 1)),
-        count => Err(format!("原文在文件中出现了 {count} 次，请包含更多上下文使其唯一。")),
-    }
+    write(store, root, path, &text)
 }
 
 /// "ready" (can undo), "undone" (already undone) or "changed" (edited since).
@@ -163,67 +169,6 @@ pub fn undo(store: &Path, id: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn trimmed(line: &str) -> String {
-    let line = line.trim();
-    match line.char_indices().nth(MAX_LINE) {
-        Some((end, _)) => format!("{}…", &line[..end]),
-        None => line.into(),
-    }
-}
-
-/// Lines containing `query` (ignoring case) in the project's text files, and files whose path contains it.
-pub fn search(root: &str, query: &str, limit: usize) -> Result<Search, String> {
-    let root = root_of(root)?;
-    let needle = query.trim().to_lowercase();
-    if needle.is_empty() {
-        return Err("请给出要搜索的文字。".into());
-    }
-    let mut result = Search { hits: Vec::new(), truncated: false };
-    let mut pending = vec![root.clone()];
-    let mut visited = 0;
-    while let Some(folder) = pending.pop() {
-        let Ok(entries) = fs::read_dir(&folder) else { continue };
-        let mut entries: Vec<_> = entries.flatten().collect();
-        entries.sort_by_key(|entry| entry.file_name());
-        for entry in entries {
-            let Ok(kind) = entry.file_type() else { continue };
-            let name = entry.file_name().to_string_lossy().into_owned();
-            if kind.is_dir() {
-                if !SKIPPED.contains(&name.as_str()) {
-                    pending.push(entry.path());
-                }
-                continue;
-            }
-            if !kind.is_file() {
-                continue;
-            }
-            visited += 1;
-            if visited > MAX_SEARCH_FILES || result.hits.len() >= limit {
-                result.truncated = true;
-                return Ok(result);
-            }
-            let path = slash(entry.path().strip_prefix(&root).unwrap_or(&entry.path()));
-            if path.to_lowercase().contains(&needle) {
-                result.hits.push(Hit { path: path.clone(), line: 0, text: String::new() });
-            }
-            if entry.metadata().map(|meta| meta.len() > MAX_SEARCH_FILE).unwrap_or(true) {
-                continue;
-            }
-            let Ok(text) = fs::read_to_string(entry.path()) else { continue };
-            for (number, line) in text.lines().enumerate() {
-                if result.hits.len() >= limit {
-                    result.truncated = true;
-                    return Ok(result);
-                }
-                if line.to_lowercase().contains(&needle) {
-                    result.hits.push(Hit { path: path.clone(), line: number + 1, text: trimmed(line) });
-                }
-            }
-        }
-    }
-    Ok(result)
-}
-
 fn store<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
     Ok(crate::app_data::root_of(app)?.join("data").join("snapshots"))
 }
@@ -233,20 +178,15 @@ async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + S
 }
 
 #[tauri::command]
-pub async fn agent_search(root: String, query: String, limit: Option<usize>) -> Result<Search, String> {
-    blocking(move || search(&root, &query, limit.unwrap_or(50).clamp(1, 200))).await
-}
-
-#[tauri::command]
 pub async fn agent_write_file<R: Runtime>(app: AppHandle<R>, root: String, path: String, text: String) -> Result<Change, String> {
     let store = store(&app)?;
     blocking(move || write(&store, &root, &path, &text)).await
 }
 
 #[tauri::command]
-pub async fn agent_edit_file<R: Runtime>(app: AppHandle<R>, root: String, path: String, old: String, new: String) -> Result<Change, String> {
+pub async fn agent_edit_file<R: Runtime>(app: AppHandle<R>, root: String, path: String, edits: Vec<Replacement>) -> Result<Change, String> {
     let store = store(&app)?;
-    blocking(move || edit(&store, &root, &path, &old, &new)).await
+    blocking(move || edit(&store, &root, &path, &edits)).await
 }
 
 #[tauri::command]

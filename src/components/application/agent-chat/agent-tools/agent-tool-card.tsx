@@ -1,6 +1,6 @@
 import { memo } from "react";
 import type { ToolUIPart } from "ai";
-import { FileTextIcon, FolderOpenIcon, SearchIcon, WrenchIcon, XIcon } from "@/components/foundations/icons/app-icons";
+import { FileSearchIcon, FileTextIcon, FolderOpenIcon, SearchIcon, WrenchIcon, XIcon } from "@/components/foundations/icons/app-icons";
 import { readCommandResult, readFileChange, readSearchResult } from "@/app/agent/agent-host";
 import type { ReadOutput } from "@/app/agent/agent-tools";
 import { toolSubject, toolTitle } from "@/app/agent/tool-labels";
@@ -9,7 +9,7 @@ import { AgentChangeCard } from "./agent-change-card";
 import { AgentCommandCard } from "./agent-command-card";
 import { AgentToolRow } from "./agent-tool-row";
 
-const ICONS = { list_files: FolderOpenIcon, read_file: FileTextIcon, search_files: SearchIcon } as const;
+const ICONS = { list_files: FolderOpenIcon, find_files: FileSearchIcon, read_file: FileTextIcon, search_files: SearchIcon } as const;
 
 const record = (value: unknown) => value !== null && typeof value === "object" ? value as Record<string, unknown> : {};
 
@@ -25,7 +25,8 @@ const record = (value: unknown) => value !== null && typeof value === "object" ?
  */
 export const AgentToolCard = memo(function AgentToolCard({ name, part }: { name: string; part: ToolUIPart }) {
   const { state } = part;
-  if (state === "approval-requested") {
+  // An automatic approval (permission mode or 本对话总是允许) is not a question: the call just runs.
+  if (state === "approval-requested" && !part.approval.isAutomatic) {
     return <AgentApprovalCard name={name} input={part.input} approvalId={part.approval.id} reason={part.approval.requestReason} />;
   }
   if (state === "output-denied" || (state === "approval-responded" && !part.approval.approved)) {
@@ -38,7 +39,7 @@ export const AgentToolCard = memo(function AgentToolCard({ name, part }: { name:
   }
   const finished = state === "output-available";
   if (name === "run_command") {
-    return <AgentCommandCard command={toolSubject(name, part.input)} result={finished ? readCommandResult(part.output) : undefined} />;
+    return <AgentCommandCard id={part.toolCallId} command={toolSubject(name, part.input)} result={finished ? readCommandResult(part.output) : undefined} />;
   }
   if ((name === "write_file" || name === "edit_file") && finished) {
     const change = readFileChange(part.output);
@@ -66,6 +67,10 @@ function outputDetail(name: string, output: unknown): string | undefined {
     const entries = record(output).entries;
     return Array.isArray(entries) ? `${entries.length} 项` : undefined;
   }
+  if (name === "find_files") {
+    const total = record(output).total;
+    return typeof total === "number" ? `${total}${record(output).truncated === true ? "+" : ""} 个文件` : undefined;
+  }
   if (name === "read_file") {
     const read = output as ReadOutput;
     return read?.totalLines ? `第 ${read.startLine}–${read.endLine} 行，共 ${read.totalLines} 行` : read?.note;
@@ -81,6 +86,13 @@ function OutputDetail({ name, output }: { name: string; output: unknown }) {
       {result.hits.map((hit, index) => <li key={index} className="truncate">
         <span className="text-text-secondary">{hit.path}{hit.line ? `:${hit.line}` : ""}</span>{hit.text && ` ${hit.text}`}
       </li>)}
+    </ul>;
+  }
+  if (name === "find_files") {
+    const paths = record(output).paths;
+    if (!Array.isArray(paths) || paths.length === 0) return <p>没有找到。</p>;
+    return <ul translate="no" className="flex flex-col gap-0.5 font-mono">
+      {paths.map((path, index) => <li key={index} className="truncate">{String(path)}</li>)}
     </ul>;
   }
   if (name === "list_files") {

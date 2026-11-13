@@ -47,14 +47,18 @@ fn undo_refuses_when_the_file_changed_again() {
     fs::remove_dir_all(store).unwrap();
 }
 
+fn one(old: &str, new: &str) -> Vec<Replacement> {
+    vec![Replacement { old: old.into(), new: new.into(), replace_all: false }]
+}
+
 #[test]
 fn edits_only_a_unique_match() {
     let (root, store) = (temp("edit"), temp("store"));
     let base = root.to_str().unwrap();
     fs::write(root.join("a.ts"), "let x = 1;\nlet y = 1;\n").unwrap();
-    assert!(edit(&store, base, "a.ts", "= 1;", "= 2;").unwrap_err().contains("2 次"));
-    assert!(edit(&store, base, "a.ts", "missing", "z").unwrap_err().contains("找不到"));
-    let change = edit(&store, base, "a.ts", "let y = 1;", "let y = 2;").unwrap();
+    assert!(edit(&store, base, "a.ts", &one("= 1;", "= 2;")).unwrap_err().contains("2 次"));
+    assert!(edit(&store, base, "a.ts", &one("missing", "z")).unwrap_err().contains("找不到"));
+    let change = edit(&store, base, "a.ts", &one("let y = 1;", "let y = 2;")).unwrap();
     assert_eq!((change.added, change.removed), (1, 1));
     assert_eq!(fs::read_to_string(root.join("a.ts")).unwrap(), "let x = 1;\nlet y = 2;\n");
     fs::remove_dir_all(root).unwrap();
@@ -82,21 +86,22 @@ fn refuses_paths_outside_the_project_and_bad_snapshot_ids() {
 }
 
 #[test]
-fn searches_text_and_paths_but_skips_dependencies() {
-    let root = temp("search");
+fn applies_several_edits_as_one_change_or_none() {
+    let (root, store) = (temp("multi"), temp("store"));
     let base = root.to_str().unwrap();
-    fs::create_dir_all(root.join("src")).unwrap();
-    fs::create_dir_all(root.join("node_modules/pkg")).unwrap();
-    fs::write(root.join("src/app.ts"), "const Theme = 1;\nother\n").unwrap();
-    fs::write(root.join("src/theme.css"), "body {}\n").unwrap();
-    fs::write(root.join("node_modules/pkg/index.js"), "theme\n").unwrap();
-    let found = search(base, "theme", 50).unwrap();
-    assert_eq!(found.hits, vec![
-        Hit { path: "src/app.ts".into(), line: 1, text: "const Theme = 1;".into() },
-        Hit { path: "src/theme.css".into(), line: 0, text: String::new() },
-    ]);
-    assert!(!found.truncated);
-    assert!(search(base, "theme", 1).unwrap().truncated);
-    assert!(search(base, "  ", 5).is_err());
+    fs::write(root.join("a.ts"), "a = 1;\nb = 1;\nc = 1;\n").unwrap();
+    let all = |old: &str, new: &str| Replacement { old: old.into(), new: new.into(), replace_all: true };
+    let edits = vec![Replacement { old: "a = 1;".into(), new: "a = 2;".into(), replace_all: false }, all("= 1;", "= 3;")];
+    let change = edit(&store, base, "a.ts", &edits).unwrap();
+    assert_eq!(fs::read_to_string(root.join("a.ts")).unwrap(), "a = 2;\nb = 3;\nc = 3;\n");
+    assert_eq!((change.added, change.removed), (3, 3));
+    // The second edit fails: nothing is written, and the error names it.
+    let failing = vec![all("= 3;", "= 4;"), Replacement { old: "missing".into(), new: "x".into(), replace_all: false }];
+    assert!(edit(&store, base, "a.ts", &failing).unwrap_err().contains("第 2 处"));
+    assert_eq!(fs::read_to_string(root.join("a.ts")).unwrap(), "a = 2;\nb = 3;\nc = 3;\n");
+    assert!(edit(&store, base, "a.ts", &[]).is_err());
+    undo(&store, &change.snapshot).unwrap();
+    assert_eq!(fs::read_to_string(root.join("a.ts")).unwrap(), "a = 1;\nb = 1;\nc = 1;\n");
     fs::remove_dir_all(root).unwrap();
+    fs::remove_dir_all(store).unwrap();
 }

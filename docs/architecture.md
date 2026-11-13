@@ -18,6 +18,7 @@
 - 工具（`src/app/agent/agent-tools.ts`）：`list_files`、`read_file`（每次 400 行）、`search_files`、`write_file`、`edit_file`（唯一匹配替换）、`run_command`、`update_plan`。循环使用 AI SDK `streamText` 的工具调用、`toolApproval` 与 `isStepCount(30)`；工具执行在窗口内的聊天运行时，文件与命令由 Rust 宿主完成（`agent_tools.rs`、`agent_command.rs`、`agent_diff.rs`），路径一律相对项目根目录并校验不越界。
 - 权限：每次询问——读取直接进行，写入与命令需审批；自动接受编辑——写入直接进行，命令需审批；仅计划——只提供读取与计划工具，写入和命令即使被调用也拒绝；完全访问——全部直接进行。审批卡确认或拒绝后，`use-agent-run.ts` 在最后一条回复的审批都已回答时以同样的请求字段继续；拒绝结果作为工具结果交给模型。
 - 每次写入前在 `<appData>/data/snapshots/` 保存原内容；改动卡的“撤销”只在文件仍是 Agent 写入后的内容时恢复，否则拒绝，避免覆盖他人的修改。命令在登录 shell 中运行，无输入，默认 120 秒、最多 600 秒超时，停止回复会结束其进程组，每路输出保留前 64 KB。
+- 运行中的呈现（2026-11-13）：`agent_run_command` 带一个必需的 Tauri `Channel`（`on_output`），子进程每读到一段 stdout / stderr 就发出（不完整的 UTF-8 尾部留到下一段）；`desktop-agent-host.ts` 转给 `AgentHost.run` 的 `onOutput`，`run_command` 按 `toolCallId` 写入 `src/app/agent/command-output.ts`（每个调用只留末尾 64 KB，每帧最多通知一次），命令卡运行中显示并滚到最新一行，调用返回后清掉，由保存的结果接管。输入框上方的状态行由 `run-activity.ts` 从回复部件得出（当前工具、正在思考 / 回复、第 n 步，即 `step-start` 数），计时沿用 `AgentThinking`。`message-segments.ts` 按顺序产出思考段，并把两个以上连续的读取 / 列目录 / 搜索（之间的思考也归入）合为一组；`run-changes.ts` 汇总回复中的写入与修改（按文件合计行数，快照从新到旧）供结束后的更改汇总与“全部撤销”。`MAX_AGENT_STEPS`（`step-limit.ts`）用尽且最后一步仍在调用工具时，`finish` 元数据写 `stepLimit: true`（其他结束写 `false`，以便同一回复的后续请求清除），最后一条回复据此显示“继续”，发送“继续”并带同样的请求字段。
 - 这是第 2 阶段的第一步：独立 Node.js Agent 进程、子任务、终端面板接入与自动路由仍按下文计划实施；当前工具循环不代表这些已完成。
 
 ### 代码高亮与长代码渲染（当前，2026-11-13）

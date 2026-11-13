@@ -1,14 +1,13 @@
 import {
   convertToModelMessages,
   createUIMessageStreamResponse,
-  isStepCount,
   safeValidateUIMessages,
   smoothStream,
   streamText,
   toUIMessageStream,
 } from "ai";
-import { readAgentWorkspace, type AgentWorkspace } from "../../agent/agent-request";
-import { activeAgentTools, agentToolApproval, createAgentTools } from "../../agent/agent-tools";
+import { readAgentAllowances, readAgentWorkspace, type AgentWorkspace } from "../../agent/agent-request";
+import { agentRunOptions } from "../../agent/agent-run";
 import { AGENT_UNAVAILABLE_PROMPT, agentSystemPrompt, NO_PROJECT_PROMPT } from "../../agent/agent-prompt";
 import { pageElementsPrompt, readPageElementsPart } from "../../browser/page-element-part";
 import { resolveChatContact, contactSystemPrompt } from "./contact-prompt";
@@ -18,6 +17,9 @@ import type { ChatContactMetadata } from "../../../components/application/agent-
 import { OFFICIAL_COMPANION_UNAVAILABLE_REASON } from "../../contacts/official-companion-service";
 import { chatReplyMetadata } from "../../usage/chat-usage";
 import { createTraceRecorder } from "../../agent/trace-recorder";
+import { stepLimitReached } from "../../agent/step-limit";
+import { DEFAULT_CONTEXT_WINDOW } from "../../chat/context-budget";
+import { prepareContext, summaryPrompt } from "../../chat/context-compaction";
 import { readChatModelProfile } from "../../models/chat-model-profile";
 import { reasoningCallOptions, reasoningOption } from "../../models/reasoning-level";
 import { serviceVendor } from "../../models/model-vendors";
@@ -27,7 +29,6 @@ import type { ChatRuntime } from "./runtime";
 /** Bumped when the contract below changes in a way templates can depend on (2: project tools). */
 const RUNTIME_CONTRACT = 2;
 /** Model calls in one reply before it stops and reports, so a tool loop cannot run away. */
-const MAX_AGENT_STEPS = 30;
 const INSTRUCTIONS_LIMIT = 12000;
 /** Built-in providers that reach a vendor's own API, by the reasoning table's vendor ids. */
 const BUILT_IN_VENDORS: Partial<Record<string, string>> = { openai: "openai", anthropic: "anthropic", google: "gemini", deepseek: "deepseek" };
@@ -139,12 +140,7 @@ export function createChatHandlers(runtime: ChatRuntime) {
     if (submittedWorkspace !== undefined && (!workspace || contact)) {
       return Response.json({ error: "invalid_workspace", message: "Expected a project folder, its name and a permission mode, outside contact chats." }, { status: 400 });
     }
-    const agent = workspace && runtime.agent ? {
-      tools: createAgentTools(runtime.agent, workspace.root),
-      activeTools: activeAgentTools(workspace.permission),
-      toolApproval: agentToolApproval(workspace.permission),
-      stopWhen: isStepCount(MAX_AGENT_STEPS),
-    } : undefined;
+    const contextWindow = profile?.contextWindow && profile.contextWindow > 0 ? profile.contextWindow : DEFAULT_CONTEXT_WINDOW;
     const agentPrompt = workspace ? runtime.agent ? agentSystemPrompt(workspace.name, workspace.permission) : AGENT_UNAVAILABLE_PROMPT
       : contact ? undefined : NO_PROJECT_PROMPT;
 
@@ -160,21 +156,32 @@ export function createChatHandlers(runtime: ChatRuntime) {
       );
     }
 
+    // Earlier replies' reasoning stays on screen but is not sent back:
+    // providers such as DeepSeek reject it in the input. Browser annotations
+    // ride beside the typed text; the model reads them as text.
+    const convert = (messages: typeof validated.data) => convertToModelMessages(messages.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") })), {
+      convertDataPart: (part) => {
+        const elements = readPageElementsPart(part);
+        return elements ? { type: "text" as const, text: pageElementsPrompt(elements) } : undefined;
+      },
+    });
+    const baseSystem = systemPrompt(provider, contact, group, instructions, agentPrompt);
+    // A long chat is trimmed and, past 75% of the window, summarized (context-compaction.ts).
+    const context = await prepareContext({ model: provider.model, contextWindow, messages: validated.data, convert, system: baseSystem, abortSignal: req.signal });
+
+    // The tool loop (agent-run.ts), with what the user allowed for this chat
+    // and the run id the composer steers it by.
+    const agent = workspace && runtime.agent
+      ? agentRunOptions(runtime.agent, workspace, readAgentAllowances((body as { allow?: unknown }).allow), (body as { runId?: unknown }).runId, contextWindow)
+      : undefined;
+
     const result = streamText({
       model: provider.model,
-      system: systemPrompt(provider, contact, group, instructions, agentPrompt),
+      system: [baseSystem, summaryPrompt(context.summary)].filter(Boolean).join("\n"),
       ...agent,
       ...(reasoning.reasoning ? { reasoning: reasoning.reasoning } : {}),
       ...(reasoning.compatible ? { providerOptions: { [PROFILE_PROVIDER_NAME]: reasoning.compatible } } : {}),
-      // Earlier replies' reasoning stays on screen but is not sent back:
-      // providers such as DeepSeek reject it in the input.
-      messages: await convertToModelMessages(validated.data.map((message) => ({ ...message, parts: message.parts.filter((part) => part.type !== "reasoning") })), {
-        // Browser annotations ride beside the typed text; the model reads them as text.
-        convertDataPart: (part) => {
-          const elements = readPageElementsPart(part);
-          return elements ? { type: "text", text: pageElementsPrompt(elements) } : undefined;
-        },
-      }),
+      messages: context.messages,
       // Providers emit text in uneven bursts, and a burst of twenty words lands
       // as one repaint — which is what makes streamed text look like it stutters.
       // Releasing whole words on a steady tick turns that into an even flow, and
@@ -186,6 +193,9 @@ export function createChatHandlers(runtime: ChatRuntime) {
     });
 
     const trace = createTraceRecorder();
+    // A run cut off by the step cap is marked so the reply can offer 继续;
+    // always written, so a later request into the same reply clears it.
+    let steps = 0;
     return createUIMessageStreamResponse({
       stream: toUIMessageStream({
         stream: result.stream,
@@ -194,9 +204,14 @@ export function createChatHandlers(runtime: ChatRuntime) {
         // Token counts the provider reported for this reply, saved with the
         // chat history so the profile page can sum real usage; and each
         // step's and tool call's timing, for the 轨迹 view.
-        messageMetadata: ({ part }) => part.type === "finish"
-          ? chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label, contextWindow: profile?.contextWindow })
-          : trace(part),
+        messageMetadata: ({ part }) => {
+          // A new summary is saved with this reply, so the next one starts from it.
+          if (part.type === "start" && context.compaction) return { compaction: context.compaction };
+          if (part.type === "start-step") steps += 1;
+          if (part.type !== "finish") return trace(part);
+          const usage = chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label, contextWindow: profile?.contextWindow });
+          return agent ? { ...usage, stepLimit: stepLimitReached(steps, part.finishReason) } : usage;
+        },
       }),
     });
   }

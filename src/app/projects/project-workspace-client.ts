@@ -1,5 +1,5 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
-import { readGitOutput, readListing, readProjectFile, type GitOutput, type ProjectFile, type ProjectListing } from "./project-workspace";
+import { readFileIndex, readGitOutput, readListing, readProjectFile, type FileIndex, type GitOutput, type ProjectFile, type ProjectListing } from "./project-workspace";
 
 const UNAVAILABLE = "当前页面不能读取本机文件夹。请在 NekoPapa 桌面应用或本地开发服务器中打开。";
 
@@ -27,6 +27,8 @@ export async function hostCall<T>(command: string, route: string, args: Record<s
  */
 export const projectWorkspace = {
   list: (root: string, dir: string): Promise<ProjectListing> => hostCall("project_list_dir", "project-workspace/list", { root, dir }, readListing),
+  /** Every file path in the project (up to 20,000), for @ mentions and find_files. */
+  files: (root: string): Promise<FileIndex> => hostCall("project_list_files", "project-workspace/files", { root }, readFileIndex),
   read: (root: string, path: string): Promise<ProjectFile> => hostCall("project_read_file", "project-workspace/read", { root, path }, readProjectFile),
   status: (root: string): Promise<GitOutput> => hostCall("project_git_status", "project-workspace/git-status", { root }, readGitOutput),
   diff: (root: string, path: string): Promise<GitOutput> => hostCall("project_git_diff", "project-workspace/git-diff", { root, path }, readGitOutput),

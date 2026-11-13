@@ -25,3 +25,21 @@ export function agentWorkspaceBody(project: { name: string; folders: readonly st
   const root = project?.folders[0];
   return root ? { workspace: { root, name: project.name, permission } } : {};
 }
+
+/**
+ * What the user allowed for the rest of this chat from an approval card:
+ * exact commands that no longer ask, and whether file changes no longer ask.
+ * Kept by the window for the open chat only (use-agent-run.ts).
+ */
+export interface AgentAllowances { commands: string[]; edits: boolean }
+
+const MAX_ALLOWED = 100;
+const MAX_COMMAND = 4000;
+
+export function readAgentAllowances(value: unknown): AgentAllowances {
+  const item = value !== null && typeof value === "object" ? value as Record<string, unknown> : {};
+  const commands = Array.isArray(item.commands)
+    ? item.commands.filter((command): command is string => typeof command === "string" && command.length > 0 && command.length <= MAX_COMMAND).slice(0, MAX_ALLOWED)
+    : [];
+  return { commands, edits: item.edits === true };
+}

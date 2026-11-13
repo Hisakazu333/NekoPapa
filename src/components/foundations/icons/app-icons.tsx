@@ -4,7 +4,7 @@ import {
   ChartColumn, ChartPie, Check, ChevronDown, ChevronLeft, ChevronRight, CircleAlert, Eye, EyeOff,
   CircleCheck, CircleHelp, CircleStop, Cloud, CloudUpload, Code, Compass, Contact, Copy, Cpu,
   Command, CornerDownLeft, Crosshair, Database, Delete, Download, Ellipsis, EllipsisVertical, ExternalLink, File,
-  FileArchive, FileAudio, FileBraces, FileCode, FileCog, FileDiff, FileImage, FileLock, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
+  FileArchive, FileAudio, FileBraces, FileCode, FileCog, FileDiff, FileImage, FileLock, FileSearch, FileSpreadsheet, FileText, FileVideo, Folder, FolderOpen, FolderPlus, GitBranch, GitMerge, Globe,
   GraduationCap, History, House, Image, ImagePlus, Info, Keyboard, Languages, Laptop, Layers,
   LayoutGrid, LayoutPanelLeft, Library, Lightbulb, Link, Link2, List, ListChecks, LogIn,
   Mail, MailCheck, MailOpen, Map, Menu, MessageCircle, MessageCircleHeart, MessageSquareText,
@@ -110,6 +110,7 @@ export const FileSpreadsheetIcon = outline(FileSpreadsheet);
 export const FileVideoIcon = outline(FileVideo);
 export const PresentationIcon = outline(Presentation);
 export const FileTextIcon = outline(FileText);
+export const FileSearchIcon = outline(FileSearch);
 export const FolderIcon = outline(Folder);
 export const FolderOpenIcon = outline(FolderOpen);
 export const FolderPlusIcon = outline(FolderPlus);

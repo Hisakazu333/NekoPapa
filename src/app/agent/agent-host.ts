@@ -1,4 +1,4 @@
-import type { ProjectFile, ProjectListing } from "../projects/project-workspace";
+import type { FileIndex, ProjectFile, ProjectListing } from "../projects/project-workspace";
 
 /**
  * What the chat Agent can do on this computer, inside one project folder.
@@ -9,11 +9,19 @@ import type { ProjectFile, ProjectListing } from "../projects/project-workspace"
 export interface AgentHost {
   list(root: string, dir: string): Promise<ProjectListing>;
   read(root: string, path: string): Promise<ProjectFile>;
-  search(root: string, query: string, limit: number): Promise<SearchResult>;
+  /** Every file path in the project, for find_files. */
+  files(root: string): Promise<FileIndex>;
+  search(root: string, query: SearchQuery, limit: number): Promise<SearchResult>;
   write(root: string, path: string, text: string): Promise<FileChange>;
-  edit(root: string, path: string, oldText: string, newText: string): Promise<FileChange>;
-  run(root: string, command: string, timeoutSeconds: number, signal?: AbortSignal): Promise<CommandResult>;
+  /** Applies every replacement in order and writes once; nothing changes if one does not apply. */
+  edit(root: string, path: string, edits: Replacement[]): Promise<FileChange>;
+  /** `onOutput` receives stdout and stderr as they are printed, interleaved. */
+  run(root: string, command: string, timeoutSeconds: number, signal?: AbortSignal, onOutput?: (text: string) => void): Promise<CommandResult>;
 }
+
+/** `pathPattern` is a regular expression for relative paths (glob.ts builds it). */
+export interface SearchQuery { text: string; regex: boolean; caseSensitive: boolean; pathPattern?: string }
+export interface Replacement { oldText: string; newText: string; replaceAll?: boolean }
 
 export interface SearchHit { path: string; line: number; text: string }
 export interface SearchResult { hits: SearchHit[]; truncated: boolean }

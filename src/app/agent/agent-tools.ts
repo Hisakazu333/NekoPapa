@@ -1,7 +1,11 @@
 import { jsonSchema, tool, type JSONSchema7, type ToolApprovalConfiguration, type ToolSet } from "ai";
 import type { PermissionMode } from "../settings/permission-modes";
-import type { AgentHost, CommandResult, FileChange } from "./agent-host";
+import type { AgentAllowances } from "./agent-request";
+import type { AgentHost, CommandResult, FileChange, Replacement } from "./agent-host";
+import { globMatcher, searchPathSource } from "./glob";
+import { readEdits } from "./change-preview";
 import { readPlan, type PlanStep } from "./agent-plan";
+import { appendCommandOutput, endCommandOutput } from "./command-output";
 
 /**
  * The tools the chat Agent may call in one project folder, and which of them
@@ -10,16 +14,16 @@ import { readPlan, type PlanStep } from "./agent-plan";
  * is stored as a `tool-<name>` part and rendered by agent-tool-card.tsx.
  */
 
-export const AGENT_TOOL_NAMES = ["list_files", "read_file", "search_files", "write_file", "edit_file", "run_command", "update_plan"] as const;
+export const AGENT_TOOL_NAMES = ["list_files", "find_files", "read_file", "search_files", "write_file", "edit_file", "run_command", "update_plan"] as const;
 export type AgentToolName = (typeof AGENT_TOOL_NAMES)[number];
 
-const READ_TOOLS: AgentToolName[] = ["list_files", "read_file", "search_files", "update_plan"];
+const READ_TOOLS: AgentToolName[] = ["list_files", "find_files", "read_file", "search_files", "update_plan"];
 const EDIT_TOOLS: AgentToolName[] = ["write_file", "edit_file"];
 
 /** Lines of a file sent to the model in one read; the model asks for the next range. */
-export const READ_LINES = 400;
+export const READ_LINES = 2000;
 /** Characters of a file sent to the model in one read, so one minified file cannot fill the context. */
-export const MAX_READ_CHARS = 60_000;
+export const MAX_READ_CHARS = 80_000;
 const MAX_MODEL_OUTPUT = 12_000;
 
 export interface ReadOutput { path: string; startLine: number; endLine: number; totalLines: number; text: string; note?: string }
@@ -38,12 +42,12 @@ const object = (properties: Record<string, JSONSchema7>, required: string[]): JS
  * says which limit did it and where to continue; only a single line longer
  * than the whole budget comes back partial, and its note says so.
  */
-function readRange(lines: readonly string[], start: number): { text: string; end: number; note?: string } {
+function readRange(lines: readonly string[], start: number, count = READ_LINES): { text: string; end: number; note?: string } {
   const kept: string[] = [];
   let size = 0;
   let overChars = false;
   let partialLine = false;
-  for (const line of lines.slice(start - 1, start - 1 + READ_LINES)) {
+  for (const line of lines.slice(start - 1, start - 1 + count)) {
     const cost = (kept.length > 0 ? 1 : 0) + line.length;
     if (size + cost > MAX_READ_CHARS) {
       overChars = true;
@@ -79,12 +83,13 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
       },
     }),
     read_file: tool({
-      description: `Read a text file of the project, ${READ_LINES} lines or ${MAX_READ_CHARS} characters at a time, always in whole lines. Pass startLine to read further; the note says when a limit stopped it early and where to continue.`,
-      inputSchema: jsonSchema<{ path: string; startLine?: number }>(object({
+      description: `Read a text file of the project, up to ${READ_LINES} lines or ${MAX_READ_CHARS} characters at a time, always in whole lines. Pass startLine (and lineCount) to read a part; the note says when a limit stopped it early and where to continue.`,
+      inputSchema: jsonSchema<{ path: string; startLine?: number; lineCount?: number }>(object({
         path: { type: "string", description: "File relative to the project root." },
         startLine: { type: "integer", minimum: 1, description: "First line to return (1-based)." },
+        lineCount: { type: "integer", minimum: 1, maximum: READ_LINES, description: `How many lines to return; defaults to ${READ_LINES}.` },
       }, ["path"])),
-      execute: async ({ path, startLine }): Promise<ReadOutput> => {
+      execute: async ({ path, startLine, lineCount }): Promise<ReadOutput> => {
         const file = await host.read(root, path);
         if (file.binary || file.tooLarge || file.text === undefined) {
           return { path, startLine: 0, endLine: 0, totalLines: 0, text: "", note: file.binary ? "二进制文件，无法以文本读取。" : "文件超过 512 KB，无法读取。" };
@@ -97,14 +102,26 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
           return { path, startLine: 0, endLine: 0, totalLines: lines.length, text: "", note: `文件只有 ${lines.length} 行，没有第 ${asked} 行。` };
         }
         const start = Math.max(1, asked);
-        const range = readRange(lines, start);
+        const range = readRange(lines, start, Math.min(READ_LINES, Math.max(1, Math.floor(lineCount ?? READ_LINES))));
         return { path, startLine: start, endLine: range.end, totalLines: lines.length, text: range.text, note: range.note };
       },
     }),
+    find_files: tool({
+      description: "Find files by name pattern (glob): * within a folder name, ** across folders, ? one character, {a,b} either. A pattern without / matches at any depth (\"*.test.ts\"); with / it is from the project root (\"src/**/*.tsx\"). Skips .git, node_modules and build output.",
+      inputSchema: jsonSchema<{ pattern: string }>(object({ pattern: { type: "string", minLength: 1 } }, ["pattern"])),
+      execute: async ({ pattern }) => findFiles(await host.files(root), pattern),
+    }),
     search_files: tool({
-      description: "Find text (case-insensitive) in the project's files, and files whose path contains it. Skips .git, node_modules and build output.",
-      inputSchema: jsonSchema<{ query: string }>(object({ query: { type: "string", minLength: 1 } }, ["query"])),
-      execute: async ({ query }) => host.search(root, query, 50),
+      description: "Search the contents of the project's files (and their paths). Plain text by default, case-insensitive; set regex for a regular expression (Rust/JavaScript syntax), caseSensitive to match case, include for a file pattern (glob, like find_files) and path for a folder. Skips .git, node_modules and build output. Up to 100 hits.",
+      inputSchema: jsonSchema<{ query: string; regex?: boolean; caseSensitive?: boolean; include?: string; path?: string }>(object({
+        query: { type: "string", minLength: 1 },
+        regex: { type: "boolean", description: "Treat query as a regular expression." },
+        caseSensitive: { type: "boolean" },
+        include: { type: "string", description: "Only files matching this glob, e.g. \"*.ts\" or \"src/**/*.{ts,tsx}\"." },
+        path: { type: "string", description: "Only files under this folder." },
+      }, ["query"])),
+      execute: async ({ query, regex, caseSensitive, include, path }) =>
+        host.search(root, { text: query, regex: regex === true, caseSensitive: caseSensitive === true, pathPattern: searchPathSource(include, path) }, 100),
     }),
     write_file: tool({
       description: "Create a file or replace its whole contents. Prefer edit_file for changes to an existing file.",
@@ -113,11 +130,16 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
       toModelOutput: ({ output }) => ({ type: "text", value: changeSummary(output as FileChange) }),
     }),
     edit_file: tool({
-      description: "Replace one exact, unique passage of an existing file. Read the file first; include enough surrounding text to make oldText unique.",
-      inputSchema: jsonSchema<{ path: string; oldText: string; newText: string }>(object({
-        path: { type: "string" }, oldText: { type: "string", minLength: 1 }, newText: { type: "string" },
-      }, ["path", "oldText", "newText"])),
-      execute: async ({ path, oldText, newText }): Promise<FileChange> => host.edit(root, path, oldText, newText),
+      description: "Change an existing file by exact replacements, applied in order and written once (one undo). Each oldText must occur exactly once unless replaceAll is set; include enough surrounding text to make it unique. Read the file first. Several edits to one file belong in one call; if any edit does not apply, nothing is written.",
+      inputSchema: jsonSchema<{ path: string; edits: Replacement[] }>(object({
+        path: { type: "string" },
+        edits: { type: "array", minItems: 1, maxItems: 50, items: object({
+          oldText: { type: "string", minLength: 1 },
+          newText: { type: "string" },
+          replaceAll: { type: "boolean", description: "Replace every occurrence instead of exactly one." },
+        }, ["oldText", "newText"]) },
+      }, ["path", "edits"])),
+      execute: async (input): Promise<FileChange> => host.edit(root, input.path, readEdits(input)),
       toModelOutput: ({ output }) => ({ type: "text", value: changeSummary(output as FileChange) }),
     }),
     run_command: tool({
@@ -126,8 +148,11 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
         command: { type: "string", minLength: 1 },
         timeoutSeconds: { type: "integer", minimum: 1, maximum: 600, description: "Defaults to 120." },
       }, ["command"])),
-      execute: async ({ command, timeoutSeconds }, { abortSignal }): Promise<CommandResult> =>
-        host.run(root, command, timeoutSeconds ?? 120, abortSignal),
+      execute: async ({ command, timeoutSeconds }, { abortSignal, toolCallId }): Promise<CommandResult> => {
+        try {
+          return await host.run(root, command, timeoutSeconds ?? 120, abortSignal, (text) => appendCommandOutput(toolCallId, text));
+        } finally { endCommandOutput(toolCallId); }
+      },
       toModelOutput: ({ output }) => ({ type: "text", value: commandSummary(output as CommandResult) }),
     }),
     update_plan: tool({
@@ -140,6 +165,18 @@ export function createAgentTools(host: AgentHost, root: string): ToolSet {
       }, ["steps"])),
       execute: async (input) => ({ steps: readPlan(input) }),
     }),
+  };
+}
+
+const MAX_FOUND = 200;
+
+/** find_files: matching paths in index order, at most MAX_FOUND. */
+export function findFiles(index: { paths: string[]; truncated: boolean }, pattern: string) {
+  const matches = globMatcher(pattern);
+  const found = index.paths.filter(matches);
+  return {
+    paths: found.slice(0, MAX_FOUND), total: found.length, truncated: found.length > MAX_FOUND || index.truncated,
+    ...(index.truncated ? { note: "项目文件超过 20000 个，只查找了前 20000 个。" } : {}),
   };
 }
 
@@ -158,13 +195,20 @@ export function activeAgentTools(mode: PermissionMode): AgentToolName[] {
   return mode === "plan" ? READ_TOOLS : [...AGENT_TOOL_NAMES];
 }
 
-/** Which calls wait for the user, which go ahead, by permission mode. */
-export function agentToolApproval(mode: PermissionMode): ToolApprovalConfiguration<ToolSet, never> {
-  const edits = mode === "acceptEdits" || mode === "full" ? "approved" : mode === "plan" ? "denied" : "user-approval";
+/**
+ * Which calls wait for the user, which go ahead: by permission mode, then by
+ * what the user allowed for this chat from an approval card (an exact
+ * command, or all file changes). 仅计划 refuses changes whatever was allowed.
+ */
+export function agentToolApproval(mode: PermissionMode, allow: AgentAllowances = { commands: [], edits: false }): ToolApprovalConfiguration<ToolSet, never> {
+  const edits = mode === "acceptEdits" || mode === "full" || (allow.edits && mode !== "plan") ? "approved" : mode === "plan" ? "denied" : "user-approval";
   const commands = mode === "full" ? "approved" : mode === "plan" ? "denied" : "user-approval";
+  const allowed = new Set(allow.commands);
   return {
     ...Object.fromEntries(READ_TOOLS.map((name) => [name, "not-applicable"])),
     ...Object.fromEntries(EDIT_TOOLS.map((name) => [name, edits])),
-    run_command: commands,
+    run_command: commands === "user-approval" && allowed.size > 0
+      ? (input: unknown) => allowed.has(String((input as { command?: unknown } | null)?.command ?? "")) ? "approved" : "user-approval"
+      : commands,
   };
 }

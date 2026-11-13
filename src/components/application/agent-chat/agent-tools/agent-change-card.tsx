@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowUpRightIcon, ChevronRightIcon, FileCodeIcon, RotateCcwIcon } from "@/components/foundations/icons/app-icons";
 import { ToolbarIconButton } from "@/components/application/dashboard/toolbar-icon-button";
-import { focusChange } from "@/app/agent/project-change-events";
+import { focusChange, onProjectChange } from "@/app/agent/project-change-events";
 import { Button } from "@/components/base/buttons/button";
 import { parseUnifiedDiff } from "@/app/projects/project-workspace";
 import type { FileChange } from "@/app/agent/agent-host";
@@ -15,15 +15,20 @@ const OPEN_LIMIT = 40;
 
 type Undo = { kind: "checking" } | { kind: SnapshotState } | { kind: "busy" } | { kind: "error"; message: string };
 
-/** Whether the change can still be undone, asked of the host once the card shows. */
+/**
+ * Whether the change can still be undone: asked of the host once the card
+ * shows, and again whenever files change (a later edit, or 全部撤销 under the reply).
+ */
 function useUndo(snapshot: string, enabled: boolean) {
   const [state, setState] = useState<Undo>({ kind: "checking" });
   useEffect(() => {
     if (!enabled) return;
     let live = true;
-    snapshotState(snapshot).then((kind) => { if (live) setState({ kind }); },
+    const check = () => snapshotState(snapshot).then((kind) => { if (live) setState({ kind }); },
       (error: Error) => { if (live) setState({ kind: "error", message: error.message }); });
-    return () => { live = false; };
+    void check();
+    const stop = onProjectChange(() => { void check(); });
+    return () => { live = false; stop(); };
   }, [snapshot, enabled]);
   const undo = async () => {
     setState({ kind: "busy" });

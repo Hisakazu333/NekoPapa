@@ -3,19 +3,16 @@
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
 
 import { CheckIcon, CopyIcon, Volume2Icon, VolumeXIcon } from "@/components/foundations/icons/app-icons";
-import { memo, useDeferredValue, useEffect, useMemo, useState, type ReactNode } from "react";
+import { memo, useEffect, useState, type ReactNode } from "react";
 
 import { cx } from "@/utils/cx";
 import { LinkedText } from "./message-links";
-import { splitMessageBlocks } from "@/app/chat/message-blocks";
-import { MessageMarkdown } from "./message-markdown";
-import { MessageRichBlock } from "./message-rich-block";
 import { MessageReasoning } from "./message-reasoning";
 import type { UIMessage } from "ai";
-import { hasToolParts, messageSegments } from "@/app/agent/message-segments";
-import { AgentToolCard } from "./agent-tools/agent-tool-card";
-import { AgentPlanCard } from "./agent-tools/agent-plan-card";
+import { hasOrderedParts } from "@/app/agent/message-segments";
 import { MessagePageElements } from "./message-page-elements";
+import { ReplyBlocks } from "./reply-blocks";
+import { ToolReply } from "./agent-tools/tool-reply";
 
 /**
  * One turn in the transcript.
@@ -40,12 +37,14 @@ export interface AgentMessageProps {
   reasoning?: string;
   /** The message's parts: a reply's tool calls show in order; a user message's browser annotations show under it. */
   parts?: UIMessage["parts"];
+  /** The run stopped at the step cap: the last reply offers 继续. */
+  stepLimit?: boolean;
 }
 
 /** Memoized: while one reply streams, the earlier turns do not re-render. */
-export const AgentMessage = memo(function AgentMessage({ role, text, streaming = false, at, reasoning = "", parts }: AgentMessageProps) {
+export const AgentMessage = memo(function AgentMessage({ role, text, streaming = false, at, reasoning = "", parts, stepLimit }: AgentMessageProps) {
   const localize = useTemplateCopy();
-  const tools = role === "assistant" && parts !== undefined && hasToolParts(parts);
+  const tools = role === "assistant" && parts !== undefined && hasOrderedParts(parts);
   if (!text && !reasoning.trim() && !tools) return null;
 
   if (role === "user") {
@@ -61,35 +60,15 @@ export const AgentMessage = memo(function AgentMessage({ role, text, streaming =
 
   return localize((
     <div className="group/message flex flex-col gap-1 px-1">
-      <MessageReasoning text={reasoning} streaming={streaming && !text && !tools} />
-      {tools ? <ToolReply parts={parts} /> : <ReplyBlocks text={text} />}
+      {/* A reply with tools (or 插话) shows its reasoning at each step, inside ToolReply. */}
+      {tools ? <ToolReply parts={parts} streaming={streaming} stepLimit={stepLimit} /> : <>
+        <MessageReasoning text={reasoning} streaming={streaming && !text} />
+        <ReplyBlocks text={text} />
+      </>}
       <MessageActions text={text} at={at} hidden={streaming} />
     </div>
   ));
 });
-
-/** A reply that used tools: its text runs, tool calls and task checklist in the order they happened. */
-function ToolReply({ parts }: { parts: UIMessage["parts"] }) {
-  const segments = useMemo(() => messageSegments(parts), [parts]);
-  return <div className="flex flex-col gap-2.5">
-    {segments.map((segment) => segment.kind === "text" ? <ReplyBlocks key={segment.key} text={segment.text} />
-      : segment.kind === "plan" ? <AgentPlanCard key={segment.key} steps={segment.steps} />
-        : <AgentToolCard key={segment.key} name={segment.name} part={segment.part} />)}
-  </div>;
-}
-
-/** Prose as Markdown; fenced blocks as code, diagrams, charts or math (message-rich-block). */
-function ReplyBlocks({ text }: { text: string }) {
-  // Rendering new tokens yields to scrolling and input; the text catches up
-  // in the next idle frame instead of blocking the transcript.
-  const shown = useDeferredValue(text);
-  const blocks = useMemo(() => splitMessageBlocks(shown), [shown]);
-  return <div className="flex flex-col gap-3">
-    {blocks.map((block, index) => block.kind === "code"
-      ? <MessageRichBlock key={index} lang={block.lang} code={block.code} complete={block.complete} />
-      : <MessageMarkdown key={index} text={block.text} />)}
-  </div>;
-}
 
 function MessageActions({ text, at, hidden }: { text: string; at?: number; hidden: boolean }) {
   const localize = useTemplateCopy();

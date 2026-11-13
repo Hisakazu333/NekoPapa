@@ -945,3 +945,10 @@
 - 修改：`agent-chat.tsx` 中展开按钮改为 `openWorkPanel("code")`。标题栏的目录 / 终端 / 更改 / 浏览器 / 文件按钮、⋯ 菜单与命令面板“打开或关闭工作面板”保持原样。同日先做过“展开时重开上次的标题栏面板”的版本（`pane-memory.ts`），与用户本意不符，已整体撤回。
 - 验证：`npm run test` 597/597、`npm run build`、`git diff --check`；浏览器 1495（1280×800）：首次展开为“环境与上下文”；打开终端、关闭后再展开仍为“环境与上下文”。未使用测试数据。
 - 未验证：桌面宿主中的表现（需退出旧版应用后重新打开新构建）。
+
+### Coding 过程呈现第一批（2026-11-13）
+
+- 用户要求：coding 过程中的细节向 Claude Code / Codex 看齐，先做第一批：命令输出实时显示、运行状态行、合并连续读取、按步骤内联思考、结束时的更改汇总、步数上限提示与继续。
+- 修改：Rust `agent_run_command` 新增必需的输出通道并逐段发送（`sends_output_as_it_arrives`、`keeps_a_character_split_across_reads_whole` 两个测试）；前端新增 `command-output.ts`、`run-activity.ts`、`run-changes.ts`、`step-limit.ts`，组件新增 `agent-tool-group.tsx`、`agent-run-summary.tsx`、`agent-step-limit.tsx`、`tool-reply.tsx`、`reply-blocks.tsx`（自 `agent-chat-message.tsx` 拆出，该文件 203 → 182 行）；改动卡在项目文件变化后重新检查能否撤销，使“全部撤销”后各卡状态同步。`agent-chat.tsx` 未改动（493 行）。
+- 验证：`npm run test` 604/604（新增 `tests/agent-run-view.test.mjs` 6 项：处理器中命令输出逐段到达并在结束后清空、64 KB 截尾与按帧通知、30 步上限标记与正常结束为 false、读取分组与组内思考、状态行文字与步数、更改汇总合并与快照顺序）、`npm run build`、`cargo test` 49/49（一次运行中未改动的 `project_workspace::reads_text_flags_binary_and_refuses_escapes` 失败，连续重跑三次均通过，判断为既有的偶发失败）、`git diff --check`。浏览器 1495（1280×800）注入一条测试对话：思考按步内联，搜索 / 读取 / 列目录合为“读取了 1 个文件，查看了 1 个文件夹，搜索了 1 次”且展开后顺序正确，更改汇总“更改了 2 个文件 +7 −1”，步数上限提示与“继续”显示；浏览器中没有快照，不显示“全部撤销”，符合预期。验证后测试数据已删除。
+- 未验证：桌面宿主中命令实时输出、状态行与“全部撤销”的实际运行（需真实模型与项目）；“继续”只在单元层面验证了标记，未在真实运行中点按。

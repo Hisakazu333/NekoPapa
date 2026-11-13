@@ -14,6 +14,12 @@ import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { ConversationViewBar, type ConversationView } from "./trajectory/conversation-view-bar";
 import { TrajectoryView } from "./trajectory/trajectory-view";
+import { runActivity } from "@/app/agent/run-activity";
+import { readStepLimit } from "@/app/agent/step-limit";
+import { ComposerQueue } from "./composer-queue";
+import { ContextCompactionNote } from "./context-compaction-note";
+import { readCompaction } from "@/app/chat/context-compaction";
+import type { MessageQueue } from "./use-message-queue";
 
 export interface ChatConversationProps {
   scrollRef: RefObject<HTMLDivElement | null>;
@@ -30,6 +36,8 @@ export interface ChatConversationProps {
   onInputChange: (value: string) => void;
   onSubmit: (text: string) => void;
   onStop: () => void;
+  /** Messages typed while a reply runs (use-message-queue.ts). */
+  queue: MessageQueue;
   composer: ChatComposerState;
   onOpenSettings: OpenWorkspaceSettings;
   /** Sending is off: no ready model, or the chosen mode has no service yet. */
@@ -54,7 +62,7 @@ export interface ChatConversationProps {
  */
 export function ChatConversation({
   scrollRef, conversationId, active, messages, messageAt, busy, showThinking, error, historyError, onRetryHistory,
-  input, onInputChange, onSubmit, onStop, composer, onOpenSettings, sendDisabled, sendBlockedReason,
+  input, onInputChange, onSubmit, onStop, queue, composer, onOpenSettings, sendDisabled, sendBlockedReason,
   contact, onSelectContact, onClearContact, project, onProjectChange, projectInfo, onOpenChanges, usage,
 }: ChatConversationProps) {
   const empty = messages.length === 0;
@@ -91,7 +99,8 @@ export function ChatConversation({
           />
         ) : messages.map((message, index) => (
           // The wrapper is the 目录 panel's jump target (data-message-id).
-          <div key={message.id} data-message-id={message.id} className="scroll-mt-20">
+          <div key={message.id} data-message-id={message.id} className="flex scroll-mt-20 flex-col gap-5">
+            {message.role === "assistant" && <CompactionMark metadata={message.metadata} />}
             <AgentMessage
               role={message.role}
               text={messageText(message)}
@@ -99,6 +108,7 @@ export function ChatConversation({
               parts={message.parts}
               streaming={busy && index === messages.length - 1}
               at={messageAt[message.id]}
+              stepLimit={!busy && index === messages.length - 1 && readStepLimit(message.metadata)}
             />
           </div>
         ))}
@@ -124,7 +134,10 @@ export function ChatConversation({
           onSubmit={() => onSubmit(input)}
           onStop={onStop}
           busy={busy}
-          activityLabel={showThinking ? "正在等待回复" : undefined}
+          queueing
+          above={<ComposerQueue queue={queue} />}
+          mentionRoot={contact ? undefined : projectInfo?.folders[0]}
+          activityLabel={contact ? (showThinking ? "正在等待回复" : undefined) : runActivity(messages, busy)}
           composer={composer}
           onConfigure={(target) => onOpenSettings("model", target)}
           officialCompanion={contact?.kind === "official"}
@@ -137,4 +150,9 @@ export function ChatConversation({
       </div>
     </div>
   </>;
+}
+
+function CompactionMark({ metadata }: { metadata: unknown }) {
+  const compaction = readCompaction(metadata);
+  return compaction ? <ContextCompactionNote compaction={compaction} /> : null;
 }

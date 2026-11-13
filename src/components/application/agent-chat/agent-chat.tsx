@@ -131,13 +131,12 @@ export function AgentChat({
 
   const [transport] = useState(createChatTransport);
 
-  const { messages, sendMessage, setMessages, status, stop, error, addToolApprovalResponse } = useChat({
-    transport,
-  });
+  const chat = useChat({ transport });
+  const { messages, setMessages, status, stop, error } = chat;
 
   const usage = useMemo(() => threadUsage(messages), [messages]);
   const busy = status === "submitted" || status === "streaming";
-  const agent = useAgentRun({ messages, busy, permission: composer.draft.permission, addToolApprovalResponse, sendMessage,
+  const agent = useAgentRun({ chat, conversationId: activeId, permission: composer.draft.permission,
     base: { ...composer.requestBody, ...(activeContact ? { contact: toChatContactRequest(activeContact) } : {}) },
     project: activeContact ? undefined : resolveProject(projects, activeProject) });
 
@@ -242,9 +241,10 @@ export function AgentChat({
 
   const submit = (text: string) => {
     const trimmed = text.trim();
-    if (!trimmed || busy || !availability.ready || composerBlockedReason) return;
+    if (!trimmed || !availability.ready || composerBlockedReason) return;
     setActiveUpdatedAt(Date.now());
-    void sendMessage(activeContact?.kind === "official" ? { text: trimmed } : composer.takeMessage(trimmed), { body: agent.body });
+    // While a reply runs the message waits in the queue under the composer (use-message-queue.ts).
+    agent.submit(trimmed, activeContact?.kind === "official" ? { text: trimmed } : composer.takeMessage(trimmed));
     setInput("");
   };
 
@@ -474,7 +474,7 @@ export function AgentChat({
             {workspaceHeader}
             <AgentToolActionsContext value={agent.actions}><ChatConversation scrollRef={scrollRef} conversationId={activeId} active={page === "chat" && !placement.browserTabActive} messages={messages} messageAt={messageAt} busy={busy}
               showThinking={showThinking} error={error} historyError={historyError} onRetryHistory={retryHistory}
-              input={input} onInputChange={setInput} onSubmit={submit} onStop={stop} composer={composer}
+              input={input} onInputChange={setInput} onSubmit={submit} onStop={agent.stop} queue={agent.queue} composer={composer}
               onOpenSettings={openSettings} sendDisabled={!availability.ready || Boolean(composerBlockedReason)}
               sendBlockedReason={composerBlockedReason} contact={activeContact} onSelectContact={selectContact}
               onClearContact={clearContact} project={activeProject} onProjectChange={setActiveProject}

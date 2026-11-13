@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { ChevronRightIcon, SquareTerminalIcon } from "@/components/foundations/icons/app-icons";
 import { SpinnerGlyph } from "@/components/base/spinner/spinner";
 import type { CommandResult } from "@/app/agent/agent-host";
+import { readCommandOutput, subscribeCommandOutput } from "@/app/agent/command-output";
 import { cx } from "@/utils/cx";
 
 function status(result: CommandResult) {
@@ -12,8 +13,19 @@ function status(result: CommandResult) {
 
 const seconds = (ms: number) => ms < 1000 ? `${ms} 毫秒` : `${(ms / 1000).toFixed(1)} 秒`;
 
+/** What a running command has printed so far, kept scrolled to the newest line. */
+function LiveOutput({ id }: { id: string }) {
+  const text = useSyncExternalStore((listener) => subscribeCommandOutput(id, listener), () => readCommandOutput(id));
+  const box = useRef<HTMLPreElement>(null);
+  useEffect(() => { if (box.current) box.current.scrollTop = box.current.scrollHeight; }, [text]);
+  if (!text) return null;
+  return <pre ref={box} translate="no" aria-live="off" className="max-h-40 overflow-auto border-t border-separator-border px-3 py-2 font-mono text-caption-1-regular leading-5 whitespace-pre-wrap break-all text-text-secondary">
+    {text}
+  </pre>;
+}
+
 /** A command the Agent ran (or is running) in the project folder, with its captured output. */
-export function AgentCommandCard({ command, result }: { command: string; result?: CommandResult }) {
+export function AgentCommandCard({ id, command, result }: { id?: string; command: string; result?: CommandResult }) {
   const failed = result !== undefined && !(result.exitCode === 0 && !result.timedOut && !result.cancelled);
   const [open, setOpen] = useState(failed);
   const output = result ? [result.stdout, result.stderr].filter(Boolean).join(result.stdout && result.stderr ? "\n" : "") : "";
@@ -28,6 +40,7 @@ export function AgentCommandCard({ command, result }: { command: string; result?
       {result && <span className="shrink-0 text-caption-1-regular text-text-tertiary tabular-nums">{seconds(result.durationMs)}</span>}
       {result && <ChevronRightIcon className={cx("size-3.5 shrink-0 text-text-tertiary transition-transform", open && "rotate-90")} aria-hidden />}
     </button>
+    {!result && id && <LiveOutput id={id} />}
     {open && result && <div className="border-t border-separator-border">
       <pre translate="no" className="max-h-72 overflow-auto px-3 py-2 font-mono text-caption-1-regular leading-5 whitespace-pre-wrap break-all text-text-secondary">
         {output || "（没有输出）"}
