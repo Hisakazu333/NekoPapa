@@ -13,12 +13,14 @@ import { ComposerStatusTab } from "./composer-status-tab";
 import type { Project } from "@/app/projects/projects";
 import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { ConversationViewBar, type ConversationView } from "./trajectory/conversation-view-bar";
+import { MemoryView } from "./trajectory/memory-view";
 import { TrajectoryView } from "./trajectory/trajectory-view";
 import { runActivity } from "@/app/agent/run-activity";
 import { readStepLimit } from "@/app/agent/step-limit";
 import { ComposerQueue } from "./composer-queue";
 import { ContextCompactionNote } from "./context-compaction-note";
 import { readCompaction } from "@/app/chat/context-compaction";
+import { readRunCompactions } from "@/app/chat/run-compaction";
 import type { MessageQueue } from "./use-message-queue";
 
 export interface ChatConversationProps {
@@ -77,7 +79,7 @@ export function ChatConversation({
   };
   return <>
     {!empty && <ConversationViewBar view={view} onChange={setView} />}
-    {view === "trace" ? <TrajectoryView messages={messages} messageAt={messageAt} onJump={jumpTo} /> : <TranscriptViewport viewportRef={scrollRef} conversationId={conversationId} busy={busy} active={active} showLatest={!empty}>
+    {view === "trace" ? <TrajectoryView messages={messages} messageAt={messageAt} onJump={jumpTo} /> : view === "memory" ? <MemoryView /> : <TranscriptViewport viewportRef={scrollRef} conversationId={conversationId} busy={busy} active={active} showLatest={!empty}>
       <div className={cx(
         "mx-auto flex w-full flex-col gap-5 pb-6 pt-6",
         empty ? "flex-1 max-w-[1000px] justify-center px-5 sm:px-10 lg:px-12" : "max-w-3xl px-4",
@@ -154,5 +156,11 @@ export function ChatConversation({
 
 function CompactionMark({ metadata }: { metadata: unknown }) {
   const compaction = readCompaction(metadata);
-  return compaction ? <ContextCompactionNote compaction={compaction} /> : null;
+  const run = readRunCompactions(metadata);
+  return <>
+    {compaction && <ContextCompactionNote summary={compaction.summary}
+      label={`已压缩上下文${compaction.messages ? `：之前 ${compaction.messages} 条消息整理为摘要` : ""}`} />}
+    {run.length > 0 && <ContextCompactionNote summary={run[run.length - 1].summary}
+      label={`运行中压缩了上下文：第 ${run.map((each) => each.step).join("、")} 步前`} />}
+  </>;
 }

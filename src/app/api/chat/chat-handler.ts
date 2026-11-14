@@ -20,6 +20,8 @@ import { createTraceRecorder } from "../../agent/trace-recorder";
 import { stepLimitReached } from "../../agent/step-limit";
 import { DEFAULT_CONTEXT_WINDOW } from "../../chat/context-budget";
 import { prepareContext, summaryPrompt } from "../../chat/context-compaction";
+import { createRunCompactor, type RunCompaction } from "../../chat/run-compaction";
+import { contextPatch } from "../../usage/context-usage";
 import { readChatModelProfile } from "../../models/chat-model-profile";
 import { reasoningCallOptions, reasoningOption } from "../../models/reasoning-level";
 import { serviceVendor } from "../../models/model-vendors";
@@ -140,7 +142,10 @@ export function createChatHandlers(runtime: ChatRuntime) {
     if (submittedWorkspace !== undefined && (!workspace || contact)) {
       return Response.json({ error: "invalid_workspace", message: "Expected a project folder, its name and a permission mode, outside contact chats." }, { status: 400 });
     }
-    const contextWindow = profile?.contextWindow && profile.contextWindow > 0 ? profile.contextWindow : DEFAULT_CONTEXT_WINDOW;
+    // The window the compressor and the composer's meter both measure against:
+    // the model's own, or a default when none is filled in (marked estimated).
+    const windowEstimated = !(profile?.contextWindow && profile.contextWindow > 0);
+    const contextWindow = windowEstimated ? DEFAULT_CONTEXT_WINDOW : profile!.contextWindow!;
     const agentPrompt = workspace ? runtime.agent ? agentSystemPrompt(workspace.name, workspace.permission) : AGENT_UNAVAILABLE_PROMPT
       : contact ? undefined : NO_PROJECT_PROMPT;
 
@@ -169,15 +174,19 @@ export function createChatHandlers(runtime: ChatRuntime) {
     // A long chat is trimmed and, past 75% of the window, summarized (context-compaction.ts).
     const context = await prepareContext({ model: provider.model, contextWindow, messages: validated.data, convert, system: baseSystem, abortSignal: req.signal });
 
-    // The tool loop (agent-run.ts), with what the user allowed for this chat
-    // and the run id the composer steers it by.
+    const system = [baseSystem, summaryPrompt(context.summary)].filter(Boolean).join("\n");
+    // The tool loop (agent-run.ts), with what the user allowed for this chat,
+    // the run id the composer steers it by, and the compressor that keeps a
+    // long run inside the window between steps (run-compaction.ts).
+    const runSummaries: RunCompaction[] = [];
     const agent = workspace && runtime.agent
-      ? agentRunOptions(runtime.agent, workspace, readAgentAllowances((body as { allow?: unknown }).allow), (body as { runId?: unknown }).runId, contextWindow)
+      ? agentRunOptions(runtime.agent, workspace, readAgentAllowances((body as { allow?: unknown }).allow), (body as { runId?: unknown }).runId,
+        createRunCompactor({ model: provider.model, window: contextWindow, system, abortSignal: req.signal, onCompact: (compaction) => runSummaries.push(compaction) }))
       : undefined;
 
     const result = streamText({
       model: provider.model,
-      system: [baseSystem, summaryPrompt(context.summary)].filter(Boolean).join("\n"),
+      system,
       ...agent,
       ...(reasoning.reasoning ? { reasoning: reasoning.reasoning } : {}),
       ...(reasoning.compatible ? { providerOptions: { [PROFILE_PROVIDER_NAME]: reasoning.compatible } } : {}),
@@ -193,6 +202,7 @@ export function createChatHandlers(runtime: ChatRuntime) {
     });
 
     const trace = createTraceRecorder();
+    const requestKey = Date.now().toString(36);
     // A run cut off by the step cap is marked so the reply can offer 继续;
     // always written, so a later request into the same reply clears it.
     let steps = 0;
@@ -208,6 +218,13 @@ export function createChatHandlers(runtime: ChatRuntime) {
           // A new summary is saved with this reply, so the next one starts from it.
           if (part.type === "start" && context.compaction) return { compaction: context.compaction };
           if (part.type === "start-step") steps += 1;
+          // After each model call: how full the window is now, and any summary
+          // made before it (keyed, since metadata objects are deep-merged).
+          if (part.type === "finish-step") {
+            const made = runSummaries.splice(0);
+            const summaries = made.length ? { runCompactions: Object.fromEntries(made.map((each) => [`${requestKey}-${each.step}`, each])) } : {};
+            return { ...trace(part), ...contextPatch(part.usage, contextWindow, windowEstimated), ...summaries };
+          }
           if (part.type !== "finish") return trace(part);
           const usage = chatReplyMetadata(part.totalUsage, { model: provider.modelId, provider: provider.label, contextWindow: profile?.contextWindow });
           return agent ? { ...usage, stepLimit: stepLimitReached(steps, part.finishReason) } : usage;

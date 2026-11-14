@@ -3,26 +3,31 @@ import type { ThreadUsage } from "@/app/usage/thread-usage";
 import { useConfiguration } from "./use-configuration";
 
 export interface ContextWindowReading {
-  /** Tokens the latest reply's request used, as the service reported. */
+  /** Tokens the latest reply's last model call sent and wrote, as the service reported. */
   used?: number;
   window?: number;
   ratio?: number;
-  /** "reply": saved with the reply when it was sent; "settings": the model's window as configured now. */
-  source?: "reply" | "settings";
+  /**
+   * "reply": the window that reply's request worked against; "default": no
+   * window was filled in and the compressor assumed its default, so the share
+   * is an estimate; "settings": an older reply, measured against the window
+   * 设置 → 模型与 API now has for the same model id.
+   */
+  source?: "reply" | "default" | "settings";
 }
 
 /**
- * How full the context window is: the latest reported request against the
- * window saved with that reply, else the window 设置 → 模型与 API now has for
- * the same model id. Nothing is estimated; without either there is no ratio.
+ * How full the context window is (context-usage.ts): the latest reply's last
+ * model call against the window its request used. Older replies saved no
+ * window of their own and fall back to the configured one.
  */
 export function useContextWindow(usage: ThreadUsage): ContextWindowReading {
   const { data } = useConfiguration();
-  const latest = usage.latest;
-  if (!latest) return {};
-  const used = latest.usage.totalTokens;
-  const saved = latest.contextWindow;
-  const window = saved ?? configuredContextWindow(data.collections.models, latest.model);
+  const context = usage.context;
+  if (!context) return {};
+  const used = context.tokens;
+  const window = context.window ?? (usage.latest ? configuredContextWindow(data.collections.models, usage.latest.model) : undefined);
   if (!window) return { used };
-  return { used, window, ratio: used / window, source: saved ? "reply" : "settings" };
+  const source = context.window ? context.estimated ? "default" : "reply" : "settings";
+  return { used, window, ratio: used / window, source };
 }

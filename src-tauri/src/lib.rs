@@ -8,6 +8,8 @@ mod browser_view;
 mod editor_open;
 mod external_link;
 mod local_models;
+mod memory_config;
+mod memory_service;
 mod credential_store;
 mod model_proxy;
 mod plugin_frame;
@@ -28,6 +30,8 @@ pub fn run() {
         .manage(account_auth::AccountAuth::default())
         .manage(app_data::AppDataState::default())
         .manage(agent_command::AgentCommands::default())
+        // The local memory service (NekoCairn), started on first use.
+        .manage(memory_service::MemoryService::default())
         // Interface plugins' frame views: static files of allowed plugin folders.
         .manage(plugin_frame::PluginFrames::default())
         .register_asynchronous_uri_scheme_protocol(plugin_frame::SCHEME, |ctx, request, responder| {
@@ -96,7 +100,17 @@ pub fn run() {
             credential_store::credential_has,
             model_proxy::model_fetch,
             model_proxy::model_fetch_cancel,
+            // 对话 → 记忆: the memory service this host runs; tokens stay on this side.
+            memory_service::memory_status,
+            memory_service::memory_install,
+            memory_service::memory_invoke,
         ])
-        .run(tauri::generate_context!())
-        .expect("failed to run NekoPapa");
+        .build(tauri::generate_context!())
+        .expect("failed to build NekoPapa")
+        .run(|app, event| {
+            if let tauri::RunEvent::Exit = event {
+                use tauri::Manager;
+                app.state::<memory_service::MemoryService>().stop_now();
+            }
+        });
 }

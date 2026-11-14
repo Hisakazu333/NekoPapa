@@ -58,3 +58,31 @@ export function recentAge(timestamp: number, now: number): string {
   const date = new Date(timestamp);
   return `${date.getMonth() + 1}/${date.getDate()}`;
 }
+
+/** One day-bucket of workbench chats, newest first inside each bucket. */
+export interface RecentDayGroup { key: string; label: string; threads: StoredThread[] }
+
+/**
+ * 对话 in the dock's panel lists chats by recency, not by project: switching
+ * sessions is a "what did I do lately" question, so the day is the useful
+ * heading. Days are local calendar days; the 7-day bucket stops before today.
+ */
+export function groupThreadsByDay(threads: readonly StoredThread[], now: number): RecentDayGroup[] {
+  const dayStart = (timestamp: number) => {
+    const date = new Date(timestamp);
+    date.setHours(0, 0, 0, 0);
+    return date.getTime();
+  };
+  const today = dayStart(now);
+  const buckets: RecentDayGroup[] = [
+    { key: "today", label: "今天", threads: [] },
+    { key: "yesterday", label: "昨天", threads: [] },
+    { key: "week", label: "最近 7 天", threads: [] },
+    { key: "older", label: "更早", threads: [] },
+  ];
+  for (const thread of [...threads].sort((a, b) => b.updatedAt - a.updatedAt)) {
+    const days = Math.round((today - dayStart(thread.updatedAt || 0)) / 86_400_000);
+    buckets[days <= 0 ? 0 : days === 1 ? 1 : days < 7 ? 2 : 3].threads.push(thread);
+  }
+  return buckets.filter((bucket) => bucket.threads.length > 0);
+}

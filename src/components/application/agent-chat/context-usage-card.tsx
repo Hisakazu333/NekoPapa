@@ -6,21 +6,21 @@ import { cx } from "@/utils/cx";
 
 interface Bucket { label: string; tokens: number; swatch: string }
 
-/** The latest reply's reported usage, split the way the provider reported it. */
+/** The latest model call's reported usage (what fills the window), split the way the provider reported it. */
 function buckets(usage: ThreadUsage): Bucket[] {
-  const latest = usage.latest;
-  if (!latest) return [];
-  const { inputTokens, outputTokens, reasoningTokens, totalTokens } = latest.usage;
-  const parts = (inputTokens ?? 0) + (outputTokens ?? 0);
+  const context = usage.context;
+  if (!context) return [];
+  const { input, output, reasoning, tokens } = context;
+  const parts = (input ?? 0) + (output ?? 0);
   const result: Bucket[] = [];
-  if (parts <= totalTokens) {
-    if (inputTokens) result.push({ label: "请求输入", tokens: inputTokens, swatch: "bg-chart-1" });
-    if (reasoningTokens) result.push({ label: "思考", tokens: reasoningTokens, swatch: "bg-chart-4" });
-    const answer = (outputTokens ?? 0) - (reasoningTokens ?? 0);
-    if (answer > 0) result.push({ label: reasoningTokens ? "回复正文" : "回复输出", tokens: answer, swatch: "bg-chart-3" });
+  if (parts <= tokens) {
+    if (input) result.push({ label: "请求输入", tokens: input, swatch: "bg-chart-1" });
+    if (reasoning) result.push({ label: "思考", tokens: reasoning, swatch: "bg-chart-4" });
+    const answer = (output ?? 0) - (reasoning ?? 0);
+    if (answer > 0) result.push({ label: reasoning ? "回复正文" : "回复输出", tokens: answer, swatch: "bg-chart-3" });
   }
   // A provider that reports only a total (or parts that do not add up) leaves it unsplit.
-  const rest = parts <= totalTokens ? totalTokens - parts : totalTokens;
+  const rest = parts <= tokens ? tokens - parts : tokens;
   if (rest > 0) result.push({ label: "未分项", tokens: rest, swatch: "bg-chart-5" });
   return result;
 }
@@ -31,10 +31,12 @@ function buckets(usage: ThreadUsage): Bucket[] {
  * folds the legend; a 6px bar split into buckets always shows beneath it;
  * unfolded, one row per bucket with its tokens and share, then the space left.
  *
- * Tokens are what the service reported for the latest reply (its input
- * carried the conversation so far). The window is the one saved with that
- * reply, else the model's window in 设置 → 模型与 API now. Without a window
- * the bar stays an empty track, shares read "—" and the card asks for one.
+ * The header and bar read the window's fill: the latest reply's last model
+ * call (context-usage.ts), against the window its request used; when none
+ * was filled in, the compressor's default, marked 约. Older replies fall
+ * back to the model's window in 设置 → 模型与 API now. Without a window the
+ * bar stays an empty track, shares read "—" and the card asks for one. The
+ * legend splits that call; the footer sums the whole chat.
  */
 export function ContextUsageMeter({ usage, defaultExpanded = false, onOpenModelSettings, className }: {
   usage: ThreadUsage;
@@ -55,7 +57,7 @@ export function ContextUsageMeter({ usage, defaultExpanded = false, onOpenModelS
       <span className="flex min-w-0 items-center gap-2">
         <span className="truncate whitespace-nowrap text-body-medium text-text-secondary tabular-nums">
           {used === undefined ? "尚无用量"
-            : window !== undefined ? <>{formatTokens(used)} / {formatTokens(window)} <span className="text-text-primary">({formatShare(ratio!)})</span></>
+            : window !== undefined ? <>{formatTokens(used)} / {formatTokens(window)} <span className="text-text-primary">({source === "default" ? "约 " : ""}{formatShare(ratio!)})</span></>
               : <>{formatTokens(used)} / <span className="text-text-tertiary">未设置</span></>}
         </span>
         <ChevronDownIcon aria-hidden className={cx("size-4 shrink-0 text-foreground-icon-tertiary transition-transform duration-200 motion-reduce:transition-none", expanded && "rotate-180")} />
@@ -72,12 +74,13 @@ export function ContextUsageMeter({ usage, defaultExpanded = false, onOpenModelS
     {expanded && <div id={panelId} className="flex flex-col pt-3">
       {used === undefined
         ? <p className="py-[5px] text-body-regular text-text-tertiary">模型服务返回本对话的 Token 用量后，这里显示占用。有的服务不返回用量。</p>
-        : <ul aria-label="最近一次请求的 Token" className="flex flex-col">
+        : <ul aria-label="最近一次模型调用的 Token" className="flex flex-col">
           {parts.map((part) => <Legend key={part.label} {...part} share={window ? part.tokens / window : undefined} />)}
           {free !== undefined && <Legend label="可用空间" tokens={free} swatch="bg-chart-track" share={free / window!} />}
         </ul>}
-      {used !== undefined && window === undefined && <div className="mt-2 flex items-center gap-2">
-        <p className="min-w-0 flex-1 text-caption-1-regular text-text-secondary">在模型配置里填写上下文窗口后，这里按比例显示占用。</p>
+      {used !== undefined && (window === undefined || source === "default") && <div className="mt-2 flex items-center gap-2">
+        <p className="min-w-0 flex-1 text-caption-1-regular text-text-secondary">{window === undefined ? "在模型配置里填写上下文窗口后，这里按比例显示占用。"
+          : `未填写上下文窗口，占用和压缩都按 ${formatTokens(window)} 估算；填写模型的实际上限后更准确。`}</p>
         {onOpenModelSettings && <button type="button" onClick={onOpenModelSettings}
           className="flex h-7 shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-background-primary-default px-2 text-caption-1-medium text-text-primary shadow-xs outline-none hover:bg-background-primary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring">
           <SettingsIcon className="size-3.5" aria-hidden />去填写

@@ -1,12 +1,16 @@
 import { generateText, type LanguageModel, type ModelMessage, type UIMessage } from "ai";
 import { DEFAULT_CONTEXT_WINDOW, estimateTokens, pruneToolTraffic, textTokens } from "./context-budget";
+import { latestReplyContext } from "../usage/context-usage";
 
 /**
  * Keeping a long chat inside the model's context window. Before each reply:
  * old tool output and bulky tool inputs are trimmed first (context-budget.ts);
  * if the chat is still past COMPACT_AT of the window, the turns before the
  * last two are summarized by the same model, and the reply is answered from
- * that summary plus the recent turns. The summary is saved on the new reply
+ * that summary plus the recent turns. How full the chat is comes from the
+ * estimate, raised to what the provider last reported when that is higher
+ * (the estimate misses tool definitions and tokenizes roughly). The summary
+ * is saved on the new reply
  * as `metadata.compaction`, so later replies start from it instead of
  * summarizing again; the transcript itself keeps every message.
  */
@@ -74,6 +78,35 @@ export function transcriptText(messages: ModelMessage[], maxTokens: number): str
 
 const SUMMARY_SYSTEM = "You compress the earlier part of a conversation between a user and an AI assistant (which may have used tools on the user's project) so the assistant can continue without it. Write in the language the user writes in. Keep: the user's goals, requirements and preferences in their own words; decisions made; files read or changed (paths) and what changed; commands run and their results; errors and how they were resolved; what is done and what remains. Omit pleasantries. Do not invent anything. Plain text or a short list, under 1200 words.";
 
+/** The same model's summary of `older`, after an earlier summary if there is one; empty when it wrote nothing. */
+export async function summarize({ model, older, prior, maxTokens, abortSignal }: {
+  model: LanguageModel; older: ModelMessage[]; prior?: string; maxTokens: number; abortSignal?: AbortSignal;
+}): Promise<string> {
+  const before = prior ? `Summary of what came before:\n${prior}\n\n` : "";
+  const result = await generateText({
+    model,
+    system: SUMMARY_SYSTEM,
+    messages: [{ role: "user", content: `${before}Conversation to summarize:\n${transcriptText(older, maxTokens)}\n\nWrite the summary now.` }],
+    maxOutputTokens: 3000,
+    abortSignal,
+  });
+  return result.text.trim().slice(0, MAX_SUMMARY);
+}
+
+/**
+ * What the last reply's final model call reported (it sent the chat up to
+ * then), plus the estimate of what came after it, less what trimming now
+ * removes: a floor under the estimate. 0 without a reported reading.
+ */
+async function reportedFloor(rest: UIMessage[], convert: Convert, trimmed: number): Promise<number> {
+  let index = rest.length - 1;
+  while (index >= 0 && rest[index].role !== "assistant") index -= 1;
+  const reading = index >= 0 ? latestReplyContext([rest[index]]) : undefined;
+  if (!reading) return 0;
+  const after = index + 1 < rest.length ? estimateTokens(await convert(rest.slice(index + 1))) : 0;
+  return reading.tokens + after - trimmed;
+}
+
 type Convert = (messages: UIMessage[]) => Promise<ModelMessage[]>;
 
 /**
@@ -93,23 +126,18 @@ export async function prepareContext({ model, contextWindow, messages, convert, 
   const window = contextWindow && contextWindow > 0 ? contextWindow : DEFAULT_CONTEXT_WINDOW;
   const { summary, rest, offset } = applyCompaction(messages);
   const base = textTokens(system) + (summary ? textTokens(summary) : 0);
-  const converted = pruneToolTraffic(await convert(rest), window * PRUNE_AT - base);
-  if (base + estimateTokens(converted) <= window * COMPACT_AT) return { messages: converted, summary, window };
+  const all = await convert(rest);
+  const converted = pruneToolTraffic(all, window * PRUNE_AT - base);
+  const estimate = base + estimateTokens(converted);
+  const floor = await reportedFloor(rest, convert, estimateTokens(all) - estimateTokens(converted));
+  if (Math.max(estimate, floor) <= window * COMPACT_AT) return { messages: converted, summary, window };
 
   const start = recentStart(rest);
   if (start <= 0) return { messages: converted, summary, window };
   const older = await convert(rest.slice(0, start));
   const recent = pruneToolTraffic(await convert(rest.slice(start)), window * PRUNE_AT - base);
   try {
-    const prior = summary ? `Summary of what came before:\n${summary}\n\n` : "";
-    const result = await generateText({
-      model,
-      system: SUMMARY_SYSTEM,
-      messages: [{ role: "user", content: `${prior}Conversation to summarize:\n${transcriptText(older, window * 0.5)}\n\nWrite the summary now.` }],
-      maxOutputTokens: 3000,
-      abortSignal,
-    });
-    const text = result.text.trim().slice(0, MAX_SUMMARY);
+    const text = await summarize({ model, older, prior: summary, maxTokens: window * 0.5, abortSignal });
     if (!text) return { messages: converted, summary, window };
     const through = rest[start - 1].id;
     return { messages: recent, summary: text, compaction: { through, summary: text, messages: offset + start }, window };

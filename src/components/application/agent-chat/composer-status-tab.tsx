@@ -30,7 +30,7 @@ function Item({ icon: ItemIcon, children, title, onPress, className }: { icon: I
  * share of the model's context window when one is known; without a window
  * the ring is a dashed outline beside the tokens used, since there is no
  * limit to fill. The meter opens the 上下文窗口 card. All of it is read from
- * the project folder and the saved replies; nothing is estimated.
+ * the project folder and the saved replies.
  */
 export function ComposerStatusTab({ project, usage, onOpenChanges }: {
   project?: Project;
@@ -43,8 +43,10 @@ export function ComposerStatusTab({ project, usage, onOpenChanges }: {
   const sync = status && (status.ahead || status.behind) ? ` ↑${status.ahead} ↓${status.behind}` : "";
   const trigger = useRef<HTMLButtonElement>(null);
   const openSettings = useWorkspaceSettings();
-  const { used, ratio } = useContextWindow(usage);
-  const meterTitle = ratio !== undefined ? `上下文窗口已使用 ${formatShare(ratio)}`
+  const { used, ratio, window, source } = useContextWindow(usage);
+  const estimated = source === "default";
+  const meterTitle = ratio !== undefined && estimated ? `约 ${formatShare(ratio)}：未填写上下文窗口，按 ${formatTokens(window!)} 估算并在接近时压缩`
+    : ratio !== undefined ? `上下文窗口已使用 ${formatShare(ratio)}`
     : used !== undefined ? `最近一次请求 ${used.toLocaleString("en-US")} Token，未填写上下文窗口`
       : "服务返回用量后显示上下文占用";
 
@@ -64,7 +66,7 @@ export function ComposerStatusTab({ project, usage, onOpenChanges }: {
         {ratio !== undefined
           ? <ProgressCircle size="sm" value={Math.min(100, Math.max(1, Math.round(ratio * 100)))} aria-label="上下文占用" className="size-4" trackClassName="stroke-foreground-icon-tertiary/40" />
           : <span aria-hidden className="size-4 shrink-0 rounded-full border-[1.5px] border-dashed border-foreground-icon-tertiary" />}
-        <span>{ratio !== undefined ? formatShare(ratio) : used !== undefined ? `${formatTokens(used)} Token` : "上下文"}</span>
+        <span>{ratio !== undefined ? `${estimated ? "约 " : ""}${formatShare(ratio)}` : used !== undefined ? `${formatTokens(used)} Token` : "上下文"}</span>
       </button>
       <Popover placement="top end" aria-label="上下文窗口" className="w-[340px] max-w-[calc(100vw-24px)]" dialogClassName="p-1.5">
         {({ close }) => <ContextUsageMeter usage={usage} defaultExpanded

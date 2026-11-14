@@ -140,7 +140,7 @@ test("the composer status bar sums only the usage replies reported", () => {
     { role: "assistant", metadata: { usage: { inputTokens: 100, outputTokens: 20 }, model: "model-b" } },
   ];
   assert.deepEqual(thread.threadUsage(messages), { totalTokens: 135, inputTokens: 110, outputTokens: 25, replies: 2, model: "model-b",
-    latest: { model: "model-b", usage: { inputTokens: 100, outputTokens: 20, totalTokens: 120 } } });
+    latest: { model: "model-b", usage: { inputTokens: 100, outputTokens: 20, totalTokens: 120 } }, context: { tokens: 120, input: 100, output: 20 } });
   assert.deepEqual(thread.threadUsage([]), { totalTokens: 0, inputTokens: 0, outputTokens: 0, replies: 0 });
   assert.equal(thread.formatTokens(1234), "1,234");
   assert.equal(thread.formatTokens(12000), "12k");

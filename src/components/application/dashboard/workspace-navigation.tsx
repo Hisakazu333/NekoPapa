@@ -74,10 +74,8 @@ export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebar
       ],
       [
         { key: "conversations", label: "对话", icon: MessagesSquareIcon, panel: {
-          className: "w-[320px]",
-          content: () => <div className="max-h-[min(60dvh,520px)] overflow-y-auto overscroll-contain p-2 [scrollbar-width:thin]">
-            {sidebar.children(false)}
-          </div>,
+          className: "w-[360px]",
+          content: () => <div className="p-1.5">{sidebar.conversations()}</div>,
         } },
         { key: "search", label: "快速搜索", icon: SearchIcon, panel: {
           className: "w-[360px]",

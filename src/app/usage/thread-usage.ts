@@ -1,4 +1,5 @@
 import { readChatUsage, type ChatReplyMetadata } from "./chat-usage";
+import { latestReplyContext, type ReplyContext } from "./context-usage";
 
 /** What one conversation's replies cost, as the providers reported it. */
 export interface ThreadUsage {
@@ -11,6 +12,8 @@ export interface ThreadUsage {
   model?: string;
   /** Last reported usage and the model's configured window at request time. */
   latest?: ChatReplyMetadata;
+  /** How full the window is after the latest reply's last model call (context-usage.ts). */
+  context?: ReplyContext;
 }
 
 export function contextUsageRatio(latest: ChatReplyMetadata | undefined): number | undefined {
@@ -34,7 +37,8 @@ export function threadUsage(messages: readonly { role: string; metadata?: unknow
     total.latest = reply;
     if (reply.model) total.model = reply.model;
   }
-  return total;
+  const context = latestReplyContext(messages);
+  return context ? { ...total, context } : total;
 }
 
 /** A share of the context window: one decimal below 10% so a small share does not read as 0%. */

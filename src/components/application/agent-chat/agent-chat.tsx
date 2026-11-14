@@ -363,6 +363,7 @@ export function AgentChat({
     threads: history.threads, contacts, busy, onSelectThread: selectThread,
     onShowAllThreads: showAllThreads, onRenameThread: renameThread, onToggleUnread: toggleUnread, onDeleteThread: deleteThread,
     onNewChatInProject: startChatIn,
+    onNewChat: () => startChatIn(undefined),
   });
   const windowNavigation = useChatWindowNavigation({
     activeId,

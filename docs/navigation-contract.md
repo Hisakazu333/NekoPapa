@@ -952,3 +952,18 @@
 - 修改：Rust `agent_run_command` 新增必需的输出通道并逐段发送（`sends_output_as_it_arrives`、`keeps_a_character_split_across_reads_whole` 两个测试）；前端新增 `command-output.ts`、`run-activity.ts`、`run-changes.ts`、`step-limit.ts`，组件新增 `agent-tool-group.tsx`、`agent-run-summary.tsx`、`agent-step-limit.tsx`、`tool-reply.tsx`、`reply-blocks.tsx`（自 `agent-chat-message.tsx` 拆出，该文件 203 → 182 行）；改动卡在项目文件变化后重新检查能否撤销，使“全部撤销”后各卡状态同步。`agent-chat.tsx` 未改动（493 行）。
 - 验证：`npm run test` 604/604（新增 `tests/agent-run-view.test.mjs` 6 项：处理器中命令输出逐段到达并在结束后清空、64 KB 截尾与按帧通知、30 步上限标记与正常结束为 false、读取分组与组内思考、状态行文字与步数、更改汇总合并与快照顺序）、`npm run build`、`cargo test` 49/49（一次运行中未改动的 `project_workspace::reads_text_flags_binary_and_refuses_escapes` 失败，连续重跑三次均通过，判断为既有的偶发失败）、`git diff --check`。浏览器 1495（1280×800）注入一条测试对话：思考按步内联，搜索 / 读取 / 列目录合为“读取了 1 个文件，查看了 1 个文件夹，搜索了 1 次”且展开后顺序正确，更改汇总“更改了 2 个文件 +7 −1”，步数上限提示与“继续”显示；浏览器中没有快照，不显示“全部撤销”，符合预期。验证后测试数据已删除。
 - 未验证：桌面宿主中命令实时输出、状态行与“全部撤销”的实际运行（需真实模型与项目）；“继续”只在单元层面验证了标记，未在真实运行中点按。
+
+### Coding 控制与能力（第二、三批，2026-11-13）
+
+- 行为：运行中发消息进入本对话队列，结束后合并为一条自动发送，停止后保留待手动发送；桌面项目对话可对排队项“插话”（AI SDK steering，下一步骤边界送达，未送达退回队列）。审批卡 Enter 允许 / Esc 拒绝，“拒绝…”可附原因，“本对话总是允许”按命令原文或文件修改在当前对话内自动批准。项目对话输入 `@` 引用项目文件。工具新增 `find_files`（glob），`search_files` 支持正则、大小写与路径过滤，`edit_file` 一次最多 50 处且全部成功才写入，`read_file` 每次最多 2000 行。上下文超过窗口 60% 裁剪旧工具输出，超过 75% 把近两轮之前的内容总结并保存在回复元数据中。
+- 结构：新增 Rust `project_files.rs`（索引与正则搜索，搜索自 `agent_tools.rs` 移出）及测试；前端新增 `glob.ts`、`agent-run.ts`、`run-steering.ts`、`message-queue.ts`、`use-message-queue.ts`、`composer-queue.tsx`、`use-approval-keys.ts`、`file-mention.ts`、`use-file-mention.ts`、`composer-mention-list.tsx`、`context-budget.ts`、`context-compaction.ts`、`context-compaction-note.tsx`。`Cargo.toml` 直接依赖已在锁文件中的 `regex` 1.13.1。`agent-chat.tsx` 保持 493 行，其他新增与修改文件均在 500 行档内。“打补丁”以多处替换实现，没有单独的补丁工具。
+- 验证：`npm run test` 615/615（新增 `tests/agent-control.test.mjs` 11 项：glob 与路径过滤、多处修改预览与旧格式兼容、允许规则自动批准与其他命令仍需审批、插话登记与未登记时退回、队列合并、@ 查询与插入、裁剪与压缩（含替身服务器的非流式总结请求、保存后接续、失败退回））、`npm run build`、`cargo test` 52/52（新增多处替换全有或全无、正则 / 路径过滤搜索、索引跳过目录）、`git diff --check`。浏览器 1495（1280×800）注入测试对话与临时项目：压缩分隔线、“搜索了 2 次”分组、“运行中插话”气泡、多处修改预览“第 1 处 / 第 2 处（全部出现处）”、审批卡提示与三个按钮、“拒绝…”聚焦原因框且 Esc 只收起表单不拒绝；`@app` 列出 `src/app.ts`，Enter 插入 `@src/app.ts ` 而不发送，`@doc` 列出 `docs/guide.md`，Esc 关闭列表并保留文字。验证后测试对话、项目与临时文件夹已删除。
+- 未验证：队列自动发送与插话在真实模型下的运行（浏览器无模型，插话只在桌面窗口内可用）；Enter / Esc 实际提交审批后的续跑；“总是允许”在真实运行中的自动批准；长对话真实触发总结（只经替身服务器测试）。未设置上下文窗口的模型按 64000 Token 估算，可能早于或晚于实际上限。
+
+### 上下文占用与压缩修正（2026-11-13）
+
+- 问题：占用环取回复 `usage`（多步运行是各步之和，62 步的运行会被算成数倍于实际）；压缩在未填写窗口时默认按 64000 Token 而占用环不显示比例，两者不一致；压缩只靠估算；一次长运行中途只裁剪不总结。
+- 行为：每步结束写 `metadata.context`（最后一次调用的输入 + 输出与所用窗口，未填写窗口时标 `estimated`），占用环与上下文窗口卡片据此显示并在运行中逐步更新，旧回复退回轨迹的最后一步；未填写窗口时显示“约 n%”及说明。请求前压缩以上次报告值兜底估算。运行中 `prepareStep` 超过 75% 时总结较早步骤，保留最近三步与用户原话，界面显示“运行中压缩了上下文：第 n 步前”。
+- 结构：新增 `src/app/usage/context-usage.ts`、`src/app/chat/run-compaction.ts`、`tests/helpers/stand-in-model.mjs`（替身模型自 `agent-control.test.mjs` 移出并支持报告用量）、`tests/context-window.test.mjs`；`agent-run.ts` 改为接收每步准备函数；`context-compaction.ts` 提取 `summarize`。修改文件均在 500 行档内（`chat-handler.ts` 237 行，`context-compaction.ts` 152 行）。
+- 验证：`npm run test` 619/619（新增 4 项：占用取最后一次调用及旧回复退回、每步写入占用与默认窗口标记、报告值触发请求前压缩而仅估算时不触发、运行中第 5 步报告 19000 后总结并保留原话与最近三步且占用随之下降），`npm run build`、`git diff --check`。浏览器 1495（1280×800）注入两条测试对话：未填窗口的回复显示“约 36%”（23.3k / 64k，旧算法为 83.6k），卡片按最后一次调用分项并提示按 64k 估算；带窗口 128k 的旧多步回复显示 18%（旧算法 65%）。验证后测试数据已删除。
+- 未验证：真实模型下的运行中总结与占用实时变化（只经替身模型）；DeepSeek 等服务的流式用量是否每步返回（不返回时占用环保持上一条读数，压缩只靠估算）。

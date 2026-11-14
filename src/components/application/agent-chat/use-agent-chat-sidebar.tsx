@@ -6,16 +6,18 @@ import type { SidebarMoreEntry } from "@/components/application/dashboard/sideba
 import type { WorkspacePage } from "@/components/application/dashboard/workspace-page";
 import { settingsNavigationSections, settingsSections, type SettingsSection } from "@/components/application/settings/workspace-settings-catalog";
 import { useWorkspaceSettings } from "@/components/application/settings/workspace-settings";
+import { useProjects } from "@/hooks/use-projects";
 import type { StoredThread } from "./thread-storage";
 import type { ChatContact } from "@/app/contacts/contacts-store";
 import { DashboardRecentConversations } from "@/components/application/dashboard/dashboard-recent-conversations";
+import { DockConversationsPanel } from "@/components/application/dashboard/dock-conversations-panel";
 import { buildSidebarSearchEntries, type SidebarSearchEntry } from "@/components/application/dashboard/sidebar-search";
 import type { DashboardNavItem } from "@/components/application/dashboard/sidebar-navigation";
 
 export function useAgentChatSidebar({
   setPage, setRequestedContactId, setNavOpen, activeContactId, activeId,
   threads, contacts, busy, onSelectThread, onShowAllThreads,
-  onRenameThread, onToggleUnread, onDeleteThread, onNewChatInProject,
+  onRenameThread, onToggleUnread, onDeleteThread, onNewChatInProject, onNewChat,
 }: {
   setPage: (page: WorkspacePage) => void;
   setRequestedContactId: (id: string | undefined) => void;
@@ -31,9 +33,12 @@ export function useAgentChatSidebar({
   onToggleUnread: (id: string) => void;
   onDeleteThread: (id: string) => boolean;
   onNewChatInProject: (folder: string) => void;
+  /** 新建对话 in the dock's 对话 panel: a chat outside any project folder. */
+  onNewChat: () => void;
 }) {
   const openSettings = useWorkspaceSettings();
   const { pins, toggle, notice } = useSidebarPins();
+  const { projects } = useProjects();
   // Secondary pages offered by "更多"; pinned ones also appear in the main navigation.
   const destinations: Record<SidebarDestination, Omit<DashboardNavItem, "key">> = useMemo(() => ({
     space: { label: "空间", icon: FolderIcon, href: "#space", onSelect: () => { setPage("space"); setNavOpen(false); } },
@@ -110,5 +115,13 @@ export function useAgentChatSidebar({
     onNewChatInProject={(folder) => { onNewChatInProject(folder); setPage("chat"); setNavOpen(false); }} />,
   [activeId, busy, onDeleteThread, onRenameThread, onSelectRecent, onShowAllThreads, onToggleUnread, threads, onNewChatInProject, setPage, setNavOpen]);
 
-  return { items, more, searchEntries: entries, onSearchSelect, children };
+  // The dock's 对话 panel lists chats by day and starts a chat outside any
+  // project; 全部对话 then opens the sidebar tree with projects and row menus.
+  const conversations = useCallback(() => <DockConversationsPanel
+    threads={threads} projects={projects} activeId={activeId} busy={busy}
+    onCreate={() => { onNewChat(); setPage("chat"); setNavOpen(false); }}
+    onSelect={onSelectRecent} onShowAll={onShowAllThreads} />,
+  [activeId, busy, onNewChat, onSelectRecent, onShowAllThreads, projects, setNavOpen, setPage, threads]);
+
+  return { items, more, searchEntries: entries, onSearchSelect, children, conversations };
 }

@@ -1,12 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createServer } from "node:http";
-import { once } from "node:events";
 import { mkdtempSync, readdirSync, readFileSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { standInModel } from "./helpers/stand-in-model.mjs";
 
 // Batches 2 and 3 of the coding flow: stronger tools (globs, regex search,
 // multi-edit, longer reads), approvals allowed for the chat, steering a
@@ -37,37 +36,7 @@ const post = (body) => new Request("http://localhost/api/chat", { method: "POST"
 const user = (id, text) => ({ id, role: "user", parts: [{ type: "text", text }] });
 const ok = { exitCode: 0, stdout: "ok", stderr: "", timedOut: false, cancelled: false, truncated: false, durationMs: 1 };
 
-/** A stand-in model: `reply(body, index)` returns { tool: { name, input } } or { text }. */
-async function model(t, reply) {
-  const seen = [];
-  const server = createServer(async (incoming, response) => {
-    let raw = "";
-    for await (const chunk of incoming) raw += chunk;
-    const body = JSON.parse(raw);
-    seen.push(body);
-    const answer = await reply(body, seen.length - 1);
-    // generateText (the summary) asks without streaming.
-    if (!body.stream) {
-      response.writeHead(200, { "content-type": "application/json" });
-      response.end(JSON.stringify({ id: `c${seen.length}`, object: "chat.completion", created: 0, model: "m", choices: [{ index: 0, message: { role: "assistant", content: answer.text ?? "" }, finish_reason: "stop" }], usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: 2 } }));
-      return;
-    }
-    response.writeHead(200, { "content-type": "text/event-stream" });
-    const chunk = (delta, finish = null) => `data: ${JSON.stringify({ id: `c${seen.length}`, object: "chat.completion.chunk", created: 0, model: "m", choices: [{ index: 0, delta, finish_reason: finish }] })}\n\n`;
-    if (answer.tool) {
-      response.write(chunk({ role: "assistant", tool_calls: [{ index: 0, id: `call_${seen.length}`, type: "function", function: { name: answer.tool.name, arguments: JSON.stringify(answer.tool.input) } }] }));
-      response.write(chunk({}, "tool_calls"));
-    } else {
-      response.write(chunk({ role: "assistant", content: answer.text }));
-      response.write(chunk({}, "stop"));
-    }
-    response.end("data: [DONE]\n\n");
-  });
-  server.listen(0, "127.0.0.1");
-  await once(server, "listening");
-  t.after(() => server.close());
-  return { profile: { provider: "compatible", endpoint: `http://127.0.0.1:${server.address().port}/v1`, model: "m", credential: "" }, seen };
-}
+const model = standInModel;
 
 function host(overrides = {}) {
   const calls = [];
