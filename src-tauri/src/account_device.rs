@@ -81,7 +81,7 @@ pub async fn account_device_start<R: Runtime>(
         &auth,
         Method::POST,
         "/api/app/auth/device/start",
-        Some(json!({ "deviceName": "NekoPapa", "clientVersion": env!("CARGO_PKG_VERSION") })),
+        Some(json!({ "deviceName": "NekoPapa", "clientVersion": &auth.version })),
         None,
     )
     .await

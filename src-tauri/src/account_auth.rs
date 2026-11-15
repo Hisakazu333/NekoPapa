@@ -1,5 +1,7 @@
 #[path = "account_device.rs"]
 pub(crate) mod device;
+#[path = "account_client_metadata.rs"]
+mod client_metadata;
 
 // Official account login. Bearer tokens stay in the host for this app session.
 use reqwest::{Client, Method, Url};
@@ -15,14 +17,16 @@ const CANCELED: &str = "登录已取消。";
 pub struct AccountAuth {
     state: Mutex<AccountState>,
     connection: Option<(Url, Client)>,
+    version: String,
 }
 
-impl Default for AccountAuth {
-    fn default() -> Self {
+impl AccountAuth {
+    pub(crate) fn new(version: String) -> Self {
         let connection = configured_url().and_then(|url| {
             Client::builder()
                 .redirect(reqwest::redirect::Policy::none())
                 .timeout(Duration::from_secs(12))
+                .default_headers(client_metadata::headers(&version))
                 .build()
                 .ok()
                 .map(|client| (url, client))
@@ -30,6 +34,7 @@ impl Default for AccountAuth {
         Self {
             state: Mutex::new(AccountState::default()),
             connection,
+            version,
         }
     }
 }

@@ -99,6 +99,8 @@ NekoPapa 使用自己的账号与云端服务。官方账号、云点和计费�
 
 桌面端账号支持密码、短信或 NekoBuddy 扫码登录，并用短信验证注册。启用时在构建环境或桌面启动进程设置 `NEKOPAPA_ACCOUNT_API_URL` 为受信任的 Java 服务基础地址。未配置时显示未连接状态。登录打开独立应用页面，返回会保留当前会话和草稿。本机资料在设置中独立编辑。完整说明见 [模型与账号设置](docs/settings-map.md) 与 [Java 契约边界](docs/official-companion-service.md)。
 
+构建桌面候选时，通过 `NEKOPAPA_BUILD_NUMBER` 注入该平台的正整数构建序号，通过 `NEKOPAPA_RELEASE_CHANNEL` 注入 `stable`、`beta` 或 `dev`。账号请求使用 Tauri 包版本与 macOS 系统版本。调试构建默认使用 `dev` 渠道，缺少序号时仍能登录，服务端按元数据字段缺失处理。
+
 ## 开发计划
 
 - [x] 基于 BoardUI 的工作台和联系人界面、本机资料与设置入口。

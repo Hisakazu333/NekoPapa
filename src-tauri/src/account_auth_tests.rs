@@ -53,6 +53,7 @@ fn reply(
     assert_eq!(line.trim(), format!("{method_and_path} HTTP/1.1"));
     let mut length = 0;
     let mut bearer = None;
+    let mut metadata = std::collections::HashMap::new();
     loop {
         line.clear();
         reader.read_line(&mut line).unwrap();
@@ -66,8 +67,34 @@ fn reply(
         if header.eq_ignore_ascii_case("content-length") {
             length = value.trim().parse().unwrap();
         }
+        metadata.insert(header.to_ascii_lowercase(), value.trim().to_owned());
     }
     assert_eq!(bearer.as_deref(), expected_token);
+    assert_eq!(metadata["neko-client-metadata-version"], "1");
+    assert_eq!(metadata["neko-client-platform"], std::env::consts::OS);
+    assert_eq!(metadata["neko-client-runtime"], "tauri");
+    assert_eq!(metadata["neko-client-app-id"], "app.nekopapa.desktop");
+    assert_eq!(metadata["neko-client-version"], "0.1.0");
+    assert_eq!(metadata["neko-device-type"], "desktop");
+    #[cfg(target_os = "macos")]
+    assert!(!metadata["neko-os-version"].is_empty());
+    if let Some(build) = option_env!("NEKOPAPA_BUILD_NUMBER")
+        .filter(|value| value.bytes().all(|byte| byte.is_ascii_digit()))
+        .and_then(|value| value.parse::<u64>().ok())
+        .filter(|value| *value > 0)
+    {
+        assert_eq!(metadata["neko-client-build"], build.to_string());
+    } else {
+        assert!(!metadata.contains_key("neko-client-build"));
+    }
+    assert_eq!(
+        metadata.get("neko-client-channel").map(String::as_str),
+        option_env!("NEKOPAPA_RELEASE_CHANNEL")
+            .or(cfg!(debug_assertions).then_some("dev"))
+            .filter(|channel| matches!(*channel, "stable" | "beta" | "dev"))
+    );
+    assert!(!metadata.contains_key("neko-os-api-level"));
+    assert!(!metadata.contains_key("x-app-version"));
     if let Some(body) = expected_body {
         let mut bytes = vec![0; length];
         reader.read_exact(&mut bytes).unwrap();
@@ -112,9 +139,11 @@ fn sms_sign_in_reads_authorized_profile_and_logout_revokes_the_host_session() {
                 Client::builder()
                     .no_proxy()
                     .timeout(Duration::from_secs(3))
+                    .default_headers(client_metadata::headers("0.1.0"))
                     .build()
                     .unwrap(),
             )),
+            version: "0.1.0".into(),
         };
         let profile = sign_in(
             &auth,

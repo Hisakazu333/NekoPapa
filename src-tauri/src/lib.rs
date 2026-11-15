@@ -27,7 +27,11 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         // Terminal panel sessions (pseudo-terminals running the login shell).
         .manage(terminal::Terminals::default())
-        .manage(account_auth::AccountAuth::default())
+        .setup(|app| {
+            use tauri::Manager;
+            app.manage(account_auth::AccountAuth::new(app.package_info().version.to_string()));
+            Ok(())
+        })
         .manage(app_data::AppDataState::default())
         .manage(agent_command::AgentCommands::default())
         // The local memory service (NekoCairn), started on first use.
