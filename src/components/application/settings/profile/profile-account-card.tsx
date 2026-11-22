@@ -15,7 +15,7 @@ export function ProfileAccountCard({ onOpenLogin }: { onOpenLogin: () => void })
         </p>
       </div>
       <Button variant="secondary" size="small" trailingIcon={ArrowUpRightIcon} onClick={onOpenLogin}>
-        {profile ? "账号详情" : "登录或注册"}
+        {profile ? "打开个人资料" : "登录或注册"}
       </Button>
     </div>
     {profile?.cloudPointBalance !== undefined && <p className="text-body-2-regular text-text-secondary">

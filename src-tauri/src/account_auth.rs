@@ -1,7 +1,11 @@
-#[path = "account_device.rs"]
-pub(crate) mod device;
+#[path = "account_avatar.rs"]
+pub(crate) mod avatar;
+#[path = "account_cabin.rs"]
+pub(crate) mod cabin;
 #[path = "account_client_metadata.rs"]
 mod client_metadata;
+#[path = "account_device.rs"]
+pub(crate) mod device;
 
 // Official account login. Bearer tokens stay in the host for this app session.
 use reqwest::{Client, Method, Url};
@@ -16,6 +20,8 @@ const CANCELED: &str = "登录已取消。";
 
 pub struct AccountAuth {
     state: Mutex<AccountState>,
+    cabin_loading: tokio::sync::Mutex<()>,
+    avatar_uploading: tokio::sync::Mutex<()>,
     connection: Option<(Url, Client)>,
     version: String,
 }
@@ -33,6 +39,8 @@ impl AccountAuth {
         });
         Self {
             state: Mutex::new(AccountState::default()),
+            cabin_loading: tokio::sync::Mutex::new(()),
+            avatar_uploading: tokio::sync::Mutex::new(()),
             connection,
             version,
         }
@@ -51,6 +59,8 @@ struct Session {
     attempt: String,
     token: String,
     profile: AccountProfile,
+    cabin: Option<std::sync::Arc<crate::cabin_files::CabinFiles>>,
+    previous_cabin: Option<std::sync::Arc<crate::cabin_files::CabinFiles>>,
 }
 
 #[derive(Serialize)]
@@ -65,6 +75,7 @@ pub struct AccountSnapshot {
 pub struct AccountProfile {
     user_id: u64,
     user_name: Option<String>,
+    avatar_url: Option<String>,
     neko_id: Option<String>,
     cloud_plan_code: Option<String>,
     cloud_point_balance: Option<f64>,
@@ -97,8 +108,20 @@ fn account_url(value: &str) -> Option<Url> {
 fn configured_url() -> Option<Url> {
     let value = std::env::var(CONFIG)
         .ok()
-        .or_else(|| option_env!("NEKOPAPA_ACCOUNT_API_URL").map(str::to_owned))?;
+        .or_else(|| option_env!("NEKOPAPA_ACCOUNT_API_URL").map(str::to_owned))
+        .or_else(|| cfg!(debug_assertions).then(|| "http://127.0.0.1:8080".to_owned()))?;
     account_url(&value)
+}
+
+fn profile_avatar(base: &Url, value: &str) -> Option<String> {
+    let value = value.trim();
+    if value.is_empty() {
+        return None;
+    }
+    let url = base.join(value).ok()?;
+    let allowed =
+        url.scheme() == "https" || (url.scheme() == "http" && url.origin() == base.origin());
+    (allowed && url.username().is_empty() && url.password().is_none()).then(|| url.into())
 }
 
 fn main_view<R: Runtime>(webview: &Webview<R>) -> Result<(), String> {
@@ -127,6 +150,7 @@ fn lock(auth: &AccountAuth) -> Result<MutexGuard<'_, AccountState>, String> {
 
 enum RequestFailure {
     Unauthorized,
+    Business { code: i64, message: String },
     Other(String),
 }
 
@@ -134,6 +158,7 @@ impl RequestFailure {
     fn message(self) -> String {
         match self {
             Self::Unauthorized => "账号授权已失效，请重新登录。".into(),
+            Self::Business { code, .. } => format!("账号服务未完成操作（代码 {code}），请重试。"),
             Self::Other(message) => message,
         }
     }
@@ -198,9 +223,10 @@ async fn decode_response(mut response: reqwest::Response) -> Result<Value, Reque
         Some(401) => Err(RequestFailure::Unauthorized),
         Some(429) => Err(Other("操作过于频繁，请稍后再试。".into())),
         Some(503) => Err(Other("当前登录或短信服务不可用，请稍后重试。".into())),
-        Some(code) => Err(Other(format!(
-            "账号服务未完成操作（代码 {code}），请重试。"
-        ))),
+        Some(code) => Err(RequestFailure::Business {
+            code,
+            message: result["msg"].as_str().unwrap_or_default().to_owned(),
+        }),
         None => Err(Other("账号服务响应缺少状态。".into())),
     }
 }
@@ -328,7 +354,7 @@ async fn accept_token(
     )
     .await
     .map_err(RequestFailure::message)?;
-    let profile: AccountProfile =
+    let mut profile: AccountProfile =
         serde_json::from_value(data).map_err(|_| "账号服务返回的资料无效。")?;
     if profile.user_id == 0
         || profile.user_id > 9_007_199_254_740_991
@@ -338,6 +364,12 @@ async fn accept_token(
     {
         return Err("账号服务返回的资料无效。".into());
     }
+    profile.avatar_url = auth.connection.as_ref().and_then(|(base, _)| {
+        profile
+            .avatar_url
+            .as_deref()
+            .and_then(|value| profile_avatar(base, value))
+    });
     let mut state = lock(auth)?;
     if state.attempt.as_deref() != Some(&attempt) {
         return Err(CANCELED.into());
@@ -348,6 +380,8 @@ async fn accept_token(
         attempt,
         token: token.to_owned(),
         profile: profile.clone(),
+        cabin: None,
+        previous_cabin: None,
     });
     Ok(profile)
 }

@@ -1,4 +1,6 @@
 mod account_auth;
+mod cabin_files;
+mod cabin_archive;
 mod agent_command;
 mod agent_diff;
 mod agent_tools;
@@ -41,10 +43,14 @@ pub fn run() {
         .register_asynchronous_uri_scheme_protocol(plugin_frame::SCHEME, |ctx, request, responder| {
             plugin_frame::handle(ctx.app_handle(), request, responder)
         })
+        .register_asynchronous_uri_scheme_protocol("nekocabin", account_auth::cabin::serve)
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
         .invoke_handler(tauri::generate_handler![
             account_auth::account_snapshot,
+            account_auth::avatar::account_avatar_upload,
+            account_auth::cabin::account_cabin_prepare,
+            account_auth::cabin::roster::account_cabin_roster,
             account_auth::account_send_code,
             account_auth::account_sign_in,
             account_auth::device::account_device_start,

@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { parseDesktopAccountProfile, type DesktopAccountProfile } from "@/app/account/desktop-account-contract";
 
@@ -7,7 +7,7 @@ type Availability = "checking" | "browser" | "unconfigured" | "available";
 interface AccountSession {
   availability: Availability;
   profile?: DesktopAccountProfile;
-  setProfile: (profile: DesktopAccountProfile) => void;
+  setProfile: Dispatch<SetStateAction<DesktopAccountProfile | undefined>>;
   signOut: () => Promise<void>;
 }
 

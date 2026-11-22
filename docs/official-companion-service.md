@@ -1,6 +1,6 @@
 # 官方人物与 Java 服务的边界
 
-更新日期：2026-11-08。
+更新日期：2026-11-22。
 
 官方人物的人设提示词由 NekoPapa 的 Java 后端维护和执行。桌面端的人物目录只提供 ID、姓名、简介和外观资源，简介不是用于拼装人设的提示词。用户只能查看官方人物资料，并使用单人陪伴聊天和学习模式；不能修改、复制其提示词，也不能把官方人物加入群聊。
 
@@ -20,11 +20,19 @@
 
 登录从账号菜单进入独立的 `#login`，沿用 BoardUI Auth Card。已有密码的账号走 `/api/app/auth/password/login`；短信验证码通过 `/api/app/auth/mobile/code` 获取，验证走 `/api/app/auth/mobile/login`，首次验证手机号时由 Java 创建账号。直接密码注册被 Java 拒绝，桌面端的注册页因此使用短信验证。NekoBuddy 扫码使用下文的 device/start 与 device/poll，只有收到有效的真实二维码内容才渲染。返回、过期、手机取消与消费后停止轮询；用户可重新获取。
 
-`src-tauri/src/account_auth.rs` 在本机桌面主窗口运行账号请求。部署者设置 `NEKOPAPA_ACCOUNT_API_URL` 为受信任的 Java 服务基础地址，可在构建时配置或从启动进程环境读取。需要 HTTPS，本地联调可用回环 HTTP。账号 HTTP 请求拒绝跳转，服务端 Token 只保留在原生进程内；收到登录凭据后以授权请求读取 profile，只交给界面昵称、NekoID、套餐和云点余额。退出时调用服务端 logout。会话在退出应用后丢弃，WebView 重载可读取当前进程的状态。浏览器预览和未配置服务的桌面版只展示真实的不可用状态。
+`src-tauri/src/account_auth.rs` 在本机桌面主窗口运行账号请求。本机 release 使用 `npm run desktop:build:local` 连接 Java 服务 `http://127.0.0.1:8080`。部署者可设置 `NEKOPAPA_ACCOUNT_API_URL` 为受信任的 Java 服务基础地址，可在构建时配置或从启动进程环境读取。需要 HTTPS，本地联调可用回环 HTTP。账号 HTTP 请求拒绝跳转，服务端 Token 只保留在原生进程内；收到登录凭据后以授权请求读取 profile，只交给界面身份 ID、昵称、头像地址、NekoID、套餐和云点余额。退出时调用服务端 logout。会话在退出应用后丢弃，WebView 重载可读取当前进程的状态。浏览器预览和未配置服务的桌面版只展示真实的不可用状态。
 
 本轮未验证部署地址、短信送达、手机端扫码或桌面端版本门禁，也未修改 Java 后端。下节的源码核查为历史记录。
 
-桌面端已移除本机和账号模型的桌宠入口，不再下载、上传或绑定 Live2D 模型。Java 契约和已有账号资源保持原样。
+更换头像走已认证的 `POST /api/app/user/profile/avatar`。桌面宿主用当前会话上传经过本机裁切的图片，表单字段为 `file`，核对 Java 回执的用户身份后更新会话中的头像地址；其他账号字段继续使用同一份会话资料。本机 Java 的 `NEKO_UPLOAD_ROOT` 需要为可写目录，`/profile/avatar/` 从该目录提供图片。
+
+### 小屋账号模型
+
+桌面小屋从独立登录页返回后，原生宿主请求 `GET /api/app/companion/current`，检查 `isCurrent` 与服务端身份。打开「同伴」时请求 `GET /api/app/companion/roster`，仅向界面提供归属当前账号的有效同伴的名称、身份键、等级、默契和可预览状态。预览仅限名册中满足 `canSwitch` 的同伴，并在准备模型前后复核。预览不修改账号当前同伴。官方模型按返回的 `companionRef` 和可用的 `modelResourceId` 向 `/api/app/companion/live2d/download-url` 领取签名清单。素材同伴使用当前资源包的 ID、对象键、大小和摘要向 `/api/app/companion/resources/download-urls` 申请签名，并核对回执。OSS 请求只携带服务端签发的地址。
+
+本机 macOS release 包使用 `npm run desktop:build:local`。该命令注入本地服务地址、构建序号及 `dev` 渠道。Java 对设置了最低应用版本的模型按完整客户端信息判断可用性。小屋会区分当前同伴查询失败、模型暂未开放和签名请求失败。
+
+宿主检查包体大小和 SHA-256，再按清单匹配 ZIP 内的模型入口。官方发布包的安装路径可以带 `live2d/`，其 ZIP 内部会按发布器规则省略这个目录。旧包使用清单的完整路径时也可加载。解包前将 Windows 路径分隔符转换为斜线，继续拒绝目录穿越、绝对路径和重复文件。宿主解包到本次登录的临时目录，复核正在加载的同伴身份后向主窗口提供模型资源句柄。相同账号会话内可复用当前和上一个已校验的模型包；登出或授权失效后句柄失效。小屋只渲染授权模型，失败可重试。浏览器预览可以检查登录入口和返回流程，真实账号授权与模型交付通过桌面宿主运行。
 
 ## Java 源码核查结果（2026-11-08，尚未接入）
 

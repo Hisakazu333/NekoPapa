@@ -1,0 +1,5 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": { "noEmit": false, "rootDir": "../src/components/application/workspace-pages" },
+  "include": ["../src/components/application/workspace-pages/live2d-preview.ts"]
+}

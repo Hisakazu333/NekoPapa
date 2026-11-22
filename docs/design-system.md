@@ -1,6 +1,6 @@
 # 当前客户端设计系统
 
-更新日期：2026-11-08。本文约束当前 React 客户端的视觉来源和页面边界，具体功能与验收分别见 [导航职责](navigation-map.md)、[设置清单](settings-map.md) 和 [验收记录](navigation-contract.md)。
+更新日期：2026-11-22。本文约束当前 React 客户端的视觉来源和页面边界，具体功能与验收分别见 [导航职责](navigation-map.md)、[设置清单](settings-map.md) 和 [验收记录](navigation-contract.md)。
 
 ## 真实入口与依据
 
@@ -60,17 +60,23 @@
 
 ## 登录与设置的页面职责
 
-登录是独立应用页面，从账号菜单的登录动作进入；页面沿用同一背景、排版、按钮、图标和主题，卡片使用官方安装的 `auth/auth-card.tsx`（本项目用 `form` 插槽接入手机号登录、短信注册和 NekoBuddy 扫码）。登录不作为设置分类，不嵌入设置弹窗，也不另开桌面窗口。`AccountPageProvider` 以 `#login` 和浏览器历史管理页面状态；登录页显示时 AgentChat 保持挂载并设为不可交互。返回原工作台或联系人时保留会话、草稿与对象身份，并把焦点交回有效入口。
+账号菜单直接进入独立的 `#profile` 个人资料页。窗口栏使用带提示的单图标返回按钮，右上「编辑」使用透明底色。正文放大头像、名称及 NekoID 或本机身份提示；下方用一组带分隔线的活动统计及热力图，账号套餐、云点及退出操作放在末尾。布局使用现有语义表面、BoardUI Avatar、Badge、Modal 与 AlertDialog，窄窗口可纵向滚动。编辑复用本机名称、介绍和网站表单。
 
-设置负责本机资料、外观、模型与 API、工具、备份及其他真实配置。登录身份与本机资料独立，修改本机姓名不代表已登录。手机号和密码使用 BoardUI Input，短信使用 Input OTP，方式切换和注册用 LinkButton；扫码入口用 SocialButton 的自定义品牌与描边样式。后端未配置时显示对应的不可用状态，二维码只由真实设备会话数据生成。
+登录使用独立的 `#login` 和官方 BoardUI `auth/auth-card.tsx`。宽窗左侧显示表单，右侧通过 `AuthMediaCarousel` 展示白羽澪与雪代凛音的既有登录立绘；窄窗优先显示表单，系统减少动态效果时停在第一张。密码、短信验证或 NekoBuddy 扫码成功后自动返回调用处。个人资料和登录复用窗口栏与历史导航，覆盖期间 AgentChat 保持挂载并设为不可交互。返回保留会话与草稿，并将焦点交回有效入口。
 
-“设置”只在账号菜单中出现一次（账号组：登录、本机资料、设置），侧栏底部只保留账号按钮。账号菜单“偏好”的外观行使用调色盘图标与“外观”标签，右侧是跟随系统、浅色、深色三个图标的 BoardUI SegmentedControl；强调色在下一行以色样提供选择，并用可访问名称标明颜色，不使用 emoji。主题和强调色均使用同一份本机外观配置：改变选择后立即保存并作用于整个界面，跟随系统会响应操作系统的明暗模式；重启后从配置恢复。语言使用已安装的 BoardUI `Select`，选项使用 SVG 国旗。支持语言与实际翻译范围一致，不填充尚未实现的语言。
+设置继续管理本机资料、外观、模型与 API、工具和备份。手机号和密码使用 BoardUI Input，短信使用 Input OTP，方式切换和注册用 LinkButton；扫码入口用 SocialButton 的自定义品牌与描边样式。后端未配置时显示对应的不可用状态，二维码只由真实设备会话数据生成。
+
+“设置”只在账号菜单中出现一次（账号组：登录、个人资料、设置），侧栏底部只保留账号按钮。账号菜单“偏好”的外观行使用调色盘图标与“外观”标签，右侧是跟随系统、浅色、深色三个图标的 BoardUI SegmentedControl；强调色在下一行以色样提供选择，并用可访问名称标明颜色，不使用 emoji。主题和强调色均使用同一份本机外观配置：改变选择后立即保存并作用于整个界面，跟随系统会响应操作系统的明暗模式；重启后从配置恢复。语言使用已安装的 BoardUI `Select`，选项使用 SVG 国旗。支持语言与实际翻译范围一致，不填充尚未实现的语言。
 
 主题模式改变时，以该 SegmentedControl 当前焦点选项的中心为键盘操作起点，以实际点击位置为指针操作起点，使用 820ms 圆形扩展揭示新主题。BoardUI 分段控件的滑动选中指示器继续保留其自身短过渡。主题捕获期间冻结其他色彩过渡，避免揭示内容混合新旧调色板。浏览器不支持 View Transitions、捕获失败或系统启用了减少动态效果时，主题仍即时应用；快速连续操作以最近一次选择为准，旧动画或迟到回调不能覆盖新状态。强调色选择不会启动主题圆形动画。
 
 标题栏右侧工具按钮依次为目录、终端、更改、浏览器、文件与“插件与工具”（拼图图标，BoardUI Popover）：弹层分两块：上方“DeepSeek Harness 插件”说明 dsh 插件是 TypeScript / JavaScript 模块（导出 `apply(ctx)`，由 Cordis 配置加载），与技能、MCP 不同，执行层接入前不会加载；下方两个按钮分别进入设置“插件 → Cordis 插件”和打开 GitHub 搜索；下方“MCP、技能与连接器”只列出设置“MCP 与连接器”“技能”中实际保存的配置并标“未运行”，说明 Coding 执行层尚未接入，底部两个按钮进入对应设置页；“在 GitHub 搜索 DeepSeek Harness 插件”按钮只在系统浏览器中打开 GitHub 仓库搜索（桌面版经 `open_external_url` 命令，仅接受 http(s)），应用内不抓取、不展示搜索结果，也不需要 GitHub 授权；没有配置时显示空状态，不生成示例条目。
 
-底部悬浮栏（导航布局为“底部悬浮栏”时）沿用侧栏的浮层质感：`bg-background-secondary-default/85` + `backdrop-blur-xl`、`border-border-button-white`、`shadow-sidebar`、22px 圆角；图标块 40px、12px 圆角，选中项与侧栏选中相同（accent 渐变、白色图标、`shadow-nav-selected`），名称提示使用 `bg-background-primary-default` 与 `text-caption-1-medium`。面板（对话 / 快速搜索 / 更多）使用 BoardUI Popover，锚定整条悬浮栏、`placement="top"`、10px 间距，面板打开时对应图标显示 hover 底色；账号头像复用 `DashboardAccountMenu`，在 40px 图标块内居中，菜单向上以头像按钮为锚点。菜单打开期间暂停整个悬浮栏的放大。对话当前行使用 `bg-background-tertiary-hover`，时间徽标使用 `bg-background-secondary-default` 和 `text-text-primary/80`。
+小屋沿用工作区圆角表面。未登录显示登录入口，登录后把当前账号的 Live2D 模型作为舞台中心，人物名、等级和默契位于左下。右上「同伴」打开名册，标明当前绑定和暂未开放项。预览其他同伴时，舞台标明「预览中」，顶部提供「回到当前同伴」。右下角以独立控件打开互动动作、全身／近景及柔光／纯色背景。动作取自模型实际支持的动作组，系统减少动态效果时隐藏该入口。舞台用主题色生成柔光。模型准备中、失败与重试各有独立状态。
+
+账号菜单的「更换头像」和个人资料页的相机按钮打开同一个账号头像编辑器，先在本机裁成 256 × 256 并预览，再由用户确认上传。保存成功后个人资料、主导航头像和设置资料页使用同一份账号头像。无图或图片加载失败时使用通用人像图标。
+
+底部悬浮栏以图标内容定宽，居中并与窗口底边留出 12px。浮层采用 `rounded-2xl`、`bg-background-primary-default`、`border-border-button-default` 与 `shadow-md`。常规按钮为 40×40px，窄窗口收紧横向间距，页面与工具间只有一条 20px 高的细分隔线。当前页用次级表面与图标下方的 4px 强调色圆点标识。悬停或键盘聚焦时显示名称。更多、对话和快速搜索复用 BoardUI Popover，向上锚定各自的按钮，间距 10px。账号菜单向上锚定头像，旁边的设置按钮直接打开设置弹窗。对话当前行使用 `bg-background-tertiary-hover`，时间徽标使用 `bg-background-secondary-default` 和 `text-text-primary/80`。
 
 macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的 40px 工具行：交通灯右侧安全区之后直接是返回、前进、新建对话，空白拖动区设置 `data-tauri-drag-region`，工具按钮不设置拖动属性；聊天页把分享和更多操作放进这条窗口栏，工作台与对话标题路径保留在聊天面板顶部；联系人页不重复显示聊天标题。工作区从标题栏下方开始；标题栏不再重复 NekoPapa 图标和名称，品牌识别只保留在侧栏顶部。完整浏览器页面也在应用顶部左侧显示返回、前进和新建对话，不仿制系统窗口按钮；路径继续放在聊天面板顶部。嵌入式模板预览不额外增加应用工具栏，沿用面板内标题及操作。窗口栏的返回、前进、新建对话与右侧分享、更多操作共用 [toolbar-icon-button.tsx](../src/components/application/dashboard/toolbar-icon-button.tsx) 的轻量图标按钮（沿用 BoardUI Chat Starter 头部操作的 28px、`rounded-md`、次级图标色与悬停底色，补充焦点环），导航按钮附 BoardUI `Tooltip`，有快捷键的按钮在提示中附 BoardUI `Kbd`（如“隐藏侧栏 ⌘B”）；标题栏最左侧是隐藏 / 显示侧栏按钮，与返回、前进之间以分隔线区分；聊天页的新建对话加号放在对话标签之后；右侧的目录 / 终端 / 更改 / 浏览器 / 文件是同款按钮的开关版本 `ToolbarToggleButton`（React Aria ToggleButton，选中时用悬停底色），对应面板共用 [tool-panel-frame.tsx](../src/components/application/agent-chat/tools/tool-panel-frame.tsx) 的标题行（图标、名称、项目与分支、操作、关闭）与居中说明；差异的增删行使用 `status-lime` / `status-rose` 语义色，文件状态用 BoardUI `Chip`，终端配色在运行时取自主题 token；前进与新建之间以分隔线区分；不在窗口栏使用带边框阴影的 `IconButton`。新建对话由窗口栏加号和聊天历史面板共同提供，搜索继续由侧栏快速搜索和系统快捷键提供。涉及这些区域时必须检查原生配置并在 Tauri 实测；浏览器布局验收仅证明 Web 页面。
 
@@ -99,6 +105,6 @@ macOS 交通灯和窗口控制由系统绘制。Overlay 标题栏使用独立的
 - 常规页顶部为本机资料卡（参照官方 General 页的方案卡），数据页参照官方 Storage 页的总量卡与数据表。官方 `FileUpload` 会模拟上传进度，因此导入区只采用其空闲外观，状态以真实读取与校验结果为准。
 - 灵动岛和 Live2D 桌宠的设置页沿用 BoardUI 设置行和状态点。模型来源使用 `SegmentedControl` 切换说明；未接入的能力不呈现可执行按钮。
 
-内置浏览器的网页批注（`src-tauri/src/browser_pick.js`）运行在别人的网页里，读不到应用的 token，因此在脚本内镜像默认粉色强调色（accent-500 `#ec4899` / accent-600 `#db2777`）与悬浮栏的深色毛玻璃表面：批注卡片 18px 圆角、底部工具条 22px 圆角（与底部悬浮栏一致），编号标记、光标与应用里的批注图标（`AnnotateIcon`，取代系统指针样的 MousePointer2）共用同一个“批注标签”形状：圆角标签，左下尖角指向标记位置；标记 24px 高、白色 1.5px 描边加 1px 深色外圈，在浅色与深色网页上都清楚，13px 粗体编号后接评论开头，主操作“加入对话”使用粉色渐变（悬停保持渐变，只提亮）；工具条固定在底部，左侧的批注标签是拖动手柄（`grab` 光标），工具条文字不可选中；图标沿用 Lucide 1.5 描边。样式表在 `browser_pick_css.js`。用户改了强调色时批注仍为默认粉色，这是当前限制。
+内置浏览器的网页批注（`src-tauri/src/browser_pick.js`）运行在别人的网页里，读不到应用的 token，因此在脚本内镜像默认粉色强调色（accent-500 `#ec4899` / accent-600 `#db2777`）与悬浮栏的深色毛玻璃表面：批注卡片 18px 圆角、底部工具条 22px 圆角，编号标记、光标与应用里的批注图标（`AnnotateIcon`，取代系统指针样的 MousePointer2）共用同一个“批注标签”形状：圆角标签，左下尖角指向标记位置；标记 24px 高、白色 1.5px 描边加 1px 深色外圈，在浅色与深色网页上都清楚，13px 粗体编号后接评论开头，主操作“加入对话”使用粉色渐变（悬停保持渐变，只提亮）；工具条固定在底部，左侧的批注标签是拖动手柄（`grab` 光标），工具条文字不可选中；图标沿用 Lucide 1.5 描边。样式表在 `browser_pick_css.js`。用户改了强调色时批注仍为默认粉色，这是当前限制。
 
 发出的批注在用户气泡下方显示为右对齐的行列表（`message-page-elements.tsx`）：`bg-background-secondary-default` 圆角 `rounded-lg`、`AnnotateIcon`、批注内容用 `text-text-primary`，样式改动数与页面名用 `text-text-tertiary`，`text-caption-1-regular`；选择器与 HTML 不进气泡，只在悬停提示里显示网址与选择器。

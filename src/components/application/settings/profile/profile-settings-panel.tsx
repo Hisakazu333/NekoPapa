@@ -37,7 +37,7 @@ export function ProfileSettingsPanel({ onClose }: { onClose: () => void }) {
   const openLogin = () => {
     const target = settingsOpener();
     onClose();
-    openAccountPage.open(target);
+    openAccountPage.open(account.profile ? "profile" : "login", target);
   };
 
   if (editing) return <ProfileEditForm onDone={() => { returning.current = true; setEditing(false); }} />;

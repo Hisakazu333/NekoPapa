@@ -224,7 +224,7 @@ npm run check
 npm run test
 npm run build
 cargo check --manifest-path src-tauri/Cargo.toml
-npm run desktop:build -- --debug
+npm run desktop:build:local
 ```
 
 当前 `npm run test` 只覆盖现有导航 / 搜索 / 活动。新增协议、存储、Agent 与故障测试在各任务中接入测试脚本，届时写明实际命令；不能先列不存在的脚本为已通过。

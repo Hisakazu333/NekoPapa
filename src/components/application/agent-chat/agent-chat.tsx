@@ -8,8 +8,9 @@ import { createChatTransport } from "@/app/chat/chat-transport";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { WorkspaceNavigation } from "@/components/application/dashboard/workspace-navigation";
-import { normalizeNavigationLayout } from "@/app/navigation/dock-magnification";
+import { normalizeNavigationLayout } from "@/app/navigation/navigation-layout";
 import { isPendingWorkspacePage, type WorkspacePage } from "@/components/application/dashboard/workspace-page";
+import { CabinPage } from "@/components/application/workspace-pages/cabin-page";
 import { BackendPendingPage } from "@/components/application/workspace-pages/backend-pending-page";
 import { SpacePage } from "@/components/application/workspace-pages/space-page";
 import { isMacTauriWindow, MacWindowFrame } from "@/components/application/dashboard/mac-window-frame";
@@ -452,6 +453,7 @@ export function AgentChat({
       <div hidden={page !== "contacts"} style={{ display: page === "contacts" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">
         <ContactsMessenger onNavigate={openNavigation} provider={probe} requestedContactId={requestedContactId} onContactOpened={() => setRequestedContactId(undefined)} />
       </div>
+      {page === "cabin" && <CabinPage onNavigate={openNavigation} />}
       {isPendingWorkspacePage(page) && <BackendPendingPage key={page} page={page} onNavigate={openNavigation} />}
       {page === "space" && <SpacePage onNavigate={openNavigation} />}
       <div hidden={page !== "chat"} style={{ display: page === "chat" ? "flex" : "none" }} className="min-h-0 min-w-0 flex-1">

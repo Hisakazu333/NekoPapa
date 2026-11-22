@@ -1,6 +1,6 @@
 # 设置分类与接入清单
 
-更新日期：2026-11-11。当前 React 工作区使用 BoardUI 双栏设置弹窗，五个分组、30 个分类；底部账号与本机资料入口保留。登录是独立应用页面，不属于设置目录。本文先记录当前页面事实，再保留 2026-10-05 旧 DOM 设置页的历史说明。设置目录以 [workspace-settings-catalog.ts](../src/components/application/settings/workspace-settings-catalog.ts) 为准。
+更新日期：2026-11-22。当前 React 工作区使用 BoardUI 双栏设置弹窗，五个分组、30 个分类；头像菜单直接进入独立个人资料页。本机资料也可从设置编辑。登录是独立应用页面。本文先记录当前页面事实，再保留 2026-10-05 旧 DOM 设置页的历史说明。设置目录以 [workspace-settings-catalog.ts](../src/components/application/settings/workspace-settings-catalog.ts) 为准。
 
 ## 当前设置目录
 
@@ -8,8 +8,8 @@
 
 - **常规**：只放已经生效的对话与输入偏好，保存后立即生效：“新建对话”分区设置新对话是否沿用当前项目（按项目 ID；已移除的项目不再沿用）、启动时打开空白对话或最近的对话；“输入”分区设置 Enter 发送或 ⌘/Ctrl+Enter 发送，首页与联系人输入框和快捷键页同步。通知、启动与更新两个分区标为“未接入”，只保存默认值。本机资料卡已移到“个人资料”，界面语言仍只在账号菜单中切换。
 - **个人资料**：参照 BoardUI AI Profile 的结构，用已有基础组件组合（该模板为 Pro，本机无授权，未安装其源码）。从上到下：
-  - 身份卡：强调色封面、大头像、名称、`@NekoID` 或“未登录”说明、套餐 / “本机资料”徽章、介绍和网站，以及“编辑资料”。未登录时显示本机资料；登录后由 `profileIdentity()` 用账号的昵称、NekoID 和套餐填入同一位置，头像使用名称缩写，本机名称作为后备。
-  - NekoPapa 账号卡：显示账号连接与登录状态；“登录或注册”或“账号详情”会先关闭设置再进入独立 `#login` 页，返回后焦点回到打开设置的控件。登录前不显示任何 NekoID、套餐或云点数值。
+  - 身份卡：强调色封面、大头像、名称、`@NekoID` 或“未登录”说明、套餐 / “本机资料”徽章、介绍和网站，以及“编辑资料”。未登录时显示本机资料；登录后由 `profileIdentity()` 用账号的昵称、NekoID 和套餐填入同一位置，头像读取账号资料，缺少头像或加载失败时显示通用人像图标；本机名称作为后备。
+  - NekoPapa 账号卡：显示账号连接与登录状态；「登录或注册」打开 `#login`；已登录时「打开个人资料」进入 `#profile`。两者都会先关闭设置，返回后焦点回到打开设置的控件。登录前不显示任何 NekoID、套餐或云点数值。
   - 本机使用：对话数、发送的消息、近一年活跃天数、最长 / 当前连续天数，近一年活跃热力图（周一在上，固定阈值 1–2 / 3–5 / 6–10 / 11+），以及按对话数排列的常用项目（显示项目名称与主要文件夹，旧对话的文件夹路径与项目 ID 合并计数）。数据只来自本机聊天记录，助手回复不计入，不会上传。
   - “编辑资料”在本页切换为表单，保存或取消后回到资料页并聚焦“编辑资料”；有未保存修改时关闭设置走统一的放弃确认。
 - **消耗统计**（工作区分组，位于个人资料之后）：两张卡片，版式参照 BoardUI Contributions Card 与 Sankey Chart Card（两者均为 Pro，本机无授权，未安装源码，用已有 token、SegmentedControl、Select 与 SVG 组合）。
@@ -78,7 +78,7 @@
 
 ## 当前导航、草稿与保存
 
-设置入口位于底部账号菜单（“设置”项，附 `⌘,` / `Ctrl+,` 提示），打开常规分类；侧栏不再单独放“设置”按钮，账号菜单也不再列模型、工具、备份等分类快捷入口。账号菜单的主题与强调色直接修改外观配置，外观设置分类仍可从“设置”访问。登录动作进入独立 `#login` 应用页。账号页在配置账号服务的桌面宿主中提供密码、短信和 NekoBuddy 扫码登录，以及短信注册。浏览器预览不提交凭据或生成二维码。`⌘,` / `Ctrl+,` 打开或关闭设置；关闭或 Escape 返回背后的工作台 / 联系人，不关闭其会话。当前弹窗不使用旧设置页的搜索与返回历史，不能照搬旧 `⌘K` 行为。
+设置入口位于底部账号菜单（“设置”项，附 `⌘,` / `Ctrl+,` 提示），打开常规分类；侧栏不再单独放“设置”按钮，账号菜单也不再列模型、工具、备份等分类快捷入口。账号菜单的主题与强调色直接修改外观配置，外观设置分类仍可从“设置”访问。登录动作进入独立 `#login` 应用页。账号页在已连接账号服务的桌面宿主中提供密码、短信和 NekoBuddy 扫码登录，以及短信注册。浏览器预览不提交凭据或生成二维码。`⌘,` / `Ctrl+,` 打开或关闭设置；关闭或 Escape 返回背后的工作台 / 联系人，不关闭其会话。当前弹窗不使用旧设置页的搜索与返回历史，不能照搬旧 `⌘K` 行为。
 
 分类切换时已访问的页面保持挂载，本次设置窗口中的表单草稿不会因换分类而重新初始化。表单提供明确的保存与取消，验证失败保持输入并说明原因；重新打开设置会创建新的设置会话。
 
@@ -100,11 +100,11 @@
 
 官方人物的人设提示词属于 Java 后端，人物资料不是桌面端本机模型设置。通用模型与官方服务分别检查状态；当前 Java 人物服务未接入，官方人物的发送、Enter 与重试均禁用，草稿和已有历史保留。后续只同步公开人物目录及能力状态，不把正式提示词正文放入本机设置或备份，见 [接入边界](official-companion-service.md)。
 
-官方账号、额度与流水后端没有接入。扫码开始、轮询、资料与退出已按现有 Java 源码建立 `desktop-account-contract.ts` 与 `desktop-account-api.ts`；适配器仅接受显式传输，生产实例保持关闭，没有默认地址、`fetch`、后台轮询或凭据持久化。业务错误、取消、已消费回执与字段白名单通过独立夹具测试，不能代替线上或桌面原生验收。
+原生宿主连接 Java 账号服务。登录成功后自动返回调用处，小屋入口继续加载绑定同伴，资料页入口展示已登录身份。头像菜单的「个人资料」打开 `#profile`，未登录时也可查看本机身份和活动。资料页的编辑表单复用本机存储，账号头像、昵称、NekoID、套餐和余额取已认证的资料。确认退出后清除桌面会话，失败时保留身份并提供重试。
 
-账号菜单按账号、工作区、偏好和支持分组，保留登录、本机资料、模型与 API、工具与技能、数据与备份、帮助和反馈。偏好组内可切换主题模式（跟随系统、浅色、深色）及四种强调色，使用 BoardUI 控件并立即写入 `nekopapa.settings.v1` 中的外观配置；系统模式响应设备当前外观，选择的强调色应用于全局 accent token 和对应交互状态。语言使用 BoardUI Select 与独立 SVG 国旗，可选简体中文和 English；不使用 emoji，语言仍独立保存并兼容读取旧外观配置。外观写入失败时更改仅在当前窗口保留，原持久化值不变，菜单显示错误并提供重试；读取被阻止时不覆盖原始配置。除登录外的快捷入口打开既有设置页；登录打开独立应用页面，返回操作沿浏览器历史回到原工作区并保留挂载中的聊天草稿。账号接口适配器仍关闭；页面只说明服务未开放，不提供扫码、认证或伪登录状态。CloudQuotaSnapshot 是旧配额展示契约，不是 Java 云点余额 DTO，当前登录页不使用它。
+登录后可从头像菜单选择「更换头像」，或点击个人资料页的头像，在本机预览并裁切 PNG、JPG 或 WebP（原文件最多 5 MB）。点击「保存头像」后由桌面宿主发送到当前 Java 账号；成功后资料页和导航一起更新。取消时丢弃预览，上传失败时保留预览供重试。
 
-实现位置：[设置弹窗](../src/components/application/settings/settings-modal.tsx)、[本机配置面板](../src/components/application/settings/nekopapa-configuration-settings.tsx)、[数据备份](../src/components/application/settings/nekopapa-data-settings.tsx)、[本机资料](../src/components/application/dashboard/dashboard-account-dialog.tsx)、[独立登录页与导航](../src/components/application/account/account-page-provider.tsx)。后续执行能力按 [开发任务清单](iteration-backlog.md) 接入，学习能力见 [自学规划](self-learning-plan.md)。
+实现位置：[设置弹窗](../src/components/application/settings/settings-modal.tsx)、[本机配置面板](../src/components/application/settings/nekopapa-configuration-settings.tsx)、[数据备份](../src/components/application/settings/nekopapa-data-settings.tsx)、[个人资料](../src/components/application/account/account-profile-page.tsx)、[账号页面导航](../src/components/application/account/account-page-provider.tsx)。后续执行能力按 [开发任务清单](iteration-backlog.md) 接入，学习能力见 [自学规划](self-learning-plan.md)。
 
 ## 历史设置页：2026-10-05
 

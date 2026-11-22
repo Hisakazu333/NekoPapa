@@ -1,7 +1,8 @@
 export const ACCOUNT_PAGE_HISTORY_KEY = "__nekopapa_account_page_navigation_v1";
 const ACCOUNT_PAGE_NAMESPACE = "nekopapa.account-page-navigation";
 const ACCOUNT_PAGE_VERSION = 1;
-const LOGIN_HASH = "#login";
+const pageHashes = { login: "#login", profile: "#profile" } as const;
+export type AccountPage = keyof typeof pageHashes;
 
 export interface AccountPageNavigationPort {
   getHash: () => string;
@@ -13,9 +14,10 @@ export interface AccountPageNavigationPort {
 }
 
 export interface AccountPageNavigation {
-  getSnapshot: () => boolean;
+  getSnapshot: () => AccountPage | null;
+  returnsToProfile: () => boolean;
   subscribe: (listener: () => void) => () => void;
-  open: () => void;
+  open: (page: AccountPage) => void;
   close: () => void;
 }
 
@@ -47,12 +49,14 @@ interface AccountPageHistoryMarker {
   returnHash: string;
 }
 
-function isLoginHash(hash: string): boolean {
-  return hash === LOGIN_HASH;
+function accountPageAt(hash: string): AccountPage | null {
+  if (hash === pageHashes.login) return "login";
+  if (hash === pageHashes.profile) return "profile";
+  return null;
 }
 
 function cleanReturnHash(hash: unknown): string {
-  return typeof hash === "string" && !isLoginHash(hash) ? hash : "";
+  return typeof hash === "string" && hash !== pageHashes.login ? hash : "";
 }
 
 function stateWithMarker(state: unknown, marker: AccountPageHistoryMarker): Record<string, unknown> {
@@ -77,9 +81,8 @@ function readMarker(state: unknown): AccountPageHistoryMarker | undefined {
 export function createAccountPageNavigation(port: AccountPageNavigationPort): AccountPageNavigation {
   const listeners = new Set<() => void>();
   let unsubscribePort: (() => void) | undefined;
-  let lastSnapshot = isLoginHash(port.getHash());
-
-  const getSnapshot = () => isLoginHash(port.getHash());
+  const getSnapshot = () => accountPageAt(port.getHash());
+  let lastSnapshot = getSnapshot();
   const emitIfChanged = () => {
     const next = getSnapshot();
     if (next === lastSnapshot) return;
@@ -103,20 +106,23 @@ export function createAccountPageNavigation(port: AccountPageNavigationPort): Ac
 
   return {
     getSnapshot,
+    returnsToProfile: () => getSnapshot() === "login" && readMarker(port.getState())?.returnHash === pageHashes.profile,
     subscribe,
-    open() {
+    open(page) {
       const currentHash = port.getHash();
-      if (isLoginHash(currentHash)) return;
+      const nextHash = pageHashes[page];
+      if (currentHash === nextHash) return;
+      if (currentHash === pageHashes.login) return;
       const marker: AccountPageHistoryMarker = {
         namespace: ACCOUNT_PAGE_NAMESPACE,
         version: ACCOUNT_PAGE_VERSION,
         returnHash: cleanReturnHash(currentHash),
       };
-      port.push(stateWithMarker(port.getState(), marker), LOGIN_HASH);
+      port.push(stateWithMarker(port.getState(), marker), nextHash);
       emitIfChanged();
     },
     close() {
-      if (!isLoginHash(port.getHash())) return;
+      if (!getSnapshot()) return;
       const marker = readMarker(port.getState());
       if (marker) {
         port.back();

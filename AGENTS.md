@@ -91,7 +91,7 @@ PY
 - 新行为和缺陷修复优先复用现有测试；需要新增测试时验证用户行为、数据契约或不变量，覆盖有实际风险的边界，不编写仅复刻实现的断言。
 - 重构保留原有测试覆盖，测试文件拆分不得减少场景或弱化断言。当前测试使用 Node.js 内置测试运行器，直接编译并验证生产状态逻辑；新增模块应核对 `tests/tsconfig.json`、临时编译产物及导入方式。
 - TypeScript / 前端或其重构至少执行 `npm run test` 和 `npm run build`。`build` 已包含 `npm run check`，通常无需重复执行；需要单独定位类型问题时可运行 `npm run check`。
-- Rust 宿主或原生能力变更，执行 `cargo check --manifest-path src-tauri/Cargo.toml`、相关 `cargo test --manifest-path src-tauri/Cargo.toml`，并按影响范围用 `npm run desktop:build -- --debug` 验证桌面构建。
+- Rust 宿主或原生能力变更，执行 `cargo check --manifest-path src-tauri/Cargo.toml`、相关 `cargo test --manifest-path src-tauri/Cargo.toml`，并按影响范围验证桌面构建。macOS 本机桌面验收与交付统一使用 `npm run desktop:build:local` 生成的 release 包。用 `npm run desktop` 构建并启动该包。
 - 界面与交互变更，使用浏览器验证真实入口、键盘、取消、空状态、错误状态及受影响布局；窗口、原生快捷键、拖动、进程和多窗口行为必须在 Tauri 宿主中核验。
 - 导航、存储或迁移变更，覆盖分类与内容独立、ID 稳定、关闭与归档差异、重载恢复，以及损坏数据备份和写入失败处理等受影响不变量。
 - 纯文档变更检查内容、链接、命令与 `git diff --check`；用户要求测试时运行现有测试。不得以历史测试记录代替本轮结果，也不把构建成功视为全部行为已验收。
@@ -106,7 +106,7 @@ git diff --check
 # 修改 Rust 或桌面能力时追加对应检查
 cargo check --manifest-path src-tauri/Cargo.toml
 cargo test --manifest-path src-tauri/Cargo.toml
-npm run desktop:build -- --debug
+npm run desktop:build:local
 ```
 
 ## 每轮完成条件

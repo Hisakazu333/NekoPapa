@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { FocusEvent as ReactFocusEvent, PointerEvent as ReactPointerEvent } from "react";
 import { parseColor } from "react-aria-components";
-import { normalizeNavigationLayout, type NavigationLayout } from "@/app/navigation/dock-magnification";
+import { normalizeNavigationLayout, type NavigationLayout } from "@/app/navigation/navigation-layout";
 import { Button } from "@/components/base/buttons/button";
 import { ColorPicker } from "@/components/base/color-picker/color-picker";
 import { ModalBody, ModalFooter } from "@/components/base/modal/modal";
@@ -223,7 +223,7 @@ export function AppearanceSettingsPanel({ onClose }: { onClose: () => void }) {
               <SettingsRow label="当前显示" description="跟随系统时显示当前实际应用的主题。">
                 <span className="shrink-0 text-body-regular text-text-primary">{currentTheme === "dark" ? "深色" : "浅色"}</span>
               </SettingsRow>
-              <SettingsRow label="导航布局" description={navigation === "dock" ? "主导航在窗口底部的悬浮栏；对话、搜索与账号从悬浮栏打开。" : "主导航在左侧栏，可收起或隐藏。"}>
+              <SettingsRow label="导航布局" description={navigation === "dock" ? "从窗口底部的悬浮栏切换页面，打开对话、搜索和设置。" : "主导航在左侧栏，可收起或隐藏。"}>
                 <Select aria-label="导航布局" selectedKey={navigation} size="sm" className="w-32 shrink-0" onSelectionChange={(key) => {
                   if (key === "sidebar" || key === "dock") { setNavigation(key); setErrors({}); setConflicts([]); setStatus(""); }
                 }}>

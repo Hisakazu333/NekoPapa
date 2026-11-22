@@ -10,8 +10,9 @@
     "test": "node --test tests/*.test.mjs",
     "build": "npm run check && vite build",
     "preview": "vite preview",
-    "desktop": "tauri dev",
+    "desktop": "npm run desktop:build:local && open -n \"$PWD/src-tauri/target/release/bundle/macos/NekoPapa.app\"",
     "desktop:build": "tauri build",
+    "desktop:build:local": "APPLE_SIGNING_IDENTITY=${APPLE_SIGNING_IDENTITY:--} NEKOPAPA_ACCOUNT_API_URL=http://127.0.0.1:8080 NEKOPAPA_BUILD_NUMBER=1 NEKOPAPA_RELEASE_CHANNEL=dev tauri build --bundles app",
     "tauri": "tauri"
   },
   "dependencies": {

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { EllipsisIcon, MessagesSquareIcon, SearchIcon, SettingsIcon } from "@/components/foundations/icons/app-icons";
-import type { NavigationLayout } from "@/app/navigation/dock-magnification";
+import type { NavigationLayout } from "@/app/navigation/navigation-layout";
 import type { useAgentChatSidebar } from "@/components/application/agent-chat/use-agent-chat-sidebar";
 import { DashboardAccountMenu } from "./dashboard-account-menu";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -31,8 +31,7 @@ function useDockSearchShortcut(enabled: boolean, open: () => void) {
  * The workspace's main navigation in the layout chosen under 设置 → 外观:
  * the left sidebar (with its hover peek when hidden, and the narrow-window
  * drawer), or the bottom dock. The dock carries the sidebar's pages and
- * opens 对话, 搜索 and 更多 as panels above itself; the account avatar opens
- * the account menu, and 设置 opens settings. The drawer belongs to sidebar layout.
+ * opens 对话, 搜索 and 更多 as panels above itself.
  */
 export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebarHidden, peek, navOpen, setNavOpen, contained, dockPanel, onDockPanelChange, onOpenSettings }: {
   layout: NavigationLayout;
@@ -64,15 +63,15 @@ export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebar
       </DashboardSidebarDrawer>
     </>}
     {dock && <WorkspaceDock openPanel={dockPanel} onPanelChange={onDockPanelChange} groups={[
-      [
-        ...sidebar.items.map((item) => ({ key: item.key, label: item.label, icon: item.icon, selected: page === item.key, onSelect: () => item.onSelect?.() })),
+      { key: "pages", label: "主要页面", entries: [
+        ...[...sidebar.primaryItems, ...sidebar.pinnedItems].map((item) => ({ ...item, selected: page === item.key })),
         { key: "more", label: "更多", icon: EllipsisIcon, selected: moreSelected, panel: {
           className: "w-[248px]",
           content: (close: () => void) => <SidebarMoreList entries={sidebar.more.entries} notice={sidebar.more.notice}
             onTogglePin={sidebar.more.onTogglePin} onOpened={close} place="悬浮栏" />,
         } },
-      ],
-      [
+      ] },
+      { key: "tools", label: "工作区工具", entries: [
         { key: "conversations", label: "对话", icon: MessagesSquareIcon, panel: {
           className: "w-[360px]",
           content: () => <div className="p-1.5">{sidebar.conversations()}</div>,
@@ -81,11 +80,9 @@ export function WorkspaceNavigation({ layout, sidebar, page, preferRail, sidebar
           className: "w-[360px]",
           content: (close: () => void) => <DockSearchPanel entries={sidebar.searchEntries} onSelect={sidebar.onSearchSelect} onClose={close} />,
         } },
-      ],
-      [
-        { key: "account", label: "账号", renderControl: (open, onOpenChange) => <DashboardAccountMenu collapsed placement="top" offset={14} dockState={{ open, onOpenChange }} /> },
-        { key: "settings", label: "设置", icon: SettingsIcon, onSelect: onOpenSettings },
-      ],
+        { key: "account", label: "账号", renderControl: (open, onOpenChange) => <DashboardAccountMenu collapsed placement="top" offset={10} dockState={{ open, onOpenChange }} /> },
+        { key: "settings", label: "设置", icon: SettingsIcon, onSelect: () => { onDockPanelChange(null); onOpenSettings(); } },
+      ] },
     ]} />}
   </>;
 }

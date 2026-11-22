@@ -4,17 +4,18 @@ import { profileActivity } from "@/app/usage/profile-activity";
 import { resolveProject } from "@/app/projects/projects";
 import { useProjects } from "@/hooks/use-projects";
 import { useChatHistory } from "@/hooks/use-chat-history";
+import { cx } from "@/utils/cx";
 import { ProfileHeatmap } from "./profile-heatmap";
 
-function StatTile({ label, value, unit, note }: { label: string; value: number; unit?: string; note?: ReactNode }) {
+function StatTile({ label, value, unit, note, className }: { label: string; value: number; unit?: string; note?: ReactNode; className: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 rounded-2xl bg-background-secondary-default p-3.5">
+    <div className={cx("flex min-w-0 flex-col gap-1 px-4 py-3", className)}>
       <p className="text-body-2-regular text-text-secondary">{label}</p>
       <p className="flex items-baseline gap-1">
         <span className="text-title-2-semibold tabular-nums text-text-primary">{value.toLocaleString()}</span>
         {unit && <span className="text-body-2-regular text-text-secondary">{unit}</span>}
       </p>
-      {note && <p className="text-caption-1-regular text-text-tertiary">{note}</p>}
+      {note && <p className="text-caption-1-regular text-text-secondary">{note}</p>}
     </div>
   );
 }
@@ -24,7 +25,7 @@ function StatTile({ label, value, unit, note }: { label: string; value: number; 
  * folders, all read from chat history on this device. Activity counts only
  * messages you sent.
  */
-export function ProfileActivityCard() {
+export function ProfileActivityCard({ standalone = false }: { standalone?: boolean }) {
   const history = useChatHistory();
   // The page shows a snapshot; reopening settings picks up a new day.
   const [now] = useState(() => Date.now());
@@ -36,22 +37,25 @@ export function ProfileActivityCard() {
   const projectOf = (id: string) => projects.find((project) => project.id === id);
   const empty = activity.sentMessages === 0;
 
+  const Heading = standalone ? "h2" : "h3";
+  const tileClass = standalone ? "bg-background-full" : "rounded-2xl bg-background-secondary-default";
   return (
     <section aria-labelledby="profile-activity-title" className="flex flex-col gap-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
-        <h3 id="profile-activity-title" className="text-body-medium text-text-primary">本机使用</h3>
-        <p className="text-body-2-regular text-text-tertiary">来自此设备的聊天记录，不会上传</p>
+        <Heading id="profile-activity-title" className="text-headline-medium text-text-primary">{standalone ? "本机活动" : "本机使用"}</Heading>
+        <p className="text-body-2-regular text-text-secondary">来自此设备的聊天记录，不会上传</p>
       </div>
       {!history.ready
         ? <p role="status" className="rounded-2xl bg-background-secondary-default p-4 text-body-regular text-text-secondary">正在读取本机聊天记录…</p>
         : history.error && history.threads.length === 0
           ? <p role="alert" className="rounded-2xl bg-background-secondary-default p-4 text-body-regular text-text-error-primary">{history.error}</p>
           : <>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <StatTile label="对话" value={activity.conversations} />
-              <StatTile label="发送的消息" value={activity.sentMessages} />
-              <StatTile label="活跃天数" value={activity.activeDays} unit="天" note="近一年" />
-              <StatTile label="最长连续" value={activity.longestStreak} unit="天" note={`当前连续 ${activity.currentStreak} 天`} />
+            <div className={cx("grid grid-cols-2 sm:grid-cols-4", standalone
+              ? "gap-px overflow-hidden rounded-2xl border border-separator-border bg-separator-border" : "gap-2")}>
+              <StatTile label="对话" value={activity.conversations} className={tileClass} />
+              <StatTile label="发送的消息" value={activity.sentMessages} className={tileClass} />
+              <StatTile label="活跃天数" value={activity.activeDays} unit="天" note="近一年" className={tileClass} />
+              <StatTile label="最长连续" value={activity.longestStreak} unit="天" note={`当前连续 ${activity.currentStreak} 天`} className={tileClass} />
             </div>
             <ProfileHeatmap activity={activity} />
             {empty && <p className="px-1 text-body-2-regular text-text-tertiary">发送第一条消息后，这里会记录你的活跃日。</p>}

@@ -62,13 +62,13 @@ export function MacWindowFrame({
   };
   /** Hides or shows the desktop sidebar; only shown where that sidebar exists (lg and up). */
   sidebarToggle?: { hidden: boolean; onToggle: () => void; shortcut: string; onHoverChange?: (inside: boolean, pointerType: string) => void };
-  /** Keeps a strip free at the bottom for the floating dock (导航布局 → 底部悬浮栏). */
+  /** Keeps content clear of the floating dock and its surrounding gap. */
   dockInset?: boolean;
 }) {
   const macWindow = !contained && isMacTauriWindow();
   const fullscreen = useMacWindowFullscreen(macWindow);
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
-  const inset = dockInset && "pb-[76px]";
+  const inset = dockInset && "pb-[72px]";
   const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", inset, height, className);
 
   const navigation = toolbarNavigation && (

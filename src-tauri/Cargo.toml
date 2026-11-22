@@ -18,9 +18,13 @@ tauri = { version = "2", features = ["unstable", "macos-private-api"] }
 tauri-plugin-dialog = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha2 = "0.10"
+tempfile = "3"
+percent-encoding = "2"
+zip = { version = "8.6", default-features = false, features = ["deflate"] }
 portable-pty = "0.9"
 # The desktop chat runtime's model requests (model_proxy.rs): streamed replies over TLS.
-reqwest = { version = "0.13", default-features = false, features = ["stream", "native-tls", "http2", "json"] }
+reqwest = { version = "0.13", default-features = false, features = ["stream", "native-tls", "http2", "json", "multipart"] }
 # API keys typed in 设置 → 模型与 API live in the system keychain (credential_store.rs).
 keyring = { version = "3", features = ["apple-native", "windows-native", "sync-secret-service"] }
 rusqlite = { version = "0.42.0", features = ["bundled"] }

@@ -1,18 +1,24 @@
 import type { Ref } from "react";
-import { Link2Icon, PencilIcon } from "@/components/foundations/icons/app-icons";
+import { Link2Icon, PencilIcon, UserIcon } from "@/components/foundations/icons/app-icons";
 import type { LocalProfile } from "@/app/account/local-profile";
 import type { ProfileIdentity } from "@/app/account/profile-identity";
 import { Avatar } from "@/components/base/avatar/avatar";
 import { Badge } from "@/components/base/badges/badge";
 import { Button } from "@/components/base/buttons/button";
 
-function websiteLabel(website: string) {
+export function ProfileWebsite({ website }: { website: string }) {
+  let url: URL;
   try {
-    const url = new URL(website);
-    return `${url.host}${url.pathname === "/" ? "" : url.pathname}`;
+    url = new URL(website);
   } catch {
-    return website;
+    return null;
   }
+  if (url.protocol !== "https:" && url.protocol !== "http:") return null;
+  return <a href={url.href} target="_blank" rel="noreferrer"
+    className="inline-flex max-w-full items-center gap-1.5 rounded-md text-body-2-medium text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
+    <Link2Icon className="size-4 shrink-0" aria-hidden />
+    <span translate="no" className="truncate">{url.host}{url.pathname === "/" ? "" : url.pathname}</span>
+  </a>;
 }
 
 /**
@@ -39,7 +45,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
             color="blue"
             src={identity.avatarUrl}
             alt={identity.name}
-            initials={identity.initials}
+            fallback={<UserIcon className="size-9" aria-hidden />}
             className="size-20 text-title-1-semibold ring-4 ring-background-full"
           />
           <Button ref={editRef} variant="secondary" size="small" leadingIcon={PencilIcon} onClick={onEdit}>
@@ -61,11 +67,7 @@ export function ProfileHeader({ identity, profile, onEdit, editRef }: {
             className="mt-3 cursor-pointer rounded-md text-start text-body-regular text-text-tertiary outline-none hover:text-text-secondary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
             添加一段介绍…
           </button>}
-        {website && <a href={website} target="_blank" rel="noreferrer"
-          className="mt-2 inline-flex max-w-full items-center gap-1 rounded-md text-body-2-medium text-text-secondary outline-none hover:text-text-primary focus-visible:ring-2 focus-visible:ring-border-focus-ring">
-          <Link2Icon className="size-4 shrink-0" aria-hidden />
-          <span translate="no" className="truncate">{websiteLabel(website)}</span>
-        </a>}
+        {website && <div className="mt-2"><ProfileWebsite website={website} /></div>}
       </div>
     </section>
   );

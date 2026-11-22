@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from "react";
 import { BookIcon, ContactIcon, FolderIcon, GraduationCapIcon, HouseIcon, MessageSquareTextIcon } from "@/components/foundations/icons/app-icons";
-import type { SidebarDestination } from "@/app/navigation/sidebar-pins";
+import { sidebarDestinations, type SidebarDestination } from "@/app/navigation/sidebar-pins";
 import { useSidebarPins } from "@/hooks/use-sidebar-pins";
 import type { SidebarMoreEntry } from "@/components/application/dashboard/sidebar-more-menu";
 import type { WorkspacePage } from "@/components/application/dashboard/workspace-page";
@@ -43,23 +43,24 @@ export function useAgentChatSidebar({
   const destinations: Record<SidebarDestination, Omit<DashboardNavItem, "key">> = useMemo(() => ({
     space: { label: "空间", icon: FolderIcon, href: "#space", onSelect: () => { setPage("space"); setNavOpen(false); } },
     knowledge: { label: "知识库", icon: BookIcon, href: "#knowledge", onSelect: () => { setPage("knowledge"); setNavOpen(false); } },
-    cabin: { label: "小屋", icon: HouseIcon, href: "#cabin", onSelect: () => { setPage("cabin"); setNavOpen(false); } },
   }), [setNavOpen, setPage]);
-  const items: DashboardNavItem[] = useMemo(() => [
+  const primaryItems: DashboardNavItem[] = useMemo(() => [
     { key: "chat", label: "工作台", icon: MessageSquareTextIcon, href: "/", onSelect: () => { setPage("chat"); setNavOpen(false); } },
     { key: "contacts", label: "联系人", icon: ContactIcon, href: "#contacts", onSelect: () => { setRequestedContactId(activeContactId); setPage("contacts"); setNavOpen(false); } },
     { key: "learning", label: "学习", icon: GraduationCapIcon, href: "#learning", onSelect: () => { setPage("learning"); setNavOpen(false); } },
-    ...pins.map((id) => ({ key: id, ...destinations[id] })),
-  ], [activeContactId, destinations, pins, setNavOpen, setPage, setRequestedContactId]);
+    { key: "cabin", label: "小屋", icon: HouseIcon, href: "#cabin", onSelect: () => { setPage("cabin"); setNavOpen(false); } },
+  ], [activeContactId, setNavOpen, setPage, setRequestedContactId]);
+  const pinnedItems = useMemo(() => pins.map((id) => ({ key: id, ...destinations[id] })), [destinations, pins]);
+  const items = useMemo(() => [...primaryItems, ...pinnedItems], [primaryItems, pinnedItems]);
   const more = useMemo(() => ({
-    entries: (Object.keys(destinations) as SidebarDestination[]).map((id): SidebarMoreEntry => ({
+    entries: sidebarDestinations.map((id): SidebarMoreEntry => ({
       id, label: destinations[id].label, icon: destinations[id].icon, pinned: pins.includes(id), onOpen: destinations[id].onSelect!,
     })),
     notice,
     onTogglePin: (id: string) => toggle(id as SidebarDestination),
   }), [destinations, notice, pins, toggle]);
   // Search offers every page, pinned or not.
-  const navigation = useMemo(() => [...items, ...(Object.keys(destinations) as SidebarDestination[])
+  const navigation = useMemo(() => [...items, ...sidebarDestinations
     .filter((id) => !pins.includes(id)).map((id) => ({ key: id, ...destinations[id] }))], [destinations, items, pins]);
   const entries = useMemo(() => buildSidebarSearchEntries({
     navigation, threads, contacts,
@@ -85,17 +86,15 @@ export function useAgentChatSidebar({
       if (!contacts.some((contact) => contact.id === target.id)) return false;
       setRequestedContactId(target.id);
       setPage("contacts");
-    } else if (target.key === "learning" || target.key in destinations) {
-      setPage(target.key as WorkspacePage);
-    } else if (target.key === "contacts") {
-      setRequestedContactId(activeContactId);
-      setPage("contacts");
     } else {
-      setPage("chat");
+      const item = navigation.find((page) => page.key === target.key);
+      if (!item?.onSelect) return false;
+      item.onSelect();
+      return true;
     }
     setNavOpen(false);
     return true;
-  }, [activeContactId, busy, contacts, destinations, onSelectThread, openSettings, setNavOpen, setPage, setRequestedContactId, threads]);
+  }, [busy, contacts, navigation, onSelectThread, openSettings, setNavOpen, setPage, setRequestedContactId, threads]);
   const onSelectRecent = useCallback((thread: StoredThread) => {
     if (thread.contact) {
       if (!contacts.some((contact) => contact.id === thread.contact?.id)) return false;
@@ -123,5 +122,5 @@ export function useAgentChatSidebar({
     onSelect={onSelectRecent} onShowAll={onShowAllThreads} />,
   [activeId, busy, onNewChat, onSelectRecent, onShowAllThreads, projects, setNavOpen, setPage, threads]);
 
-  return { items, more, searchEntries: entries, onSearchSelect, children, conversations };
+  return { items, primaryItems, pinnedItems, more, searchEntries: entries, onSearchSelect, children, conversations };
 }

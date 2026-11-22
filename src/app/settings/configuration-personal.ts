@@ -24,7 +24,7 @@ export const personalConfiguration: readonly ConfigurationSchema[] = [
       { ...text("foregroundDark", "深色前景", "留空跟随主题。", 7), format: "color" },
       select("font", "字体", "system", [["system", "系统字体"], ["serif", "衬线字体"], ["mono", "等宽字体"]]),
       select("density", "设置列表密度", "comfortable", [["comfortable", "舒适"], ["compact", "紧凑"]]),
-      select("navigation", "导航布局", "sidebar", [["sidebar", "侧栏"], ["dock", "底部悬浮栏"]], "工作台的主导航放在左侧栏或窗口底部的悬浮栏。"),
+      select("navigation", "导航布局", "sidebar", [["sidebar", "侧栏"], ["dock", "底部悬浮栏"]], "工作台的主导航放在左侧栏或底部悬浮栏。"),
       toggle("reducedMotion", "减少动态效果", false, "关闭图标反馈动画和界面过渡；系统的减少动态效果偏好仍然有效。"),
     ] },
   ] },

@@ -35,6 +35,22 @@ fn profile_serialization_keeps_only_account_display_fields() {
     assert!(result.get("email").is_none());
 }
 
+#[test]
+fn profile_avatars_allow_https_and_the_configured_local_service() {
+    let local = Url::parse("http://127.0.0.1:8080").unwrap();
+    assert_eq!(
+        profile_avatar(&local, "/profile/avatar/me.png").as_deref(),
+        Some("http://127.0.0.1:8080/profile/avatar/me.png")
+    );
+    assert_eq!(
+        profile_avatar(&local, "https://cdn.example.test/me.png").as_deref(),
+        Some("https://cdn.example.test/me.png")
+    );
+    for unavailable in ["", "file:///local.png", "http://example.test/me.png"] {
+        assert!(profile_avatar(&local, unavailable).is_none());
+    }
+}
+
 fn reply(
     listener: &std::net::TcpListener,
     method_and_path: &str,
@@ -134,6 +150,8 @@ fn sms_sign_in_reads_authorized_profile_and_logout_revokes_the_host_session() {
     tauri::async_runtime::block_on(async move {
         let auth = AccountAuth {
             state: Mutex::new(AccountState::default()),
+            cabin_loading: tokio::sync::Mutex::new(()),
+            avatar_uploading: tokio::sync::Mutex::new(()),
             connection: Some((
                 base,
                 Client::builder()

@@ -64,19 +64,19 @@ test("打开登录保留现有路由状态，重复打开不重复压入历史�
   const state = { workspace: "current", scroll: 42 };
   const history = createHistory("#contacts", state);
   const navigation = createAccountPageNavigation(history);
-  navigation.open();
-  assert.equal(navigation.getSnapshot(), true);
+  navigation.open("login");
+  assert.equal(navigation.getSnapshot(), "login");
   assert.equal(history.entries.length, 2);
   assert.deepEqual(history.getState().workspace, "current");
   assert.equal(history.getState().scroll, 42);
   assert.deepEqual(history.getState()[ACCOUNT_PAGE_HISTORY_KEY], {
     namespace: "nekopapa.account-page-navigation", version: 1, returnHash: "#contacts",
   });
-  navigation.open();
+  navigation.open("login");
   assert.equal(history.entries.length, 2);
   navigation.close();
   assert.equal(history.getHash(), "#contacts");
-  assert.equal(navigation.getSnapshot(), false);
+  assert.equal(navigation.getSnapshot(), null);
 });
 
 test("浏览器后退和前进更新登录可见状态，离开期间不重复通知", () => {
@@ -84,22 +84,39 @@ test("浏览器后退和前进更新登录可见状态，离开期间不重复�
   const navigation = createAccountPageNavigation(history);
   let changes = 0;
   const unsubscribe = navigation.subscribe(() => changes++);
-  navigation.open();
+  navigation.open("login");
   assert.equal(changes, 1);
   history.back();
-  assert.equal(navigation.getSnapshot(), false);
+  assert.equal(navigation.getSnapshot(), null);
   history.forward();
-  assert.equal(navigation.getSnapshot(), true);
+  assert.equal(navigation.getSnapshot(), "login");
   assert.equal(changes, 3);
   unsubscribe();
   assert.equal(history.entries.length, 2);
 });
 
+test("从独立个人资料发起登录时先返回资料页，关闭资料页才返回原工作区", () => {
+  const history = createHistory("#cabin", { route: "cabin" });
+  const navigation = createAccountPageNavigation(history);
+  navigation.open("profile");
+  assert.equal(navigation.getSnapshot(), "profile");
+  assert.equal(history.getHash(), "#profile");
+  navigation.open("login");
+  assert.equal(navigation.getSnapshot(), "login");
+  assert.equal(history.entries.length, 3);
+  assert.equal(navigation.returnsToProfile(), true);
+  navigation.close();
+  assert.equal(navigation.getSnapshot(), "profile");
+  navigation.close();
+  assert.equal(history.getHash(), "#cabin");
+  assert.deepEqual(history.getState(), { route: "cabin" });
+});
+
 test("刷新后仍能识别应用创建的登录历史项并返回，不替换其原始页面状态", () => {
   const history = createHistory("#contacts", { route: "contacts" });
-  createAccountPageNavigation(history).open();
+  createAccountPageNavigation(history).open("login");
   const refreshedNavigation = createAccountPageNavigation(history);
-  assert.equal(refreshedNavigation.getSnapshot(), true);
+  assert.equal(refreshedNavigation.getSnapshot(), "login");
   refreshedNavigation.close();
   assert.equal(history.getHash(), "#contacts");
   assert.deepEqual(history.getState(), { route: "contacts" });
@@ -108,7 +125,7 @@ test("刷新后仍能识别应用创建的登录历史项并返回，不替换�
 test("直接打开或刷新 #login 后关闭只替换为站内根路由，不执行 history.back", () => {
   const history = createHistory("#login", { unrelated: "keep" });
   const navigation = createAccountPageNavigation(history);
-  assert.equal(navigation.getSnapshot(), true);
+  assert.equal(navigation.getSnapshot(), "login");
   navigation.close();
   assert.equal(history.getHash(), "");
   assert.equal(history.entries.length, 1);

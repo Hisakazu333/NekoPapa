@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { BookIcon, BookOpenIcon, CloudUploadIcon, GraduationCapIcon, HouseIcon, MapIcon, MessageCircleIcon, MessagesSquareIcon, NotebookPenIcon, PaletteIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
+import { BookIcon, BookOpenIcon, CloudUploadIcon, GraduationCapIcon, MapIcon, MessagesSquareIcon, NotebookPenIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
 import type { PendingWorkspacePage } from "@/components/application/dashboard/workspace-page";
 
 type Icon = ComponentType<{ className?: string; "aria-hidden"?: boolean | "true" | "false" }>;
@@ -31,17 +31,6 @@ export const workspacePageContent: Record<PendingWorkspacePage, WorkspacePageCon
       { icon: CloudUploadIcon, title: "上传资料", description: "导入 PDF、Markdown、网页等资料并自动解析。" },
       { icon: SearchIcon, title: "检索与引用", description: "回答时引用资料原文，并标明出处。" },
       { icon: BookOpenIcon, title: "分组管理", description: "按课程或主题整理资料，并可关联到侧栏中的项目。" },
-    ],
-  },
-  cabin: {
-    title: "小屋", icon: HouseIcon,
-    intro: "同伴的房间，计划支持布置与互动。",
-    statusTitle: "小屋场景尚未开放",
-    status: "房间场景、模型与布置尚未接入。",
-    planned: [
-      { icon: HouseIcon, title: "人物房间", description: "选择同伴，在房间里查看角色与待机动作。" },
-      { icon: MessageCircleIcon, title: "互动与聊天", description: "点击、触摸会有反应，可以从小屋直接进入和 TA 的单聊。" },
-      { icon: PaletteIcon, title: "房间布置", description: "更换房间背景与摆设，按同伴分别保存。" },
     ],
   },
 };

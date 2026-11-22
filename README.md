@@ -46,6 +46,7 @@
 - **切换时继续编写**：联系人各自保留当前页面中的输入草稿和流式状态，工作台对话独立；切换联系人或返回工作台不会重建已打开的联系人组件。
 - **项目文件**：点标题栏的“文件”按钮（`⇧⌘F`），切换同一项目的源文件夹，文件树按类型显示图标并标出 Git 更改，预览和差异按语言语法高亮，可复制路径，桌面端可用外部编辑器打开。
 - **浏览历史**：工作台右侧辅助区显示其聊天历史，支持拖动分隔条调整宽度；联系人从自己的列表继续最近对话。
+- **账号小屋**：桌面端从小屋进入账号登录页；登录后读取当前同伴，向 Java 申请 OSS 模型包签名，验证大小和 SHA-256，再在房间中显示真实模型。可打开账号同伴名册，查看等级、默契，预览已开放同伴并返回当前绑定。
 - **管理本机设置**：30 个设置分类管理个人资料、外观、模型、工具、设备、开发偏好和备份；登录从账号菜单进入独立页面，主题可切换浅色、深色或跟随系统。
 
 聊天正文使用共享 `ChatHistoryStore` 按 ID 合并保存到浏览器存储，避免工作台与联系人互相覆盖；损坏读取会阻止覆盖原件，保存失败提供重试。输入草稿与进行中的流式执行仍属于当前页面，不承诺重载后自动恢复。此存储尚不是数据库，也不代表原生多窗口一致性已验收。具体操作与历史功能边界见 [界面操作说明](docs/navigation-map.md)。
@@ -68,6 +69,8 @@ npm ci
 npm run desktop
 ```
 
+`npm run desktop` 构建并打开本地 macOS release 应用，账号服务指向 `http://127.0.0.1:8080`。
+
 单独在浏览器中预览界面，只需 Node.js 和 npm。安装依赖后运行：
 
 ```bash
@@ -86,7 +89,7 @@ npm run desktop:build
 
 当前打包配置生成 macOS `.app`，输出为 `src-tauri/target/release/bundle/macos/NekoPapa.app`。正式发行的签名与公证尚未配置。
 
-本机构建可用 `APPLE_SIGNING_IDENTITY` 指定钥匙串中的 Apple Development 签名身份。
+本地 release 默认使用临时签名。可用 `APPLE_SIGNING_IDENTITY` 指定钥匙串中的 Apple Development 签名身份。
 
 ## 账号与云服务
 
@@ -97,9 +100,15 @@ NekoPapa 使用自己的账号与云端服务。官方账号、云点和计费�
 - **官方云服务**：登录 NekoPapa 账号，使用官方提供的模型服务，通过云点结算。
 - **自定义 API**：配置自己的服务地址和模型，由 API 提供方计费；使用这条路径无需登录官方账号。
 
-桌面端账号支持密码、短信或 NekoBuddy 扫码登录，并用短信验证注册。启用时在构建环境或桌面启动进程设置 `NEKOPAPA_ACCOUNT_API_URL` 为受信任的 Java 服务基础地址。未配置时显示未连接状态。登录打开独立应用页面，返回会保留当前会话和草稿。本机资料在设置中独立编辑。完整说明见 [模型与账号设置](docs/settings-map.md) 与 [Java 契约边界](docs/official-companion-service.md)。
+桌面端账号支持密码、短信或 NekoBuddy 扫码登录，并用短信验证注册。release 包通过构建环境变量 `NEKOPAPA_ACCOUNT_API_URL` 选择 Java 账号服务。未配置时显示未连接状态。登录成功后自动返回调用处，保留当前会话和草稿。头像菜单的「个人资料」打开独立页面，可查看账号身份和本机活动，并编辑本机资料。登录后可从同一菜单选择「更换头像」。完整说明见 [模型与账号设置](docs/settings-map.md) 与 [Java 契约边界](docs/official-companion-service.md)。
 
-构建桌面候选时，通过 `NEKOPAPA_BUILD_NUMBER` 注入该平台的正整数构建序号，通过 `NEKOPAPA_RELEASE_CHANNEL` 注入 `stable`、`beta` 或 `dev`。账号请求使用 Tauri 包版本与 macOS 系统版本。调试构建默认使用 `dev` 渠道，缺少序号时仍能登录，服务端按元数据字段缺失处理。
+在本机 Java 服务运行时，用 `npm run desktop` 构建并打开用于联调的 macOS release 包。也可只出包，之后从访达打开。线上 release 构建使用对应的 HTTPS 地址。
+
+```bash
+npm run desktop:build:local
+```
+
+本地 release 命令使用构建号 `1` 和 `dev` 渠道。构建线上包时传入 `NEKOPAPA_BUILD_NUMBER` 和 `NEKOPAPA_RELEASE_CHANNEL`。账号请求也携带 Tauri 包版本与 macOS 系统版本。Java 需要完整版本信息才会为设有最低版本的 Live2D 模型签发下载地址。
 
 ## 开发计划
 
@@ -132,7 +141,7 @@ npm run build
 ```bash
 cargo check --manifest-path src-tauri/Cargo.toml
 cargo test --manifest-path src-tauri/Cargo.toml
-npm run desktop:build -- --debug
+npm run desktop:build:local
 ```
 
 代码结构和修改约定见 [AGENTS.md](AGENTS.md)，技术设计见 [架构文档](docs/architecture.md)。各次测试与界面检查记录在 [验收记录](docs/navigation-contract.md) 中，其他文档见 [文档目录](docs/README.md)。

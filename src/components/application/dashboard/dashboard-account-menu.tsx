@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import { useTemplateCopy } from "@/components/foundations/template-copy/template-copy";
-import { CircleHelpIcon, GlobeIcon, LogInIcon, MessageSquareWarningIcon, MonitorIcon, MoonIcon, PaletteIcon, SettingsIcon, SunIcon, UserIcon } from "@/components/foundations/icons/app-icons";
+import { CameraIcon, CircleHelpIcon, GlobeIcon, LogInIcon, MessageSquareWarningIcon, MonitorIcon, MoonIcon, PaletteIcon, SettingsIcon, SunIcon, UserIcon } from "@/components/foundations/icons/app-icons";
 import { Kbd } from "@/components/base/kbd/kbd";
 import { Avatar } from "@/components/base/avatar/avatar";
 import {
@@ -14,6 +14,7 @@ import {
 import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { profileIdentity } from "@/app/account/profile-identity";
+import type { AccountPage } from "@/app/account/account-page-navigation";
 import { useAccountSession } from "@/components/application/account/account-session";
 import { useAccountPageNavigation } from "@/components/application/account/account-page-provider";
 import { useWorkspaceSettings, type OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
@@ -89,16 +90,16 @@ export function DashboardAccountMenu({
   const account = useAccountSession();
   const identity = profileIdentity(profile, account.profile);
   const settingsShortcut = typeof navigator !== "undefined" && /mac|iphone|ipad/i.test(navigator.platform) ? "⌘," : "Ctrl+,";
-  const accountStatus = account.profile ? "已登录" : account.availability === "available" ? "未登录" : "未连接";
+  const accountStatus = account.availability === "available" ? "未登录" : "未连接";
   const showSettings = (section: AccountSettingsSection) => {
     setOpen(false);
     // Pass the persistent trigger; the menu's temporary item may own focus.
     const trigger = container.current?.querySelector<HTMLButtonElement>("button");
     (onOpenSettings ?? openSettings)(section, trigger);
   };
-  const showLogin = () => {
+  const showAccountPage = (page: AccountPage) => {
     setOpen(false);
-    openAccountPage.open(container.current?.querySelector<HTMLButtonElement>("button"));
+    openAccountPage.open(page, container.current?.querySelector<HTMLButtonElement>("button"));
   };
   const chooseLanguage = (next: "zh-CN" | "en-US") => {
     if (next === language) return;
@@ -135,7 +136,9 @@ export function DashboardAccountMenu({
           )}
         >
           <span className={cx("flex min-w-0 items-center", !collapsed && "gap-2")}>
-            <Avatar size="md" color="blue" initials={identity.initials} alt={identity.name} />
+            <Avatar size={dockState ? "sm" : "md"} color="neutral" src={identity.avatarUrl} alt=""
+              fallback={<UserIcon aria-hidden className={dockState ? "size-3.5" : "size-4"} />}
+              className={dockState ? "@max-[380px]:size-5" : undefined} />
             <span className={cx(
               "flex min-w-0 flex-col items-start overflow-hidden transition-[max-width,opacity,filter] duration-300 ease-in-out",
               collapsed ? "max-w-0 opacity-0 blur-[3px]" : "max-w-40 opacity-100 blur-0",
@@ -161,12 +164,16 @@ export function DashboardAccountMenu({
           className="max-h-[calc(100dvh-72px)] w-[280px] overflow-y-auto"
         >
           <DropdownGroup>
-            <DropdownItem onSelect={showLogin}>
+            {!account.profile && <DropdownItem onSelect={() => showAccountPage("login")}>
               <LogInIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-              <span className="flex-1">{account.profile ? "账号详情" : "登录 NekoPapa"}</span>
+              <span className="flex-1">登录 NekoPapa</span>
               <span className="text-caption-1-regular text-text-tertiary">{accountStatus}</span>
-            </DropdownItem>
-            <AccountAction icon={UserIcon} label="本机资料" onSelect={() => showSettings("profile")} />
+            </DropdownItem>}
+            <AccountAction icon={UserIcon} label="个人资料" onSelect={() => showAccountPage("profile")} />
+            {account.profile && <AccountAction icon={CameraIcon} label="更换头像" onSelect={() => {
+              setOpen(false);
+              openAccountPage.openAvatar(container.current?.querySelector<HTMLButtonElement>("button"));
+            }} />}
             <DropdownItem onSelect={() => showSettings("general")}>
               <SettingsIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
               <span className="flex-1">设置</span>

@@ -21,8 +21,8 @@ const memory = (initial = {}) => {
   return { data, getItem: (key) => data[key] ?? null, setItem: (key, value) => { data[key] = value; } };
 };
 
-test("“更多”只提供知识库，默认不固定；固定与取消固定在重载后保持", () => {
-  assert.deepEqual([...pins.sidebarDestinations], ["space", "knowledge", "cabin"]);
+test("“更多”提供空间和知识库，默认不固定；固定与取消固定在重载后保持", () => {
+  assert.deepEqual([...pins.sidebarDestinations], ["space", "knowledge"]);
   const storage = memory();
   assert.deepEqual(pins.readSidebarPins(storage), []);
   let next = pins.toggleSidebarPin([], "knowledge");
@@ -32,6 +32,14 @@ test("“更多”只提供知识库，默认不固定；固定与取消固定�
   next = pins.toggleSidebarPin(next, "knowledge");
   pins.saveSidebarPins(storage, next);
   assert.deepEqual(pins.readSidebarPins(storage), []);
+});
+
+test("小屋移为常驻入口后兼容旧图钉，保留其他页面的固定状态", () => {
+  const storage = memory({ [pins.SIDEBAR_PINS_KEY]: '{"version":1,"pins":["cabin","knowledge","space","cabin"]}' });
+  const current = pins.readSidebarPins(storage);
+  assert.deepEqual(current, ["space", "knowledge"]);
+  assert.equal(pins.saveSidebarPins(storage, current), true);
+  assert.deepEqual(JSON.parse(storage.data[pins.SIDEBAR_PINS_KEY]).pins, ["space", "knowledge"]);
 });
 
 test("项目由侧栏“项目”分区承担：早期保存的 projects 固定在读取时丢弃，不再生成重复入口", () => {

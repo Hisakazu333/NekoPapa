@@ -1,5 +1,5 @@
 /* eslint-disable @next/next/no-img-element */
-import type { HTMLAttributes, Ref } from "react";
+import { useState, type HTMLAttributes, type ReactNode, type Ref } from "react";
 import { cx, sortCx } from "@/utils/cx";
 
 /**
@@ -31,6 +31,7 @@ export interface AvatarProps extends HTMLAttributes<HTMLSpanElement> {
   alt?: string;
   /** Fallback initials, e.g. "M". */
   initials?: string;
+  fallback?: ReactNode;
   ref?: Ref<HTMLSpanElement>;
 }
 
@@ -56,26 +57,30 @@ export function Avatar({
   src,
   alt,
   initials,
+  fallback,
   className,
   ref,
   ...props
 }: AvatarProps) {
+  const [failedSrc, setFailedSrc] = useState<string>();
   return (
     <span
       ref={ref}
       className={cx(styles.base, styles.size[size], styles.color[color], className)}
       {...props}
     >
-      {src ? (
+      {src && src !== failedSrc ? (
         <img
           src={src}
           alt={alt ?? ""}
           loading="lazy"
           decoding="async"
+          referrerPolicy="no-referrer"
+          onError={() => setFailedSrc(src)}
           className="size-full object-cover"
         />
       ) : (
-        initials
+        fallback ?? initials
       )}
     </span>
   );
