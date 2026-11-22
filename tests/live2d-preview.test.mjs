@@ -1,18 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const output = mkdtempSync(join(tmpdir(), "nekopapa-live2d-"));
-let Live2DPreview;
+let Live2DPreview, NativeCabinRenderer;
 try {
   execFileSync(process.execPath, [fileURLToPath(new URL("../node_modules/typescript/bin/tsc", import.meta.url)),
     "--project", fileURLToPath(new URL("./live2d-preview-tsconfig.json", import.meta.url)), "--outDir", output]);
   writeFileSync(join(output, "package.json"), '{"type":"module"}');
+  symlinkSync(fileURLToPath(new URL("../node_modules", import.meta.url)), join(output, "node_modules"), "junction");
   ({ Live2DPreview } = await import(pathToFileURL(join(output, "live2d-preview.js"))));
+  ({ NativeCabinRenderer } = await import(pathToFileURL(join(output, "cabin-native-renderer.js"))));
 } finally { rmSync(output, { recursive: true, force: true }); }
 
 function fixture(from) {
@@ -124,4 +126,56 @@ test("无可见网格的损坏模型拒绝加载并释放已创建应用", async
     assert.equal(f.counts.destroyedModels, 1);
     assert.equal(f.frames.size, 0);
   } finally { f.restore(); }
+});
+
+test("原生小屋将鼠标方向送给 SDK，离开舞台或减少动态效果时释放视线", async () => {
+  const actions = [];
+  let tick;
+  const original = Object.fromEntries([
+    "window", "document", "MutationObserver", "requestAnimationFrame", "cancelAnimationFrame",
+  ].map((key) => [key, globalThis[key]]));
+  globalThis.window = {
+    __TAURI_INTERNALS__: {
+      invoke: async (command, { action }) => {
+        assert.equal(command, "cabin_native");
+        actions.push(action);
+        if (action.kind === "mount") return ["MioGreeting"];
+        if (action.kind === "ready") return true;
+      },
+    },
+    setInterval(callback) { tick = callback; return 1; },
+    clearInterval() { tick = undefined; },
+  };
+  globalThis.document = { body: {}, querySelector: () => null, querySelectorAll: () => [] };
+  globalThis.MutationObserver = class { observe() {} disconnect() {} };
+  globalThis.requestAnimationFrame = () => 1;
+  globalThis.cancelAnimationFrame = () => {};
+  const surface = {
+    closest: () => null,
+    getBoundingClientRect: () => ({ x: 20, y: 10, width: 200, height: 100 }),
+  };
+  const renderer = new NativeCabinRenderer(surface, (error) => { throw error; });
+  const gaze = () => actions.filter((action) => action.kind === "gaze").map((action) => action.target);
+  try {
+    await renderer.load("verified-model");
+    renderer.trackPointer(30, 32);
+    renderer.trackPointer(210, 32);
+    assert.deepEqual(gaze(), [[-1, 0]]);
+    await new Promise(setImmediate);
+    tick();
+    assert.deepEqual(gaze(), [[-1, 0], [1, 0]]);
+    renderer.releasePointer();
+    await new Promise(setImmediate);
+    assert.deepEqual(gaze(), [[-1, 0], [1, 0], null]);
+    assert.equal(tick, undefined);
+    renderer.setActive(true, true);
+    renderer.trackPointer(210, 32);
+    assert.equal(gaze().length, 3);
+  } finally {
+    renderer.destroy();
+    for (const [key, value] of Object.entries(original)) {
+      if (value === undefined) delete globalThis[key];
+      else globalThis[key] = value;
+    }
+  }
 });

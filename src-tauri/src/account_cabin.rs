@@ -1,14 +1,16 @@
 //! Resolve the signed-in user's current companion before asking for a signed model package.
+#[path = "account_cabin_package.rs"]
+mod model_package;
 #[path = "account_cabin_roster.rs"]
 pub(crate) mod roster;
 
 use super::{lock, main_view, request, AccountAuth, RequestFailure, Session};
-use crate::{cabin_archive::MAX_DOWNLOAD, cabin_files::CabinFiles};
-use reqwest::{Method, Url};
+use crate::cabin_files::CabinFiles;
+use model_package::Package;
+use reqwest::Method;
 use serde::Serialize;
 use serde_json::{json, Value};
-use sha2::{Digest, Sha256};
-use std::{sync::Arc, time::Duration};
+use std::sync::Arc;
 use tauri::{
     http::{Request, Response},
     Manager, Runtime, State, UriSchemeContext, UriSchemeResponder, Webview,
@@ -91,13 +93,6 @@ fn cabin_request_failure(path: &str, error: RequestFailure) -> String {
     }
 }
 
-struct Package {
-    url: Url,
-    size: u64,
-    digest: String,
-    entries: Vec<String>,
-}
-
 fn official_archive_entries(root: &str, path: &str) -> Vec<String> {
     let prefix = format!("{}/", root.trim_end_matches('/'));
     let published = if path.starts_with(&prefix) {
@@ -113,31 +108,6 @@ fn official_archive_entries(root: &str, path: &str) -> Vec<String> {
     }
     entries.push(published);
     entries
-}
-
-fn package(url: &str, size: u64, digest: &str, entries: Vec<String>) -> Result<Package, String> {
-    let url = Url::parse(url).map_err(|_| "模型下载地址无效。")?;
-    let digest = digest.strip_prefix("sha256:").unwrap_or(digest);
-    if url.scheme() != "https"
-        || url.domain().is_none()
-        || !url.username().is_empty()
-        || url.password().is_some()
-        || url.fragment().is_some()
-        || size == 0
-        || size > MAX_DOWNLOAD
-        || digest.len() != 64
-        || !digest.bytes().all(|b| b.is_ascii_hexdigit())
-        || entries.is_empty()
-        || !entries.iter().all(|entry| entry.ends_with(".model3.json"))
-    {
-        return Err("模型签名下载清单无效。".into());
-    }
-    Ok(Package {
-        url,
-        size,
-        digest: digest.to_ascii_lowercase(),
-        entries,
-    })
 }
 
 async fn descriptor(
@@ -168,8 +138,10 @@ async fn descriptor(
             if text(&d, "companionRef")? != reference {
                 return Err("发布包与当前同伴不匹配。".into());
             }
-            package(
+            Package::new(
                 text(&d, "downloadUrl")?,
+                text(&d, "packageId").ok(),
+                text(&d, "objectKey").ok(),
                 number(&d, "archiveSizeBytes")?,
                 text(&d, "archiveSha256")?,
                 official_archive_entries(text(&d, "rootDir")?, text(&d, "model3Path")?),
@@ -208,8 +180,12 @@ async fn descriptor(
             {
                 return Err("模型签名回执与账号资源不匹配。".into());
             }
-            package(
+            Package::new(
                 text(signed, "downloadUrl")?,
+                text(live, "packageId")
+                    .or_else(|_| text(&a["payload"], "packageId"))
+                    .ok(),
+                Some(key),
                 size,
                 hash,
                 vec![text(live, "model3Path")
@@ -219,34 +195,6 @@ async fn descriptor(
         }
         _ => Err("账号当前同伴的模型类型尚不支持。".into()),
     }
-}
-
-async fn download(p: &Package) -> Result<Vec<u8>, String> {
-    // The signed object URL receives no account credentials or app API headers.
-    let client = reqwest::Client::builder()
-        .redirect(reqwest::redirect::Policy::none())
-        .timeout(Duration::from_secs(120))
-        .build()
-        .map_err(|_| "无法准备 OSS 下载。")?;
-    let mut response = client
-        .get(p.url.clone())
-        .send()
-        .await
-        .map_err(|_| "未能连接 OSS，请重试。")?;
-    if !response.status().is_success() || response.content_length().is_some_and(|n| n != p.size) {
-        return Err("OSS 下载地址已失效或包体大小不符。".into());
-    }
-    let mut bytes = Vec::new();
-    while let Some(chunk) = response.chunk().await.map_err(|_| "模型下载中断。")? {
-        if (bytes.len() + chunk.len()) as u64 > p.size {
-            return Err("模型超过清单大小。".into());
-        }
-        bytes.extend_from_slice(&chunk);
-    }
-    if bytes.len() as u64 != p.size || format!("{:x}", Sha256::digest(&bytes)) != p.digest {
-        return Err("模型包未通过大小或 SHA-256 校验。".into());
-    }
-    Ok(bytes)
 }
 
 #[derive(Serialize)]
@@ -287,7 +235,15 @@ pub async fn account_cabin_prepare<R: Runtime>(
     let files = if let Some(files) = cached {
         files
     } else {
-        let bytes = download(&spec).await?;
+        let bytes = spec
+            .download_with_refresh(async {
+                let latest = active_profile(&auth, &session, companion_key.as_deref()).await?;
+                if companion_identity(&latest)? != id {
+                    return Err("同伴资料已更新，请重新载入。".into());
+                }
+                descriptor(&auth, &session, &latest).await
+            })
+            .await?;
         let id = id.clone();
         Arc::new(
             tauri::async_runtime::spawn_blocking(move || {
@@ -342,6 +298,17 @@ async fn active_profile(
     Ok(current)
 }
 
+#[cfg(target_os = "macos")]
+pub(crate) fn verified_model(auth: &AccountAuth, mount: &str) -> Result<Arc<CabinFiles>, String> {
+    lock(auth)?
+        .session
+        .as_ref()
+        .and_then(|s| s.cabin.as_ref())
+        .filter(|files| files.mount == mount)
+        .cloned()
+        .ok_or_else(|| "模型句柄已失效，请重新进入小屋。".into())
+}
+
 pub fn serve<R: Runtime>(
     context: UriSchemeContext<'_, R>,
     request: Request<Vec<u8>>,
@@ -369,30 +336,8 @@ pub fn serve<R: Runtime>(
 mod tests {
     use super::*;
     #[test]
-    fn current_identity_and_signed_descriptors_must_match_the_contract() {
+    fn current_identity_must_match_the_contract() {
         assert!(identity(&json!({"identityKey":"OFFICIAL:a","companionRef":"b","companionMode":"OFFICIAL","isCurrent":true})).is_err());
-        let digest = "a".repeat(64);
-        assert!(package(
-            "https://objects.example/model",
-            22,
-            &digest,
-            vec!["package/scene.model3.json".into()]
-        )
-        .is_ok());
-        assert!(package(
-            "http://objects.example/model",
-            22,
-            &digest,
-            vec!["model.model3.json".into()]
-        )
-        .is_err());
-        assert!(package(
-            "https://objects.example/model",
-            22,
-            "invalid",
-            vec!["model.model3.json".into()]
-        )
-        .is_err());
     }
 
     #[test]

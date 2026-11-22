@@ -40,6 +40,30 @@ impl CabinFiles {
         })
     }
 
+    #[cfg(target_os = "macos")]
+    pub fn native_entry(&self) -> Result<(&Path, &str), String> {
+        let root = self
+            .files
+            .get(&self.entry)
+            .and_then(|path| path.parent())
+            .ok_or("无法找到已校验的模型目录。")?;
+        Ok((root, &self.entry))
+    }
+
+    #[cfg(target_os = "macos")]
+    pub fn motion_groups(&self) -> Result<Vec<String>, String> {
+        let (root, entry) = self.native_entry()?;
+        let bytes = fs::read(root.join(entry)).map_err(|_| "无法读取已校验的模型入口。")?;
+        let model: Value = serde_json::from_slice(&bytes).map_err(|_| "模型入口格式无效。")?;
+        Ok(model["FileReferences"]["Motions"]
+            .as_object()
+            .into_iter()
+            .flat_map(|groups| groups.iter())
+            .filter(|(_, items)| items.as_array().is_some_and(|items| !items.is_empty()))
+            .map(|(group, _)| group.clone())
+            .collect())
+    }
+
     pub fn response(&self, path: &str, request: &Request<Vec<u8>>) -> Option<Response<Vec<u8>>> {
         let (mount, encoded) = path.strip_prefix('/')?.split_once('/')?;
         if mount != self.mount {

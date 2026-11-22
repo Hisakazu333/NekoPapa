@@ -8,6 +8,8 @@ import { cabinProgress, type CompanionProgress } from "./cabin-companions";
 import { Live2DPreview, type CabinFraming } from "./live2d-preview";
 import { loadLive2DRuntime } from "./live2d-runtime";
 import { useAccountSession } from "../account/account-session";
+import { isMacTauriWindow } from "../dashboard/mac-window-frame";
+import { NativeCabinRenderer } from "./cabin-native-renderer";
 
 interface PreparedModel extends CompanionProgress {
   name: string;
@@ -18,8 +20,10 @@ interface PreparedModel extends CompanionProgress {
 /** Only the authenticated host can issue this model handle. The signed OSS URL stays in Rust. */
 export function CabinModelStage({ companionKey }: { companionKey: string | null }) {
   const { setProfile } = useAccountSession();
-  const canvas = useRef<HTMLCanvasElement>(null);
-  const preview = useRef<Live2DPreview>(null);
+  const surface = useRef<HTMLElement>(null);
+  const preview = useRef<Live2DPreview | NativeCabinRenderer>(null);
+  const pressed = useRef<{ x: number; y: number }>(null);
+  const useNative = isMacTauriWindow();
   const [attempt, setAttempt] = useState(0);
   const [model, setModel] = useState<PreparedModel>();
   const [status, setStatus] = useState("正在读取当前同伴并校验模型包…");
@@ -34,11 +38,11 @@ export function CabinModelStage({ companionKey }: { companionKey: string | null 
   useEffect(() => { preview.current?.setFraming(framing); }, [framing, status]);
 
   useEffect(() => {
-    const target = canvas.current;
+    const target = surface.current;
     const stage = target?.parentElement;
     if (!target || !stage) return;
     let live = true;
-    let renderer: Live2DPreview | undefined;
+    let renderer: Live2DPreview | NativeCabinRenderer | undefined;
     setStatus(companionKey ? "正在准备同伴预览…" : "正在读取当前同伴并校验模型包…");
     setError("");
     setMotionError("");
@@ -50,8 +54,13 @@ export function CabinModelStage({ companionKey }: { companionKey: string | null 
       setReducedMotion(reduced.matches);
       renderer?.setActive(document.visibilityState === "visible", reduced.matches);
     };
+    const releasePointer = () => {
+      if (renderer instanceof NativeCabinRenderer) renderer.releasePointer();
+    };
     const observer = new ResizeObserver(resize);
     observer.observe(stage);
+    window.addEventListener("resize", resize);
+    window.addEventListener("blur", releasePointer);
     document.addEventListener("visibilitychange", activity);
     reduced.addEventListener("change", activity);
     const report = (failure: unknown) => {
@@ -64,13 +73,18 @@ export function CabinModelStage({ companionKey }: { companionKey: string | null 
       if (!live) return;
       setModel(model);
       setStatus("正在显示模型…");
-      const runtime = await loadLive2DRuntime();
-      if (!live) return;
-      renderer = new Live2DPreview(target, runtime, report);
+      if (useNative) {
+        renderer = new NativeCabinRenderer(target, report);
+      } else {
+        const runtime = await loadLive2DRuntime();
+        if (!live || !(target instanceof HTMLCanvasElement)) return;
+        renderer = new Live2DPreview(target, runtime, report);
+      }
       preview.current = renderer;
       resize();
       activity();
-      await renderer.load(convertFileSrc(model.mount, "nekocabin") + "/" + encodeURIComponent(model.entry));
+      const resource = useNative ? model.mount : convertFileSrc(model.mount, "nekocabin") + "/" + encodeURIComponent(model.entry);
+      await renderer.load(resource);
       if (live) {
         setMotionGroups(renderer.motionGroups);
         setStatus("");
@@ -84,12 +98,14 @@ export function CabinModelStage({ companionKey }: { companionKey: string | null 
     return () => {
       live = false;
       observer.disconnect();
+      window.removeEventListener("resize", resize);
+      window.removeEventListener("blur", releasePointer);
       reduced.removeEventListener("change", activity);
       document.removeEventListener("visibilitychange", activity);
       preview.current = null;
       renderer?.destroy();
     };
-  }, [attempt, companionKey, setProfile]);
+  }, [attempt, companionKey, setProfile, useNative]);
   const play = async (motion: string) => {
     const active = preview.current;
     if (!active) return;
@@ -103,8 +119,33 @@ export function CabinModelStage({ companionKey }: { companionKey: string | null 
   return <div className={cx("relative min-h-0 flex-1",
     background === "light" && "bg-[radial-gradient(ellipse_at_50%_37%,var(--color-background-full),transparent_72%)]")}>
     <div className="absolute inset-x-0 top-0 bottom-14">
-      <canvas key={`${companionKey ?? "current"}:${attempt}`} ref={canvas}
-        aria-label={model?.name || "同伴模型"} className="absolute inset-0 size-full" />
+      {useNative
+        ? <div ref={(element) => { surface.current = element; }} role="img"
+          aria-label={model?.name || "同伴模型"} className="absolute inset-0 size-full"
+          onPointerMove={(event) => {
+            const active = preview.current;
+            if (event.pointerType === "mouse" && active instanceof NativeCabinRenderer)
+              active.trackPointer(event.clientX, event.clientY);
+          }}
+          onPointerLeave={() => {
+            const active = preview.current;
+            if (active instanceof NativeCabinRenderer) active.releasePointer();
+          }}
+          onPointerDown={(event) => {
+            pressed.current = event.button === 0 ? { x: event.clientX, y: event.clientY } : null;
+          }}
+          onPointerCancel={() => { pressed.current = null; }}
+          onClick={(event) => {
+            const origin = pressed.current;
+            pressed.current = null;
+            const active = preview.current;
+            if (active instanceof NativeCabinRenderer && origin &&
+              Math.hypot(event.clientX - origin.x, event.clientY - origin.y) < 8)
+              active.tap(event.clientX, event.clientY);
+          }} />
+        : <canvas key={`${companionKey ?? "current"}:${attempt}`}
+          ref={(element) => { surface.current = element; }}
+          aria-label={model?.name || "同伴模型"} className="absolute inset-0 size-full" />}
     </div>
     {!status && !error && model && <div className="absolute inset-x-0 bottom-0 flex min-w-0 items-end justify-between gap-2 px-3 pb-3 sm:px-5 sm:pb-4">
       <div className="min-w-0">

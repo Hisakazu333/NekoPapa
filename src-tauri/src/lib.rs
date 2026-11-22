@@ -1,5 +1,6 @@
 mod account_auth;
 mod cabin_files;
+mod cabin_native;
 mod cabin_archive;
 mod agent_command;
 mod agent_diff;
@@ -32,6 +33,8 @@ pub fn run() {
         .setup(|app| {
             use tauri::Manager;
             app.manage(account_auth::AccountAuth::new(app.package_info().version.to_string()));
+            #[cfg(target_os = "macos")]
+            app.manage(cabin_native::mac::CabinView::default());
             Ok(())
         })
         .manage(app_data::AppDataState::default())
@@ -50,6 +53,7 @@ pub fn run() {
             account_auth::account_snapshot,
             account_auth::avatar::account_avatar_upload,
             account_auth::cabin::account_cabin_prepare,
+            cabin_native::cabin_native,
             account_auth::cabin::roster::account_cabin_roster,
             account_auth::account_send_code,
             account_auth::account_sign_in,

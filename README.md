@@ -61,6 +61,7 @@
 
 - Node.js `^20.19.0 || >=22.12.0` 和 npm。
 - Rust stable 及 [Tauri 平台构建依赖](https://v2.tauri.app/start/prerequisites/)。macOS 需要 Xcode 开发工具。
+- macOS 小屋还需 CMake 和同级 `NekoCore-Nano` 源码。若 SDK 位于其他目录，构建时设置 `NEKOCORE_NANO_PATH`。
 
 ```bash
 git clone https://github.com/Hisakazu333/NekoPapa.git
@@ -87,7 +88,17 @@ npm run dev
 npm run desktop:build
 ```
 
-当前打包配置生成 macOS `.app`，输出为 `src-tauri/target/release/bundle/macos/NekoPapa.app`。正式发行的签名与公证尚未配置。
+常规打包配置生成 macOS `.app`，输出为 `src-tauri/target/release/bundle/macos/NekoPapa.app`。
+
+### 桌面分发构建
+
+在已配置签名的 macOS 或 Windows 原生发布执行机上运行 `npm run desktop:build:distribution`。先准备平台构建工具和依赖（`npm ci`），macOS 同时准备上文所述的 NekoCore-Nano。发布任务只从受信任的源码构建，证书与私钥由发布执行机或 CI 的受保护凭据注入。
+
+- 两个平台都设置 `NEKOPAPA_ACCOUNT_API_URL`（HTTPS）、`NEKOPAPA_BUILD_NUMBER`（正整数）和 `NEKOPAPA_RELEASE_CHANNEL`（`stable` 或 `beta`）。
+- macOS 执行机的钥匙串安装 Developer ID Application 证书和私钥。设置 `APPLE_SIGNING_IDENTITY`（完整证书名称）、`APPLE_API_ISSUER`、`APPLE_API_KEY` 及 `APPLE_API_KEY_PATH`，由 Tauri 公证并附加票据。脚本验证签名团队、应用标识、附加票据和 Gatekeeper，再将 `.app` 封装为 ZIP。[Tauri macOS 签名](https://v2.tauri.app/distribute/sign/macos/)
+- Windows 执行机准备 Windows SDK SignTool，并将可用的签名证书及私钥配置到运行账号的 `CurrentUser\My` 证书库。设置 `NEKOPAPA_WINDOWS_CERT_THUMBPRINT`、`NEKOPAPA_WINDOWS_TIMESTAMP_URL`（HTTPS RFC 3161）和可选的 `NEKOPAPA_SIGNTOOL`（SignTool 路径）。脚本签名并校验 Tauri 要打入 NSIS 安装包的程序及最终安装包。[Tauri Windows 签名](https://v2.tauri.app/distribute/sign/windows/) · [Microsoft SignTool](https://learn.microsoft.com/windows/win32/seccrypto/signtool)
+
+签名、公证或校验失败会中止分发构建。CI 只收集命令打印的当前 `.local/distribution/` 下的 ZIP 或 NSIS 安装包。该次调试符号写入独立的 `.local/distribution-symbols/`，只归档到受限存储。
 
 本地 release 默认使用临时签名。可用 `APPLE_SIGNING_IDENTITY` 指定钥匙串中的 Apple Development 签名身份。
 
