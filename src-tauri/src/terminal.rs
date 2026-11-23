@@ -39,7 +39,12 @@ struct Exit {
 const MAX_SESSIONS: usize = 8;
 
 fn size(cols: u16, rows: u16) -> PtySize {
-    PtySize { cols: cols.clamp(2, 1000), rows: rows.clamp(2, 1000), pixel_width: 0, pixel_height: 0 }
+    PtySize {
+        cols: cols.clamp(2, 1000),
+        rows: rows.clamp(2, 1000),
+        pixel_width: 0,
+        pixel_height: 0,
+    }
 }
 
 /// Splits off the longest valid UTF-8 prefix, keeping a cut-off character for the next read.
@@ -66,17 +71,34 @@ fn find_shell(name: &str) -> Result<String, String> {
         .map(|dir| PathBuf::from(dir).join(name))
         .find(|path| path.is_file())
         .map(|path| path.to_string_lossy().into_owned())
-        .ok_or(format!("没有找到 {name}，请先安装，或在 设置 → 编辑器与终端 中选择其他 Shell。"))
+        .ok_or(format!(
+            "没有找到 {name}，请先安装，或在 设置 → 编辑器与终端 中选择其他 Shell。"
+        ))
 }
 
 #[tauri::command]
-pub async fn terminal_open<R: Runtime>(app: AppHandle<R>, terminals: State<'_, Terminals>, cwd: Option<String>, cols: u16, rows: u16, shell: Option<String>) -> Result<u32, String> {
+pub async fn terminal_open<R: Runtime>(
+    app: AppHandle<R>,
+    terminals: State<'_, Terminals>,
+    cwd: Option<String>,
+    cols: u16,
+    rows: u16,
+    shell: Option<String>,
+) -> Result<u32, String> {
     if terminals.sessions.lock().map_err(|_| "终端不可用。")?.len() >= MAX_SESSIONS {
         return Err("同时最多打开 8 个终端。".into());
     }
-    let pair = native_pty_system().openpty(size(cols, rows)).map_err(|_| "无法创建终端。".to_string())?;
+    let pair = native_pty_system()
+        .openpty(size(cols, rows))
+        .map_err(|_| "无法创建终端。".to_string())?;
     let shell = match shell.as_deref() {
-        None | Some("system") => std::env::var("SHELL").unwrap_or_else(|_| if cfg!(windows) { "powershell.exe".into() } else { "/bin/zsh".into() }),
+        None | Some("system") => std::env::var("SHELL").unwrap_or_else(|_| {
+            if cfg!(windows) {
+                "powershell.exe".into()
+            } else {
+                "/bin/zsh".into()
+            }
+        }),
         Some(name) => find_shell(name)?,
     };
     let mut command = CommandBuilder::new(&shell);
@@ -84,18 +106,41 @@ pub async fn terminal_open<R: Runtime>(app: AppHandle<R>, terminals: State<'_, T
         command.arg("-l");
     }
     let home = std::env::var_os("HOME").map(PathBuf::from);
-    let directory = cwd.map(PathBuf::from).filter(|path| path.is_absolute() && path.is_dir()).or(home);
+    let directory = cwd
+        .map(PathBuf::from)
+        .filter(|path| path.is_absolute() && path.is_dir())
+        .or(home);
     if let Some(directory) = directory {
         command.cwd(directory);
     }
     command.env("TERM", "xterm-256color");
     command.env("COLORTERM", "truecolor");
-    let child = pair.slave.spawn_command(command).map_err(|_| format!("无法启动 {shell}。"))?;
+    let child = pair
+        .slave
+        .spawn_command(command)
+        .map_err(|_| format!("无法启动 {shell}。"))?;
     drop(pair.slave);
-    let mut reader = pair.master.try_clone_reader().map_err(|_| "无法读取终端输出。".to_string())?;
-    let writer = pair.master.take_writer().map_err(|_| "无法写入终端。".to_string())?;
+    let mut reader = pair
+        .master
+        .try_clone_reader()
+        .map_err(|_| "无法读取终端输出。".to_string())?;
+    let writer = pair
+        .master
+        .take_writer()
+        .map_err(|_| "无法写入终端。".to_string())?;
     let id = terminals.next.fetch_add(1, Ordering::Relaxed) + 1;
-    terminals.sessions.lock().map_err(|_| "终端不可用。")?.insert(id, Session { master: pair.master, writer, child });
+    terminals
+        .sessions
+        .lock()
+        .map_err(|_| "终端不可用。")?
+        .insert(
+            id,
+            Session {
+                master: pair.master,
+                writer,
+                child,
+            },
+        );
 
     std::thread::spawn(move || {
         let mut buffer = [0u8; 16 * 1024];
@@ -123,22 +168,43 @@ pub async fn terminal_open<R: Runtime>(app: AppHandle<R>, terminals: State<'_, T
 }
 
 #[tauri::command]
-pub async fn terminal_write(terminals: State<'_, Terminals>, id: u32, data: String) -> Result<(), String> {
+pub async fn terminal_write(
+    terminals: State<'_, Terminals>,
+    id: u32,
+    data: String,
+) -> Result<(), String> {
     let mut sessions = terminals.sessions.lock().map_err(|_| "终端不可用。")?;
     let session = sessions.get_mut(&id).ok_or("终端已结束。")?;
-    session.writer.write_all(data.as_bytes()).and_then(|_| session.writer.flush()).map_err(|_| "终端已结束。".to_string())
+    session
+        .writer
+        .write_all(data.as_bytes())
+        .and_then(|_| session.writer.flush())
+        .map_err(|_| "终端已结束。".to_string())
 }
 
 #[tauri::command]
-pub async fn terminal_resize(terminals: State<'_, Terminals>, id: u32, cols: u16, rows: u16) -> Result<(), String> {
+pub async fn terminal_resize(
+    terminals: State<'_, Terminals>,
+    id: u32,
+    cols: u16,
+    rows: u16,
+) -> Result<(), String> {
     let sessions = terminals.sessions.lock().map_err(|_| "终端不可用。")?;
     let session = sessions.get(&id).ok_or("终端已结束。")?;
-    session.master.resize(size(cols, rows)).map_err(|_| "无法调整终端大小。".to_string())
+    session
+        .master
+        .resize(size(cols, rows))
+        .map_err(|_| "无法调整终端大小。".to_string())
 }
 
 #[tauri::command]
 pub async fn terminal_close(terminals: State<'_, Terminals>, id: u32) -> Result<(), String> {
-    if let Some(mut session) = terminals.sessions.lock().map_err(|_| "终端不可用。")?.remove(&id) {
+    if let Some(mut session) = terminals
+        .sessions
+        .lock()
+        .map_err(|_| "终端不可用。")?
+        .remove(&id)
+    {
         let _ = session.child.kill();
     }
     Ok(())

@@ -67,14 +67,23 @@ fn memory_dir<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
 }
 
 fn runtime_bin(dir: &Path, name: &str) -> PathBuf {
-    if cfg!(windows) { dir.join("runtime").join("Scripts").join(format!("{name}.exe")) } else { dir.join("runtime").join("bin").join(name) }
+    if cfg!(windows) {
+        dir.join("runtime")
+            .join("Scripts")
+            .join(format!("{name}.exe"))
+    } else {
+        dir.join("runtime").join("bin").join(name)
+    }
 }
 
 /// Runs `script` in the login shell (so PATH matches the user's terminal), with `args` as $1, $2…
 fn login(script: &str, args: &[&str]) -> Command {
     #[cfg(unix)]
     {
-        let shell = std::env::var("SHELL").ok().filter(|value| !value.is_empty()).unwrap_or_else(|| "/bin/sh".into());
+        let shell = std::env::var("SHELL")
+            .ok()
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| "/bin/sh".into());
         let mut command = Command::new(shell);
         command.arg("-lc").arg(script).arg("nekopapa").args(args);
         command
@@ -90,9 +99,19 @@ fn login(script: &str, args: &[&str]) -> Command {
 /// The server to start, and whether it is the app's own copy.
 fn find_server(dir: &Path) -> Option<(PathBuf, bool)> {
     let managed = runtime_bin(dir, "nekocairn-server");
-    if managed.is_file() { return Some((managed, true)); }
-    let output = login("command -v nekocairn-server", &[]).stdin(Stdio::null()).stderr(Stdio::null()).output().ok()?;
-    let found = String::from_utf8_lossy(&output.stdout).lines().last()?.trim().to_string();
+    if managed.is_file() {
+        return Some((managed, true));
+    }
+    let output = login("command -v nekocairn-server", &[])
+        .stdin(Stdio::null())
+        .stderr(Stdio::null())
+        .output()
+        .ok()?;
+    let found = String::from_utf8_lossy(&output.stdout)
+        .lines()
+        .last()?
+        .trim()
+        .to_string();
     (output.status.success() && Path::new(&found).is_file()).then(|| (PathBuf::from(found), false))
 }
 
@@ -108,14 +127,26 @@ fn status_of(dir: &Path, running: bool) -> MemoryStatus {
 
 fn tail(text: &str) -> String {
     let text = text.trim();
-    let start = text.char_indices().rev().nth(LOG_TAIL).map_or(0, |(index, _)| index);
+    let start = text
+        .char_indices()
+        .rev()
+        .nth(LOG_TAIL)
+        .map_or(0, |(index, _)| index);
     text[start..].to_string()
 }
 
 fn run_step(mut command: Command, what: &str) -> Result<(), String> {
-    let output = command.stdin(Stdio::null()).output().map_err(|_| format!("无法{what}。"))?;
-    if output.status.success() { return Ok(()); }
-    Err(format!("{what}失败：{}", tail(&String::from_utf8_lossy(&output.stderr))))
+    let output = command
+        .stdin(Stdio::null())
+        .output()
+        .map_err(|_| format!("无法{what}。"))?;
+    if output.status.success() {
+        return Ok(());
+    }
+    Err(format!(
+        "{what}失败：{}",
+        tail(&String::from_utf8_lossy(&output.stderr))
+    ))
 }
 
 fn random_token() -> Result<String, String> {
@@ -125,67 +156,130 @@ fn random_token() -> Result<String, String> {
 }
 
 fn free_port() -> Result<u16, String> {
-    let listener = TcpListener::bind("127.0.0.1:0").map_err(|_| "没有可用的本机端口。".to_string())?;
-    listener.local_addr().map(|address| address.port()).map_err(|_| "没有可用的本机端口。".to_string())
+    let listener =
+        TcpListener::bind("127.0.0.1:0").map_err(|_| "没有可用的本机端口。".to_string())?;
+    listener
+        .local_addr()
+        .map(|address| address.port())
+        .map_err(|_| "没有可用的本机端口。".to_string())
 }
 
 fn client() -> Result<reqwest::Client, String> {
-    reqwest::Client::builder().no_proxy().timeout(REQUEST_TIMEOUT).build().map_err(|_| "无法创建记忆服务连接。".to_string())
+    reqwest::Client::builder()
+        .no_proxy()
+        .timeout(REQUEST_TIMEOUT)
+        .build()
+        .map_err(|_| "无法创建记忆服务连接。".to_string())
 }
 
 /// Starts the server for `scopes` and waits until it answers /health/ready.
 async fn start(dir: PathBuf, logs: PathBuf, scopes: Vec<String>) -> Result<Running, String> {
     let lookup = dir.clone();
-    let found = tauri::async_runtime::spawn_blocking(move || find_server(&lookup)).await.map_err(|e| e.to_string())?;
+    let found = tauri::async_runtime::spawn_blocking(move || find_server(&lookup))
+        .await
+        .map_err(|e| e.to_string())?;
     let (server, _) = found.ok_or("没有安装记忆服务（NekoCairn）。")?;
     let database = dir.join("memory.sqlite");
     if !database.exists() {
-        let mut init = Command::new(server.with_file_name(if cfg!(windows) { "nekocairn.exe" } else { "nekocairn" }));
+        let mut init = Command::new(server.with_file_name(if cfg!(windows) {
+            "nekocairn.exe"
+        } else {
+            "nekocairn"
+        }));
         init.arg("init").arg(&database);
-        tauri::async_runtime::spawn_blocking(move || run_step(init, "初始化记忆数据库")).await.map_err(|_| "初始化记忆数据库中断。".to_string())??;
+        tauri::async_runtime::spawn_blocking(move || run_step(init, "初始化记忆数据库"))
+            .await
+            .map_err(|_| "初始化记忆数据库中断。".to_string())??;
     }
     let config = dir.join("service.config.json");
-    let text = serde_json::to_string_pretty(&service_config(&database.display().to_string(), &scopes)?).map_err(|e| e.to_string())?;
+    let text =
+        serde_json::to_string_pretty(&service_config(&database.display().to_string(), &scopes)?)
+            .map_err(|e| e.to_string())?;
     fs::write(&config, text).map_err(|_| "无法写入记忆服务配置。".to_string())?;
-    let tokens = scopes.iter().map(|_| random_token()).collect::<Result<Vec<_>, _>>()?;
+    let tokens = scopes
+        .iter()
+        .map(|_| random_token())
+        .collect::<Result<Vec<_>, _>>()?;
     let port = free_port()?;
     fs::create_dir_all(&logs).map_err(|_| "无法创建日志文件夹。".to_string())?;
     let log_path = logs.join("memory-server.log");
     let log = File::create(&log_path).map_err(|_| "无法写入记忆服务日志。".to_string())?;
     let mut command = Command::new(&server);
-    command.arg("--config").arg(&config).arg("--host").arg("127.0.0.1").arg("--port").arg(port.to_string())
-        .stdin(Stdio::null()).stdout(log.try_clone().map_err(|e| e.to_string())?).stderr(log);
-    for (index, token) in tokens.iter().enumerate() { command.env(token_env(index), token); }
-    let mut child = command.spawn().map_err(|_| "无法启动记忆服务。".to_string())?;
+    command
+        .arg("--config")
+        .arg(&config)
+        .arg("--host")
+        .arg("127.0.0.1")
+        .arg("--port")
+        .arg(port.to_string())
+        .stdin(Stdio::null())
+        .stdout(log.try_clone().map_err(|e| e.to_string())?)
+        .stderr(log);
+    for (index, token) in tokens.iter().enumerate() {
+        command.env(token_env(index), token);
+    }
+    let mut child = command
+        .spawn()
+        .map_err(|_| "无法启动记忆服务。".to_string())?;
 
     let http = client()?;
     let started = Instant::now();
     loop {
         if let Ok(Some(_)) = child.try_wait() {
-            return Err(format!("记忆服务启动失败：{}", tail(&fs::read_to_string(&log_path).unwrap_or_default())));
+            return Err(format!(
+                "记忆服务启动失败：{}",
+                tail(&fs::read_to_string(&log_path).unwrap_or_default())
+            ));
         }
-        let ready = http.get(format!("http://127.0.0.1:{port}/health/ready")).send().await;
-        if ready.is_ok_and(|response| response.status().is_success()) { break; }
+        let ready = http
+            .get(format!("http://127.0.0.1:{port}/health/ready"))
+            .send()
+            .await;
+        if ready.is_ok_and(|response| response.status().is_success()) {
+            break;
+        }
         if started.elapsed() > READY_TIMEOUT {
             let _ = child.kill();
             let _ = child.wait();
-            return Err(format!("记忆服务在 30 秒内没有就绪：{}", tail(&fs::read_to_string(&log_path).unwrap_or_default())));
+            return Err(format!(
+                "记忆服务在 30 秒内没有就绪：{}",
+                tail(&fs::read_to_string(&log_path).unwrap_or_default())
+            ));
         }
         tokio::time::sleep(Duration::from_millis(200)).await;
     }
-    Ok(Running { child, port, scopes, tokens })
+    Ok(Running {
+        child,
+        port,
+        scopes,
+        tokens,
+    })
 }
 
 #[tauri::command]
-pub async fn memory_status<R: Runtime>(app: AppHandle<R>, state: State<'_, MemoryService>) -> Result<MemoryStatus, String> {
+pub async fn memory_status<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, MemoryService>,
+) -> Result<MemoryStatus, String> {
     let dir = memory_dir(&app)?;
-    let running = state.0.lock().await.as_mut().is_some_and(|service| matches!(service.child.try_wait(), Ok(None)));
-    tauri::async_runtime::spawn_blocking(move || status_of(&dir, running)).await.map_err(|e| e.to_string())
+    let running = state
+        .0
+        .lock()
+        .await
+        .as_mut()
+        .is_some_and(|service| matches!(service.child.try_wait(), Ok(None)));
+    tauri::async_runtime::spawn_blocking(move || status_of(&dir, running))
+        .await
+        .map_err(|e| e.to_string())
 }
 
 /// Installs NekoCairn (with its server) from a wheel into the app's own environment.
 #[tauri::command]
-pub async fn memory_install<R: Runtime>(app: AppHandle<R>, state: State<'_, MemoryService>, wheel: String) -> Result<MemoryStatus, String> {
+pub async fn memory_install<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, MemoryService>,
+    wheel: String,
+) -> Result<MemoryStatus, String> {
     let path = PathBuf::from(&wheel);
     if !path.is_file() || path.extension().and_then(|e| e.to_str()) != Some("whl") {
         return Err("请选择 NekoCairn 的 .whl 安装包。".into());
@@ -203,27 +297,58 @@ pub async fn memory_install<R: Runtime>(app: AppHandle<R>, state: State<'_, Memo
     tauri::async_runtime::spawn_blocking(move || {
         let check = "python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 10) else 1)'";
         run_step(login(check, &[]), "找到 Python 3.10 或更新版本")?;
-        run_step(login("python3 -m venv \"$1\"", &[&target]), "创建记忆服务的 Python 环境")?;
+        run_step(
+            login("python3 -m venv \"$1\"", &[&target]),
+            "创建记忆服务的 Python 环境",
+        )?;
         let mut install = Command::new(&python);
-        install.args(["-m", "pip", "install", "--disable-pip-version-check", "--upgrade"]).arg(&requirement);
+        install
+            .args([
+                "-m",
+                "pip",
+                "install",
+                "--disable-pip-version-check",
+                "--upgrade",
+            ])
+            .arg(&requirement);
         run_step(install, "安装 NekoCairn")?;
         Ok::<_, String>(status_of(&dir, false))
-    }).await.map_err(|e| e.to_string())?
+    })
+    .await
+    .map_err(|e| e.to_string())?
 }
 
 /// One NekoCairn operation in one memory space; returns the operation's `result`.
 #[tauri::command]
-pub async fn memory_invoke<R: Runtime>(app: AppHandle<R>, state: State<'_, MemoryService>, scope: String, operation: String, params: Value) -> Result<Value, String> {
+pub async fn memory_invoke<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, MemoryService>,
+    scope: String,
+    operation: String,
+    params: Value,
+) -> Result<Value, String> {
     check_scope(&scope)?;
     check_operation(&operation)?;
-    if !params.is_object() { return Err("记忆操作的参数必须是对象。".into()); }
+    if !params.is_object() {
+        return Err("记忆操作的参数必须是对象。".into());
+    }
     let (port, token) = {
         let mut running = state.0.lock().await;
-        let alive = running.as_mut().is_some_and(|service| matches!(service.child.try_wait(), Ok(None)));
-        let known = running.as_ref().and_then(|service| service.scopes.iter().position(|each| *each == scope));
+        let alive = running
+            .as_mut()
+            .is_some_and(|service| matches!(service.child.try_wait(), Ok(None)));
+        let known = running
+            .as_ref()
+            .and_then(|service| service.scopes.iter().position(|each| *each == scope));
         if !alive || known.is_none() {
-            let mut scopes = running.as_ref().filter(|_| alive).map(|service| service.scopes.clone()).unwrap_or_default();
-            if !scopes.contains(&scope) { scopes.push(scope.clone()); }
+            let mut scopes = running
+                .as_ref()
+                .filter(|_| alive)
+                .map(|service| service.scopes.clone())
+                .unwrap_or_default();
+            if !scopes.contains(&scope) {
+                scopes.push(scope.clone());
+            }
             if let Some(mut old) = running.take() {
                 let _ = old.child.kill();
                 let _ = old.child.wait();
@@ -232,16 +357,25 @@ pub async fn memory_invoke<R: Runtime>(app: AppHandle<R>, state: State<'_, Memor
             *running = Some(start(memory_dir(&app)?, logs, scopes).await?);
         }
         let service = running.as_ref().ok_or("记忆服务没有运行。")?;
-        let index = service.scopes.iter().position(|each| *each == scope).ok_or("记忆空间没有启动。")?;
+        let index = service
+            .scopes
+            .iter()
+            .position(|each| *each == scope)
+            .ok_or("记忆空间没有启动。")?;
         (service.port, service.tokens[index].clone())
     };
     let response = client()?
         .post(format!("http://127.0.0.1:{port}/v1/invoke"))
         .bearer_auth(token)
         .json(&json!({ "version": 1, "operation": operation, "params": params }))
-        .send().await.map_err(|_| "无法连接记忆服务。".to_string())?;
+        .send()
+        .await
+        .map_err(|_| "无法连接记忆服务。".to_string())?;
     let status = response.status().as_u16();
-    let body = response.text().await.map_err(|_| "记忆服务的回复中断了。".to_string())?;
+    let body = response
+        .text()
+        .await
+        .map_err(|_| "记忆服务的回复中断了。".to_string())?;
     read_reply(status, &body)
 }
 

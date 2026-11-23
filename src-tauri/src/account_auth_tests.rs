@@ -51,7 +51,7 @@ fn profile_avatars_allow_https_and_the_configured_local_service() {
     }
 }
 
-fn reply(
+pub(crate) fn reply(
     listener: &std::net::TcpListener,
     method_and_path: &str,
     expected_token: Option<&str>,
@@ -121,6 +121,50 @@ fn reply(
 }
 
 #[test]
+fn mobile_numbers_accept_mainland_and_international_forms() {
+    for valid in [
+        "13800000000",
+        "+447700900123",
+        "+12025550123",
+        "+85291234567",
+    ] {
+        assert!(valid_mobile(valid), "{valid}");
+    }
+    for invalid in [
+        "",
+        "23800000000",
+        "1380000000",
+        "+0447700900",
+        "+44",
+        "+4477009001234567",
+        "+44 7700900",
+        "447700900123x",
+    ] {
+        assert!(!valid_mobile(invalid), "{invalid}");
+    }
+}
+
+pub(crate) fn fixture_auth(base: Url) -> AccountAuth {
+    AccountAuth {
+        state: Mutex::new(AccountState::default()),
+        cabin_loading: tokio::sync::Mutex::new(()),
+        avatar_uploading: tokio::sync::Mutex::new(()),
+        connection: Some((
+            base,
+            Client::builder()
+                .no_proxy()
+                .timeout(Duration::from_secs(3))
+                .default_headers(client_metadata::headers("0.1.0"))
+                .build()
+                .unwrap(),
+        )),
+        version: "0.1.0".into(),
+    }
+}
+
+pub(crate) const ATTEMPT: &str = "77777777-7777-4777-8777-777777777777";
+
+#[test]
 fn sms_sign_in_reads_authorized_profile_and_logout_revokes_the_host_session() {
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
     let base = Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
@@ -148,21 +192,7 @@ fn sms_sign_in_reads_authorized_profile_and_logout_revokes_the_host_session() {
         );
     });
     tauri::async_runtime::block_on(async move {
-        let auth = AccountAuth {
-            state: Mutex::new(AccountState::default()),
-            cabin_loading: tokio::sync::Mutex::new(()),
-            avatar_uploading: tokio::sync::Mutex::new(()),
-            connection: Some((
-                base,
-                Client::builder()
-                    .no_proxy()
-                    .timeout(Duration::from_secs(3))
-                    .default_headers(client_metadata::headers("0.1.0"))
-                    .build()
-                    .unwrap(),
-            )),
-            version: "0.1.0".into(),
-        };
+        let auth = fixture_auth(base);
         let profile = sign_in(
             &auth,
             "77777777-7777-4777-8777-777777777777".into(),
@@ -183,4 +213,68 @@ fn sms_sign_in_reads_authorized_profile_and_logout_revokes_the_host_session() {
         assert!(lock(&auth).unwrap().session.is_none());
     });
     fixture.join().unwrap();
+}
+
+#[test]
+fn rejected_credentials_show_the_service_reason_and_leave_no_session() {
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let base = Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap();
+    let fixture = std::thread::spawn(move || {
+        reply(
+            &listener,
+            "POST /api/app/auth/password/login",
+            None,
+            Some(json!({"mobile":"13800000000", "password":"wrong"})),
+            json!({"code":500, "msg":"手机号或密码错误"}),
+        );
+        reply(
+            &listener,
+            "POST /api/app/auth/password/login",
+            None,
+            None,
+            json!({"code":500, "msg":"<html>java.lang.NullPointerException</html>"}),
+        );
+    });
+    tauri::async_runtime::block_on(async move {
+        let auth = fixture_auth(base);
+        let attempt = || SignIn::Password {
+            mobile: "13800000000".into(),
+            password: "wrong".into(),
+        };
+        let error = sign_in(&auth, ATTEMPT.into(), attempt())
+            .await
+            .err()
+            .unwrap();
+        assert_eq!(error, "手机号或密码错误");
+        // Markup or stack traces are never shown; the generic message is.
+        let error = sign_in(&auth, ATTEMPT.into(), attempt())
+            .await
+            .err()
+            .unwrap();
+        assert_eq!(error, "账号服务未完成操作（代码 500），请重试。");
+        assert!(lock(&auth).unwrap().session.is_none());
+    });
+    fixture.join().unwrap();
+}
+
+#[test]
+fn sign_out_ends_the_local_session_even_when_the_service_is_unreachable() {
+    // Bind then drop: the port refuses connections, like being offline.
+    let base = {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        Url::parse(&format!("http://{}", listener.local_addr().unwrap())).unwrap()
+    };
+    tauri::async_runtime::block_on(async move {
+        let auth = fixture_auth(base);
+        lock(&auth).unwrap().session = Some(Session {
+            attempt: ATTEMPT.into(),
+            token: "fixture-token".into(),
+            profile: serde_json::from_value(json!({"userId":7})).unwrap(),
+            cabin: None,
+            previous_cabin: None,
+            setup_mobile: None,
+        });
+        sign_out(&auth).await.unwrap();
+        assert!(lock(&auth).unwrap().session.is_none());
+    });
 }

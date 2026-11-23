@@ -67,7 +67,8 @@ fn target(root: &Path, path: &str) -> Result<PathBuf, String> {
     let mut ancestor = joined.parent();
     while let Some(folder) = ancestor {
         if folder.exists() {
-            let resolved = fs::canonicalize(folder).map_err(|_| "无法访问目标文件夹。".to_string())?;
+            let resolved =
+                fs::canonicalize(folder).map_err(|_| "无法访问目标文件夹。".to_string())?;
             if !resolved.starts_with(root) {
                 return Err("该路径指向项目文件夹之外。".into());
             }
@@ -81,7 +82,10 @@ fn target(root: &Path, path: &str) -> Result<PathBuf, String> {
 static NEXT: AtomicU32 = AtomicU32::new(0);
 
 fn snapshot_id() -> String {
-    let nanos = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).map(|time| time.as_nanos()).unwrap_or(0);
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|time| time.as_nanos())
+        .unwrap_or(0);
     format!("{nanos:x}-{:x}", NEXT.fetch_add(1, Ordering::Relaxed))
 }
 
@@ -100,20 +104,35 @@ pub fn write(store: &Path, root: &str, path: &str, text: &str) -> Result<Change,
     let root = root_of(root)?;
     let file = target(&root, path)?;
     let before = match fs::read(&file) {
-        Ok(bytes) => Some(String::from_utf8(bytes).map_err(|_| "这是二进制文件，不能用文本覆盖。".to_string())?),
+        Ok(bytes) => Some(
+            String::from_utf8(bytes).map_err(|_| "这是二进制文件，不能用文本覆盖。".to_string())?,
+        ),
         Err(_) => None,
     };
     let id = snapshot_id();
-    let snapshot = Snapshot { root: root.to_string_lossy().into_owned(), path: slash(&relative(path)?), before, after: text.into() };
+    let snapshot = Snapshot {
+        root: root.to_string_lossy().into_owned(),
+        path: slash(&relative(path)?),
+        before,
+        after: text.into(),
+    };
     fs::create_dir_all(store).map_err(|_| "无法创建快照文件夹。".to_string())?;
     let json = serde_json::to_string(&snapshot).map_err(|error| error.to_string())?;
-    fs::write(snapshot_file(store, &id)?, json).map_err(|_| "无法保存修改前的快照，未写入。".to_string())?;
+    fs::write(snapshot_file(store, &id)?, json)
+        .map_err(|_| "无法保存修改前的快照，未写入。".to_string())?;
     if let Some(parent) = file.parent() {
         fs::create_dir_all(parent).map_err(|_| "无法创建目标文件夹。".to_string())?;
     }
     fs::write(&file, text).map_err(|_| "无法写入该文件。".to_string())?;
     let diff = agent_diff::unified(snapshot.before.as_deref().unwrap_or(""), text);
-    Ok(Change { path: snapshot.path, created: snapshot.before.is_none(), added: diff.added, removed: diff.removed, diff: diff.text, snapshot: id })
+    Ok(Change {
+        path: snapshot.path,
+        created: snapshot.before.is_none(),
+        added: diff.added,
+        removed: diff.removed,
+        diff: diff.text,
+        snapshot: id,
+    })
 }
 
 /// Applies `edits` in order to the file's text and writes the result once,
@@ -124,10 +143,15 @@ pub fn edit(store: &Path, root: &str, path: &str, edits: &[Replacement]) -> Resu
         return Err(format!("一次修改需要 1 到 {MAX_EDITS} 处替换。"));
     }
     let base = root_of(root)?;
-    let mut text = fs::read_to_string(inside(&base, path)?).map_err(|_| "无法以文本读取该文件。".to_string())?;
+    let mut text = fs::read_to_string(inside(&base, path)?)
+        .map_err(|_| "无法以文本读取该文件。".to_string())?;
     let many = edits.len() > 1;
     for (index, replacement) in edits.iter().enumerate() {
-        let which = if many { format!("第 {} 处替换：", index + 1) } else { String::new() };
+        let which = if many {
+            format!("第 {} 处替换：", index + 1)
+        } else {
+            String::new()
+        };
         if replacement.old.is_empty() {
             return Err(format!("{which}要替换的原文不能为空。"));
         }
@@ -144,17 +168,27 @@ pub fn edit(store: &Path, root: &str, path: &str, edits: &[Replacement]) -> Resu
 
 /// "ready" (can undo), "undone" (already undone) or "changed" (edited since).
 pub fn snapshot_state(store: &Path, id: &str) -> Result<&'static str, String> {
-    let Ok(json) = fs::read_to_string(snapshot_file(store, id)?) else { return Ok("undone") };
+    let Ok(json) = fs::read_to_string(snapshot_file(store, id)?) else {
+        return Ok("undone");
+    };
     let snapshot: Snapshot = serde_json::from_str(&json).map_err(|_| "快照已损坏。".to_string())?;
     let file = Path::new(&snapshot.root).join(&snapshot.path);
-    Ok(if fs::read_to_string(file).ok().as_deref() == Some(snapshot.after.as_str()) { "ready" } else { "changed" })
+    Ok(
+        if fs::read_to_string(file).ok().as_deref() == Some(snapshot.after.as_str()) {
+            "ready"
+        } else {
+            "changed"
+        },
+    )
 }
 
 /// Puts the file back as it was before the change (removing a file the change created).
 pub fn undo(store: &Path, id: &str) -> Result<(), String> {
     let snapshot_path = snapshot_file(store, id)?;
-    let json = fs::read_to_string(&snapshot_path).map_err(|_| "这次修改已经撤销过了。".to_string())?;
-    let snapshot: Snapshot = serde_json::from_str(&json).map_err(|_| "快照已损坏，无法撤销。".to_string())?;
+    let json =
+        fs::read_to_string(&snapshot_path).map_err(|_| "这次修改已经撤销过了。".to_string())?;
+    let snapshot: Snapshot =
+        serde_json::from_str(&json).map_err(|_| "快照已损坏，无法撤销。".to_string())?;
     let root = root_of(&snapshot.root)?;
     let file = target(&root, &snapshot.path)?;
     if fs::read_to_string(&file).ok().as_deref() != Some(snapshot.after.as_str()) {
@@ -170,27 +204,46 @@ pub fn undo(store: &Path, id: &str) -> Result<(), String> {
 }
 
 fn store<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
-    Ok(crate::app_data::root_of(app)?.join("data").join("snapshots"))
+    Ok(crate::app_data::root_of(app)?
+        .join("data")
+        .join("snapshots"))
 }
 
-async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
-    tauri::async_runtime::spawn_blocking(job).await.map_err(|error| error.to_string())?
+async fn blocking<T: Send + 'static>(
+    job: impl FnOnce() -> Result<T, String> + Send + 'static,
+) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(job)
+        .await
+        .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
-pub async fn agent_write_file<R: Runtime>(app: AppHandle<R>, root: String, path: String, text: String) -> Result<Change, String> {
+pub async fn agent_write_file<R: Runtime>(
+    app: AppHandle<R>,
+    root: String,
+    path: String,
+    text: String,
+) -> Result<Change, String> {
     let store = store(&app)?;
     blocking(move || write(&store, &root, &path, &text)).await
 }
 
 #[tauri::command]
-pub async fn agent_edit_file<R: Runtime>(app: AppHandle<R>, root: String, path: String, edits: Vec<Replacement>) -> Result<Change, String> {
+pub async fn agent_edit_file<R: Runtime>(
+    app: AppHandle<R>,
+    root: String,
+    path: String,
+    edits: Vec<Replacement>,
+) -> Result<Change, String> {
     let store = store(&app)?;
     blocking(move || edit(&store, &root, &path, &edits)).await
 }
 
 #[tauri::command]
-pub async fn agent_snapshot_state<R: Runtime>(app: AppHandle<R>, snapshot: String) -> Result<&'static str, String> {
+pub async fn agent_snapshot_state<R: Runtime>(
+    app: AppHandle<R>,
+    snapshot: String,
+) -> Result<&'static str, String> {
     let store = store(&app)?;
     blocking(move || snapshot_state(&store, &snapshot)).await
 }

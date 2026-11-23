@@ -85,7 +85,7 @@ pub async fn account_device_start<R: Runtime>(
         None,
     )
     .await
-    .map_err(RequestFailure::message)?;
+    .map_err(RequestFailure::login_message)?;
     let code: DeviceStart =
         serde_json::from_value(data).map_err(|_| "账号服务返回的二维码信息无效。")?;
     if !valid_code(&code) {
@@ -140,7 +140,7 @@ pub async fn account_device_poll<R: Runtime>(
         Some("CANCELED") => Ok(DeviceStatus::pending("CANCELED")),
         Some("CONSUMED") => Ok(DeviceStatus::pending("CONSUMED")),
         Some("CONFIRMED") => {
-            let profile = accept_token(&auth, attempt, &data["login"]).await?;
+            let profile = accept_token(&auth, attempt, &data["login"], None).await?;
             Ok(DeviceStatus {
                 status: "CONFIRMED",
                 profile: Some(profile),

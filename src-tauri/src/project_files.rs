@@ -14,7 +14,16 @@ const MAX_SEARCH_FILE: u64 = 1024 * 1024;
 const MAX_LINE: usize = 240;
 const MAX_PATTERN: usize = 2000;
 /// Folders a walk never enters: version control, dependencies and build output.
-const SKIPPED: [&str; 8] = [".git", "node_modules", "target", "dist", "build", ".next", ".venv", "__pycache__"];
+const SKIPPED: [&str; 8] = [
+    ".git",
+    "node_modules",
+    "target",
+    "dist",
+    "build",
+    ".next",
+    ".venv",
+    "__pycache__",
+];
 
 #[derive(Serialize, Debug)]
 pub struct FileIndex {
@@ -42,14 +51,18 @@ fn walk(root: &Path, mut visit: impl FnMut(&Path, String) -> bool) -> bool {
     let mut pending = vec![root.to_path_buf()];
     let mut seen = 0;
     while let Some(folder) = pending.pop() {
-        let Ok(entries) = fs::read_dir(&folder) else { continue };
+        let Ok(entries) = fs::read_dir(&folder) else {
+            continue;
+        };
         let mut entries: Vec<_> = entries.flatten().collect();
         // Popped from the end: reversed, so folders are walked in name order.
         entries.sort_by_key(|entry| std::cmp::Reverse(entry.file_name()));
         let mut folders = Vec::new();
         let mut files = Vec::new();
         for entry in entries {
-            let Ok(kind) = entry.file_type() else { continue };
+            let Ok(kind) = entry.file_type() else {
+                continue;
+            };
             let name = entry.file_name().to_string_lossy().into_owned();
             if kind.is_dir() && !SKIPPED.contains(&name.as_str()) {
                 folders.push(entry.path());
@@ -115,17 +128,28 @@ pub struct Query<'a> {
 /// Lines matching the query in the project's text files, and files whose path matches it.
 pub fn search(root: &str, query: &Query, limit: usize) -> Result<Search, String> {
     let root = root_of(root)?;
-    let text = if query.regex { query.text.to_string() } else { query.text.trim().to_string() };
+    let text = if query.regex {
+        query.text.to_string()
+    } else {
+        query.text.trim().to_string()
+    };
     if text.trim().is_empty() {
         return Err("请给出要搜索的文字。".into());
     }
-    let source = if query.regex { text } else { regex::escape(&text) };
+    let source = if query.regex {
+        text
+    } else {
+        regex::escape(&text)
+    };
     let matcher = compile(&source, query.case_sensitive, "搜索内容")?;
     let only = match query.path_pattern {
         Some(pattern) if !pattern.is_empty() => Some(compile(pattern, true, "路径范围")?),
         _ => None,
     };
-    let mut result = Search { hits: Vec::new(), truncated: false };
+    let mut result = Search {
+        hits: Vec::new(),
+        truncated: false,
+    };
     let capped = walk(&root, |file, path| {
         if only.as_ref().is_some_and(|only| !only.is_match(&path)) {
             return true;
@@ -135,19 +159,32 @@ pub fn search(root: &str, query: &Query, limit: usize) -> Result<Search, String>
             return false;
         }
         if matcher.is_match(&path) {
-            result.hits.push(Hit { path: path.clone(), line: 0, text: String::new() });
+            result.hits.push(Hit {
+                path: path.clone(),
+                line: 0,
+                text: String::new(),
+            });
         }
-        if fs::metadata(file).map(|meta| meta.len() > MAX_SEARCH_FILE).unwrap_or(true) {
+        if fs::metadata(file)
+            .map(|meta| meta.len() > MAX_SEARCH_FILE)
+            .unwrap_or(true)
+        {
             return true;
         }
-        let Ok(content) = fs::read_to_string(file) else { return true };
+        let Ok(content) = fs::read_to_string(file) else {
+            return true;
+        };
         for (number, line) in content.lines().enumerate() {
             if result.hits.len() >= limit {
                 result.truncated = true;
                 return false;
             }
             if matcher.is_match(line) {
-                result.hits.push(Hit { path: path.clone(), line: number + 1, text: trimmed(line) });
+                result.hits.push(Hit {
+                    path: path.clone(),
+                    line: number + 1,
+                    text: trimmed(line),
+                });
             }
         }
         true
@@ -156,8 +193,12 @@ pub fn search(root: &str, query: &Query, limit: usize) -> Result<Search, String>
     Ok(result)
 }
 
-async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
-    tauri::async_runtime::spawn_blocking(job).await.map_err(|error| error.to_string())?
+async fn blocking<T: Send + 'static>(
+    job: impl FnOnce() -> Result<T, String> + Send + 'static,
+) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(job)
+        .await
+        .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -166,9 +207,21 @@ pub async fn project_list_files(root: String) -> Result<FileIndex, String> {
 }
 
 #[tauri::command]
-pub async fn agent_search(root: String, query: String, regex: Option<bool>, case_sensitive: Option<bool>, path_pattern: Option<String>, limit: Option<usize>) -> Result<Search, String> {
+pub async fn agent_search(
+    root: String,
+    query: String,
+    regex: Option<bool>,
+    case_sensitive: Option<bool>,
+    path_pattern: Option<String>,
+    limit: Option<usize>,
+) -> Result<Search, String> {
     blocking(move || {
-        let query = Query { text: &query, regex: regex.unwrap_or(false), case_sensitive: case_sensitive.unwrap_or(false), path_pattern: path_pattern.as_deref() };
+        let query = Query {
+            text: &query,
+            regex: regex.unwrap_or(false),
+            case_sensitive: case_sensitive.unwrap_or(false),
+            path_pattern: path_pattern.as_deref(),
+        };
         search(&root, &query, limit.unwrap_or(50).clamp(1, 200))
     })
     .await

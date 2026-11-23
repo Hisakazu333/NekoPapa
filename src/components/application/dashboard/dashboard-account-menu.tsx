@@ -11,7 +11,7 @@ import {
   DropdownPopover,
   DropdownTrigger,
 } from "@/components/base/dropdown/dropdown";
-import { ChevronDownSmall } from "@/components/foundations/icons/chevrons";
+import { ChevronUpDownSmall } from "@/components/foundations/icons/chevrons";
 import { useLocalProfile } from "@/hooks/use-local-profile";
 import { profileIdentity } from "@/app/account/profile-identity";
 import type { AccountPage } from "@/app/account/account-page-navigation";
@@ -125,32 +125,34 @@ export function DashboardAccountMenu({
         <DropdownTrigger
           aria-label={`账号与本机资料：${identity.name}`}
           className={cx(
-            "flex items-center overflow-hidden border-2 border-transparent hover:border-border-button-hover",
-            "transition-[width,background-color,border-color,padding] duration-300 ease-in-out",
-            "focus-visible:ring-offset-2",
+            "flex items-center overflow-hidden",
+            "transition-[width,background-color,padding] duration-300 ease-in-out",
             dockState
-              ? cx("size-full justify-center rounded-xl p-0 hover:bg-background-secondary-hover hover:border-transparent focus-visible:ring-inset", open && "bg-background-tertiary-hover")
-              : collapsed
-              ? "size-9 justify-center rounded-full bg-transparent p-0"
-              : "w-full justify-between rounded-xl bg-background-tertiary-default py-2 pe-4 ps-2.5",
+              ? cx("size-full justify-center rounded-xl p-0 hover:bg-background-secondary-hover focus-visible:ring-inset", open && "bg-background-tertiary-hover")
+              : cx(
+                "rounded-2lg hover:bg-background-secondary-hover focus-visible:ring-offset-2",
+                collapsed ? "size-9 justify-center p-0" : "h-11 w-full justify-between gap-2 py-1.5 ps-1.5 pe-2",
+                open && "bg-background-secondary-hover",
+              ),
           )}
         >
-          <span className={cx("flex min-w-0 items-center", !collapsed && "gap-2")}>
+          <span className={cx("flex min-w-0 items-center", !collapsed && "gap-2.5")}>
             <Avatar size={dockState ? "sm" : "md"} color="neutral" src={identity.avatarUrl} alt=""
               fallback={<UserIcon aria-hidden className={dockState ? "size-3.5" : "size-4"} />}
-              className={dockState ? "@max-[380px]:size-5" : undefined} />
+              className={dockState ? "@max-[380px]:size-5" : "size-7"} />
             <span className={cx(
               "flex min-w-0 flex-col items-start overflow-hidden transition-[max-width,opacity,filter] duration-300 ease-in-out",
               collapsed ? "max-w-0 opacity-0 blur-[3px]" : "max-w-40 opacity-100 blur-0",
             )}>
-              <span className="w-full truncate text-body-medium text-text-primary" translate="no">{identity.name}</span>
-              <span className="whitespace-nowrap text-body-regular text-text-secondary">{account.profile ? "NekoPapa 账号 · 已登录" : "本机资料 · 未登录"}</span>
+              <span className="w-full truncate text-body-2-medium text-text-primary" translate="no">{identity.name}</span>
+              <span className="flex items-center gap-1 whitespace-nowrap text-caption-1-regular text-text-tertiary">
+                <span aria-hidden className={cx("size-1.5 shrink-0 rounded-full", account.profile ? "bg-accent-500" : "bg-foreground-icon-quaternary")} />
+                {account.profile ? "已登录" : "未登录"}
+              </span>
             </span>
           </span>
           {!collapsed && (
-            <span className="flex size-4 shrink-0 items-center justify-center rounded-[3px] bg-background-tertiary-hover">
-              <ChevronDownSmall className={cx("size-4 text-text-secondary transition-transform duration-200", open && "rotate-180")} />
-            </span>
+            <ChevronUpDownSmall className="size-4 shrink-0 text-foreground-icon-secondary" />
           )}
         </DropdownTrigger>
         {/* Opens beside the sidebar, bottom edges aligned, and never taller

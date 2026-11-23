@@ -36,7 +36,10 @@ const PLAIN: [&str; 3] = ["AI_PROVIDER", "AI_BASE_URL", "CHAT_MODEL"];
 pub fn is_credential_name(name: &str) -> bool {
     let valid = !name.is_empty()
         && name.len() <= 80
-        && name.chars().next().is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
+        && name
+            .chars()
+            .next()
+            .is_some_and(|c| c.is_ascii_alphabetic() || c == '_')
         && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_');
     let upper = name.to_ascii_uppercase();
     valid && (upper.ends_with("KEY") || upper.ends_with("TOKEN") || upper.ends_with("SECRET"))
@@ -58,7 +61,9 @@ fn login_shell_env() -> HashMap<String, String> {
     loop {
         match child.try_wait() {
             Ok(Some(_)) => break,
-            Ok(None) if started.elapsed() < SHELL_TIMEOUT => std::thread::sleep(Duration::from_millis(20)),
+            Ok(None) if started.elapsed() < SHELL_TIMEOUT => {
+                std::thread::sleep(Duration::from_millis(20))
+            }
             _ => {
                 let _ = child.kill();
                 let _ = child.wait();
@@ -67,7 +72,12 @@ fn login_shell_env() -> HashMap<String, String> {
         }
     }
     let mut out = Vec::new();
-    if child.stdout.take().map(|mut s| s.read_to_end(&mut out)).is_none() {
+    if child
+        .stdout
+        .take()
+        .map(|mut s| s.read_to_end(&mut out))
+        .is_none()
+    {
         return HashMap::new();
     }
     parse_env(&out)
@@ -75,7 +85,9 @@ fn login_shell_env() -> HashMap<String, String> {
 
 fn parse_env(out: &[u8]) -> HashMap<String, String> {
     let text = String::from_utf8_lossy(out);
-    let Some((_, rest)) = text.split_once("\0NEKOPAPA_ENV\0") else { return HashMap::new() };
+    let Some((_, rest)) = text.split_once("\0NEKOPAPA_ENV\0") else {
+        return HashMap::new();
+    };
     rest.split('\0')
         .filter_map(|entry| entry.split_once('='))
         .map(|(k, v)| (k.to_string(), v.to_string()))
@@ -92,7 +104,10 @@ fn environment() -> &'static HashMap<String, String> {
 }
 
 fn value(name: &str) -> Option<&'static str> {
-    environment().get(name).map(|v| v.trim()).filter(|v| !v.is_empty())
+    environment()
+        .get(name)
+        .map(|v| v.trim())
+        .filter(|v| !v.is_empty())
 }
 
 /// Puts each `<prefix>{{nekopapa-env:NAME}}` stand-in's key in place. The
@@ -125,12 +140,15 @@ fn fill_keys_with<'a>(
             if !crate::credential_store::is_secret_id(name) {
                 return Err("密钥编号无效。".into());
             }
-            secret(name).ok_or("钥匙串中没有这份配置的 API Key，请在 设置 → 模型与 API 中重新填写。")?
+            secret(name)
+                .ok_or("钥匙串中没有这份配置的 API Key，请在 设置 → 模型与 API 中重新填写。")?
         } else {
             if !is_credential_name(name) {
                 return Err(format!("{name} 不是凭据环境变量名。"));
             }
-            lookup(name).ok_or(format!("没有找到环境变量 {name}。"))?.to_string()
+            lookup(name)
+                .ok_or(format!("没有找到环境变量 {name}。"))?
+                .to_string()
         };
         let prefix: String = key.chars().take(PREFIX_CHARS).collect();
         let before = &rest[..start];
@@ -165,14 +183,18 @@ pub async fn chat_environment(names: Vec<String>) -> Result<ChatEnvironment, Str
         }
         for name in &names {
             if let Some(id) = name.strip_prefix("keychain:") {
-                if crate::credential_store::is_secret_id(id) && crate::credential_store::secret(id).is_some() {
+                if crate::credential_store::is_secret_id(id)
+                    && crate::credential_store::secret(id).is_some()
+                {
                     result.secrets.push(id.to_string());
                 }
             }
         }
         for name in names.iter().filter(|n| is_credential_name(n)) {
             if let Some(v) = value(name) {
-                result.keys.insert(name.clone(), v.chars().take(PREFIX_CHARS).collect());
+                result
+                    .keys
+                    .insert(name.clone(), v.chars().take(PREFIX_CHARS).collect());
             }
         }
         result
@@ -192,14 +214,22 @@ pub struct ModelRequest {
 #[derive(Serialize, Clone)]
 #[serde(tag = "kind", rename_all = "camelCase")]
 pub enum ModelEvent {
-    Head { status: u16, headers: Vec<(String, String)> },
-    Chunk { data: Vec<u8> },
+    Head {
+        status: u16,
+        headers: Vec<(String, String)>,
+    },
+    Chunk {
+        data: Vec<u8>,
+    },
     End,
-    Error { message: String },
+    Error {
+        message: String,
+    },
 }
 
 fn requests() -> &'static Mutex<HashMap<u32, tauri::async_runtime::JoinHandle<()>>> {
-    static REQUESTS: OnceLock<Mutex<HashMap<u32, tauri::async_runtime::JoinHandle<()>>>> = OnceLock::new();
+    static REQUESTS: OnceLock<Mutex<HashMap<u32, tauri::async_runtime::JoinHandle<()>>>> =
+        OnceLock::new();
     REQUESTS.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
@@ -234,16 +264,34 @@ async fn run(request: ModelRequest, events: &Channel<ModelEvent>) -> Result<(), 
         builder = builder.body(fill_keys(&body)?);
     }
     let mut response = builder.send().await.map_err(|e| {
-        if e.is_connect() { "无法连接模型服务。".to_string() } else if e.is_timeout() { "连接模型服务超时。".to_string() } else { "模型请求失败。".to_string() }
+        if e.is_connect() {
+            "无法连接模型服务。".to_string()
+        } else if e.is_timeout() {
+            "连接模型服务超时。".to_string()
+        } else {
+            "模型请求失败。".to_string()
+        }
     })?;
     let headers = response
         .headers()
         .iter()
         .filter_map(|(k, v)| v.to_str().ok().map(|v| (k.to_string(), v.to_string())))
         .collect();
-    let _ = events.send(ModelEvent::Head { status: response.status().as_u16(), headers });
-    while let Some(chunk) = response.chunk().await.map_err(|_| "模型回复中断。".to_string())? {
-        if events.send(ModelEvent::Chunk { data: chunk.to_vec() }).is_err() {
+    let _ = events.send(ModelEvent::Head {
+        status: response.status().as_u16(),
+        headers,
+    });
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|_| "模型回复中断。".to_string())?
+    {
+        if events
+            .send(ModelEvent::Chunk {
+                data: chunk.to_vec(),
+            })
+            .is_err()
+        {
             return Ok(());
         }
     }
@@ -253,14 +301,21 @@ async fn run(request: ModelRequest, events: &Channel<ModelEvent>) -> Result<(), 
 
 /// One model request for the chat handlers; the reply streams back on `events`.
 #[tauri::command]
-pub async fn model_fetch(id: u32, request: ModelRequest, events: Channel<ModelEvent>) -> Result<(), String> {
+pub async fn model_fetch(
+    id: u32,
+    request: ModelRequest,
+    events: Channel<ModelEvent>,
+) -> Result<(), String> {
     let task = tauri::async_runtime::spawn(async move {
         if let Err(message) = run(request, &events).await {
             let _ = events.send(ModelEvent::Error { message });
         }
         requests().lock().map(|mut all| all.remove(&id)).ok();
     });
-    requests().lock().map_err(|e| e.to_string())?.insert(id, task);
+    requests()
+        .lock()
+        .map_err(|e| e.to_string())?
+        .insert(id, task);
     Ok(())
 }
 
@@ -281,13 +336,25 @@ mod tests {
     fn fills_keys_where_the_stand_ins_were() {
         let lookup = |name: &str| (name == "AI_API_KEY").then_some("sk-ant-secret-value");
         let secret = |id: &str| (id == "r1").then(|| "sk-typed-in-settings".to_string());
-        assert_eq!(fill_keys_with("Bearer sk-ant-s{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(), "Bearer sk-ant-secret-value");
-        assert_eq!(fill_keys_with("{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(), "sk-ant-secret-value");
-        assert_eq!(fill_keys_with("no stand-in", lookup, secret).unwrap(), "no stand-in");
+        assert_eq!(
+            fill_keys_with("Bearer sk-ant-s{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(),
+            "Bearer sk-ant-secret-value"
+        );
+        assert_eq!(
+            fill_keys_with("{{nekopapa-env:AI_API_KEY}}", lookup, secret).unwrap(),
+            "sk-ant-secret-value"
+        );
+        assert_eq!(
+            fill_keys_with("no stand-in", lookup, secret).unwrap(),
+            "no stand-in"
+        );
         assert!(fill_keys_with("{{nekopapa-env:PATH}}", lookup, secret).is_err());
         assert!(fill_keys_with("{{nekopapa-env:OTHER_KEY}}", lookup, secret).is_err());
         assert!(fill_keys_with("{{nekopapa-env:AI_API_KEY", lookup, secret).is_err());
-        assert_eq!(fill_keys_with("Bearer {{nekopapa-secret:r1}}", lookup, secret).unwrap(), "Bearer sk-typed-in-settings");
+        assert_eq!(
+            fill_keys_with("Bearer {{nekopapa-secret:r1}}", lookup, secret).unwrap(),
+            "Bearer sk-typed-in-settings"
+        );
         assert!(fill_keys_with("{{nekopapa-secret:r2}}", lookup, secret).is_err());
         assert!(fill_keys_with("{{nekopapa-secret:../x}}", lookup, secret).is_err());
     }

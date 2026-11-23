@@ -32,7 +32,12 @@ pub struct PluginFrames(Mutex<HashMap<String, PathBuf>>);
 fn valid_plugin_id(id: &str) -> bool {
     !id.is_empty()
         && id.len() <= 100
-        && id.split(['.', '-']).all(|part| !part.is_empty() && part.bytes().all(|b| b.is_ascii_lowercase() || b.is_ascii_digit()))
+        && id.split(['.', '-']).all(|part| {
+            !part.is_empty()
+                && part
+                    .bytes()
+                    .all(|b| b.is_ascii_lowercase() || b.is_ascii_digit())
+        })
 }
 
 /// Lets `plugin_id`'s frame files be served from `folder`, after checking
@@ -42,11 +47,16 @@ pub fn allow(frames: &PluginFrames, plugin_id: &str, folder: &str) -> Result<(),
         return Err("插件 id 不对。".into());
     }
     let file = read_manifest(folder)?;
-    let manifest: serde_json::Value = serde_json::from_str(&file.text).map_err(|_| "插件清单不是有效的 JSON。".to_string())?;
+    let manifest: serde_json::Value =
+        serde_json::from_str(&file.text).map_err(|_| "插件清单不是有效的 JSON。".to_string())?;
     if manifest.get("id").and_then(|id| id.as_str()) != Some(plugin_id) {
         return Err("插件文件夹里的清单不是这个插件的。".into());
     }
-    frames.0.lock().map_err(|_| "插件状态不可用。".to_string())?.insert(plugin_id.to_string(), PathBuf::from(file.folder));
+    frames
+        .0
+        .lock()
+        .map_err(|_| "插件状态不可用。".to_string())?
+        .insert(plugin_id.to_string(), PathBuf::from(file.folder));
     Ok(())
 }
 
@@ -57,7 +67,11 @@ pub fn revoke(frames: &PluginFrames, plugin_id: &str) {
 }
 
 #[tauri::command]
-pub async fn plugin_frame_allow(state: tauri::State<'_, PluginFrames>, plugin_id: String, folder: String) -> Result<(), String> {
+pub async fn plugin_frame_allow(
+    state: tauri::State<'_, PluginFrames>,
+    plugin_id: String,
+    folder: String,
+) -> Result<(), String> {
     allow(&state, &plugin_id, &folder)
 }
 
@@ -68,11 +82,14 @@ pub fn plugin_frame_revoke(state: tauri::State<'_, PluginFrames>, plugin_id: Str
 
 /// The CSP of every response for `plugin_id`: its own files and the bridge.
 pub fn frame_csp(plugin_id: &str) -> String {
-    let own = ["nekopapa-plugin://localhost", "http://nekopapa-plugin.localhost"]
-        .iter()
-        .map(|base| format!("{base}/{plugin_id}/ {base}/__sdk/"))
-        .collect::<Vec<_>>()
-        .join(" ");
+    let own = [
+        "nekopapa-plugin://localhost",
+        "http://nekopapa-plugin.localhost",
+    ]
+    .iter()
+    .map(|base| format!("{base}/{plugin_id}/ {base}/__sdk/"))
+    .collect::<Vec<_>>()
+    .join(" ");
     format!(
         "default-src 'none'; script-src {own}; style-src {own} 'unsafe-inline'; img-src {own} data: blob:; font-src {own}; media-src {own}; \
          connect-src 'none'; frame-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'"
@@ -124,8 +141,13 @@ pub fn split_path(path: &str) -> Option<(String, Vec<String>)> {
     let mut parts = path.trim_start_matches('/').split('/').map(decode);
     let id = parts.next()??;
     let rest = parts.collect::<Option<Vec<_>>>()?;
-    let segment_ok = |s: &String| !s.is_empty() && !s.starts_with('.') && s.len() <= 120
-        && s.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'));
+    let segment_ok = |s: &String| {
+        !s.is_empty()
+            && !s.starts_with('.')
+            && s.len() <= 120
+            && s.bytes()
+                .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'.' | b'_' | b'-'))
+    };
     if !valid_plugin_id(&id) || rest.is_empty() || rest.len() > 12 || !rest.iter().all(segment_ok) {
         return None;
     }
@@ -147,11 +169,21 @@ fn reply(status: StatusCode, kind: &str, csp: &str, body: Vec<u8>) -> Response<V
 }
 
 fn not_found(csp: &str) -> Response<Vec<u8>> {
-    reply(StatusCode::NOT_FOUND, "text/plain; charset=utf-8", csp, "找不到这个插件文件。".as_bytes().to_vec())
+    reply(
+        StatusCode::NOT_FOUND,
+        "text/plain; charset=utf-8",
+        csp,
+        "找不到这个插件文件。".as_bytes().to_vec(),
+    )
 }
 
 fn read_inside(root: &Path, segments: &[String]) -> Option<Vec<u8>> {
-    let resolved = fs::canonicalize(segments.iter().fold(root.to_path_buf(), |path, part| path.join(part))).ok()?;
+    let resolved = fs::canonicalize(
+        segments
+            .iter()
+            .fold(root.to_path_buf(), |path, part| path.join(part)),
+    )
+    .ok()?;
     if !resolved.starts_with(root) {
         return None;
     }
@@ -166,14 +198,28 @@ fn read_inside(root: &Path, segments: &[String]) -> Option<Vec<u8>> {
 pub fn serve(frames: &PluginFrames, path: &str, method: &str) -> Response<Vec<u8>> {
     let none = "default-src 'none'";
     if method != "GET" && method != "HEAD" {
-        return reply(StatusCode::METHOD_NOT_ALLOWED, "text/plain; charset=utf-8", none, Vec::new());
+        return reply(
+            StatusCode::METHOD_NOT_ALLOWED,
+            "text/plain; charset=utf-8",
+            none,
+            Vec::new(),
+        );
     }
     if path.trim_start_matches('/') == SDK_PATH {
-        return reply(StatusCode::OK, "text/javascript; charset=utf-8", none, SDK.as_bytes().to_vec());
+        return reply(
+            StatusCode::OK,
+            "text/javascript; charset=utf-8",
+            none,
+            SDK.as_bytes().to_vec(),
+        );
     }
-    let Some((id, segments)) = split_path(path) else { return not_found(none) };
+    let Some((id, segments)) = split_path(path) else {
+        return not_found(none);
+    };
     let csp = frame_csp(&id);
-    let Some(kind) = content_type(segments.last().map(String::as_str).unwrap_or_default()) else { return not_found(&csp) };
+    let Some(kind) = content_type(segments.last().map(String::as_str).unwrap_or_default()) else {
+        return not_found(&csp);
+    };
     let root = frames.0.lock().ok().and_then(|map| map.get(&id).cloned());
     match root.and_then(|root| read_inside(&root, &segments)) {
         Some(body) => reply(StatusCode::OK, kind, &csp, body),
@@ -182,7 +228,11 @@ pub fn serve(frames: &PluginFrames, path: &str, method: &str) -> Response<Vec<u8
 }
 
 /// The scheme handler registered in lib.rs.
-pub fn handle<R: tauri::Runtime>(app: &tauri::AppHandle<R>, request: Request<Vec<u8>>, responder: tauri::UriSchemeResponder) {
+pub fn handle<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    request: Request<Vec<u8>>,
+    responder: tauri::UriSchemeResponder,
+) {
     use tauri::Manager;
     let app = app.clone();
     let path = request.uri().path().to_string();

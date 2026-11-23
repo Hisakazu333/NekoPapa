@@ -16,7 +16,18 @@ fn applications(editor: &str) -> Result<&'static [&'static str], String> {
         "cursor" => &["Cursor"],
         "zed" => &["Zed"],
         "xcode" => &["Xcode"],
-        "jetbrains" => &["IntelliJ IDEA", "IntelliJ IDEA CE", "WebStorm", "PyCharm", "PyCharm CE", "GoLand", "RustRover", "CLion", "PhpStorm", "Rider"],
+        "jetbrains" => &[
+            "IntelliJ IDEA",
+            "IntelliJ IDEA CE",
+            "WebStorm",
+            "PyCharm",
+            "PyCharm CE",
+            "GoLand",
+            "RustRover",
+            "CLion",
+            "PhpStorm",
+            "Rider",
+        ],
         _ => return Err("未知的编辑器。".into()),
     })
 }
@@ -29,11 +40,18 @@ fn launch(path: &Path, editor: &str) -> Result<(), String> {
             return run(Command::new("open").arg(path), "系统默认应用");
         }
         for app in apps {
-            if Command::new("open").args(["-Ra", app]).status().is_ok_and(|s| s.success()) {
+            if Command::new("open")
+                .args(["-Ra", app])
+                .status()
+                .is_ok_and(|s| s.success())
+            {
                 return run(Command::new("open").arg("-a").arg(app).arg(path), app);
             }
         }
-        Err(format!("没有找到 {}，请先安装，或在 设置 → 编辑器与终端 中换一个编辑器。", apps[0]))
+        Err(format!(
+            "没有找到 {}，请先安装，或在 设置 → 编辑器与终端 中换一个编辑器。",
+            apps[0]
+        ))
     }
     #[cfg(not(target_os = "macos"))]
     {

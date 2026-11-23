@@ -51,27 +51,41 @@ pub struct DataInfo {
 }
 
 pub(crate) fn root_of<R: Runtime>(app: &AppHandle<R>) -> Result<PathBuf, String> {
-    let root = app.path().app_data_dir().map_err(|_| "无法确定本机数据文件夹。".to_string())?;
+    let root = app
+        .path()
+        .app_data_dir()
+        .map_err(|_| "无法确定本机数据文件夹。".to_string())?;
     ensure_layout(&root)?;
     Ok(root)
 }
 
 pub fn ensure_layout(root: &Path) -> Result<(), String> {
     for section in SECTIONS {
-        fs::create_dir_all(root.join(section)).map_err(|_| format!("无法创建数据文件夹 {section}/。"))?;
+        fs::create_dir_all(root.join(section))
+            .map_err(|_| format!("无法创建数据文件夹 {section}/。"))?;
     }
     Ok(())
 }
 
 fn check_store(name: &str) -> Result<(), String> {
-    if STORES.contains(&name) { Ok(()) } else { Err("未知的数据文件。".into()) }
+    if STORES.contains(&name) {
+        Ok(())
+    } else {
+        Err("未知的数据文件。".into())
+    }
 }
 
 /// Runs `job` on the database, opening it (and importing the old JSON file) first if needed.
-fn with_db<R: Runtime, T>(app: &AppHandle<R>, job: impl FnOnce(&mut Connection) -> Result<T, String>) -> Result<T, String> {
+fn with_db<R: Runtime, T>(
+    app: &AppHandle<R>,
+    job: impl FnOnce(&mut Connection) -> Result<T, String>,
+) -> Result<T, String> {
     let root = root_of(app)?;
     let state = app.state::<AppDataState>();
-    let mut guard = state.0.lock().map_err(|_| "本机数据库暂时不可用，请重启 NekoPapa。".to_string())?;
+    let mut guard = state
+        .0
+        .lock()
+        .map_err(|_| "本机数据库暂时不可用，请重启 NekoPapa。".to_string())?;
     if guard.is_none() {
         let data = root.join("data");
         let mut conn = chat_db::open(&data.join(chat_db::DATABASE_FILE))?;
@@ -82,7 +96,13 @@ fn with_db<R: Runtime, T>(app: &AppHandle<R>, job: impl FnOnce(&mut Connection) 
 }
 
 pub fn read_stores(conn: &Connection) -> Result<Vec<StoreFile>, String> {
-    Ok(chat_db::read_envelope(conn)?.map(|text| StoreFile { name: STORES[0].into(), text }).into_iter().collect())
+    Ok(chat_db::read_envelope(conn)?
+        .map(|text| StoreFile {
+            name: STORES[0].into(),
+            text,
+        })
+        .into_iter()
+        .collect())
 }
 
 pub fn write_store(conn: &mut Connection, name: &str, text: &str) -> Result<(), String> {
@@ -95,9 +115,13 @@ pub fn write_store(conn: &mut Connection, name: &str, text: &str) -> Result<(), 
 
 /// Size and file count of a folder; symbolic links are counted, never followed.
 fn measure(path: &Path) -> (u64, u64) {
-    let Ok(entries) = fs::read_dir(path) else { return (0, 0) };
+    let Ok(entries) = fs::read_dir(path) else {
+        return (0, 0);
+    };
     entries.flatten().fold((0, 0), |(bytes, files), entry| {
-        let Ok(meta) = entry.path().symlink_metadata() else { return (bytes, files) };
+        let Ok(meta) = entry.path().symlink_metadata() else {
+            return (bytes, files);
+        };
         if meta.is_dir() {
             let (more, count) = measure(&entry.path());
             (bytes + more, files + count)
@@ -108,12 +132,23 @@ fn measure(path: &Path) -> (u64, u64) {
 }
 
 pub fn info(root: &Path) -> DataInfo {
-    let sections = SECTIONS.iter().map(|id| {
-        let path = root.join(id);
-        let (bytes, files) = measure(&path);
-        SectionUsage { id, path: path.to_string_lossy().into_owned(), bytes, files }
-    }).collect();
-    DataInfo { root: root.to_string_lossy().into_owned(), sections }
+    let sections = SECTIONS
+        .iter()
+        .map(|id| {
+            let path = root.join(id);
+            let (bytes, files) = measure(&path);
+            SectionUsage {
+                id,
+                path: path.to_string_lossy().into_owned(),
+                bytes,
+                files,
+            }
+        })
+        .collect();
+    DataInfo {
+        root: root.to_string_lossy().into_owned(),
+        sections,
+    }
 }
 
 /// Empties `cache/` (the folder itself stays). Links inside are removed, not followed.
@@ -145,8 +180,12 @@ fn reveal(path: &Path) -> Result<(), String> {
     }
 }
 
-async fn blocking<T: Send + 'static>(job: impl FnOnce() -> Result<T, String> + Send + 'static) -> Result<T, String> {
-    tauri::async_runtime::spawn_blocking(job).await.map_err(|error| error.to_string())?
+async fn blocking<T: Send + 'static>(
+    job: impl FnOnce() -> Result<T, String> + Send + 'static,
+) -> Result<T, String> {
+    tauri::async_runtime::spawn_blocking(job)
+        .await
+        .map_err(|error| error.to_string())?
 }
 
 #[tauri::command]
@@ -155,14 +194,27 @@ pub async fn app_data_read<R: Runtime>(app: AppHandle<R>) -> Result<Vec<StoreFil
 }
 
 #[tauri::command]
-pub async fn app_data_write<R: Runtime>(app: AppHandle<R>, name: String, text: String) -> Result<(), String> {
+pub async fn app_data_write<R: Runtime>(
+    app: AppHandle<R>,
+    name: String,
+    text: String,
+) -> Result<(), String> {
     blocking(move || with_db(&app, |conn| write_store(conn, &name, &text))).await
 }
 
 /// Full-text search over every chat message (quick search).
 #[tauri::command]
-pub async fn app_data_search<R: Runtime>(app: AppHandle<R>, query: String, limit: Option<usize>) -> Result<Vec<chat_db::SearchHit>, String> {
-    blocking(move || with_db(&app, |conn| chat_db::search(conn, &query, limit.unwrap_or(20).min(50)))).await
+pub async fn app_data_search<R: Runtime>(
+    app: AppHandle<R>,
+    query: String,
+    limit: Option<usize>,
+) -> Result<Vec<chat_db::SearchHit>, String> {
+    blocking(move || {
+        with_db(&app, |conn| {
+            chat_db::search(conn, &query, limit.unwrap_or(20).min(50))
+        })
+    })
+    .await
 }
 
 #[tauri::command]
@@ -179,7 +231,10 @@ pub async fn app_data_clear_cache<R: Runtime>(app: AppHandle<R>) -> Result<u64, 
 
 /// Opens the root, or one of its sections, in Finder / Explorer.
 #[tauri::command]
-pub async fn app_data_open<R: Runtime>(app: AppHandle<R>, section: Option<String>) -> Result<(), String> {
+pub async fn app_data_open<R: Runtime>(
+    app: AppHandle<R>,
+    section: Option<String>,
+) -> Result<(), String> {
     let root = root_of(&app)?;
     let target = match section.as_deref() {
         None => root,

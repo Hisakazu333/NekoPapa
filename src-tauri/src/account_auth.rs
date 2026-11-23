@@ -6,6 +6,8 @@ pub(crate) mod cabin;
 mod client_metadata;
 #[path = "account_device.rs"]
 pub(crate) mod device;
+#[path = "account_setup.rs"]
+pub(crate) mod setup;
 
 // Official account login. Bearer tokens stay in the host for this app session.
 use reqwest::{Client, Method, Url};
@@ -61,6 +63,9 @@ struct Session {
     profile: AccountProfile,
     cabin: Option<std::sync::Arc<crate::cabin_files::CabinFiles>>,
     previous_cabin: Option<std::sync::Arc<crate::cabin_files::CabinFiles>>,
+    /// The verified number of an account this SMS sign-in just created; it
+    /// offers first-run setup until the user finishes or skips it.
+    setup_mobile: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -88,8 +93,16 @@ pub enum SignIn {
     Sms { mobile: String, code: String },
 }
 
+/// Mainland numbers use the service's 11-digit form; every other region
+/// arrives in E.164 ("+447700900123"), chosen by the user's calling code.
 fn valid_mobile(value: &str) -> bool {
-    value.len() == 11 && value.starts_with('1') && value.bytes().all(|digit| digit.is_ascii_digit())
+    let digits = |text: &str| text.bytes().all(|digit| digit.is_ascii_digit());
+    if let Some(international) = value.strip_prefix('+') {
+        return (7..=15).contains(&international.len())
+            && !international.starts_with('0')
+            && digits(international);
+    }
+    value.len() == 11 && value.starts_with('1') && digits(value)
 }
 
 fn account_url(value: &str) -> Option<Url> {
@@ -155,6 +168,16 @@ enum RequestFailure {
 }
 
 impl RequestFailure {
+    /// Sign-in failures are the user's to fix ("手机号或密码错误"), so the
+    /// service's short plain-text reason is shown; anything else falls back.
+    fn login_message(self) -> String {
+        match self {
+            Self::Unauthorized => "登录验证未通过，请检查手机号和验证信息。".into(),
+            Self::Business { message, .. } if displayable(&message) => message.trim().to_owned(),
+            other => other.message(),
+        }
+    }
+
     fn message(self) -> String {
         match self {
             Self::Unauthorized => "账号授权已失效，请重新登录。".into(),
@@ -162,6 +185,15 @@ impl RequestFailure {
             Self::Other(message) => message,
         }
     }
+}
+
+fn displayable(message: &str) -> bool {
+    let message = message.trim();
+    !message.is_empty()
+        && message.chars().count() <= 80
+        && !message
+            .chars()
+            .any(|c| c.is_control() || matches!(c, '<' | '>'))
 }
 
 async fn request(
@@ -255,7 +287,7 @@ pub async fn account_send_code<R: Runtime>(
 ) -> Result<(), String> {
     main_view(&webview)?;
     if !valid_mobile(&mobile) {
-        return Err("请填写有效的 11 位手机号。".into());
+        return Err("请填写有效的手机号。".into());
     }
     request(
         &auth,
@@ -265,7 +297,7 @@ pub async fn account_send_code<R: Runtime>(
         None,
     )
     .await
-    .map_err(RequestFailure::message)?;
+    .map_err(RequestFailure::login_message)?;
     Ok(())
 }
 
@@ -285,13 +317,14 @@ async fn sign_in(
     attempt: String,
     credentials: SignIn,
 ) -> Result<AccountProfile, String> {
-    let (path, body) = match credentials {
+    let (path, body, sms_mobile) = match credentials {
         SignIn::Password { mobile, password }
             if valid_mobile(&mobile) && !password.is_empty() && password.len() <= 512 =>
         {
             (
                 "/api/app/auth/password/login",
                 json!({ "mobile": mobile, "password": password }),
+                None,
             )
         }
         SignIn::Sms { mobile, code }
@@ -301,7 +334,8 @@ async fn sign_in(
         {
             (
                 "/api/app/auth/mobile/login",
-                json!({ "mobile": mobile, "code": code }),
+                json!({ "mobile": &mobile, "code": code }),
+                Some(mobile),
             )
         }
         _ => return Err("请检查手机号、密码或验证码。".into()),
@@ -309,11 +343,10 @@ async fn sign_in(
     begin_attempt(auth, &attempt)?;
     let data = request(auth, Method::POST, path, Some(body), None)
         .await
-        .map_err(|failure| match failure {
-            RequestFailure::Unauthorized => "登录验证未通过，请检查手机号和验证信息。".into(),
-            other => other.message(),
-        })?;
-    accept_token(auth, attempt, &data).await
+        .map_err(RequestFailure::login_message)?;
+    // The service reports no previous login only for an account it just created.
+    let created = data["userInfo"].is_object() && data["userInfo"]["lastLoginTime"].is_null();
+    accept_token(auth, attempt, &data, sms_mobile.filter(|_| created)).await
 }
 
 fn begin_attempt(auth: &AccountAuth, attempt: &str) -> Result<(), String> {
@@ -337,6 +370,7 @@ async fn accept_token(
     auth: &AccountAuth,
     attempt: String,
     data: &Value,
+    setup_mobile: Option<String>,
 ) -> Result<AccountProfile, String> {
     if lock(auth)?.attempt.as_deref() != Some(&attempt) {
         return Err(CANCELED.into());
@@ -382,6 +416,7 @@ async fn accept_token(
         profile: profile.clone(),
         cabin: None,
         previous_cabin: None,
+        setup_mobile,
     });
     Ok(profile)
 }
@@ -417,30 +452,20 @@ pub async fn account_logout<R: Runtime>(
     sign_out(&auth).await
 }
 
+/// Signing out always ends the local session, even offline: the token is
+/// removed first, then revoked on the service as a best effort.
 async fn sign_out(auth: &AccountAuth) -> Result<(), String> {
-    let Some(session) = lock(auth)?.session.clone() else {
+    let Some(session) = lock(auth)?.session.take() else {
         return Ok(());
     };
-    match request(
+    let _ = request(
         auth,
         Method::POST,
         "/api/app/auth/logout",
         None,
         Some(&session.token),
     )
-    .await
-    {
-        Ok(_) | Err(RequestFailure::Unauthorized) => (),
-        Err(error) => return Err(error.message()),
-    }
-    let mut state = lock(auth)?;
-    if state
-        .session
-        .as_ref()
-        .is_some_and(|active| active.attempt == session.attempt)
-    {
-        state.session = None;
-    }
+    .await;
     Ok(())
 }
 

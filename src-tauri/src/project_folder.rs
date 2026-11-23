@@ -35,12 +35,18 @@ pub struct FolderCheck {
 }
 
 fn problem(reason: &'static str) -> FolderCheck {
-    FolderCheck { ok: false, folder: None, reason: Some(reason) }
+    FolderCheck {
+        ok: false,
+        folder: None,
+        reason: Some(reason),
+    }
 }
 
 #[tauri::command]
 pub fn inspect_project_folder(path: String) -> FolderCheck {
-    let home = std::env::var_os("HOME").or_else(|| std::env::var_os("USERPROFILE")).map(PathBuf::from);
+    let home = std::env::var_os("HOME")
+        .or_else(|| std::env::var_os("USERPROFILE"))
+        .map(PathBuf::from);
     inspect(&path, home.as_deref())
 }
 
@@ -66,9 +72,20 @@ pub fn inspect(input: &str, home: Option<&Path>) -> FolderCheck {
         Ok(_) => return problem("not_directory"),
         Err(error) => return problem(io_reason(error.kind())),
     }
-    let name = path.file_name().map(|n| n.to_string_lossy().into_owned()).unwrap_or_else(|| path.to_string_lossy().into_owned());
+    let name = path
+        .file_name()
+        .map(|n| n.to_string_lossy().into_owned())
+        .unwrap_or_else(|| path.to_string_lossy().into_owned());
     let git = read_git(&path);
-    FolderCheck { ok: true, folder: Some(FolderInfo { path: path.to_string_lossy().into_owned(), name, git }), reason: None }
+    FolderCheck {
+        ok: true,
+        folder: Some(FolderInfo {
+            path: path.to_string_lossy().into_owned(),
+            name,
+            git,
+        }),
+        reason: None,
+    }
 }
 
 fn io_reason(kind: ErrorKind) -> &'static str {
@@ -82,10 +99,15 @@ fn io_reason(kind: ErrorKind) -> &'static str {
 fn read_git(folder: &Path) -> Option<FolderGit> {
     for current in folder.ancestors() {
         let marker = current.join(".git");
-        let Ok(meta) = fs::metadata(&marker) else { continue };
+        let Ok(meta) = fs::metadata(&marker) else {
+            continue;
+        };
         let (git_dir, worktree) = if meta.is_file() {
             let text = fs::read_to_string(&marker).ok()?;
-            let pointer = text.lines().find_map(|line| line.strip_prefix("gitdir:"))?.trim();
+            let pointer = text
+                .lines()
+                .find_map(|line| line.strip_prefix("gitdir:"))?
+                .trim();
             let dir = current.join(pointer);
             let worktree = dir.components().any(|part| part.as_os_str() == "worktrees");
             (dir, worktree)
@@ -94,17 +116,26 @@ fn read_git(folder: &Path) -> Option<FolderGit> {
         };
         let head = fs::read_to_string(git_dir.join("HEAD")).ok()?;
         let (branch, commit) = parse_head(&head);
-        return Some(FolderGit { branch, commit, worktree });
+        return Some(FolderGit {
+            branch,
+            commit,
+            worktree,
+        });
     }
     None
 }
 
 fn parse_head(head: &str) -> (Option<String>, Option<String>) {
     let text = head.trim();
-    if let Some(branch) = text.strip_prefix("ref:").map(str::trim).and_then(|r| r.strip_prefix("refs/heads/")) {
+    if let Some(branch) = text
+        .strip_prefix("ref:")
+        .map(str::trim)
+        .and_then(|r| r.strip_prefix("refs/heads/"))
+    {
         return (Some(branch.to_string()), None);
     }
-    let is_id = (text.len() == 40 || text.len() == 64) && text.chars().all(|c| c.is_ascii_hexdigit());
+    let is_id =
+        (text.len() == 40 || text.len() == 64) && text.chars().all(|c| c.is_ascii_hexdigit());
     (None, is_id.then(|| text[..7].to_string()))
 }
 
@@ -113,7 +144,8 @@ mod tests {
     use super::*;
 
     fn scratch(label: &str) -> PathBuf {
-        let dir = std::env::temp_dir().join(format!("nekopapa-folder-{label}-{}", std::process::id()));
+        let dir =
+            std::env::temp_dir().join(format!("nekopapa-folder-{label}-{}", std::process::id()));
         let _ = fs::remove_dir_all(&dir);
         fs::create_dir_all(&dir).unwrap();
         fs::canonicalize(dir).unwrap()
@@ -125,8 +157,14 @@ mod tests {
         fs::write(dir.join("note.txt"), "x").unwrap();
         assert_eq!(inspect("NekoBuddy", None).reason, Some("invalid"));
         assert_eq!(inspect("", None).reason, Some("invalid"));
-        assert_eq!(inspect(dir.join("missing").to_str().unwrap(), None).reason, Some("not_found"));
-        assert_eq!(inspect(dir.join("note.txt").to_str().unwrap(), None).reason, Some("not_directory"));
+        assert_eq!(
+            inspect(dir.join("missing").to_str().unwrap(), None).reason,
+            Some("not_found")
+        );
+        assert_eq!(
+            inspect(dir.join("note.txt").to_str().unwrap(), None).reason,
+            Some("not_directory")
+        );
         fs::remove_dir_all(dir).unwrap();
     }
 
@@ -136,16 +174,46 @@ mod tests {
         fs::create_dir_all(dir.join("repo/.git/worktrees/feature")).unwrap();
         fs::create_dir_all(dir.join("repo/src")).unwrap();
         fs::write(dir.join("repo/.git/HEAD"), "ref: refs/heads/main\n").unwrap();
-        fs::write(dir.join("repo/.git/worktrees/feature/HEAD"), "0123456789abcdef0123456789abcdef01234567\n").unwrap();
+        fs::write(
+            dir.join("repo/.git/worktrees/feature/HEAD"),
+            "0123456789abcdef0123456789abcdef01234567\n",
+        )
+        .unwrap();
         fs::create_dir_all(dir.join("feature")).unwrap();
-        fs::write(dir.join("feature/.git"), format!("gitdir: {}\n", dir.join("repo/.git/worktrees/feature").display())).unwrap();
+        fs::write(
+            dir.join("feature/.git"),
+            format!(
+                "gitdir: {}\n",
+                dir.join("repo/.git/worktrees/feature").display()
+            ),
+        )
+        .unwrap();
 
         let nested = inspect("~/repo/src/", Some(&dir)).folder.unwrap();
         assert_eq!(nested.name, "src");
-        assert_eq!(nested.git, Some(FolderGit { branch: Some("main".into()), commit: None, worktree: false }));
-        let linked = inspect(dir.join("feature").to_str().unwrap(), None).folder.unwrap();
-        assert_eq!(linked.git, Some(FolderGit { branch: None, commit: Some("0123456".into()), worktree: true }));
-        assert_eq!(inspect(dir.to_str().unwrap(), None).folder.unwrap().git, None);
+        assert_eq!(
+            nested.git,
+            Some(FolderGit {
+                branch: Some("main".into()),
+                commit: None,
+                worktree: false
+            })
+        );
+        let linked = inspect(dir.join("feature").to_str().unwrap(), None)
+            .folder
+            .unwrap();
+        assert_eq!(
+            linked.git,
+            Some(FolderGit {
+                branch: None,
+                commit: Some("0123456".into()),
+                worktree: true
+            })
+        );
+        assert_eq!(
+            inspect(dir.to_str().unwrap(), None).folder.unwrap().git,
+            None
+        );
         fs::remove_dir_all(dir).unwrap();
     }
 }

@@ -16,7 +16,11 @@ const MAX_SECRET: usize = 4096;
 
 /// Ids are record ids: letters, digits, `-` and `_`.
 pub fn is_secret_id(id: &str) -> bool {
-    !id.is_empty() && id.len() <= 64 && id.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    !id.is_empty()
+        && id.len() <= 64
+        && id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
 }
 
 fn cache() -> &'static Mutex<HashMap<String, Option<String>>> {
@@ -36,7 +40,10 @@ pub fn secret(id: &str) -> Option<String> {
     if let Some(known) = cache().lock().ok().and_then(|all| all.get(id).cloned()) {
         return known;
     }
-    let value = entry(id).ok().and_then(|e| e.get_password().ok()).filter(|v| !v.is_empty());
+    let value = entry(id)
+        .ok()
+        .and_then(|e| e.get_password().ok())
+        .filter(|v| !v.is_empty());
     if let Ok(mut all) = cache().lock() {
         all.insert(id.to_string(), value.clone());
     }
@@ -51,7 +58,9 @@ pub async fn credential_set(id: String, secret: String) -> Result<(), String> {
         return Err("API Key 为空或包含无效字符。".into());
     }
     tauri::async_runtime::spawn_blocking(move || {
-        entry(&id)?.set_password(&secret).map_err(|e| format!("无法写入钥匙串：{e}"))?;
+        entry(&id)?
+            .set_password(&secret)
+            .map_err(|e| format!("无法写入钥匙串：{e}"))?;
         if let Ok(mut all) = cache().lock() {
             all.insert(id, Some(secret));
         }
@@ -81,10 +90,16 @@ pub async fn credential_delete(id: String) -> Result<(), String> {
 /// Which of these configurations have a stored key (the keys themselves stay here).
 #[tauri::command]
 pub async fn credential_has(ids: Vec<String>) -> Result<Vec<String>, String> {
-    let ids: Vec<String> = ids.into_iter().filter(|id| is_secret_id(id)).take(100).collect();
-    tauri::async_runtime::spawn_blocking(move || ids.into_iter().filter(|id| secret(id).is_some()).collect())
-        .await
-        .map_err(|e| e.to_string())
+    let ids: Vec<String> = ids
+        .into_iter()
+        .filter(|id| is_secret_id(id))
+        .take(100)
+        .collect();
+    tauri::async_runtime::spawn_blocking(move || {
+        ids.into_iter().filter(|id| secret(id).is_some()).collect()
+    })
+    .await
+    .map_err(|e| e.to_string())
 }
 
 #[cfg(test)]

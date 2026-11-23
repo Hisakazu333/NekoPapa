@@ -176,6 +176,7 @@ mod tests {
             token: "fixture-token".into(),
             cabin: None,
             previous_cabin: None,
+            setup_mobile: None,
             profile: serde_json::from_value(serde_json::json!({"userId":7,"cloudPointBalance":42}))
                 .unwrap(),
         });

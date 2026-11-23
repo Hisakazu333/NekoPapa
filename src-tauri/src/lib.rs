@@ -1,19 +1,19 @@
 mod account_auth;
-mod cabin_files;
-mod cabin_native;
-mod cabin_archive;
 mod agent_command;
 mod agent_diff;
 mod agent_tools;
 mod app_data;
-mod chat_db;
 mod browser_view;
+mod cabin_archive;
+mod cabin_files;
+mod cabin_native;
+mod chat_db;
+mod credential_store;
 mod editor_open;
 mod external_link;
 mod local_models;
 mod memory_config;
 mod memory_service;
-mod credential_store;
 mod model_proxy;
 mod plugin_frame;
 mod plugin_manifest;
@@ -32,7 +32,9 @@ pub fn run() {
         .manage(terminal::Terminals::default())
         .setup(|app| {
             use tauri::Manager;
-            app.manage(account_auth::AccountAuth::new(app.package_info().version.to_string()));
+            app.manage(account_auth::AccountAuth::new(
+                app.package_info().version.to_string(),
+            ));
             #[cfg(target_os = "macos")]
             app.manage(cabin_native::mac::CabinView::default());
             Ok(())
@@ -43,9 +45,10 @@ pub fn run() {
         .manage(memory_service::MemoryService::default())
         // Interface plugins' frame views: static files of allowed plugin folders.
         .manage(plugin_frame::PluginFrames::default())
-        .register_asynchronous_uri_scheme_protocol(plugin_frame::SCHEME, |ctx, request, responder| {
-            plugin_frame::handle(ctx.app_handle(), request, responder)
-        })
+        .register_asynchronous_uri_scheme_protocol(
+            plugin_frame::SCHEME,
+            |ctx, request, responder| plugin_frame::handle(ctx.app_handle(), request, responder),
+        )
         .register_asynchronous_uri_scheme_protocol("nekocabin", account_auth::cabin::serve)
         // Confirms a chosen or typed folder exists and reads its Git branch.
         // Built-in browser: a native child webview over the chat's browser area.
@@ -61,6 +64,11 @@ pub fn run() {
             account_auth::device::account_device_poll,
             account_auth::account_cancel,
             account_auth::account_logout,
+            account_auth::setup::account_setup_status,
+            account_auth::setup::account_setup_dismiss,
+            account_auth::setup::account_update_nickname,
+            account_auth::setup::account_send_password_code,
+            account_auth::setup::account_set_password,
             // NekoPapa's own folder: chat history files, cache, 设置 → 数据.
             app_data::app_data_read,
             app_data::app_data_write,

@@ -81,17 +81,34 @@ fn builder<R: Runtime>(app: &AppHandle<R>, url: Url) -> WebviewBuilder<R> {
         .on_page_load(move |view, payload| {
             if view.label() == LABEL {
                 let loading = matches!(payload.event(), PageLoadEvent::Started);
-                emit(&load_app, BrowserState { url: Some(payload.url().to_string()), title: None, loading: Some(loading) });
+                emit(
+                    &load_app,
+                    BrowserState {
+                        url: Some(payload.url().to_string()),
+                        title: None,
+                        loading: Some(loading),
+                    },
+                );
             }
         })
         .on_document_title_changed(move |_, title| {
-            emit(&title_app, BrowserState { title: Some(title), ..Default::default() });
+            emit(
+                &title_app,
+                BrowserState {
+                    title: Some(title),
+                    ..Default::default()
+                },
+            );
         })
 }
 
 /// Opens `url` in the browser area, creating the webview on first use.
 #[tauri::command]
-pub async fn browser_open<R: Runtime>(app: AppHandle<R>, url: String, bounds: Bounds) -> Result<(), String> {
+pub async fn browser_open<R: Runtime>(
+    app: AppHandle<R>,
+    url: String,
+    bounds: Bounds,
+) -> Result<(), String> {
     let url = parse_web_url(&url)?;
     if let Some(view) = browser(&app) {
         view.set_bounds(rect(bounds)).map_err(|e| e.to_string())?;
@@ -100,13 +117,18 @@ pub async fn browser_open<R: Runtime>(app: AppHandle<R>, url: String, bounds: Bo
     }
     let window = app.get_window(MAIN).ok_or("找不到主窗口。")?;
     let area = rect(bounds);
-    window.add_child(builder(&app, url), area.position, area.size).map_err(|e| e.to_string())?;
+    window
+        .add_child(builder(&app, url), area.position, area.size)
+        .map_err(|e| e.to_string())?;
     Ok(())
 }
 
 /// Follows the browser area as the panel resizes or the window moves.
 #[tauri::command]
-pub async fn browser_set_bounds<R: Runtime>(app: AppHandle<R>, bounds: Bounds) -> Result<(), String> {
+pub async fn browser_set_bounds<R: Runtime>(
+    app: AppHandle<R>,
+    bounds: Bounds,
+) -> Result<(), String> {
     match browser(&app) {
         Some(view) => view.set_bounds(rect(bounds)).map_err(|e| e.to_string()),
         None => Ok(()),
@@ -116,7 +138,10 @@ pub async fn browser_set_bounds<R: Runtime>(app: AppHandle<R>, bounds: Bounds) -
 /// Hidden while the browser area is off screen or an app menu or dialog
 /// would otherwise sit underneath the native view.
 #[tauri::command]
-pub async fn browser_set_visible<R: Runtime>(app: AppHandle<R>, visible: bool) -> Result<(), String> {
+pub async fn browser_set_visible<R: Runtime>(
+    app: AppHandle<R>,
+    visible: bool,
+) -> Result<(), String> {
     match browser(&app) {
         Some(view) if visible => view.show().map_err(|e| e.to_string()),
         Some(view) => view.hide().map_err(|e| e.to_string()),
@@ -169,7 +194,8 @@ pub async fn browser_pick<R: Runtime>(app: AppHandle<R>, active: bool) -> Result
     if active {
         let _ = view.set_focus();
     }
-    view.eval(if active { PICK_SCRIPT } else { PICK_STOP }).map_err(|e| e.to_string())
+    view.eval(if active { PICK_SCRIPT } else { PICK_STOP })
+        .map_err(|e| e.to_string())
 }
 
 /// Reads the picker's state as JSON text: `{"pending":true}`, a picked
@@ -220,13 +246,26 @@ mod tests {
 
     #[test]
     fn accepts_http_and_https_pages() {
-        assert_eq!(parse_web_url("https://example.com/a?b=1").unwrap().as_str(), "https://example.com/a?b=1");
-        assert_eq!(parse_web_url(" http://localhost:5173/ ").unwrap().as_str(), "http://localhost:5173/");
+        assert_eq!(
+            parse_web_url("https://example.com/a?b=1").unwrap().as_str(),
+            "https://example.com/a?b=1"
+        );
+        assert_eq!(
+            parse_web_url(" http://localhost:5173/ ").unwrap().as_str(),
+            "http://localhost:5173/"
+        );
     }
 
     #[test]
     fn refuses_other_schemes_and_malformed_input() {
-        for raw in ["file:///etc/passwd", "javascript:alert(1)", "tauri://localhost", "data:text/html,hi", "example.com", "https://"] {
+        for raw in [
+            "file:///etc/passwd",
+            "javascript:alert(1)",
+            "tauri://localhost",
+            "data:text/html,hi",
+            "example.com",
+            "https://",
+        ] {
             assert!(parse_web_url(raw).is_err(), "{raw} should be refused");
         }
     }

@@ -16,7 +16,14 @@ fn spaces_are_shared_or_one_person() {
 
 #[test]
 fn only_page_operations_pass() {
-    for operation in ["entries.list", "entries.write", "forget.plan", "forget.apply", "writes.cancel", "consent"] {
+    for operation in [
+        "entries.list",
+        "entries.write",
+        "forget.plan",
+        "forget.apply",
+        "writes.cancel",
+        "consent",
+    ] {
         assert!(check_operation(operation).is_ok(), "{operation}");
     }
     for operation in ["ingest", "recall", "data.export", "admin.purge", ""] {
@@ -34,7 +41,10 @@ fn every_space_gets_its_own_token_slot() {
     assert_eq!(auth[1]["token_env"], "NEKOPAPA_MEMORY_TOKEN_1");
     assert_eq!(auth[1]["scope"]["companion_ref"], "nekopapa.contact.luna");
     assert_eq!(auth[0]["scope"]["user_id"], LOCAL_USER);
-    assert_eq!(config["profiles"]["main"]["storage"]["path"], "/data/memory.sqlite");
+    assert_eq!(
+        config["profiles"]["main"]["storage"]["path"],
+        "/data/memory.sqlite"
+    );
     // No token is ever written into the file.
     assert!(!config.to_string().contains("\"token\""));
     assert!(service_config("/x", &[]).is_err());
@@ -44,8 +54,14 @@ fn every_space_gets_its_own_token_slot() {
 fn replies_become_results_or_sentences() {
     let ok = read_reply(200, r#"{"ok":true,"result":{"total":3},"usage":{}}"#).unwrap();
     assert_eq!(ok["total"], 3);
-    let failed = read_reply(409, r#"{"ok":false,"error":{"code":"stale_revision","message":"记忆已变化","retryable":true}}"#);
-    assert_eq!(failed.unwrap_err(), "记忆服务：记忆已变化（stale_revision）");
+    let failed = read_reply(
+        409,
+        r#"{"ok":false,"error":{"code":"stale_revision","message":"记忆已变化","retryable":true}}"#,
+    );
+    assert_eq!(
+        failed.unwrap_err(),
+        "记忆服务：记忆已变化（stale_revision）"
+    );
     assert!(read_reply(502, "<html>").unwrap_err().contains("HTTP 502"));
 }
 
@@ -65,4 +81,3 @@ fn log_tail_keeps_the_end_on_char_boundaries() {
     assert!(kept.chars().count() <= LOG_TAIL + 1);
     assert_eq!(tail("  short  "), "short");
 }
-

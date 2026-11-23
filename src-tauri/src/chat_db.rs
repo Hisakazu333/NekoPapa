@@ -55,14 +55,23 @@ fn db_error(error: rusqlite::Error) -> String {
 /// Opens (or creates) the database and brings its schema up to date.
 pub fn open(path: &Path) -> Result<Connection, String> {
     let mut conn = Connection::open(path).map_err(|_| "无法打开本机数据库。".to_string())?;
-    conn.execute_batch("PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000;").map_err(db_error)?;
+    conn.execute_batch(
+        "PRAGMA journal_mode = WAL; PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 3000;",
+    )
+    .map_err(db_error)?;
     migrate(&mut conn)?;
     Ok(conn)
 }
 
 fn migrate(conn: &mut Connection) -> Result<(), String> {
     conn.execute_batch("CREATE TABLE IF NOT EXISTS schema_migrations (version INTEGER PRIMARY KEY, applied_at INTEGER NOT NULL);").map_err(db_error)?;
-    let current: i64 = conn.query_row("SELECT COALESCE(MAX(version), 0) FROM schema_migrations", [], |row| row.get(0)).map_err(db_error)?;
+    let current: i64 = conn
+        .query_row(
+            "SELECT COALESCE(MAX(version), 0) FROM schema_migrations",
+            [],
+            |row| row.get(0),
+        )
+        .map_err(db_error)?;
     if current > MIGRATIONS.len() as i64 {
         return Err("本机数据库来自更新的版本，请升级 NekoPapa 后再打开。".into());
     }
@@ -77,12 +86,29 @@ fn migrate(conn: &mut Connection) -> Result<(), String> {
 
 /// The stored history as the front end's envelope, or None when nothing was ever saved.
 pub fn read_envelope(conn: &Connection) -> Result<Option<String>, String> {
-    let meta: Option<String> = conn.query_row("SELECT value FROM chat_meta WHERE key = 'envelope'", [], |row| row.get(0)).optional().map_err(db_error)?;
+    let meta: Option<String> = conn
+        .query_row(
+            "SELECT value FROM chat_meta WHERE key = 'envelope'",
+            [],
+            |row| row.get(0),
+        )
+        .optional()
+        .map_err(db_error)?;
     let Some(meta) = meta else { return Ok(None) };
-    let mut envelope: Map<String, Value> = serde_json::from_str(&meta).map_err(|_| "本机数据库中的聊天记录无法读取。".to_string())?;
-    let mut statement = conn.prepare("SELECT data FROM chat_threads ORDER BY position").map_err(db_error)?;
-    let threads = statement.query_map([], |row| row.get::<_, String>(0)).map_err(db_error)?
-        .map(|data| data.map_err(db_error).and_then(|data| serde_json::from_str::<Value>(&data).map_err(|_| "本机数据库中的聊天记录无法读取。".to_string())))
+    let mut envelope: Map<String, Value> =
+        serde_json::from_str(&meta).map_err(|_| "本机数据库中的聊天记录无法读取。".to_string())?;
+    let mut statement = conn
+        .prepare("SELECT data FROM chat_threads ORDER BY position")
+        .map_err(db_error)?;
+    let threads = statement
+        .query_map([], |row| row.get::<_, String>(0))
+        .map_err(db_error)?
+        .map(|data| {
+            data.map_err(db_error).and_then(|data| {
+                serde_json::from_str::<Value>(&data)
+                    .map_err(|_| "本机数据库中的聊天记录无法读取。".to_string())
+            })
+        })
         .collect::<Result<Vec<_>, _>>()?;
     envelope.insert("threads".into(), Value::Array(threads));
     Ok(Some(Value::Object(envelope).to_string()))
@@ -90,21 +116,44 @@ pub fn read_envelope(conn: &Connection) -> Result<Option<String>, String> {
 
 /// Text of a message's text parts, as the transcript shows it.
 fn message_text(message: &Value) -> String {
-    message["parts"].as_array().map(|parts| parts.iter()
-        .filter(|part| part["type"] == "text")
-        .filter_map(|part| part["text"].as_str())
-        .collect::<String>()).unwrap_or_default()
+    message["parts"]
+        .as_array()
+        .map(|parts| {
+            parts
+                .iter()
+                .filter(|part| part["type"] == "text")
+                .filter_map(|part| part["text"].as_str())
+                .collect::<String>()
+        })
+        .unwrap_or_default()
 }
 
 fn index_thread(tx: &Transaction, id: &str, thread: &Value) -> Result<(), String> {
-    tx.execute("DELETE FROM chat_messages WHERE thread_id = ?1", params![id]).map_err(db_error)?;
-    tx.execute("DELETE FROM chat_search WHERE thread_id = ?1", params![id]).map_err(db_error)?;
-    for (seq, message) in thread["messages"].as_array().into_iter().flatten().enumerate() {
-        let (Some(message_id), Some(role)) = (message["id"].as_str(), message["role"].as_str()) else { return Err(INVALID.into()) };
+    tx.execute(
+        "DELETE FROM chat_messages WHERE thread_id = ?1",
+        params![id],
+    )
+    .map_err(db_error)?;
+    tx.execute("DELETE FROM chat_search WHERE thread_id = ?1", params![id])
+        .map_err(db_error)?;
+    for (seq, message) in thread["messages"]
+        .as_array()
+        .into_iter()
+        .flatten()
+        .enumerate()
+    {
+        let (Some(message_id), Some(role)) = (message["id"].as_str(), message["role"].as_str())
+        else {
+            return Err(INVALID.into());
+        };
         let text = message_text(message);
         tx.execute("INSERT INTO chat_messages (thread_id, message_id, seq, role, text) VALUES (?1, ?2, ?3, ?4, ?5)", params![id, message_id, seq as i64, role, text]).map_err(db_error)?;
         if !text.trim().is_empty() {
-            tx.execute("INSERT INTO chat_search (text, thread_id, message_id) VALUES (?1, ?2, ?3)", params![text, id, message_id]).map_err(db_error)?;
+            tx.execute(
+                "INSERT INTO chat_search (text, thread_id, message_id) VALUES (?1, ?2, ?3)",
+                params![text, id, message_id],
+            )
+            .map_err(db_error)?;
         }
     }
     Ok(())
@@ -114,18 +163,34 @@ fn index_thread(tx: &Transaction, id: &str, thread: &Value) -> Result<(), String
 /// change are not rewritten; changed ones are replaced and re-indexed;
 /// threads no longer present are removed.
 pub fn save_envelope(conn: &mut Connection, text: &str) -> Result<(), String> {
-    let Ok(Value::Object(mut envelope)) = serde_json::from_str::<Value>(text) else { return Err(INVALID.into()) };
-    let Some(Value::Array(threads)) = envelope.remove("threads") else { return Err(INVALID.into()) };
+    let Ok(Value::Object(mut envelope)) = serde_json::from_str::<Value>(text) else {
+        return Err(INVALID.into());
+    };
+    let Some(Value::Array(threads)) = envelope.remove("threads") else {
+        return Err(INVALID.into());
+    };
     let tx = conn.transaction().map_err(db_error)?;
     tx.execute("INSERT INTO chat_meta (key, value) VALUES ('envelope', ?1) ON CONFLICT(key) DO UPDATE SET value = excluded.value", params![Value::Object(envelope).to_string()]).map_err(db_error)?;
     let stored: HashMap<String, (i64, String)> = {
-        let mut statement = tx.prepare("SELECT id, position, data FROM chat_threads").map_err(db_error)?;
-        let rows = statement.query_map([], |row| Ok((row.get::<_, String>(0)?, (row.get::<_, i64>(1)?, row.get::<_, String>(2)?)))).map_err(db_error)?;
+        let mut statement = tx
+            .prepare("SELECT id, position, data FROM chat_threads")
+            .map_err(db_error)?;
+        let rows = statement
+            .query_map([], |row| {
+                Ok((
+                    row.get::<_, String>(0)?,
+                    (row.get::<_, i64>(1)?, row.get::<_, String>(2)?),
+                ))
+            })
+            .map_err(db_error)?;
         rows.collect::<Result<_, _>>().map_err(db_error)?
     };
     let mut kept = HashSet::new();
     for (position, thread) in threads.iter().enumerate() {
-        let id = thread["id"].as_str().filter(|id| !id.is_empty()).ok_or(INVALID)?;
+        let id = thread["id"]
+            .as_str()
+            .filter(|id| !id.is_empty())
+            .ok_or(INVALID)?;
         if !kept.insert(id.to_string()) {
             return Err(INVALID.into());
         }
@@ -133,7 +198,11 @@ pub fn save_envelope(conn: &mut Connection, text: &str) -> Result<(), String> {
         match stored.get(id) {
             Some((at, old)) if *old == data => {
                 if *at != position as i64 {
-                    tx.execute("UPDATE chat_threads SET position = ?2 WHERE id = ?1", params![id, position as i64]).map_err(db_error)?;
+                    tx.execute(
+                        "UPDATE chat_threads SET position = ?2 WHERE id = ?1",
+                        params![id, position as i64],
+                    )
+                    .map_err(db_error)?;
                 }
             }
             _ => {
@@ -149,8 +218,10 @@ pub fn save_envelope(conn: &mut Connection, text: &str) -> Result<(), String> {
         }
     }
     for id in stored.keys().filter(|id| !kept.contains(*id)) {
-        tx.execute("DELETE FROM chat_search WHERE thread_id = ?1", params![id]).map_err(db_error)?;
-        tx.execute("DELETE FROM chat_threads WHERE id = ?1", params![id]).map_err(db_error)?;
+        tx.execute("DELETE FROM chat_search WHERE thread_id = ?1", params![id])
+            .map_err(db_error)?;
+        tx.execute("DELETE FROM chat_threads WHERE id = ?1", params![id])
+            .map_err(db_error)?;
     }
     tx.commit().map_err(db_error)
 }
@@ -163,9 +234,13 @@ pub fn import_legacy(conn: &mut Connection, data_dir: &Path) -> Result<(), Strin
     if !legacy.exists() || read_envelope(conn)?.is_some() {
         return Ok(());
     }
-    let text = fs::read_to_string(&legacy).map_err(|_| format!("无法读取 {LEGACY_FILE}，已暂停迁移。"))?;
-    save_envelope(conn, &text).map_err(|error| format!("{LEGACY_FILE} 未能导入本机数据库（{error}），原文件保持不变。"))?;
-    fs::rename(&legacy, data_dir.join(format!("{LEGACY_FILE}.migrated"))).map_err(|_| format!("聊天记录已导入，但 {LEGACY_FILE} 未能改名为备份。"))
+    let text =
+        fs::read_to_string(&legacy).map_err(|_| format!("无法读取 {LEGACY_FILE}，已暂停迁移。"))?;
+    save_envelope(conn, &text).map_err(|error| {
+        format!("{LEGACY_FILE} 未能导入本机数据库（{error}），原文件保持不变。")
+    })?;
+    fs::rename(&legacy, data_dir.join(format!("{LEGACY_FILE}.migrated")))
+        .map_err(|_| format!("聊天记录已导入，但 {LEGACY_FILE} 未能改名为备份。"))
 }
 
 /// Messages whose text contains every term, at most one hit per thread,
@@ -176,41 +251,88 @@ pub fn search(conn: &Connection, query: &str, limit: usize) -> Result<Vec<Search
     if terms.is_empty() {
         return Ok(vec![]);
     }
-    let rows: Vec<(String, String, String)> = if terms.iter().all(|term| term.chars().count() >= 3) {
-        let phrase = terms.iter().map(|term| format!("\"{}\"", term.replace('"', "\"\""))).collect::<Vec<_>>().join(" AND ");
+    let rows: Vec<(String, String, String)> = if terms.iter().all(|term| term.chars().count() >= 3)
+    {
+        let phrase = terms
+            .iter()
+            .map(|term| format!("\"{}\"", term.replace('"', "\"\"")))
+            .collect::<Vec<_>>()
+            .join(" AND ");
         let mut statement = conn.prepare(
             "SELECT s.thread_id, s.message_id, s.text FROM chat_search s WHERE chat_search MATCH ?1 ORDER BY rank LIMIT 200",
         ).map_err(db_error)?;
-        let rows = statement.query_map(params![phrase], |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?))).map_err(db_error)?;
+        let rows = statement
+            .query_map(params![phrase], |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            })
+            .map_err(db_error)?;
         rows.collect::<Result<_, _>>().map_err(db_error)?
     } else {
-        let clause = terms.iter().map(|_| "m.text LIKE ? ESCAPE '\\'").collect::<Vec<_>>().join(" AND ");
-        let patterns: Vec<String> = terms.iter().map(|term| format!("%{}%", term.replace('\\', "\\\\").replace('%', "\\%").replace('_', "\\_"))).collect();
+        let clause = terms
+            .iter()
+            .map(|_| "m.text LIKE ? ESCAPE '\\'")
+            .collect::<Vec<_>>()
+            .join(" AND ");
+        let patterns: Vec<String> = terms
+            .iter()
+            .map(|term| {
+                format!(
+                    "%{}%",
+                    term.replace('\\', "\\\\")
+                        .replace('%', "\\%")
+                        .replace('_', "\\_")
+                )
+            })
+            .collect();
         let sql = format!("SELECT m.thread_id, m.message_id, m.text FROM chat_messages m JOIN chat_threads t ON t.id = m.thread_id WHERE {clause} ORDER BY t.updated_at DESC, m.seq DESC LIMIT 200");
         let mut statement = conn.prepare(&sql).map_err(db_error)?;
-        let rows = statement.query_map(rusqlite::params_from_iter(patterns.iter()), |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?))).map_err(db_error)?;
+        let rows = statement
+            .query_map(rusqlite::params_from_iter(patterns.iter()), |row| {
+                Ok((row.get(0)?, row.get(1)?, row.get(2)?))
+            })
+            .map_err(db_error)?;
         rows.collect::<Result<_, _>>().map_err(db_error)?
     };
     let mut seen = HashSet::new();
-    Ok(rows.into_iter()
+    Ok(rows
+        .into_iter()
         .filter(|(thread, _, _)| seen.insert(thread.clone()))
         .take(limit)
-        .map(|(thread_id, message_id, text)| SearchHit { snippet: snippet(&text, terms[0]), thread_id, message_id })
+        .map(|(thread_id, message_id, text)| SearchHit {
+            snippet: snippet(&text, terms[0]),
+            thread_id,
+            message_id,
+        })
         .collect())
 }
 
 /// About 60 characters around the first match, on one line.
 fn snippet(text: &str, term: &str) -> String {
-    let flat: Vec<char> = text.split_whitespace().collect::<Vec<_>>().join(" ").chars().collect();
+    let flat: Vec<char> = text
+        .split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .chars()
+        .collect();
     let lower: Vec<char> = flat.iter().flat_map(|c| c.to_lowercase()).collect();
     let needle: Vec<char> = term.chars().flat_map(|c| c.to_lowercase()).collect();
     let at = if lower.len() == flat.len() {
-        lower.windows(needle.len().max(1)).position(|window| window == needle.as_slice()).unwrap_or(0)
-    } else { 0 };
+        lower
+            .windows(needle.len().max(1))
+            .position(|window| window == needle.as_slice())
+            .unwrap_or(0)
+    } else {
+        0
+    };
     let start = at.saturating_sub(20);
     let end = (at + needle.len() + 40).min(flat.len());
     let body: String = flat[start..end].iter().collect();
-    format!("{}{}{}", if start > 0 { "…" } else { "" }, body, if end < flat.len() { "…" } else { "" })
+    format!(
+        "{}{}{}",
+        if start > 0 { "…" } else { "" },
+        body,
+        if end < flat.len() { "…" } else { "" }
+    )
 }
 
 #[cfg(test)]

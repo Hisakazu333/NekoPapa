@@ -37,7 +37,11 @@ pub struct Probe {
 
 #[tauri::command]
 pub async fn probe_local_models(targets: Vec<ProbeTarget>) -> Result<Vec<Probe>, String> {
-    if targets.len() > MAX_TARGETS || targets.iter().any(|t| t.port == 0 || !PATHS.contains(&t.path.as_str())) {
+    if targets.len() > MAX_TARGETS
+        || targets
+            .iter()
+            .any(|t| t.port == 0 || !PATHS.contains(&t.path.as_str()))
+    {
         return Err("检测目标无效。".into());
     }
     let handles: Vec<_> = targets
@@ -45,14 +49,24 @@ pub async fn probe_local_models(targets: Vec<ProbeTarget>) -> Result<Vec<Probe>,
         .map(|target| std::thread::spawn(move || probe(target.port, &target.path)))
         .collect();
     tauri::async_runtime::spawn_blocking(move || {
-        handles.into_iter().map(|handle| handle.join().map_err(|_| "检测失败。".to_string())).collect()
+        handles
+            .into_iter()
+            .map(|handle| handle.join().map_err(|_| "检测失败。".to_string()))
+            .collect()
     })
     .await
     .map_err(|_| "检测失败。".to_string())?
 }
 
 fn probe(port: u16, path: &str) -> Probe {
-    let mut result = Probe { port, path: path.into(), reachable: false, status: None, body: None, error: None };
+    let mut result = Probe {
+        port,
+        path: path.into(),
+        reachable: false,
+        status: None,
+        body: None,
+        error: None,
+    };
     let address = SocketAddr::from(([127, 0, 0, 1], port));
     let mut stream = match TcpStream::connect_timeout(&address, CONNECT_TIMEOUT) {
         Ok(stream) => stream,
@@ -110,7 +124,14 @@ fn parse_response(raw: &[u8]) -> Option<(u16, Vec<u8>)> {
         lower.starts_with("transfer-encoding:") && lower.contains("chunked")
     });
     let body = &raw[end + 4..];
-    Some((status, if chunked { dechunk(body)? } else { body.to_vec() }))
+    Some((
+        status,
+        if chunked {
+            dechunk(body)?
+        } else {
+            body.to_vec()
+        },
+    ))
 }
 
 fn dechunk(mut body: &[u8]) -> Option<Vec<u8>> {
@@ -139,11 +160,17 @@ mod tests {
     #[test]
     fn reads_plain_and_chunked_responses() {
         let plain = b"HTTP/1.1 200 OK\r\nContent-Type: application/json\r\n\r\n{\"data\":[]}";
-        assert_eq!(parse_response(plain), Some((200, b"{\"data\":[]}".to_vec())));
+        assert_eq!(
+            parse_response(plain),
+            Some((200, b"{\"data\":[]}".to_vec()))
+        );
         let chunked = b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n4\r\n{\"a\"\r\n3\r\n:1}\r\n0\r\n\r\n";
         assert_eq!(parse_response(chunked), Some((200, b"{\"a\":1}".to_vec())));
         assert_eq!(parse_response(b"SSH-2.0-OpenSSH\r\n\r\n"), None);
-        assert_eq!(parse_response(b"HTTP/1.1 404 Not Found\r\n\r\n"), Some((404, Vec::new())));
+        assert_eq!(
+            parse_response(b"HTTP/1.1 404 Not Found\r\n\r\n"),
+            Some((404, Vec::new()))
+        );
     }
 
     #[test]
@@ -155,13 +182,29 @@ mod tests {
             let mut request = [0u8; 1024];
             let read = stream.read(&mut request).unwrap();
             assert!(String::from_utf8_lossy(&request[..read]).starts_with("GET /api/tags HTTP/1.1"));
-            stream.write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n{\"models\":[]}").unwrap();
+            stream
+                .write_all(b"HTTP/1.1 200 OK\r\nContent-Length: 13\r\n\r\n{\"models\":[]}")
+                .unwrap();
         });
         let found = probe(port, "/api/tags");
         server.join().unwrap();
-        assert_eq!(found, Probe { port, path: "/api/tags".into(), reachable: true, status: Some(200), body: Some("{\"models\":[]}".into()), error: None });
+        assert_eq!(
+            found,
+            Probe {
+                port,
+                path: "/api/tags".into(),
+                reachable: true,
+                status: Some(200),
+                body: Some("{\"models\":[]}".into()),
+                error: None
+            }
+        );
 
-        let closed = TcpListener::bind("127.0.0.1:0").unwrap().local_addr().unwrap().port();
+        let closed = TcpListener::bind("127.0.0.1:0")
+            .unwrap()
+            .local_addr()
+            .unwrap()
+            .port();
         assert!(!probe(closed, "/v1/models").reachable);
     }
 }

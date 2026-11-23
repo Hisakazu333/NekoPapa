@@ -8,16 +8,34 @@ use std::process::Command;
 
 fn opener(url: &str) -> Command {
     #[cfg(target_os = "macos")]
-    { let mut command = Command::new("open"); command.arg(url); command }
+    {
+        let mut command = Command::new("open");
+        command.arg(url);
+        command
+    }
     #[cfg(target_os = "windows")]
-    { let mut command = Command::new("rundll32"); command.args(["url.dll,FileProtocolHandler", url]); command }
+    {
+        let mut command = Command::new("rundll32");
+        command.args(["url.dll,FileProtocolHandler", url]);
+        command
+    }
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    { let mut command = Command::new("xdg-open"); command.arg(url); command }
+    {
+        let mut command = Command::new("xdg-open");
+        command.arg(url);
+        command
+    }
 }
 
 #[tauri::command]
 pub async fn open_external_url(url: String) -> Result<(), String> {
     let url = parse_web_url(&url)?;
-    let status = opener(url.as_str()).status().map_err(|_| "无法打开系统浏览器。".to_string())?;
-    if status.success() { Ok(()) } else { Err("无法打开系统浏览器。".to_string()) }
+    let status = opener(url.as_str())
+        .status()
+        .map_err(|_| "无法打开系统浏览器。".to_string())?;
+    if status.success() {
+        Ok(())
+    } else {
+        Err("无法打开系统浏览器。".to_string())
+    }
 }

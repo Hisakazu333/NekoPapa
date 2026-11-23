@@ -31,7 +31,8 @@ pub fn read_manifest(folder: &str) -> Result<ManifestFile, String> {
         return Err("所选路径不是文件夹。".into());
     }
     let manifest = root.join(MANIFEST_FILE);
-    let resolved = fs::canonicalize(&manifest).map_err(|_| format!("文件夹里没有 {MANIFEST_FILE}。"))?;
+    let resolved =
+        fs::canonicalize(&manifest).map_err(|_| format!("文件夹里没有 {MANIFEST_FILE}。"))?;
     if resolved.parent() != Some(root.as_path()) {
         return Err(format!("{MANIFEST_FILE} 指向了文件夹以外的位置。"));
     }
@@ -46,8 +47,12 @@ pub fn read_manifest(folder: &str) -> Result<ManifestFile, String> {
     fs::File::open(&resolved)
         .and_then(|file| file.take(MAX_MANIFEST + 1).read_to_end(&mut bytes))
         .map_err(|_| format!("无法读取 {MANIFEST_FILE}。"))?;
-    let text = String::from_utf8(bytes).map_err(|_| format!("{MANIFEST_FILE} 不是 UTF-8 文本。"))?;
-    Ok(ManifestFile { folder: display(&root), text })
+    let text =
+        String::from_utf8(bytes).map_err(|_| format!("{MANIFEST_FILE} 不是 UTF-8 文本。"))?;
+    Ok(ManifestFile {
+        folder: display(&root),
+        text,
+    })
 }
 
 fn display(path: &Path) -> String {
@@ -69,7 +74,10 @@ mod tests {
         let dir = std::env::temp_dir().join(format!(
             "nekopapa-plugin-{name}-{}-{}",
             std::process::id(),
-            std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_nanos()
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap()
+                .as_nanos()
         ));
         fs::create_dir_all(&dir).unwrap();
         dir
@@ -89,21 +97,35 @@ mod tests {
     fn refuses_relative_missing_and_non_folders() {
         assert!(read_manifest("plugins/a").unwrap_err().contains("完整路径"));
         let dir = temp("missing");
-        assert!(read_manifest(&dir.to_string_lossy()).unwrap_err().contains("没有"));
+        assert!(read_manifest(&dir.to_string_lossy())
+            .unwrap_err()
+            .contains("没有"));
         fs::write(dir.join("file"), "x").unwrap();
-        assert!(read_manifest(&dir.join("file").to_string_lossy()).unwrap_err().contains("不是文件夹"));
+        assert!(read_manifest(&dir.join("file").to_string_lossy())
+            .unwrap_err()
+            .contains("不是文件夹"));
         fs::create_dir(dir.join(MANIFEST_FILE)).unwrap();
-        assert!(read_manifest(&dir.to_string_lossy()).unwrap_err().contains("不是文件"));
+        assert!(read_manifest(&dir.to_string_lossy())
+            .unwrap_err()
+            .contains("不是文件"));
         fs::remove_dir_all(dir).unwrap();
     }
 
     #[test]
     fn refuses_large_and_non_utf8_files() {
         let dir = temp("size");
-        fs::write(dir.join(MANIFEST_FILE), vec![b' '; (MAX_MANIFEST + 1) as usize]).unwrap();
-        assert!(read_manifest(&dir.to_string_lossy()).unwrap_err().contains("256 KB"));
+        fs::write(
+            dir.join(MANIFEST_FILE),
+            vec![b' '; (MAX_MANIFEST + 1) as usize],
+        )
+        .unwrap();
+        assert!(read_manifest(&dir.to_string_lossy())
+            .unwrap_err()
+            .contains("256 KB"));
         fs::write(dir.join(MANIFEST_FILE), [0xff, 0xfe, 0x00]).unwrap();
-        assert!(read_manifest(&dir.to_string_lossy()).unwrap_err().contains("UTF-8"));
+        assert!(read_manifest(&dir.to_string_lossy())
+            .unwrap_err()
+            .contains("UTF-8"));
         fs::remove_dir_all(dir).unwrap();
     }
 
@@ -114,7 +136,9 @@ mod tests {
         let outside = temp("outside");
         fs::write(outside.join("other.json"), "{}").unwrap();
         std::os::unix::fs::symlink(outside.join("other.json"), dir.join(MANIFEST_FILE)).unwrap();
-        assert!(read_manifest(&dir.to_string_lossy()).unwrap_err().contains("以外"));
+        assert!(read_manifest(&dir.to_string_lossy())
+            .unwrap_err()
+            .contains("以外"));
         fs::remove_dir_all(dir).unwrap();
         fs::remove_dir_all(outside).unwrap();
     }

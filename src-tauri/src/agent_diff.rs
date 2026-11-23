@@ -24,14 +24,29 @@ pub struct Diff {
 }
 
 fn lines(text: &str) -> Vec<&str> {
-    if text.is_empty() { Vec::new() } else { text.strip_suffix('\n').unwrap_or(text).split('\n').collect() }
+    if text.is_empty() {
+        Vec::new()
+    } else {
+        text.strip_suffix('\n')
+            .unwrap_or(text)
+            .split('\n')
+            .collect()
+    }
 }
 
 /// Each line of `old` and `new` tagged as kept, removed or added, in order.
 fn script(old: &[&str], new: &[&str]) -> Vec<(Op, usize, usize)> {
     let prefix = old.iter().zip(new).take_while(|(a, b)| a == b).count();
-    let suffix = old[prefix..].iter().rev().zip(new[prefix..].iter().rev()).take_while(|(a, b)| a == b).count();
-    let (a, b) = (&old[prefix..old.len() - suffix], &new[prefix..new.len() - suffix]);
+    let suffix = old[prefix..]
+        .iter()
+        .rev()
+        .zip(new[prefix..].iter().rev())
+        .take_while(|(a, b)| a == b)
+        .count();
+    let (a, b) = (
+        &old[prefix..old.len() - suffix],
+        &new[prefix..new.len() - suffix],
+    );
     let mut ops: Vec<(Op, usize, usize)> = (0..prefix).map(|i| (Op::Same, i, i)).collect();
     if (a.len() + 1) * (b.len() + 1) <= MAX_TABLE {
         // table[i][j] = longest common subsequence of a[i..] and b[j..].
@@ -39,7 +54,11 @@ fn script(old: &[&str], new: &[&str]) -> Vec<(Op, usize, usize)> {
         let mut table = vec![0u32; (a.len() + 1) * width];
         for i in (0..a.len()).rev() {
             for j in (0..b.len()).rev() {
-                table[i * width + j] = if a[i] == b[j] { table[(i + 1) * width + j + 1] + 1 } else { table[(i + 1) * width + j].max(table[i * width + j + 1]) };
+                table[i * width + j] = if a[i] == b[j] {
+                    table[(i + 1) * width + j + 1] + 1
+                } else {
+                    table[(i + 1) * width + j].max(table[i * width + j + 1])
+                };
             }
         }
         let (mut i, mut j) = (0, 0);
@@ -48,7 +67,9 @@ fn script(old: &[&str], new: &[&str]) -> Vec<(Op, usize, usize)> {
                 ops.push((Op::Same, prefix + i, prefix + j));
                 i += 1;
                 j += 1;
-            } else if i < a.len() && (j == b.len() || table[(i + 1) * width + j] >= table[i * width + j + 1]) {
+            } else if i < a.len()
+                && (j == b.len() || table[(i + 1) * width + j] >= table[i * width + j + 1])
+            {
                 // Removed lines come before the lines that replace them.
                 ops.push((Op::Del, prefix + i, prefix + j));
                 i += 1;
@@ -69,8 +90,17 @@ fn script(old: &[&str], new: &[&str]) -> Vec<(Op, usize, usize)> {
 pub fn unified(old_text: &str, new_text: &str) -> Diff {
     let (old, new) = (lines(old_text), lines(new_text));
     let ops = script(&old, &new);
-    let changed: Vec<usize> = ops.iter().enumerate().filter(|(_, op)| op.0 != Op::Same).map(|(index, _)| index).collect();
-    let mut diff = Diff { text: String::new(), added: 0, removed: 0 };
+    let changed: Vec<usize> = ops
+        .iter()
+        .enumerate()
+        .filter(|(_, op)| op.0 != Op::Same)
+        .map(|(index, _)| index)
+        .collect();
+    let mut diff = Diff {
+        text: String::new(),
+        added: 0,
+        removed: 0,
+    };
     let mut index = 0;
     while index < changed.len() {
         // A hunk runs from CONTEXT lines before a change to CONTEXT after the
@@ -84,9 +114,19 @@ pub fn unified(old_text: &str, new_text: &str) -> Diff {
         let hunk = &ops[start..end];
         let old_count = hunk.iter().filter(|op| op.0 != Op::Add).count();
         let new_count = hunk.iter().filter(|op| op.0 != Op::Del).count();
-        let old_start = if old_count == 0 { hunk[0].1 } else { hunk[0].1 + 1 };
-        let new_start = if new_count == 0 { hunk[0].2 } else { hunk[0].2 + 1 };
-        diff.text.push_str(&format!("@@ -{old_start},{old_count} +{new_start},{new_count} @@\n"));
+        let old_start = if old_count == 0 {
+            hunk[0].1
+        } else {
+            hunk[0].1 + 1
+        };
+        let new_start = if new_count == 0 {
+            hunk[0].2
+        } else {
+            hunk[0].2 + 1
+        };
+        diff.text.push_str(&format!(
+            "@@ -{old_start},{old_count} +{new_start},{new_count} @@\n"
+        ));
         for &(op, i, j) in hunk {
             match op {
                 Op::Same => diff.text.push_str(&format!(" {}\n", old[i])),
@@ -112,7 +152,10 @@ mod tests {
     #[test]
     fn marks_changed_lines_with_context() {
         let diff = unified("a\nb\nc\nd\ne\nf\ng\nh\n", "a\nb\nc\nD\ne\nf\ng\nh\n");
-        assert_eq!(diff.text, "@@ -1,7 +1,7 @@\n a\n b\n c\n-d\n+D\n e\n f\n g\n");
+        assert_eq!(
+            diff.text,
+            "@@ -1,7 +1,7 @@\n a\n b\n c\n-d\n+D\n e\n f\n g\n"
+        );
         assert_eq!((diff.added, diff.removed), (1, 1));
     }
 
@@ -128,7 +171,13 @@ mod tests {
     #[test]
     fn splits_distant_changes_into_hunks() {
         let old: String = (1..=20).map(|n| format!("{n}\n")).collect();
-        let new: String = (1..=20).map(|n| match n { 2 => "two\n".to_string(), 19 => "nineteen\n".to_string(), _ => format!("{n}\n") }).collect();
+        let new: String = (1..=20)
+            .map(|n| match n {
+                2 => "two\n".to_string(),
+                19 => "nineteen\n".to_string(),
+                _ => format!("{n}\n"),
+            })
+            .collect();
         let diff = unified(&old, &new);
         assert_eq!(diff.text.matches("@@ -").count(), 2);
         assert_eq!((diff.added, diff.removed), (2, 2));
