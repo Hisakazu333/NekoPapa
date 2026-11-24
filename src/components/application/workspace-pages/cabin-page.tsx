@@ -14,7 +14,7 @@ export function CabinPage({ onNavigate }: { onNavigate?: () => void }) {
   const companionButton = useRef<HTMLButtonElement>(null);
   const [preview, setPreview] = useState<{ userId: number; key: string } | null>(null);
   const selected = preview && preview.userId === profile?.userId ? preview.key : null;
-  return <section ref={cabin} tabIndex={-1} aria-label="小屋" className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default outline-none">
+  return <section ref={cabin} tabIndex={-1} aria-label="小屋" className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default outline-none">
     <header className="flex h-12 shrink-0 items-center gap-2 px-4">
       {onNavigate && <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} className="lg:hidden" />}
       <HouseIcon className="size-4 text-foreground-icon-secondary" aria-hidden /><h1 className="text-body-medium text-text-primary">小屋</h1>

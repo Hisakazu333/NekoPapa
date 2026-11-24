@@ -30,9 +30,10 @@ import { useSidebarCollapse } from "./use-sidebar-collapse";
  *   expanded  → Board UI → dashboard 1 → Sidebar (node 3731:2934)
  *   collapsed → Board UI → Sidebar (node 3768:3382)
  *
- * Floating sidebar panel. Expanded: 280px wide, p 12, radius/3xl (24px),
- * white 1px border, "Background/Sidebar Elevation" shadow, bg
- * background/secondary. Collapsed: 60px wide (36px icon items + 12px
+ * Docked, the sidebar is the window's flat left column on the frame's
+ * background/secondary (no card, border or shadow). Floating copies (hover
+ * peek, narrow drawer) keep the card: radius/3xl, white 1px border, "Background/
+ * Sidebar Elevation" shadow. Expanded: 280px wide, p 12. Collapsed: 60px wide (36px icon items + 12px
  * padding); collapse button sits centered above the workspace avatar, quick
  * search becomes a 36px neutral-200 square, nav items become icon-only
  * squares, and the account avatar stays visible.
@@ -173,12 +174,15 @@ export function DashboardSidebar({
         "flex h-full shrink-0 flex-col justify-between overflow-hidden",
         flat
           ? "bg-background-full"
-          : "rounded-3xl border border-border-button-white bg-background-secondary-default shadow-sidebar",
+          // Floating copies (peek, narrow drawer) stay cards; the docked sidebar
+          // is the window's own flat column, sharing the frame's background.
+          : mobile ? "rounded-3xl border border-border-button-white bg-background-secondary-default shadow-sidebar" : "bg-transparent",
         "transition-[width] duration-300 ease-in-out",
-        // Collapsed rail keeps the 60px spec: 1px border + 11px padding on each
-        // side leaves an exactly 36px column so the w-9 (36px) icon items center.
+        // Collapsed rail keeps the 60px spec: 12px padding on each side (the
+        // floating copies spend 1px of it on their border) leaves a 36px column
+        // so the w-9 (36px) icon items center.
         collapsed
-          ? "w-[60px] px-[11px] py-3"
+          ? cx("w-[60px] py-3", mobile ? "px-[11px]" : "px-3")
           : fluid
             ? "w-full p-3 lg:w-[280px]"
             : "w-[280px] p-3",
@@ -316,7 +320,7 @@ export function DashboardSidebar({
           {!flat && (searchActive && !collapsed ? (
             <div
               ref={searchFieldRef}
-              className="flex w-full items-center gap-2 rounded-full bg-background-tertiary-default py-2 pe-2.5 ps-2 ring-2 ring-inset ring-border-button-active transition-[background-color,box-shadow] duration-[var(--input-transition-ms)] ease"
+              className="flex h-9 w-full items-center gap-2 rounded-2lg bg-background-primary-default pe-1.5 ps-2 ring-1 ring-inset ring-border-button-active transition-[background-color,box-shadow] duration-[var(--input-transition-ms)] ease"
             >
               <SearchIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
               <input
@@ -349,22 +353,21 @@ export function DashboardSidebar({
               title={collapsed ? "快速搜索" : undefined}
               onClick={activateSearch}
               className={cx(
-                "flex cursor-pointer items-center gap-2 p-2 hover:bg-background-tertiary-hover/55",
-                "transition-[width,border-radius,background-color] duration-300 ease-in-out",
-                collapsed
-                  ? "w-9 rounded-full bg-background-tertiary-default"
-                  : "w-full rounded-full bg-background-tertiary-default",
+                "group/search flex h-9 cursor-pointer items-center gap-2 rounded-2lg px-2 hover:bg-background-secondary-hover",
+                "transition-[width,background-color] duration-300 ease-in-out",
+                collapsed ? "w-9" : "w-full",
               )}
             >
               <span className={cx("flex min-w-0 items-center gap-2", !collapsed && "flex-1")}>
                 <SearchIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
                 <Collapsible collapsed={collapsed}>
-                  <span className="text-body-medium whitespace-nowrap text-text-secondary">
+                  <span className="text-body-medium whitespace-nowrap text-text-primary">
                     快速搜索
                   </span>
                 </Collapsible>
               </span>
-              <Collapsible collapsed={collapsed}>
+              {/* The shortcut is a hint, shown when the row is pointed at. */}
+              <Collapsible collapsed={collapsed} className="opacity-0 transition-opacity group-hover/search:opacity-100 group-focus-visible/search:opacity-100">
                 <Kbd>{sidebarQuickSearchShortcut(typeof navigator === "undefined" ? "" : navigator.platform)}</Kbd>
               </Collapsible>
             </button>
@@ -378,7 +381,7 @@ export function DashboardSidebar({
             <DashboardSidebarSearchResults entries={searchResults} activeIndex={activeSearchIndex} onSelect={chooseSearchResult} />
           ) : <p className="px-2 py-2 text-body-2-regular text-text-tertiary">搜索会话内容、联系人名称和设置</p> : (
             <>
-              <nav className={cx("flex w-full flex-col gap-1.5", !collapsed && "px-0.5")}>
+              <nav className={cx("-mt-2 flex w-full flex-col gap-0.5", !collapsed && "px-0.5")}>
                 <NavRows items={items} query={normalizedQuery} selected={selected} collapsed={collapsed} />
                 {more && <SidebarMoreMenu {...more} collapsed={collapsed} />}
               </nav>

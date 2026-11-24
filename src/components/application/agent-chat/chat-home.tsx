@@ -1,5 +1,5 @@
 import { useId, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
-import { ArrowUpIcon, SparkleIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, PlugIcon, RefreshCwIcon, SearchIcon } from "@/components/foundations/icons/app-icons";
+import { ArrowUpIcon, SparkleIcon, BookOpenIcon, CompassIcon, LightbulbIcon, ListChecksIcon, MessageCircleHeartIcon, PencilIcon, RefreshCwIcon } from "@/components/foundations/icons/app-icons";
 import type { ChatContact } from "@/app/contacts/contacts-store";
 import type { OpenWorkspaceSettings } from "@/components/application/settings/workspace-settings";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
@@ -12,6 +12,7 @@ import { ComposerModeMenu } from "../chat-composer/composer-mode-menu";
 import { ComposerPermissionMenu } from "../chat-composer/composer-permission-menu";
 import { useSendKey } from "@/hooks/use-send-key";
 import { homeGreeting } from "./chat-home-greeting";
+import { HomeSendStatus } from "./home-send-status";
 import "@/styles/chat-home.css";
 
 const modes = [
@@ -22,10 +23,14 @@ const modes = [
   { id: "code", label: "编程", prefix: "请协助分析以下编程问题，并说明实现思路：\n" },
 ] as const;
 const shortcuts = [
-  { label: "解释", icon: LightbulbIcon, mode: "explain", prompt: "一个我正在学习的概念，并举一个生活中的例子。" },
-  { label: "写作", icon: PencilIcon, mode: "write", prompt: "我想表达的想法是：" },
-  { label: "计划", icon: ListChecksIcon, mode: "plan", prompt: "我想完成的目标是：" },
-  { label: "研究", icon: BookOpenIcon, mode: "chat", prompt: "帮我研究一个问题：先梳理关键概念、需要验证的事实，以及可以继续查找的资料。问题是：" },
+  { label: "解释一个概念，配上生活中的例子", icon: LightbulbIcon, mode: "explain", prompt: "一个我正在学习的概念，并举一个生活中的例子。" },
+  { label: "帮我把想法写得更清楚自然", icon: PencilIcon, mode: "write", prompt: "我想表达的想法是：" },
+  { label: "把一个目标整理成可执行的计划", icon: ListChecksIcon, mode: "plan", prompt: "我想完成的目标是：" },
+  { label: "研究一个问题，列出要验证的事实", icon: BookOpenIcon, mode: "chat", prompt: "帮我研究一个问题：先梳理关键概念、需要验证的事实，以及可以继续查找的资料。问题是：" },
+] as const;
+const officialIdeas = [
+  { label: "聊聊今天发生的事", icon: MessageCircleHeartIcon, prompt: "今天想和你聊聊发生的事。" },
+  { label: "陪我放松一下", icon: CompassIcon, prompt: "陪我放松一下，聊点轻松的话题吧。" },
 ] as const;
 
 const ideas = [
@@ -106,9 +111,10 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
             aria-describedby={disabled ? `${inputId}-connection` : undefined}
           />
           <div className="chat-home__composer-actions">
-            <div className="flex flex-wrap items-center gap-1">
-              <ComposerAddMenu state={composer} official={official} />
-              {!selectedContact && <ComposerPermissionMenu state={composer} />}
+            <div className="chat-home__composer-tools">
+              <ComposerAddMenu state={composer} official={official} onOpenTools={official ? undefined : () => onOpenSettings("tools")} />
+              {/* Permission only matters once Agent can act in a project folder. */}
+              {!selectedContact && project && <ComposerPermissionMenu state={composer} />}
             </div>
             <div className="chat-home__send-actions">
               {!official && <ComposerModelMenu state={composer} onConfigure={(target) => onOpenSettings("model", target)} />}
@@ -121,12 +127,10 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
 
         <div className="chat-home__toolbar">
           <div className="chat-home__toolbar-group">
+            {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} />}
             {selectedContact && <ComposerModeMenu state={composer} context={selectedContact.kind} className="chat-home__toolbar-button" />}
-            <button type="button" className="chat-home__icon-button" aria-label="填入灵感提示" title="填入灵感提示" onClick={fillIdea}><SparkleIcon aria-hidden /></button>
-            <button type="button" className="chat-home__icon-button" aria-label="工具配置" onClick={() => onOpenSettings("tools")}><PlugIcon aria-hidden /></button>
           </div>
           <div className="chat-home__toolbar-group">
-            {!selectedContact && <HomeProjectMenu value={project} onChange={onProjectChange} />}
             <HomeContactsMenu onSelectContact={onSelectContact} onClearContact={onClearContact} selectedContact={selectedContact} />
           </div>
         </div>
@@ -134,32 +138,33 @@ export function ChatHome({ value, onValueChange, onSubmit, disabled, sendBlocked
 
       {official && <p className="mt-3 text-center text-caption-1-regular text-text-tertiary">官方人物使用固定设定，仅用于单人陪伴聊天和学习。学习模式尚未接入。</p>}
 
-      <div className="chat-home__suggestions" aria-label="快捷提示">
-        {official ? <>
-          <button type="button" className="chat-home__suggestion" onClick={() => fill("今天想和你聊聊发生的事。")}><MessageCircleHeartIcon aria-hidden /><span>聊聊今天</span></button>
-          <button type="button" className="chat-home__suggestion" onClick={() => fill("陪我放松一下，聊点轻松的话题吧。")}><CompassIcon aria-hidden /><span>一起放松</span></button>
-        </> : shortcuts.map(({ label, icon: Icon, mode: modeId, prompt }) => (
-          <button type="button" key={label} className="chat-home__suggestion" onClick={() => {
-            const next = modes.find((entry) => entry.id === modeId)!;
-            fill(next.prefix + prompt);
-          }}><Icon aria-hidden /><span>{label}</span></button>
-        ))}
-      </div>
+      {disabled && <HomeSendStatus id={`${inputId}-connection`} reason={sendBlockedReason} official={official}
+        canConfigure={!composer.usesProfile} onConfigure={() => onOpenSettings("model")} onLeaveContact={onClearContact} />}
 
-      <div className="chat-home__ideas">
-        <CompassIcon className="chat-home__idea-icon" aria-hidden />
-        <span className="chat-home__idea-label">给你一点灵感</span>
-        <button type="button" className="chat-home__idea-prompt" onClick={fillIdea}>{ideas[ideaIndex]}</button>
-        <button type="button" className="chat-home__icon-button" aria-label="换一个灵感" onClick={() => setIdeaIndex((current) => (current + 1) % ideas.length)}><RefreshCwIcon aria-hidden /></button>
+      <div className="chat-home__ideas" role="group" aria-labelledby={`${titleId}-ideas`}>
+        <div className="chat-home__ideas-header">
+          <span id={`${titleId}-ideas`}>给你一点灵感</span>
+        </div>
+        {official
+          ? officialIdeas.map(({ label, icon: Icon, prompt }) => <button type="button" key={label} className="chat-home__idea" onClick={() => fill(prompt)}>
+            <span className="chat-home__idea-icon"><Icon aria-hidden /></span><span className="chat-home__idea-text">{label}</span>
+          </button>)
+          : <>
+            {shortcuts.map(({ label, icon: Icon, mode: modeId, prompt }) => <button type="button" key={label} className="chat-home__idea" onClick={() => {
+              const next = modes.find((entry) => entry.id === modeId)!;
+              fill(next.prefix + prompt);
+            }}>
+              <span className="chat-home__idea-icon"><Icon aria-hidden /></span><span className="chat-home__idea-text">{label}</span>
+            </button>)}
+            <div className="flex items-center">
+              <button type="button" className="chat-home__idea" onClick={fillIdea}>
+                <span className="chat-home__idea-icon"><SparkleIcon aria-hidden /></span><span className="chat-home__idea-text">{ideas[ideaIndex]}</span>
+              </button>
+              <button type="button" className="chat-home__icon-button" aria-label="换一个灵感" title="换一个灵感"
+                onClick={() => setIdeaIndex((current) => (current + 1) % ideas.length)}><RefreshCwIcon aria-hidden /></button>
+            </div>
+          </>}
       </div>
-
-      {disabled && (
-        <p id={`${inputId}-connection`} role="status" className="chat-home__connection">
-          {sendBlockedReason ?? "连接模型后即可发送，你可以先写下想法。"}
-          {official && <button type="button" onClick={onClearContact}>返回工作台对话</button>}
-          {!official && !composer.usesProfile && <button type="button" onClick={() => onOpenSettings("model")}><SearchIcon aria-hidden />配置模型</button>}
-        </p>
-      )}
     </section>
   );
 }

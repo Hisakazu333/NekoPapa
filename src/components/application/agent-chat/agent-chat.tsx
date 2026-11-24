@@ -473,7 +473,7 @@ export function AgentChat({
             onToggleUnread: toggleUnread, onDelete: deleteThread, onExport: exportThreads, disabled: busy }}
           usage={usage} />
       }>
-        <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
+        <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
             {workspaceHeader}
             <AgentToolActionsContext value={agent.actions}><ChatConversation scrollRef={scrollRef} conversationId={activeId} active={page === "chat" && !placement.browserTabActive} messages={messages} messageAt={messageAt} busy={busy}
               showThinking={showThinking} error={error} historyError={historyError} onRetryHistory={retryHistory}

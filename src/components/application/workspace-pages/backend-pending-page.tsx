@@ -14,7 +14,7 @@ import { workspacePageContent } from "./workspace-page-content";
 export function BackendPendingPage({ page, onNavigate }: { page: PendingWorkspacePage; onNavigate?: () => void }) {
   const { title, icon: Icon, intro, statusTitle, status, planned } = workspacePageContent[page];
   const headingId = `${page}-planned-heading`;
-  return <section aria-label={title} className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
+  return <section aria-label={title} className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
     <header className="flex h-12 shrink-0 items-center gap-2 px-3 lg:hidden">
       {onNavigate && <ToolbarIconButton icon={MenuIcon} label="打开导航" onPress={onNavigate} />}
       <span className="text-body-medium text-text-primary">{title}</span>

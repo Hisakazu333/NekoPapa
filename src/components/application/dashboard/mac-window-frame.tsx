@@ -69,7 +69,7 @@ export function MacWindowFrame({
   const fullscreen = useMacWindowFullscreen(macWindow);
   const height = contained ? "h-[var(--template-preview-height)]" : "h-dvh";
   const inset = dockInset && "pb-[72px]";
-  const frameClass = cx("relative flex w-full gap-4 overflow-hidden bg-background-full p-3", inset, height, className);
+  const frameClass = cx("relative flex w-full gap-2 overflow-hidden bg-background-secondary-default p-2", inset, height, className);
 
   const navigation = toolbarNavigation && (
     <div role="group" className="flex shrink-0 items-center gap-0.5" aria-label="工作区导航">
@@ -96,18 +96,18 @@ export function MacWindowFrame({
 
   if (!macWindow) {
     return (
-      <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-full", className)}>
+      <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-secondary-default", className)}>
         <header aria-label="工作区工具栏" className="flex h-10 shrink-0 items-center gap-3 px-2">
           {navigation}
           {titlebarContent && <div className="flex min-w-0 flex-1 items-center">{titlebarContent}</div>}
         </header>
-        <div className={cx("relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3", inset)}>{children}</div>
+        <div className={cx("relative flex min-h-0 w-full flex-1 gap-2 overflow-hidden px-2 pb-2", inset)}>{children}</div>
       </div>
     );
   }
 
   return (
-    <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-full", className)}>
+    <div className={cx("flex h-dvh w-full flex-col overflow-hidden bg-background-secondary-default", className)}>
       <header
         aria-label="NekoPapa window title bar"
         className={cx("flex h-10 shrink-0 select-none items-center text-text-primary", fullscreen ? "ps-2" : "ps-[88px]")}
@@ -119,7 +119,7 @@ export function MacWindowFrame({
           <div data-tauri-drag-region className="h-full min-w-0 flex-1" />
         )}
       </header>
-      <div className={cx("relative flex min-h-0 w-full flex-1 gap-4 overflow-hidden p-3", inset)}>{children}</div>
+      <div className={cx("relative flex min-h-0 w-full flex-1 gap-2 overflow-hidden px-2 pb-2", inset)}>{children}</div>
     </div>
   );
 }

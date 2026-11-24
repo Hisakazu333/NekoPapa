@@ -140,7 +140,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
 
   return <section ref={rootRef} aria-label="联系人聊天" style={{ "--contacts-list-width": `${listWidth}px` } as CSSProperties} className="flex h-full min-h-0 min-w-0 flex-1">
     <div className={cx(
-      "min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-3xl border border-border-button-white bg-background-secondary-default shadow-sidebar md:w-[var(--contacts-list-width)]",
+      "min-h-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default md:w-[var(--contacts-list-width)]",
       selectedId ? "hidden md:flex" : "flex",
     )}>
       <header className="flex shrink-0 flex-col gap-4 p-4 pb-2">
@@ -197,7 +197,7 @@ export function ContactsWorkspace({ onSelect, selectedId, disabled = false, prev
     <ResizableDivider label="调整联系人列表宽度" value={listWidth} min={220} max={maxWidth} direction="left" preferredValue={preferredWidth}
       onResize={setPreferredWidth} onReset={() => setPreferredWidth(null)} controls={paneId} className="hidden md:flex" />
     <div ref={chatPane} id={paneId} tabIndex={-1} role="region" aria-label={selected ? `与${selected.name}对话` : "联系人对话"} className={cx(
-      "min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-3xl bg-background-secondary-default outline-none",
+      "min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default outline-none",
       selectedId ? "flex" : "hidden md:flex",
     )}>
       {children ?? <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-6 text-center">

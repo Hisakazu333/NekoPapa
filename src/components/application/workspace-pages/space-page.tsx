@@ -32,7 +32,7 @@ export function SpacePage({ onNavigate }: { onNavigate?: () => void }) {
   const { label } = spaceCategories[category];
   const empty = spaceEmptyState(category, scope);
 
-  return <section aria-label="空间" className="relative flex h-full min-w-0 flex-1 overflow-hidden rounded-3xl bg-background-secondary-default">
+  return <section aria-label="空间" className="relative flex h-full min-w-0 flex-1 overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
     <aside aria-label="空间分类" className="hidden w-52 shrink-0 flex-col gap-1 border-e border-separator-border p-3 md:flex">
       <h1 className="px-2 pb-2 pt-1 text-title-3-medium text-text-primary">空间</h1>
       <nav aria-label="分类" className="flex flex-col gap-0.5">

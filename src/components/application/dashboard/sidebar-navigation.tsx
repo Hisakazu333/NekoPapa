@@ -56,24 +56,23 @@ function NavItem({
       aria-label={label}
       title={collapsed ? label : undefined}
       className={cx(
-        "flex items-center justify-between overflow-hidden rounded-2lg p-2",
+        // Plain rows on the window's own column: the current page is a quiet
+        // neutral fill, not a coloured pill.
+        "flex h-9 items-center justify-between overflow-hidden rounded-2lg px-2",
         "transition-[width,background-color] duration-300 ease-in-out",
         collapsed ? "w-9" : "w-full",
-        isSelected
-          ? "bg-linear-to-b from-accent-500 to-accent-600 shadow-nav-selected"
-          : "hover:bg-background-secondary-hover",
+        isSelected ? "bg-background-tertiary-default" : "hover:bg-background-secondary-hover",
       )}
     >
       <span className="flex min-w-0 items-center gap-2">
         <Icon
-          className={cx("size-5 shrink-0", isSelected ? "text-white" : "text-foreground-icon-secondary")}
+          className={cx("size-5 shrink-0", isSelected ? "text-foreground-icon-primary" : "text-foreground-icon-secondary")}
           aria-hidden
         />
         <Collapsible collapsed={collapsed}>
           <span
             className={cx(
-              "text-body-medium whitespace-nowrap",
-              isSelected ? "text-white" : "text-text-secondary",
+              "text-body-medium whitespace-nowrap text-text-primary",
             )}
           >
             {label}

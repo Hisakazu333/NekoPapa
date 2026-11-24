@@ -78,7 +78,7 @@ export function ChatSidePanel({ project, onClose, view, onSelectView, usage, mes
   }, [hiddenOpen, missing, onSelectView]);
 
   const frame = VIEW_TITLES[view];
-  return <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
+  return <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
     {tool && <ChatToolPanel tool={tool} project={project} messages={messages} messageAt={messageAt} scrollRef={scrollRef} onClose={onClose} />}
     {pluginView && <ToolPanelFrame title={pluginView.label} icon={pluginIcon(pluginView.plugin!.icon)} onClose={onClose}>
       <div className="flex min-h-0 flex-1 flex-col p-3"><PluginViewPanel entry={pluginView} /></div>

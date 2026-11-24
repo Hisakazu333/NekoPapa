@@ -41,13 +41,13 @@ export function SidebarMoreMenu({ entries, collapsed, notice, onTogglePin }: {
   return <PopoverTrigger isOpen={isOpen} onOpenChange={setIsOpen}>
     <AriaButton aria-label="更多" onHoverStart={(event) => hover(true, event.pointerType)} onHoverEnd={(event) => hover(false, event.pointerType)}
       onPressStart={(event) => { pressed.current = { with: event.pointerType, at: Date.now() }; }} className={cx(
-      "flex items-center overflow-hidden rounded-2lg p-2 text-start outline-none transition-[width,background-color] duration-300 ease-in-out",
+      "flex h-9 items-center overflow-hidden rounded-2lg px-2 text-start outline-none transition-[width,background-color] duration-300 ease-in-out",
       "hover:bg-background-secondary-hover focus-visible:ring-2 focus-visible:ring-border-focus-ring",
       collapsed ? "w-9" : "w-full", isOpen && "bg-background-secondary-hover",
     )}>
       <span className="flex min-w-0 items-center gap-2">
         <EllipsisIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden />
-        <Collapsible collapsed={collapsed}><span className="text-body-medium whitespace-nowrap text-text-secondary">更多</span></Collapsible>
+        <Collapsible collapsed={collapsed}><span className="text-body-medium whitespace-nowrap text-text-primary">更多</span></Collapsible>
       </span>
     </AriaButton>
     <Popover aria-label="更多" placement={collapsed ? "end top" : "bottom start"} className="w-[248px] p-0" dialogClassName="p-0">

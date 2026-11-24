@@ -82,13 +82,13 @@
 }
 
 .chat-home__composer-actions,
+.chat-home__composer-tools,
 .chat-home__send-actions,
 .chat-home__toolbar,
 .chat-home__toolbar-group,
 .chat-home__toolbar-button,
-.chat-home__suggestion,
-.chat-home__ideas,
-.chat-home__connection button {
+.chat-home__idea,
+.chat-home__ideas-header {
   display: flex;
   align-items: center;
 }
@@ -96,6 +96,12 @@
 .chat-home__composer-actions,
 .chat-home__toolbar {
   justify-content: space-between;
+}
+
+.chat-home__composer-tools {
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .chat-home__composer-actions {
@@ -134,7 +140,6 @@
 
 .chat-home__icon-button:hover,
 .chat-home__toolbar-button:hover,
-.chat-home__suggestion:hover,
 .chat-home__model-button:hover {
   background: var(--color-background-secondary-hover);
   color: var(--color-text-primary);
@@ -142,7 +147,6 @@
 
 .chat-home__icon-button svg,
 .chat-home__send-button svg,
-.chat-home__suggestion svg,
 .chat-home__toolbar-button > svg {
   width: 19px;
   height: 19px;
@@ -183,21 +187,6 @@
   color: var(--color-text-tertiary);
 }
 
-.chat-home__toolbar {
-  min-height: 65px;
-  flex-wrap: wrap;
-  gap: 6px 16px;
-  margin-top: -16px;
-  padding: 21px 16px 8px;
-  border: 1px solid var(--color-border-button-default);
-  border-radius: 0 0 27px 27px;
-  background: color-mix(in srgb, var(--color-background-secondary-default) 55%, var(--color-background-primary-default));
-}
-
-.chat-home__toolbar-group {
-  gap: 8px;
-}
-
 .chat-home__toolbar-button {
   gap: 7px;
   padding: 6px 7px;
@@ -205,7 +194,7 @@
   border-radius: 8px;
   background: transparent;
   color: var(--color-text-secondary);
-  font-size: 14px !important;
+  font-size: 13px !important;
   white-space: nowrap;
 }
 
@@ -215,75 +204,84 @@
   color: var(--color-text-tertiary);
 }
 
-.chat-home__suggestions {
-  display: flex;
-  justify-content: center;
+/* The strip under the composer: where the conversation works and who
+   answers, as in a desktop assistant's "project or folder" row. */
+.chat-home__toolbar {
+  min-height: 61px;
   flex-wrap: wrap;
-  gap: 12px 24px;
-  margin-top: 21px;
+  gap: 6px 16px;
+  margin-top: -16px;
+  padding: 21px 12px 6px;
+  border: 1px solid var(--color-border-button-default);
+  border-top: 0;
+  border-radius: 0 0 27px 27px;
+  background: var(--color-background-secondary-default);
 }
 
-.chat-home__suggestion {
-  gap: 8px;
-  padding: 7px 8px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
-  color: var(--color-text-secondary);
-  font-size: 15px !important;
-}
-
-.chat-home__ideas {
-  justify-content: center;
-  gap: 8px;
-  margin-top: 8px;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  line-height: 1.7;
-}
-
-.chat-home__idea-label {
-  flex-shrink: 0;
-  color: var(--color-text-tertiary);
-}
-
-.chat-home__idea-prompt {
+.chat-home__toolbar-group {
   min-width: 0;
-  padding: 0;
+  gap: 4px;
+}
+
+/* One vertical list of starting points, like "Ideas for you". */
+.chat-home__ideas {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 28px;
+  padding-inline: 18px;
+}
+
+.chat-home__ideas-header {
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+  padding-inline: 12px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+.chat-home__idea {
+  width: 100%;
+  min-width: 0;
+  gap: 14px;
+  padding: 9px 12px;
   border: 0;
+  border-radius: 12px;
   background: transparent;
-  color: inherit;
+  color: var(--color-text-primary);
+  font-size: 15px !important;
   text-align: start;
 }
 
-.chat-home__idea-prompt:hover {
-  color: var(--color-text-primary);
+.chat-home__idea:hover {
+  background: var(--color-background-secondary-hover);
 }
 
-.chat-home__connection {
-  display: flex;
+.chat-home__idea-icon {
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
-  gap: 5px;
-  margin: 15px 0 0;
-  color: var(--color-text-tertiary);
-  font-size: 12px;
-  line-height: 1.7;
-}
-
-.chat-home__connection button {
-  gap: 3px;
-  padding: 0;
-  border: 0;
-  background: transparent;
+  border: 1px solid var(--color-separator-border);
+  border-radius: 9px;
+  background: var(--color-background-primary-default);
   color: var(--color-text-secondary);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
 
-.chat-home__connection svg {
-  width: 13px;
-  height: 13px;
+.chat-home__idea-icon svg {
+  width: 17px;
+  height: 17px;
+}
+
+.chat-home__idea-text {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Narrow column: the cat sits above the greeting rather than beside a
@@ -293,23 +291,16 @@
 }
 
 @container (max-width: 560px) {
-  /* Keep the toolbar on one row beside the browser: tighter spacing, and the
-     project / contact labels truncate before anything wraps. */
-  .chat-home__toolbar { flex-wrap: nowrap; gap: 4px; }
-  .chat-home__toolbar-group { min-width: 0; }
-  .chat-home__toolbar-button { min-width: 0; padding-inline: 5px; }
+  /* Beside the browser the composer's own row stays compact: project and
+     contact labels truncate before anything wraps. */
+  .chat-home__composer-tools { gap: 2px; }
+  .chat-home__toolbar-button { min-width: 0; gap: 5px; padding-inline: 5px; }
   .chat-home__toolbar-button > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
   .chat-home__composer { padding: 18px 14px 12px; border-radius: 23px; }
   .chat-home__textarea { min-height: 108px; font-size: 16px; }
-  .chat-home__toolbar { padding-inline: 10px; border-radius: 0 0 23px 23px; }
-  .chat-home__toolbar-group { gap: 2px; }
-  .chat-home__toolbar-button { gap: 5px; }
-  .chat-home__suggestions { gap: 4px 6px; margin-top: 17px; }
-  .chat-home__suggestion { padding-inline: 6px; font-size: 14px !important; }
-  .chat-home__ideas { gap: 5px; align-items: flex-start; font-size: 12px; }
-  .chat-home__idea-icon,
-  .chat-home__idea-label { display: none; }
-  .chat-home__ideas .chat-home__icon-button { width: 24px; height: 24px; }
+  .chat-home__toolbar { padding-inline: 8px; border-radius: 0 0 23px 23px; }
+  .chat-home__ideas { margin-top: 20px; padding-inline: 0; }
+  .chat-home__idea { gap: 10px; font-size: 14px !important; }
   .chat-home__model-button { max-width: 180px; }
 }
 

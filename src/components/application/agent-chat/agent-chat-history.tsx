@@ -71,7 +71,7 @@ export function AgentChatHistory({
         // way the Pro template seats its code panel: same surface and radius as
         // the chat card, separated by the workspace gap. Full height, and its
         // own padding, since it no longer borrows the chat card's.
-        "flex h-full w-[260px] shrink-0 flex-col gap-6 overflow-hidden rounded-3xl bg-background-secondary-default p-3",
+        "flex h-full w-[260px] shrink-0 flex-col gap-6 overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default p-3",
         className,
       )}
     >

@@ -189,7 +189,7 @@ export function ChatBrowserPanel({ browser, onClose, placement, onMove, onMovePo
   };
 
   const problem = notice ?? browser.error;
-  return <div className="flex h-full w-full flex-col overflow-hidden rounded-3xl bg-background-secondary-default">
+  return <div className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-separator-border bg-background-primary-default">
     <form onSubmit={go} className="relative flex shrink-0 items-center gap-1 p-2" aria-label="浏览器地址栏">
       <ToolbarIconButton icon={ArrowLeftIcon} label="后退" isDisabled={!hasPage} onPress={() => browser.run("back")} />
       <ToolbarIconButton icon={ArrowRightIcon} label="前进" isDisabled={!hasPage} onPress={() => browser.run("forward")} />

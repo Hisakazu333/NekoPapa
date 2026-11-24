@@ -1,12 +1,13 @@
 import { useId, useRef, useState } from "react";
-import { CheckIcon, ChevronLeftIcon, CrosshairIcon, FolderIcon, ListChecksIcon, PaperclipIcon, PlusIcon } from "@/components/foundations/icons/app-icons";
+import { CheckIcon, ChevronLeftIcon, CrosshairIcon, FolderIcon, ListChecksIcon, PaperclipIcon, PlugIcon, PlusIcon } from "@/components/foundations/icons/app-icons";
 import { Dropdown, DropdownGroup, DropdownItem, DropdownPopover, DropdownTrigger } from "@/components/base/dropdown/dropdown";
 import { Button } from "@/components/base/buttons/button";
 import { composerArtifacts, COMPOSER_GOAL_LIMIT, validateComposerGoal, type ComposerArtifact } from "@/app/chat/chat-composer-draft";
 import type { ChatComposerState } from "@/hooks/use-chat-composer";
 import { cx } from "@/utils/cx";
 
-export function ComposerAddMenu({ state, disabled, className, official = false }: { state: ChatComposerState; disabled?: boolean; className?: string; official?: boolean }) {
+/** `onOpenTools`: where the composer has no toolbar of its own, tool settings live here. */
+export function ComposerAddMenu({ state, disabled, className, official = false, onOpenTools }: { state: ChatComposerState; disabled?: boolean; className?: string; official?: boolean; onOpenTools?: () => void }) {
   const goalId = useId();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"main" | "files" | "goal">("main");
@@ -40,6 +41,9 @@ export function ComposerAddMenu({ state, disabled, className, official = false }
             {composerArtifacts.map((artifact) => <DropdownItem className="py-1.5" key={artifact.id} selected={state.draft.artifact === artifact.id} onSelect={() => { state.setDraft((draft) => ({ ...draft, artifact: draft.artifact === artifact.id ? null : artifact.id })); changeOpen(false); }}>
               <ArtifactIcon name={artifact.id} /><span className="min-w-0 flex-1 truncate text-body-medium">{artifact.label} <span className="text-text-secondary">{artifact.description}</span></span>{state.draft.artifact === artifact.id && <CheckIcon className="size-4 shrink-0" aria-hidden />}
             </DropdownItem>)}
+          </DropdownGroup>}
+          {onOpenTools && <DropdownGroup label="设置">
+            <DropdownItem className="py-1.5" onSelect={() => { changeOpen(false); onOpenTools(); }}><PlugIcon className="size-5 shrink-0 text-foreground-icon-secondary" aria-hidden /><span className="truncate text-body-medium">工具与连接器 <span className="text-text-secondary">管理可用工具</span></span></DropdownItem>
           </DropdownGroup>}
         </> : view === "files" ? <>
           <Back onClick={() => setView("main")} />
